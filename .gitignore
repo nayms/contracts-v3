@@ -1,0 +1,37 @@
+.env
+coverage
+coverage.json
+lcov.info
+typechain
+
+# SECURITY
+nayms_mnemonic.txt
+
+# yarn v1, node
+node_modules
+
+# Hardhat files
+cache
+artifacts
+
+# Foundry files
+forge-artifacts
+out
+
+# Project specific
+.staging
+
+# VS Code
+.vscode/configurationCache.log
+.vscode/dryrun.log
+.vscode/targets.log
+
+bin/
+.idea/.gitignore
+.idea/contracts-next.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/runConfigurations.xml
+.idea/vcs.xml
+
+broadcast/**/31337/*

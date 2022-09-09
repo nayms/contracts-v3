@@ -1,0 +1,118 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.13;
+
+import { D03ProtocolDefaults, LibHelpers, LibAdmin, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { MockAccounts } from "./utils/users/MockAccounts.sol";
+import { ERC20 } from "src/erc20/ERC20.sol";
+import { AppStorage, LibAppStorage, Modifiers } from "src/diamonds/nayms/AppStorage.sol";
+import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
+import { LibSwap } from "src/diamonds/nayms/libs/LibSwap.sol";
+import { INonfungiblePositionManager } from "./contracts/uniswap-interfaces/INonfungiblePositionManager.sol";
+import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import { INonfungibleTokenPositionDescriptor } from "./contracts/uniswap-interfaces/INonfungibleTokenPositionDescriptor.sol";
+import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import { TickMath } from "src/diamonds/nayms/libs/TickMath.sol";
+import "src/diamonds/nayms/libs/Tick.sol";
+
+// reference: https://github.com/gakonst/v3-periphery-foundry/blob/main/contracts/foundry-tests/SwapRouter.t.sol
+
+contract MockERC20 is ERC20 {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) ERC20(_name, _symbol, _decimals) {}
+
+    function mint(address to, uint256 value) public virtual {
+        _mint(to, value);
+    }
+
+    function burn(address from, uint256 value) public virtual {
+        _burn(from, value);
+    }
+}
+
+contract SwapTest is D03ProtocolDefaults, MockAccounts {
+    IUniswapV3Factory public factory;
+    INonfungiblePositionManager public nft;
+    INonfungibleTokenPositionDescriptor public nftDescriptor;
+    MockERC20 public token0;
+    MockERC20 public token1;
+
+    function setUp() public virtual override {
+        super.setUp();
+        address _factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+        factory = IUniswapV3Factory(_factory);
+        nftDescriptor = INonfungibleTokenPositionDescriptor(0x91ae842A5Ffd8d12023116943e72A606179294f3);
+
+        nft = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
+    }
+
+    //Checks the swap will fail if the amountIn is 0 or less
+    function testFailLibSwap() public {
+        vm.startPrank(account0);
+        LibSwap._swapTokensExactInput(LibConstants.DAI_CONSTANT, address(weth), 0, 3000);
+        vm.expectRevert("Amount must be larger than zero");
+        vm.stopPrank();
+    }
+
+    //Checks the swap in LibSwap works correcty
+    function testLibSwap() public {
+        vm.startPrank(account0);
+        deployTokensAndCreateLP();
+        // Expecting 98 when sending 100, because of the fee
+        uint256 amountOut = LibSwap._swapTokensExactInput(address(token0), address(nayms), 100, 3000);
+        assertEq(amountOut, 98);
+        vm.stopPrank();
+    }
+
+    function deployTokensAndCreateLP() public {
+        token0 = new MockERC20("Test1", "TEST1", 18);
+
+        token0.mint(address(account0), 100000 ether);
+
+        token0.approve(address(nft), 10000 ether);
+
+        nayms.approve(address(nft), 10000 ether);
+
+        createPool(address(token0), address(nayms), 1000, 1000);
+    }
+
+    function createPool(
+        address token0,
+        address token1,
+        uint256 amount0,
+        uint256 amount1
+    ) public {
+        if (token0 > token1) {
+            address tmp = token0;
+            token0 = token1;
+            token1 = tmp;
+        }
+        nft.createAndInitializePoolIfNecessary(token0, token1, FEE_MEDIUM, encodePriceSqrt(1, 1));
+
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: token0,
+            token1: token1,
+            fee: FEE_MEDIUM,
+            tickLower: getMinTick(TICK_MEDIUM),
+            tickUpper: getMaxTick(TICK_MEDIUM),
+            amount0Desired: 1000000,
+            amount1Desired: 100000,
+            amount0Min: 0,
+            amount1Min: 0,
+            recipient: address(account0),
+            deadline: block.timestamp + 10
+        });
+
+        TransferHelper.safeApprove(token0, 0x91ae842A5Ffd8d12023116943e72A606179294f3, 100000);
+        TransferHelper.safeApprove(token1, 0x91ae842A5Ffd8d12023116943e72A606179294f3, 100000);
+
+        // Note Call this when the pool does exist and is initialized.
+        // Note that if the pool is created but not initialized a method does not exist, i.e. the pool is assumed to be initialized.
+        // Note that the pool defined by token_A/token_B and fee tier 0.3% must already be created and initialized in order to mint
+        nft.mint(params);
+    }
+}

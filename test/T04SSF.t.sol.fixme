@@ -1,0 +1,235 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.13;
+
+import { D03ProtocolDefaults, console2, LibHelpers, LibAdmin, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { MockAccounts } from "./utils/users/MockAccounts.sol";
+import { ERC20 } from "src/erc20/ERC20.sol";
+import { AppStorage, LibAppStorage, Modifiers } from "src/diamonds/nayms/AppStorage.sol";
+import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
+import { console2 } from "forge-std/console2.sol";
+import { INonfungiblePositionManager } from "./contracts/uniswap-interfaces/INonfungiblePositionManager.sol";
+import { Entity } from "src/diamonds/nayms/AppStorage.sol";
+import { initEntity } from "./T04Entity.t.sol";
+import { LibSwap } from "src/diamonds/nayms/libs/LibSwap.sol";
+import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import { INonfungibleTokenPositionDescriptor } from "./contracts/uniswap-interfaces/INonfungibleTokenPositionDescriptor.sol";
+import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import { TickMath } from "src/diamonds/nayms/libs/TickMath.sol";
+import "src/diamonds/nayms/libs/Tick.sol";
+import "forge-std/Vm.sol";
+
+contract MockERC20 is ERC20 {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) ERC20(_name, _symbol, _decimals) {}
+
+    function mint(address to, uint256 value) public virtual {
+        _mint(to, value);
+    }
+
+    function burn(address from, uint256 value) public virtual {
+        _burn(from, value);
+    }
+}
+
+contract SSFTest is D03ProtocolDefaults, MockAccounts {
+    bytes32 internal objectContext1 = "0xe1b";
+    bytes32 internal objectContext2 = "0xe1c";
+
+    IUniswapV3Factory public factory;
+    INonfungiblePositionManager public nft;
+    INonfungibleTokenPositionDescriptor public nftDescriptor;
+
+    MockERC20 public token0;
+
+    function setUp() public virtual override {
+        super.setUp();
+
+        Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);
+        // Entity memory entity2 = initEntity(weth, 500, 1000, 1000, false);
+        nayms.createEntity(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), objectContext1, entity1);
+        // nayms.createEntity(account0Id, objectContext2, entity2);
+
+        address _factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+        factory = IUniswapV3Factory(_factory);
+        nftDescriptor = INonfungibleTokenPositionDescriptor(0x91ae842A5Ffd8d12023116943e72A606179294f3);
+
+        nft = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
+    }
+
+    //Test to make sure payRewardsToUser fails when the caller is not an admin
+    function testRevertPayRewardsToUserNotAdmin() public {
+        vm.startPrank(account1);
+        vm.expectRevert("not a system admin");
+        nayms.payRewardsToUser(LibConstants.DAI_CONSTANT, 200, account1);
+        vm.stopPrank();
+    }
+
+    //Test to make sure payRewardsToUser fails when the they send in an in-valid amount
+    function testRevertPayRewardsToUserAmountInBelowZero() public {
+        vm.startPrank(account0);
+        vm.expectRevert("Amount must be larger than zero");
+        nayms.payRewardsToUser(LibConstants.DAI_CONSTANT, 0, account1);
+        vm.stopPrank();
+    }
+
+    //Test to make sure payRewardsToUser fails when the token is the zero-address
+    function testRevertPayRewardsToUserZeroToken() public {
+        vm.startPrank(account0);
+        vm.expectRevert("Token cannot be zero address");
+        nayms.payRewardsToUser(0x0000000000000000000000000000000000000000, 200, account1);
+        vm.stopPrank();
+    }
+
+    //Checks the quoter in _estimateAmountOut works correctly
+    //Uses DAI and wETH to test the quoter
+    function testEstimateAmountOut() public {
+        vm.startPrank(account0);
+        uint256 amountOut = nayms.estimateAmountOut(LibConstants.DAI_CONSTANT, 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 10000, 0);
+        assertEq(amountOut, 8);
+        vm.stopPrank();
+    }
+
+    //Testing that a user recieves a reward correctly when DAI is used
+    //Using DAI and wETH to test the quoter and NAYMS to test the transfer
+    function testPayRewardsToUserWithDai() public {
+        vm.startPrank(account0);
+
+        nayms.approve(address(nayms), 100e18);
+        nayms.externalDeposit(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), address(nayms), 10000);
+
+        uint256 ssfStartBalance = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId), 10000);
+
+        uint256 userStartBalance = nayms.internalBalanceOf(LibHelpers._getIdForAddress(account1), naymsTokenId);
+
+        nayms.setCoefficient(1000);
+        nayms.payRewardsToUser(LibConstants.DAI_CONSTANT, 50, account1);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId), ssfStartBalance - 50);
+        assertEq(nayms.internalBalanceOf(LibHelpers._getIdForAddress(account1), naymsTokenId), userStartBalance + 50);
+
+        vm.stopPrank();
+    }
+
+    //Testing that a user recieves a reward correctly when a token other than DAI is used
+    //Using DAI and wETH to test the quoter and NAYMS to test the transfer
+    function testPayRewardsToUserWithOther() public {
+        vm.startPrank(account0);
+
+        nayms.approve(address(nayms), 100e18);
+        nayms.externalDeposit(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), address(nayms), 10000);
+
+        uint256 ssfStartBalance = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId), 10000);
+
+        uint256 userStartBalance = nayms.internalBalanceOf(LibHelpers._getIdForAddress(account1), LibHelpers._stringToBytes32(LibConstants.NAYM_TOKEN_IDENTIFIER));
+        nayms.setCoefficient(1000);
+
+        nayms.payRewardsToUser(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 50, account1);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId), ssfStartBalance - 50);
+        assertEq(nayms.internalBalanceOf(LibHelpers._getIdForAddress(account1), naymsTokenId), userStartBalance + 50);
+        vm.stopPrank();
+    }
+
+    //Testing that a the payReward function correctly calculates reward and transfers funds
+    function testPayRewardsReturnsCorrectRewardAmount() public {
+        vm.startPrank(account0);
+
+        nayms.approve(address(nayms), 100e18);
+        nayms.externalDeposit(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), address(nayms), 10000);
+
+        uint256 ssfStartBalance = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId), 10000);
+
+        uint256 userStartBalance = nayms.internalBalanceOf(LibHelpers._getIdForAddress(account1), LibHelpers._stringToBytes32(LibConstants.NAYM_TOKEN_IDENTIFIER));
+
+        nayms.setCoefficient(1000);
+
+        nayms.payReward(10, account1);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), naymsTokenId), ssfStartBalance - 10);
+        assertEq(nayms.internalBalanceOf(LibHelpers._getIdForAddress(account1), naymsTokenId), userStartBalance + 10);
+        vm.stopPrank();
+    }
+
+    function deployTokensAndCreateLP() public {
+        token0 = new MockERC20("Test1", "TEST1", 18);
+        token0.mint(address(account0), 100000 ether);
+        token0.approve(address(nft), 10000 ether);
+        token0.approve(LibHelpers._getAddressFromId(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER)), 10000);
+        token0.approve(address(nayms), 10000);
+        token0.mint(LibHelpers._getAddressFromId(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER)), 10000);
+        token0.mint(address(nayms), 10000);
+
+        nayms.approve(address(nft), 10000 ether);
+        nayms.approve(address(nayms), 100e18);
+        nayms.addSupportedExternalToken(address(token0));
+        nayms.externalDeposit(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), address(nayms), 10000);
+        nayms.externalDeposit(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), address(token0), 10000);
+
+        // uint256 amount = 10000;
+        // DAI.approve(address(nayms), amount);
+        // DAI.approve(address(account0), amount);
+        // DAI.approve(LibHelpers._getAddressFromId(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER)), amount);
+        // DAI.approve(address(this), amount);
+        // address assetAddress = address(DAI);
+        // writeTokenBalance(account0, assetAddress, amount);
+        // writeTokenBalance(LibHelpers._getAddressFromId(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER)), assetAddress, amount);
+
+        // nayms.externalDeposit(DEFAULT_ACCOUNT0_ENTITY_ID, assetAddress, 1000);
+        // nayms.externalDeposit(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER), assetAddress, 1000);
+        // nayms.addSupportedExternalToken(address(DAI));
+
+        createPool(address(token0), address(nayms), 100, 100);
+        //createPool(address(nayms), address(DAI), 100, 100);
+    }
+
+    function createPool(
+        address token0,
+        address token1,
+        uint256 amount0,
+        uint256 amount1
+    ) public {
+        if (token0 > token1) {
+            address tmp = token0;
+            token0 = token1;
+            token1 = tmp;
+        }
+
+        address pool = nft.createAndInitializePoolIfNecessary(token0, token1, FEE_MEDIUM, encodePriceSqrt(1, 1));
+
+        weth.approve(pool, amount1);
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: token0,
+            token1: token1,
+            fee: FEE_MEDIUM,
+            tickLower: getMinTick(TICK_MEDIUM),
+            tickUpper: getMaxTick(TICK_MEDIUM),
+            amount0Desired: amount0,
+            amount1Desired: amount1,
+            amount0Min: 0,
+            amount1Min: 0,
+            recipient: address(account0),
+            deadline: block.timestamp + 10
+        });
+
+        TransferHelper.safeApprove(token0, pool, 100000);
+        TransferHelper.safeApprove(token1, pool, 100000);
+
+        TransferHelper.safeApprove(token0, address(nft), 100000);
+        TransferHelper.safeApprove(token1, address(nft), 100000);
+        // Note Call this when the pool does exist and is initialized.
+        // Note that if the pool is created but not initialized a method does not exist, i.e. the pool is assumed to be initialized.
+        // Note that the pool defined by token_A/token_B and fee tier 0.3% must already be created and initialized in order to mint
+        nft.mint(params);
+    }
+}

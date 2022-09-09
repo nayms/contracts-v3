@@ -1,0 +1,1006 @@
+{
+  "abi": [
+    {
+      "inputs": [],
+      "name": "callsIntoNoDelegateCallFunction",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "canBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cannotBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasCostOfCanBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasCostOfCannotBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x60a060405234801561001057600080fd5b5030606081901b6080526101546100306000398060ec52506101546000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633045a6e01461005c5780633c7c8dd014610076578063423ecb051461007e5780636427016414610086578063f45f416e14610090575b600080fd5b610064610098565b60408051918252519081900360200190f35b6100646100af565b6100646100b9565b61008e6100cd565b005b6100646100d7565b6000805a90506100a66100d7565b505a9003905090565b6000805a90506100a65b60006100c36100e1565b6005425b04905090565b6100d5610116565b565b60006005426100c7565b306001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146100d557600080fd5b6100d56100e156fea2646970667358221220de18f99566dba286217395d71bb4e0ed49b085bada81836d0b1e60c7eb307f0064736f6c63430007060033",
+    "sourceMap": "97:856:41:-:0;;;;;;;;;;;;-1:-1:-1;591:4:0;572:24;;;;;;97:856:41;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c80633045a6e01461005c5780633c7c8dd014610076578063423ecb051461007e5780636427016414610086578063f45f416e14610090575b600080fd5b610064610098565b60408051918252519081900360200190f35b6100646100af565b6100646100b9565b61008e6100cd565b005b6100646100d7565b6000805a90506100a66100d7565b505a9003905090565b6000805a90506100a65b60006100c36100e1565b6005425b04905090565b6100d5610116565b565b60006005426100c7565b306001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146100d557600080fd5b6100d56100e156fea2646970667358221220de18f99566dba286217395d71bb4e0ed49b085bada81836d0b1e60c7eb307f0064736f6c63430007060033",
+    "sourceMap": "97:856:41:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;387:190;;;:::i;:::-;;;;;;;;;;;;;;;;583:196;;;:::i;259:122::-;;;:::i;785:97::-;;;:::i;:::-;;149:104;;;:::i;387:190::-;453:7;472:17;492:9;472:29;;511:21;:19;:21::i;:::-;;561:9;549:21;;;-1:-1:-1;387:190:41;:::o;583:196::-;652:7;671:17;691:9;671:29;;710:24;259:122;329:7;1036:22:0;:20;:22::i;:::-;373:1:41::1;355:15;:19;;348:26;;259:122:::0;:::o;785:97::-;852:23;:21;:23::i;:::-;785:97::o;149:104::-;201:7;245:1;227:15;:19;;835:96:0;906:4;-1:-1:-1;;;;;915:8:0;898:25;;890:34;;;;;888:63:41;1036:22:0;:20;:22::i",
+    "linkReferences": {},
+    "immutableReferences": {
+      "5": [
+        {
+          "start": 236,
+          "length": 32
+        }
+      ]
+    }
+  },
+  "methodIdentifiers": {
+    "callsIntoNoDelegateCallFunction()": "64270164",
+    "canBeDelegateCalled()": "f45f416e",
+    "cannotBeDelegateCalled()": "423ecb05",
+    "getGasCostOfCanBeDelegateCalled()": "3045a6e0",
+    "getGasCostOfCannotBeDelegateCalled()": "3c7c8dd0"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-core/contracts/test/NoDelegateCallTest.sol",
+    "id": 8125,
+    "exportedSymbols": {
+      "NoDelegateCall": [
+        39
+      ],
+      "NoDelegateCallTest": [
+        8124
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "39:915:41",
+    "nodes": [
+      {
+        "id": 8045,
+        "nodeType": "PragmaDirective",
+        "src": "39:23:41",
+        "literals": [
+          "solidity",
+          "=",
+          "0.7",
+          ".6"
+        ]
+      },
+      {
+        "id": 8046,
+        "nodeType": "ImportDirective",
+        "src": "64:31:41",
+        "absolutePath": "lib/v3-core/contracts/NoDelegateCall.sol",
+        "file": "../NoDelegateCall.sol",
+        "scope": 8125,
+        "sourceUnit": 40,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 8124,
+        "nodeType": "ContractDefinition",
+        "src": "97:856:41",
+        "nodes": [
+          {
+            "id": 8059,
+            "nodeType": "FunctionDefinition",
+            "src": "149:104:41",
+            "body": {
+              "id": 8058,
+              "nodeType": "Block",
+              "src": "210:43:41",
+              "statements": [
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 8056,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "expression": {
+                        "id": 8053,
+                        "name": "block",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -4,
+                        "src": "227:5:41",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_magic_block",
+                          "typeString": "block"
+                        }
+                      },
+                      "id": 8054,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "timestamp",
+                      "nodeType": "MemberAccess",
+                      "src": "227:15:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "/",
+                    "rightExpression": {
+                      "hexValue": "35",
+                      "id": 8055,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "245:1:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_5_by_1",
+                        "typeString": "int_const 5"
+                      },
+                      "value": "5"
+                    },
+                    "src": "227:19:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 8052,
+                  "id": 8057,
+                  "nodeType": "Return",
+                  "src": "220:26:41"
+                }
+              ]
+            },
+            "functionSelector": "f45f416e",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "canBeDelegateCalled",
+            "parameters": {
+              "id": 8049,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "177:2:41"
+            },
+            "returnParameters": {
+              "id": 8052,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 8051,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 8059,
+                  "src": "201:7:41",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 8050,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "201:7:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "200:9:41"
+            },
+            "scope": 8124,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "public"
+          },
+          {
+            "id": 8072,
+            "nodeType": "FunctionDefinition",
+            "src": "259:122:41",
+            "body": {
+              "id": 8071,
+              "nodeType": "Block",
+              "src": "338:43:41",
+              "statements": [
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 8069,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "expression": {
+                        "id": 8066,
+                        "name": "block",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -4,
+                        "src": "355:5:41",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_magic_block",
+                          "typeString": "block"
+                        }
+                      },
+                      "id": 8067,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "timestamp",
+                      "nodeType": "MemberAccess",
+                      "src": "355:15:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "/",
+                    "rightExpression": {
+                      "hexValue": "35",
+                      "id": 8068,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "373:1:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_5_by_1",
+                        "typeString": "int_const 5"
+                      },
+                      "value": "5"
+                    },
+                    "src": "355:19:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 8065,
+                  "id": 8070,
+                  "nodeType": "Return",
+                  "src": "348:26:41"
+                }
+              ]
+            },
+            "functionSelector": "423ecb05",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "id": 8062,
+                "modifierName": {
+                  "id": 8061,
+                  "name": "noDelegateCall",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 38,
+                  "src": "305:14:41",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "305:14:41"
+              }
+            ],
+            "name": "cannotBeDelegateCalled",
+            "parameters": {
+              "id": 8060,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "290:2:41"
+            },
+            "returnParameters": {
+              "id": 8065,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 8064,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 8072,
+                  "src": "329:7:41",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 8063,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "329:7:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "328:9:41"
+            },
+            "scope": 8124,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "public"
+          },
+          {
+            "id": 8091,
+            "nodeType": "FunctionDefinition",
+            "src": "387:190:41",
+            "body": {
+              "id": 8090,
+              "nodeType": "Block",
+              "src": "462:115:41",
+              "statements": [
+                {
+                  "assignments": [
+                    8078
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 8078,
+                      "mutability": "mutable",
+                      "name": "gasBefore",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 8090,
+                      "src": "472:17:41",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 8077,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "472:7:41",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 8081,
+                  "initialValue": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 8079,
+                      "name": "gasleft",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": -7,
+                      "src": "492:7:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 8080,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "492:9:41",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "472:29:41"
+                },
+                {
+                  "expression": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 8082,
+                      "name": "canBeDelegateCalled",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 8059,
+                      "src": "511:19:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 8083,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "511:21:41",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 8084,
+                  "nodeType": "ExpressionStatement",
+                  "src": "511:21:41"
+                },
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 8088,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "id": 8085,
+                      "name": "gasBefore",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 8078,
+                      "src": "549:9:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "-",
+                    "rightExpression": {
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "id": 8086,
+                        "name": "gasleft",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -7,
+                        "src": "561:7:41",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                          "typeString": "function () view returns (uint256)"
+                        }
+                      },
+                      "id": 8087,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "561:9:41",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "549:21:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 8076,
+                  "id": 8089,
+                  "nodeType": "Return",
+                  "src": "542:28:41"
+                }
+              ]
+            },
+            "functionSelector": "3045a6e0",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasCostOfCanBeDelegateCalled",
+            "parameters": {
+              "id": 8073,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "427:2:41"
+            },
+            "returnParameters": {
+              "id": 8076,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 8075,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 8091,
+                  "src": "453:7:41",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 8074,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "453:7:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "452:9:41"
+            },
+            "scope": 8124,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 8110,
+            "nodeType": "FunctionDefinition",
+            "src": "583:196:41",
+            "body": {
+              "id": 8109,
+              "nodeType": "Block",
+              "src": "661:118:41",
+              "statements": [
+                {
+                  "assignments": [
+                    8097
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 8097,
+                      "mutability": "mutable",
+                      "name": "gasBefore",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 8109,
+                      "src": "671:17:41",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 8096,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "671:7:41",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 8100,
+                  "initialValue": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 8098,
+                      "name": "gasleft",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": -7,
+                      "src": "691:7:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 8099,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "691:9:41",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "671:29:41"
+                },
+                {
+                  "expression": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 8101,
+                      "name": "cannotBeDelegateCalled",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 8072,
+                      "src": "710:22:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 8102,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "710:24:41",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 8103,
+                  "nodeType": "ExpressionStatement",
+                  "src": "710:24:41"
+                },
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 8107,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "id": 8104,
+                      "name": "gasBefore",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 8097,
+                      "src": "751:9:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "-",
+                    "rightExpression": {
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "id": 8105,
+                        "name": "gasleft",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -7,
+                        "src": "763:7:41",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                          "typeString": "function () view returns (uint256)"
+                        }
+                      },
+                      "id": 8106,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "763:9:41",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "751:21:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 8095,
+                  "id": 8108,
+                  "nodeType": "Return",
+                  "src": "744:28:41"
+                }
+              ]
+            },
+            "functionSelector": "3c7c8dd0",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasCostOfCannotBeDelegateCalled",
+            "parameters": {
+              "id": 8092,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "626:2:41"
+            },
+            "returnParameters": {
+              "id": 8095,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 8094,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 8110,
+                  "src": "652:7:41",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 8093,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "652:7:41",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "651:9:41"
+            },
+            "scope": 8124,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 8117,
+            "nodeType": "FunctionDefinition",
+            "src": "785:97:41",
+            "body": {
+              "id": 8116,
+              "nodeType": "Block",
+              "src": "842:40:41",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 8113,
+                      "name": "noDelegateCallPrivate",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 8123,
+                      "src": "852:21:41",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$__$returns$__$",
+                        "typeString": "function () view"
+                      }
+                    },
+                    "id": 8114,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "852:23:41",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 8115,
+                  "nodeType": "ExpressionStatement",
+                  "src": "852:23:41"
+                }
+              ]
+            },
+            "functionSelector": "64270164",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "callsIntoNoDelegateCallFunction",
+            "parameters": {
+              "id": 8111,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "825:2:41"
+            },
+            "returnParameters": {
+              "id": 8112,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "842:0:41"
+            },
+            "scope": 8124,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 8123,
+            "nodeType": "FunctionDefinition",
+            "src": "888:63:41",
+            "body": {
+              "id": 8122,
+              "nodeType": "Block",
+              "src": "949:2:41",
+              "statements": []
+            },
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "id": 8120,
+                "modifierName": {
+                  "id": 8119,
+                  "name": "noDelegateCall",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 38,
+                  "src": "934:14:41",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "934:14:41"
+              }
+            ],
+            "name": "noDelegateCallPrivate",
+            "parameters": {
+              "id": 8118,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "918:2:41"
+            },
+            "returnParameters": {
+              "id": 8121,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "949:0:41"
+            },
+            "scope": 8124,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "private"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [
+          {
+            "baseName": {
+              "id": 8047,
+              "name": "NoDelegateCall",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 39,
+              "src": "128:14:41",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_NoDelegateCall_$39",
+                "typeString": "contract NoDelegateCall"
+              }
+            },
+            "id": 8048,
+            "nodeType": "InheritanceSpecifier",
+            "src": "128:14:41"
+          }
+        ],
+        "contractDependencies": [
+          39
+        ],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          8124,
+          39
+        ],
+        "name": "NoDelegateCallTest",
+        "scope": 8125
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 41
+}

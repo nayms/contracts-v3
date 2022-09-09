@@ -1,0 +1,18 @@
+{
+  "editor.formatOnSave": true,
+  "[solidity]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true,
+    "lib": true
+  },
+  "files.associations": {
+    ".solhintignore": "shellscript",
+    ".dapprc": "shellscript",
+    ".gas-snapshot": "julia"
+  },
+  "solidity.packageDefaultDependenciesContractsDirectory": "src",
+  "solidity.packageDefaultDependenciesDirectory": "lib"
+}

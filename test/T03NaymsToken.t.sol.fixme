@@ -1,0 +1,237 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.13;
+
+import {D03ProtocolDefaults} from "./defaults/D03ProtocolDefaults.sol";
+import {Vm} from "forge-std/Vm.sol";
+import {IERC20Minimal} from "@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {TickMath} from "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+
+import {encodePriceSqrt} from "v3-periphery-foundry/foundry-tests/utils/Math.sol";
+import "v3-periphery-foundry/foundry-tests/utils/Path.sol";
+import "v3-periphery-foundry/foundry-tests/utils/Tick.sol";
+
+import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
+import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+// import { INonfungiblePositionManager } from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+// import { INonfungibleTokenPositionDescriptor } from "@uniswap/v3-periphery/contracts/interfaces/INonfungibleTokenPositionDescriptor.sol";
+
+import {INonfungiblePositionManager} from "./contracts/uniswap-interfaces/INonfungiblePositionManager.sol";
+import {INonfungibleTokenPositionDescriptor} from "./contracts/uniswap-interfaces/INonfungibleTokenPositionDescriptor.sol";
+
+import {Entity} from "src/diamonds/nayms/FreeStructs.sol";
+import {ERC20} from "ozv3/token/ERC20/ERC20.sol";
+
+// reference: https://github.com/gakonst/v3-periphery-foundry/blob/main/contracts/foundry-tests/SwapRouter.t.sol
+
+contract MockERC20 is ERC20 {
+    constructor(string memory _name, string memory _symbol)
+        ERC20(_name, _symbol)
+    {}
+
+    function mint(address to, uint256 value) public virtual {
+        _mint(to, value);
+    }
+
+    function burn(address from, uint256 value) public virtual {
+        _burn(from, value);
+    }
+}
+
+interface WETH9 is IERC20Minimal {
+    function deposit() external payable;
+}
+
+// Base fixture deploying V3 Factory, V3 Router and WETH9
+contract V3RouterFixture {
+    IUniswapV3Factory public factory;
+
+    WETH9 public weth9;
+
+    ISwapRouter public router;
+
+    INonfungibleTokenPositionDescriptor public nftDescriptor;
+    INonfungiblePositionManager public nft;
+    IQuoter public quoter;
+
+    // Deploys WETH9 and V3 Core's Factory contract, and then
+    // hooks them on the router
+    function setUp() public virtual override {
+        super.setUp();
+
+        address _weth9 = deployCode("test/contracts/WETH9.json");
+        weth9 = WETH9(_weth9);
+
+        // address _factory = deployCode("test/contracts/uniswap-v3/UniswapV3Factory.sol/UniswapV3Factory.json");
+        // factory = IUniswapV3Factory(_factory);
+
+        // address _router = deployCode("test/contracts/uniswap-v3/SwapRouter.sol/SwapRouter.json", abi.encode(_factory, _weth9));
+        // router = ISwapRouter(_router);
+
+        // use addresses from mainnet
+        address _factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+        factory = IUniswapV3Factory(_factory);
+
+        address _router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+        router = ISwapRouter(_router);
+
+        nftDescriptor = INonfungibleTokenPositionDescriptor(
+            0x91ae842A5Ffd8d12023116943e72A606179294f3
+        );
+        nft = INonfungiblePositionManager(
+            0xC36442b4a4522E871399CD717aBDD847Ab11FE88
+        );
+
+        quoter = IQuoter(0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6);
+    }
+}
+
+contract T03NaymsTokenTest is V3RouterFixture, D03ProtocolDefaults {
+    bytes32 constant ndfBytes32Id =
+        bytes32(
+            0x4e44460000000000000000000000000000000000000000000000000000000000
+        );
+    bytes32 public naymsTokenId;
+    bytes32 account0Id;
+
+    function setUp() public virtual override {
+        super.setUp();
+
+        naymsTokenId = nayms.getUserIdFromAddress(address(nayms));
+        account0Id = nayms.getUserIdFromAddress(address(this));
+    }
+
+    MockERC20 public token0;
+
+    function createPool(address tokenAddressA, address tokenAddressB) public {
+        if (tokenAddressA > tokenAddressB) {
+            address tmp = tokenAddressA;
+            tokenAddressA = tokenAddressB;
+            tokenAddressB = tmp;
+        }
+        nft.createAndInitializePoolIfNecessary(
+            tokenAddressA,
+            tokenAddressB,
+            FEE_MEDIUM,
+            encodePriceSqrt(1, 1)
+        );
+
+        INonfungiblePositionManager.MintParams
+            memory liquidityParams = INonfungiblePositionManager.MintParams({
+                token0: tokenAddressA,
+                token1: tokenAddressB,
+                fee: FEE_MEDIUM,
+                tickLower: getMinTick(TICK_MEDIUM),
+                tickUpper: getMaxTick(TICK_MEDIUM),
+                recipient: msg.sender,
+                amount0Desired: 1000000,
+                amount1Desired: 1000000,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp + 10
+            });
+        // vm.recordLogs();
+        nft.mint(liquidityParams);
+        // Vm.Log[] memory entries = vm.getRecordedLogs();
+    }
+
+    function testExternalDepositNayms() public {
+        bytes32 entityId = bytes32("entity id 1");
+
+        Entity memory entityInfo;
+        nayms.createEntity(entityId, account0Id, entityInfo);
+
+        // The Nayms Diamond is the spender. Allowance starts at 0.
+        assertEq(nayms.allowance(account0, address(nayms)), 0);
+        nayms.approve(address(nayms), 1e18);
+        assertEq(nayms.allowance(account0, address(nayms)), 1e18);
+
+        nayms.externalDeposit(entityId, address(nayms), 1e18);
+
+        assertEq(
+            nayms.internalBalanceOf(
+                entityId,
+                nayms.getUserIdFromAddress(address(nayms))
+            ),
+            1e18
+        );
+        // total supply of nNAYM has increased
+        assertEq(
+            nayms.internalTokenSupply(
+                nayms.getUserIdFromAddress(address(nayms))
+            ),
+            1e18
+        );
+        // balance of account0 has decreased
+        assertEq(nayms.balanceOf(account0), 1_000_000_000e18 - 1e18);
+    }
+
+    function testWithNaymsTokenCreateLiquidityPool() public {
+        token0 = new MockERC20("Test1", "TEST1");
+
+        token0.mint(address(this), 100 ether);
+
+        token0.approve(address(nft), 100 ether);
+        nayms.approve(address(nft), 100 ether);
+
+        token0.balanceOf(address(this));
+        nayms.balanceOf(address(this));
+
+        createPool(address(token0), address(nayms));
+
+        // TODO https://github.com/foundry-rs/foundry/pull/2161 - use cheatcode captureLogs to use values emitted from events
+        // coming soon TM
+        // until then, fork at a hardcoded block number in order to get a consistent uniswap v3 tokenID for our liquidity position
+
+        // 263933 is when we fork mainnet at block 15078000
+        // nftDescriptor.tokenURI(nft, 263933);
+    }
+
+    function prepSwap(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn,
+        uint24 _poolFee
+    ) public returns (ISwapRouter.ExactInputSingleParams memory params) {
+        params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: _tokenIn,
+            tokenOut: _tokenOut,
+            fee: _poolFee,
+            recipient: address(msg.sender),
+            deadline: block.timestamp,
+            amountIn: _amountIn,
+            amountOutMinimum: 0, // todo def should not be 0.
+            sqrtPriceLimitX96: 0 // todo 0 okay?
+        });
+    }
+
+    function testSwapNayms() public {
+        testWithNaymsTokenCreateLiquidityPool();
+        vm.warp(block.timestamp + 1 days);
+        console2.log("testSwap block.timestamp", block.timestamp);
+        ISwapRouter.ExactInputSingleParams memory params = prepSwap(
+            address(token0),
+            address(nayms),
+            1e18,
+            FEE_MEDIUM
+        );
+
+        // TickMath.getSqrtRatioAtTick()
+        quoter.quoteExactInputSingle(
+            address(nayms),
+            address(token0),
+            FEE_MEDIUM,
+            1e18,
+            0
+        );
+        // token0.approve(address(router), 100 ether);
+        // nayms.approve(address(router), 100 ether);
+
+        // ISwapRouter(address(router)).exactInputSingle(params);
+    }
+
+    // function testUniswapV3Quoter() public {
+    //     testWithNaymsTokenCreateLiquidityPool();
+    //     quoter.quoteExactInputSingle(address(nayms), address(token0), );
+    // }
+}

@@ -1,0 +1,650 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint128",
+          "name": "x",
+          "type": "uint128"
+        },
+        {
+          "internalType": "int128",
+          "name": "y",
+          "type": "int128"
+        }
+      ],
+      "name": "addDelta",
+      "outputs": [
+        {
+          "internalType": "uint128",
+          "name": "z",
+          "type": "uint128"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint128",
+          "name": "x",
+          "type": "uint128"
+        },
+        {
+          "internalType": "int128",
+          "name": "y",
+          "type": "int128"
+        }
+      ],
+      "name": "getGasCostOfAddDelta",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b506101e3806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063402d44fb1461003b578063cf41632f14610086575b600080fd5b61006a6004803603604081101561005157600080fd5b506001600160801b038135169060200135600f0b6100c7565b604080516001600160801b039092168252519081900360200190f35b6100b56004803603604081101561009c57600080fd5b506001600160801b038135169060200135600f0b6100dc565b60408051918252519081900360200190f35b60006100d383836100f7565b90505b92915050565b6000805a90506100ec84846100f7565b505a90039392505050565b60008082600f0b121561015c57826001600160801b03168260000384039150816001600160801b031610610157576040805162461bcd60e51b81526020600482015260026024820152614c5360f01b604482015290519081900360640190fd5b6100d6565b826001600160801b03168284019150816001600160801b031610156100d6576040805162461bcd60e51b81526020600482015260026024820152614c4160f01b604482015290519081900360640190fdfea2646970667358221220e9236a4b13ad07a5b338fbab3a47a0eba783e5bf53c53679fe8a83cb62cd836964736f6c63430007060033",
+    "sourceMap": "106:371:37:-:0;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c8063402d44fb1461003b578063cf41632f14610086575b600080fd5b61006a6004803603604081101561005157600080fd5b506001600160801b038135169060200135600f0b6100c7565b604080516001600160801b039092168252519081900360200190f35b6100b56004803603604081101561009c57600080fd5b506001600160801b038135169060200135600f0b6100dc565b60408051918252519081900360200190f35b60006100d383836100f7565b90505b92915050565b6000805a90506100ec84846100f7565b505a90039392505050565b60008082600f0b121561015c57826001600160801b03168260000384039150816001600160801b031610610157576040805162461bcd60e51b81526020600482015260026024820152614c5360f01b604482015290519081900360640190fd5b6100d6565b826001600160801b03168284019150816001600160801b031610156100d6576040805162461bcd60e51b81526020600482015260026024820152614c4160f01b604482015290519081900360640190fdfea2646970667358221220e9236a4b13ad07a5b338fbab3a47a0eba783e5bf53c53679fe8a83cb62cd836964736f6c63430007060033",
+    "sourceMap": "106:371:37:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;139:125;;;;;;;;;;;;;;;;-1:-1:-1;;;;;;139:125:37;;;;;;;;;;:::i;:::-;;;;-1:-1:-1;;;;;139:125:37;;;;;;;;;;;;;;270:205;;;;;;;;;;;;;;;;-1:-1:-1;;;;;;270:205:37;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;139:125;201:9;229:28;252:1;255;229:22;:28::i;:::-;222:35;;139:125;;;;;:::o;270:205::-;344:7;363:17;383:9;363:29;;402:28;425:1;428;402:22;:28::i;:::-;;459:9;447:21;;;270:205;-1:-1:-1;;;270:205:37:o;383:236:21:-;445:9;474:1;470;:5;;;466:147;;;523:1;-1:-1:-1;;;;;499:25:21;517:1;516:2;;504:1;:15;500:19;;;-1:-1:-1;;;;;499:25:21;;491:40;;;;;-1:-1:-1;;;491:40:21;;;;;;;;;;;;-1:-1:-1;;;491:40:21;;;;;;;;;;;;;;;466:147;;;594:1;-1:-1:-1;;;;;570:25:21;587:1;575;:14;571:18;;;-1:-1:-1;;;;;570:25:21;;;562:40;;;;;-1:-1:-1;;;562:40:21;;;;;;;;;;;;-1:-1:-1;;;562:40:21;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "addDelta(uint128,int128)": "402d44fb",
+    "getGasCostOfAddDelta(uint128,int128)": "cf41632f"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-core/contracts/test/LiquidityMathTest.sol",
+    "id": 7731,
+    "exportedSymbols": {
+      "LiquidityMath": [
+        4042
+      ],
+      "LiquidityMathTest": [
+        7730
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "39:439:37",
+    "nodes": [
+      {
+        "id": 7685,
+        "nodeType": "PragmaDirective",
+        "src": "39:23:37",
+        "literals": [
+          "solidity",
+          "=",
+          "0.7",
+          ".6"
+        ]
+      },
+      {
+        "id": 7686,
+        "nodeType": "ImportDirective",
+        "src": "64:40:37",
+        "absolutePath": "lib/v3-core/contracts/libraries/LiquidityMath.sol",
+        "file": "../libraries/LiquidityMath.sol",
+        "scope": 7731,
+        "sourceUnit": 4043,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 7730,
+        "nodeType": "ContractDefinition",
+        "src": "106:371:37",
+        "nodes": [
+          {
+            "id": 7702,
+            "nodeType": "FunctionDefinition",
+            "src": "139:125:37",
+            "body": {
+              "id": 7701,
+              "nodeType": "Block",
+              "src": "212:52:37",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 7697,
+                        "name": "x",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7688,
+                        "src": "252:1:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint128",
+                          "typeString": "uint128"
+                        }
+                      },
+                      {
+                        "id": 7698,
+                        "name": "y",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7690,
+                        "src": "255:1:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int128",
+                          "typeString": "int128"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint128",
+                          "typeString": "uint128"
+                        },
+                        {
+                          "typeIdentifier": "t_int128",
+                          "typeString": "int128"
+                        }
+                      ],
+                      "expression": {
+                        "id": 7695,
+                        "name": "LiquidityMath",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4042,
+                        "src": "229:13:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_contract$_LiquidityMath_$4042_$",
+                          "typeString": "type(library LiquidityMath)"
+                        }
+                      },
+                      "id": 7696,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "addDelta",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 4041,
+                      "src": "229:22:37",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_pure$_t_uint128_$_t_int128_$returns$_t_uint128_$",
+                        "typeString": "function (uint128,int128) pure returns (uint128)"
+                      }
+                    },
+                    "id": 7699,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "229:28:37",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint128",
+                      "typeString": "uint128"
+                    }
+                  },
+                  "functionReturnParameters": 7694,
+                  "id": 7700,
+                  "nodeType": "Return",
+                  "src": "222:35:37"
+                }
+              ]
+            },
+            "functionSelector": "402d44fb",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "addDelta",
+            "parameters": {
+              "id": 7691,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7688,
+                  "mutability": "mutable",
+                  "name": "x",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7702,
+                  "src": "157:9:37",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint128",
+                    "typeString": "uint128"
+                  },
+                  "typeName": {
+                    "id": 7687,
+                    "name": "uint128",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "157:7:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint128",
+                      "typeString": "uint128"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7690,
+                  "mutability": "mutable",
+                  "name": "y",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7702,
+                  "src": "168:8:37",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int128",
+                    "typeString": "int128"
+                  },
+                  "typeName": {
+                    "id": 7689,
+                    "name": "int128",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "168:6:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int128",
+                      "typeString": "int128"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "156:21:37"
+            },
+            "returnParameters": {
+              "id": 7694,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7693,
+                  "mutability": "mutable",
+                  "name": "z",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7702,
+                  "src": "201:9:37",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint128",
+                    "typeString": "uint128"
+                  },
+                  "typeName": {
+                    "id": 7692,
+                    "name": "uint128",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "201:7:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint128",
+                      "typeString": "uint128"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "200:11:37"
+            },
+            "scope": 7730,
+            "stateMutability": "pure",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 7729,
+            "nodeType": "FunctionDefinition",
+            "src": "270:205:37",
+            "body": {
+              "id": 7728,
+              "nodeType": "Block",
+              "src": "353:122:37",
+              "statements": [
+                {
+                  "assignments": [
+                    7712
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 7712,
+                      "mutability": "mutable",
+                      "name": "gasBefore",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 7728,
+                      "src": "363:17:37",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 7711,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "363:7:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 7715,
+                  "initialValue": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 7713,
+                      "name": "gasleft",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": -7,
+                      "src": "383:7:37",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 7714,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "383:9:37",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "363:29:37"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 7719,
+                        "name": "x",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7704,
+                        "src": "425:1:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint128",
+                          "typeString": "uint128"
+                        }
+                      },
+                      {
+                        "id": 7720,
+                        "name": "y",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7706,
+                        "src": "428:1:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int128",
+                          "typeString": "int128"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint128",
+                          "typeString": "uint128"
+                        },
+                        {
+                          "typeIdentifier": "t_int128",
+                          "typeString": "int128"
+                        }
+                      ],
+                      "expression": {
+                        "id": 7716,
+                        "name": "LiquidityMath",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4042,
+                        "src": "402:13:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_contract$_LiquidityMath_$4042_$",
+                          "typeString": "type(library LiquidityMath)"
+                        }
+                      },
+                      "id": 7718,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "addDelta",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 4041,
+                      "src": "402:22:37",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_pure$_t_uint128_$_t_int128_$returns$_t_uint128_$",
+                        "typeString": "function (uint128,int128) pure returns (uint128)"
+                      }
+                    },
+                    "id": 7721,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "402:28:37",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint128",
+                      "typeString": "uint128"
+                    }
+                  },
+                  "id": 7722,
+                  "nodeType": "ExpressionStatement",
+                  "src": "402:28:37"
+                },
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 7726,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "id": 7723,
+                      "name": "gasBefore",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7712,
+                      "src": "447:9:37",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "-",
+                    "rightExpression": {
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "id": 7724,
+                        "name": "gasleft",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -7,
+                        "src": "459:7:37",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                          "typeString": "function () view returns (uint256)"
+                        }
+                      },
+                      "id": 7725,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "459:9:37",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "447:21:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 7710,
+                  "id": 7727,
+                  "nodeType": "Return",
+                  "src": "440:28:37"
+                }
+              ]
+            },
+            "functionSelector": "cf41632f",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasCostOfAddDelta",
+            "parameters": {
+              "id": 7707,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7704,
+                  "mutability": "mutable",
+                  "name": "x",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7729,
+                  "src": "300:9:37",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint128",
+                    "typeString": "uint128"
+                  },
+                  "typeName": {
+                    "id": 7703,
+                    "name": "uint128",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "300:7:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint128",
+                      "typeString": "uint128"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7706,
+                  "mutability": "mutable",
+                  "name": "y",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7729,
+                  "src": "311:8:37",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int128",
+                    "typeString": "int128"
+                  },
+                  "typeName": {
+                    "id": 7705,
+                    "name": "int128",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "311:6:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int128",
+                      "typeString": "int128"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "299:21:37"
+            },
+            "returnParameters": {
+              "id": 7710,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7709,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7729,
+                  "src": "344:7:37",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7708,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "344:7:37",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "343:9:37"
+            },
+            "scope": 7730,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          7730
+        ],
+        "name": "LiquidityMathTest",
+        "scope": 7731
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 37
+}

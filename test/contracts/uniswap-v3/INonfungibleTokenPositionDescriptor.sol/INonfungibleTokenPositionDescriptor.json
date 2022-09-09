@@ -1,0 +1,244 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract INonfungiblePositionManager",
+          "name": "positionManager",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenURI",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "tokenURI(address,uint256)": "e9dc6375"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-periphery/contracts/interfaces/INonfungibleTokenPositionDescriptor.sol",
+    "id": 12600,
+    "exportedSymbols": {
+      "IERC165": [
+        630
+      ],
+      "IERC721": [
+        2805
+      ],
+      "IERC721Enumerable": [
+        2836
+      ],
+      "IERC721Metadata": [
+        2863
+      ],
+      "IERC721Permit": [
+        12374
+      ],
+      "INonfungiblePositionManager": [
+        12584
+      ],
+      "INonfungibleTokenPositionDescriptor": [
+        12599
+      ],
+      "IPeripheryImmutableState": [
+        12615
+      ],
+      "IPeripheryPayments": [
+        12641
+      ],
+      "IPoolInitializer": [
+        12693
+      ],
+      "PoolAddress": [
+        18732
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "45:735:67",
+    "nodes": [
+      {
+        "id": 12586,
+        "nodeType": "PragmaDirective",
+        "src": "45:24:67",
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".0"
+        ]
+      },
+      {
+        "id": 12587,
+        "nodeType": "ImportDirective",
+        "src": "71:43:67",
+        "absolutePath": "lib/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol",
+        "file": "./INonfungiblePositionManager.sol",
+        "scope": 12600,
+        "sourceUnit": 12585,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 12599,
+        "nodeType": "ContractDefinition",
+        "src": "165:614:67",
+        "nodes": [
+          {
+            "id": 12598,
+            "nodeType": "FunctionDefinition",
+            "src": "635:142:67",
+            "documentation": {
+              "id": 12589,
+              "nodeType": "StructuredDocumentation",
+              "src": "217:413:67",
+              "text": "@notice Produces the URI describing a particular token ID for a position manager\n @dev Note this URI may be a data: URI with the JSON contents directly inlined\n @param positionManager The position manager for which to describe the token\n @param tokenId The ID of the token for which to produce a description, which may not be valid\n @return The URI of the ERC721-compliant metadata"
+            },
+            "functionSelector": "e9dc6375",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "tokenURI",
+            "parameters": {
+              "id": 12594,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12591,
+                  "mutability": "mutable",
+                  "name": "positionManager",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12598,
+                  "src": "653:43:67",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_contract$_INonfungiblePositionManager_$12584",
+                    "typeString": "contract INonfungiblePositionManager"
+                  },
+                  "typeName": {
+                    "id": 12590,
+                    "name": "INonfungiblePositionManager",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 12584,
+                    "src": "653:27:67",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_INonfungiblePositionManager_$12584",
+                      "typeString": "contract INonfungiblePositionManager"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 12593,
+                  "mutability": "mutable",
+                  "name": "tokenId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12598,
+                  "src": "698:15:67",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 12592,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "698:7:67",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "652:62:67"
+            },
+            "returnParameters": {
+              "id": 12597,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12596,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12598,
+                  "src": "762:13:67",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 12595,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "762:6:67",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "761:15:67"
+            },
+            "scope": 12599,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 12588,
+          "nodeType": "StructuredDocumentation",
+          "src": "116:49:67",
+          "text": "@title Describes position NFT tokens via URI"
+        },
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          12599
+        ],
+        "name": "INonfungibleTokenPositionDescriptor",
+        "scope": 12600
+      }
+    ],
+    "license": "GPL-2.0-or-later"
+  },
+  "id": 67
+}

@@ -1,0 +1,200 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "fee0",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fee1",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "uniswapV3FlashCallback",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "uniswapV3FlashCallback(uint256,uint256,bytes)": "e9cbafb0"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol",
+    "id": 5209,
+    "exportedSymbols": {
+      "IUniswapV3FlashCallback": [
+        5208
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "45:937:27",
+    "nodes": [
+      {
+        "id": 5196,
+        "nodeType": "PragmaDirective",
+        "src": "45:24:27",
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".0"
+        ]
+      },
+      {
+        "id": 5208,
+        "nodeType": "ContractDefinition",
+        "src": "217:764:27",
+        "nodes": [
+          {
+            "id": 5207,
+            "nodeType": "FunctionDefinition",
+            "src": "859:120:27",
+            "documentation": {
+              "id": 5198,
+              "nodeType": "StructuredDocumentation",
+              "src": "257:597:27",
+              "text": "@notice Called to `msg.sender` after transferring to the recipient from IUniswapV3Pool#flash.\n @dev In the implementation you must repay the pool the tokens sent by flash plus the computed fee amounts.\n The caller of this method must be checked to be a UniswapV3Pool deployed by the canonical UniswapV3Factory.\n @param fee0 The fee amount in token0 due to the pool by the end of the flash\n @param fee1 The fee amount in token1 due to the pool by the end of the flash\n @param data Any data passed through by the caller via the IUniswapV3PoolActions#flash call"
+            },
+            "functionSelector": "e9cbafb0",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "uniswapV3FlashCallback",
+            "parameters": {
+              "id": 5205,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5200,
+                  "mutability": "mutable",
+                  "name": "fee0",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5207,
+                  "src": "900:12:27",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5199,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "900:7:27",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5202,
+                  "mutability": "mutable",
+                  "name": "fee1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5207,
+                  "src": "922:12:27",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5201,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "922:7:27",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5204,
+                  "mutability": "mutable",
+                  "name": "data",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5207,
+                  "src": "944:19:27",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5203,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "944:5:27",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "890:79:27"
+            },
+            "returnParameters": {
+              "id": 5206,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "978:0:27"
+            },
+            "scope": 5208,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 5197,
+          "nodeType": "StructuredDocumentation",
+          "src": "71:146:27",
+          "text": "@title Callback for IUniswapV3PoolActions#flash\n @notice Any contract that calls IUniswapV3PoolActions#flash must implement this interface"
+        },
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          5208
+        ],
+        "name": "IUniswapV3FlashCallback",
+        "scope": 5209
+      }
+    ],
+    "license": "GPL-2.0-or-later"
+  },
+  "id": 27
+}

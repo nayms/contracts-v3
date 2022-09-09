@@ -1,0 +1,146 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.6;
+
+import "forge-std/Script.sol";
+
+import {encodePriceSqrt} from "v3-periphery-foundry/foundry-tests/utils/Math.sol";
+import "v3-periphery-foundry/foundry-tests/utils/Path.sol";
+import "v3-periphery-foundry/foundry-tests/utils/Tick.sol";
+
+import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {TickMath} from "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+// import { INonfungibleTokenPositionDescriptor } from "@uniswap/v3-periphery/contracts/interfaces/INonfungibleTokenPositionDescriptor.sol";
+// import { INonfungiblePositionManager } from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+
+import {INonfungibleTokenPositionDescriptor} from "test/contracts/uniswap-interfaces/INonfungibleTokenPositionDescriptor.sol";
+import {INonfungiblePositionManager} from "test/contracts/uniswap-interfaces/INonfungiblePositionManager.sol";
+import {ERC20} from "ozv3/token/ERC20/ERC20.sol";
+
+contract MockERC20 is ERC20 {
+    constructor(string memory _name, string memory _symbol)
+        ERC20(_name, _symbol)
+    {}
+
+    function mint(address to, uint256 value) public virtual {
+        _mint(to, value);
+    }
+
+    function burn(address from, uint256 value) public virtual {
+        _burn(from, value);
+    }
+}
+
+contract Swap is Script {
+    address private constant QUOTER =
+        0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6;
+    address private constant UNISWAPV3FACTORY =
+        0x1F98431c8aD98523631AE4a59f267346ea31F984;
+    address private constant SWAP_ROUTER02 =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    address private constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address private constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+
+    IQuoter public quoter;
+    IUniswapV3Factory public factory;
+    ISwapRouter public router;
+    INonfungibleTokenPositionDescriptor public nftDescriptor =
+        INonfungibleTokenPositionDescriptor(
+            0x91ae842A5Ffd8d12023116943e72A606179294f3
+        );
+    INonfungiblePositionManager public nft =
+        INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
+
+    function createPool(address tokenAddressA, address tokenAddressB) public {
+        if (tokenAddressA > tokenAddressB) {
+            address tmp = tokenAddressA;
+            tokenAddressA = tokenAddressB;
+            tokenAddressB = tmp;
+        }
+        nft.createAndInitializePoolIfNecessary(
+            tokenAddressA,
+            tokenAddressB,
+            FEE_MEDIUM,
+            encodePriceSqrt(1, 1)
+        );
+
+        INonfungiblePositionManager.MintParams
+            memory liquidityParams = INonfungiblePositionManager.MintParams({
+                token0: tokenAddressA,
+                token1: tokenAddressB,
+                fee: FEE_MEDIUM,
+                tickLower: getMinTick(TICK_MEDIUM),
+                tickUpper: getMaxTick(TICK_MEDIUM),
+                recipient: msg.sender,
+                amount0Desired: 1000000,
+                amount1Desired: 1000000,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp + 1
+            });
+
+        nft.mint(liquidityParams);
+    }
+
+    function run() external returns (address poolAddress, uint256 amountOut) {
+        address caller = 0xfcE918c07BD4c900941500A6632deB24bA7897Ce;
+        vm.startBroadcast(caller);
+
+        factory = IUniswapV3Factory(UNISWAPV3FACTORY);
+        quoter = IQuoter(QUOTER);
+        router = ISwapRouter(SWAP_ROUTER02);
+
+        MockERC20 token0 = new MockERC20("Test1", "TEST1");
+        MockERC20 token1 = new MockERC20("Test2", "TEST2");
+
+        token0.mint(caller, 100 ether);
+        token1.mint(caller, 100 ether);
+        // token0.mint(address(this), 100 ether);
+        // token1.mint(address(this), 100 ether);
+
+        token0.approve(address(nft), 100 ether);
+        token1.approve(address(nft), 100 ether);
+
+        token0.balanceOf(caller);
+        token0.balanceOf(address(this));
+        createPool(address(token0), address(token1));
+
+        // get LP address
+        poolAddress = factory.getPool(address(token0), address(token1), 3000);
+
+        // get quote
+        uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(10_000);
+        amountOut = quoter.quoteExactInputSingle(
+            address(token0),
+            address(token1),
+            3000,
+            1e18,
+            sqrtPriceX96
+        );
+
+        // approve router to spend tokens
+        token0.approve(address(router), 100 ether);
+        token1.approve(address(router), 100 ether);
+
+        // swap
+        ISwapRouter.ExactInputSingleParams memory exact = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(token0),
+                tokenOut: address(token1),
+                fee: 3000,
+                recipient: msg.sender,
+                deadline: block.timestamp + 1000,
+                amountIn: 1e6,
+                amountOutMinimum: 1e5,
+                sqrtPriceLimitX96: sqrtPriceX96
+            });
+
+        // note: uniswap v3 error codes: https://docs.uniswap.org/protocol/reference/error-codes
+
+        router.exactInputSingle(exact);
+
+        vm.stopBroadcast();
+    }
+}

@@ -1,0 +1,1686 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "int16",
+          "name": "",
+          "type": "int16"
+        }
+      ],
+      "name": "bitmap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int24",
+          "name": "tick",
+          "type": "int24"
+        }
+      ],
+      "name": "flipTick",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int24",
+          "name": "tick",
+          "type": "int24"
+        }
+      ],
+      "name": "getGasCostOfFlipTick",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int24",
+          "name": "tick",
+          "type": "int24"
+        },
+        {
+          "internalType": "bool",
+          "name": "lte",
+          "type": "bool"
+        }
+      ],
+      "name": "getGasCostOfNextInitializedTickWithinOneWord",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int24",
+          "name": "tick",
+          "type": "int24"
+        }
+      ],
+      "name": "isInitialized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int24",
+          "name": "tick",
+          "type": "int24"
+        },
+        {
+          "internalType": "bool",
+          "name": "lte",
+          "type": "bool"
+        }
+      ],
+      "name": "nextInitializedTickWithinOneWord",
+      "outputs": [
+        {
+          "internalType": "int24",
+          "name": "next",
+          "type": "int24"
+        },
+        {
+          "internalType": "bool",
+          "name": "initialized",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b506105ae806100206000396000f3fe608060405234801561001057600080fd5b50600436106100625760003560e01c80632bdc2fd3146100675780633e7ba2281461009b5780633ffc81ee146100e15780638815912f14610113578063f04bc94314610135578063f0fc922414610155575b600080fd5b6100876004803603602081101561007d57600080fd5b503560020b61017d565b604080519115158252519081900360200190f35b6100c3600480360360408110156100b157600080fd5b50803560020b906020013515156101b2565b6040805160029390930b835290151560208301528051918290030190f35b610101600480360360208110156100f757600080fd5b503560010b6101cd565b60408051918252519081900360200190f35b6101336004803603602081101561012957600080fd5b503560020b6101df565b005b6101016004803603602081101561014b57600080fd5b503560020b6101ef565b6101016004803603604081101561016b57600080fd5b50803560020b9060200135151561020b565b6000808061018e818560018061022b565b915091508360020b8260020b146101a65760006101a8565b805b925050505b919050565b6000806101c2818560018661022b565b915091509250929050565b60006020819052908152604090205481565b6101ec600082600161036d565b50565b6000805a9050610202600084600161036d565b5a900392915050565b6000805a905061021f60008560018661022b565b50505a90039392505050565b60008060008460020b8660020b8161023f57fe5b05905060008660020b12801561026657508460020b8660020b8161025f57fe5b0760020b15155b1561027057600019015b83156102e557600080610282836103d3565b600182810b810b600090815260208d9052604090205460ff83169190911b800160001901908116801515975092945090925090856102c757888360ff168603026102da565b886102d1826103e5565b840360ff168603025b965050505050610363565b6000806102f4836001016103d3565b91509150600060018260ff166001901b031990506000818b60008660010b60010b815260200190815260200160002054169050806000141595508561034657888360ff0360ff1686600101010261035c565b888361035183610485565b0360ff168660010101025b9650505050505b5094509492505050565b8060020b8260020b8161037c57fe5b0760020b1561038a57600080fd5b6000806103a58360020b8560020b8161039f57fe5b056103d3565b600191820b820b60009081526020979097526040909620805460ff9097169190911b90951890945550505050565b60020b600881901d9161010090910790565b60008082116103f357600080fd5b600160801b821061040657608091821c91015b68010000000000000000821061041e57604091821c91015b640100000000821061043257602091821c91015b62010000821061044457601091821c91015b610100821061045557600891821c91015b6010821061046557600491821c91015b6004821061047557600291821c91015b600282106101ad57600101919050565b600080821161049357600080fd5b5060ff6fffffffffffffffffffffffffffffffff8216156104b757607f19016104bf565b608082901c91505b67ffffffffffffffff8216156104d857603f19016104e0565b604082901c91505b63ffffffff8216156104f557601f19016104fd565b602082901c91505b61ffff82161561051057600f1901610518565b601082901c91505b60ff82161561052a5760071901610532565b600882901c91505b600f821615610544576003190161054c565b600482901c91505b600382161561055e5760011901610566565b600282901c91505b60018216156101ad576000190191905056fea2646970667358221220eecf532787e7ebf22fce81c4bd4e31844ebe14abd8f8382d40ba905f4f874d6064736f6c63430007060033",
+    "sourceMap": "103:1171:54:-:0;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100625760003560e01c80632bdc2fd3146100675780633e7ba2281461009b5780633ffc81ee146100e15780638815912f14610113578063f04bc94314610135578063f0fc922414610155575b600080fd5b6100876004803603602081101561007d57600080fd5b503560020b61017d565b604080519115158252519081900360200190f35b6100c3600480360360408110156100b157600080fd5b50803560020b906020013515156101b2565b6040805160029390930b835290151560208301528051918290030190f35b610101600480360360208110156100f757600080fd5b503560010b6101cd565b60408051918252519081900360200190f35b6101336004803603602081101561012957600080fd5b503560020b6101df565b005b6101016004803603602081101561014b57600080fd5b503560020b6101ef565b6101016004803603604081101561016b57600080fd5b50803560020b9060200135151561020b565b6000808061018e818560018061022b565b915091508360020b8260020b146101a65760006101a8565b805b925050505b919050565b6000806101c2818560018661022b565b915091509250929050565b60006020819052908152604090205481565b6101ec600082600161036d565b50565b6000805a9050610202600084600161036d565b5a900392915050565b6000805a905061021f60008560018661022b565b50505a90039392505050565b60008060008460020b8660020b8161023f57fe5b05905060008660020b12801561026657508460020b8660020b8161025f57fe5b0760020b15155b1561027057600019015b83156102e557600080610282836103d3565b600182810b810b600090815260208d9052604090205460ff83169190911b800160001901908116801515975092945090925090856102c757888360ff168603026102da565b886102d1826103e5565b840360ff168603025b965050505050610363565b6000806102f4836001016103d3565b91509150600060018260ff166001901b031990506000818b60008660010b60010b815260200190815260200160002054169050806000141595508561034657888360ff0360ff1686600101010261035c565b888361035183610485565b0360ff168660010101025b9650505050505b5094509492505050565b8060020b8260020b8161037c57fe5b0760020b1561038a57600080fd5b6000806103a58360020b8560020b8161039f57fe5b056103d3565b600191820b820b60009081526020979097526040909620805460ff9097169190911b90951890945550505050565b60020b600881901d9161010090910790565b60008082116103f357600080fd5b600160801b821061040657608091821c91015b68010000000000000000821061041e57604091821c91015b640100000000821061043257602091821c91015b62010000821061044457601091821c91015b610100821061045557600891821c91015b6010821061046557600491821c91015b6004821061047557600291821c91015b600282106101ad57600101919050565b600080821161049357600080fd5b5060ff6fffffffffffffffffffffffffffffffff8216156104b757607f19016104bf565b608082901c91505b67ffffffffffffffff8216156104d857603f19016104e0565b604082901c91505b63ffffffff8216156104f557601f19016104fd565b602082901c91505b61ffff82161561051057600f1901610518565b601082901c91505b60ff82161561052a5760071901610532565b600882901c91505b600f821615610544576003190161054c565b600482901c91505b600382161561055e5760011901610566565b600282901c91505b60018216156101ad576000190191905056fea2646970667358221220eecf532787e7ebf22fce81c4bd4e31844ebe14abd8f8382d40ba905f4f874d6064736f6c63430007060033",
+    "sourceMap": "103:1171:54:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1053:219;;;;;;;;;;;;;;;;-1:-1:-1;1053:219:54;;;;:::i;:::-;;;;;;;;;;;;;;;;;;511:222;;;;;;;;;;;;;;;;-1:-1:-1;511:222:54;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;186:39;;;;;;;;;;;;;;;;-1:-1:-1;186:39:54;;;;:::i;:::-;;;;;;;;;;;;;;;;232:80;;;;;;;;;;;;;;;;-1:-1:-1;232:80:54;;;;:::i;:::-;;318:187;;;;;;;;;;;;;;;;-1:-1:-1;318:187:54;;;;:::i;739:255::-;;;;;;;;;;;;;;;;-1:-1:-1;739:255:54;;;;;;;;;;;:::i;1053:219::-;1111:4;;;1160:54;1111:4;1200;1206:1;;1160:39;:54::i;:::-;1127:87;;;;1239:4;1231:12;;:4;:12;;;:34;;1260:5;1231:34;;;1246:11;1231:34;1224:41;;;;1053:219;;;;:::o;511:222::-;622:10;;673:53;622:10;713:4;719:1;722:3;673:39;:53::i;:::-;666:60;;;;511:222;;;;;:::o;186:39::-;;;;;;;;;;;;;;:::o;232:80::-;281:24;:6;297:4;303:1;281:15;:24::i;:::-;232:80;:::o;318:187::-;378:7;397:17;417:9;397:29;-1:-1:-1;436:24:54;:6;452:4;458:1;436:15;:24::i;:::-;489:9;477:21;;;318:187;-1:-1:-1;;318:187:54:o;739:255::-;838:7;857:17;877:9;857:29;-1:-1:-1;896:53:54;:6;936:4;942:1;945:3;896:39;:53::i;:::-;;;978:9;966:21;;;739:255;-1:-1:-1;;;739:255:54:o;2188:1921:29:-;2372:10;2384:16;2412;2438:11;2431:18;;:4;:18;;;;;;;;2412:37;;2470:1;2463:4;:8;;;:35;;;;;2482:11;2475:18;;:4;:18;;;;;;;;:23;;;;2463:35;2459:53;;;-1:-1:-1;;2500:12:29;2459:53;2562:3;2558:1545;;;2582:13;2597:12;2613:20;2622:10;2613:8;:20::i;:::-;2750:1;2793:13;;;;;2714:12;2793:13;;;;;;;;;;;2750:11;;;;;;;2729:33;;-1:-1:-1;;2729:33:29;2793:20;;;2960:11;;;;-1:-1:-1;2581:52:29;;-1:-1:-1;2581:52:29;;-1:-1:-1;2729:33:29;2960:11;3102:170;;3261:11;3250:6;3244:13;;3231:10;:26;3230:42;3102:170;;;3200:11;3161:34;3188:6;3161:26;:34::i;:::-;3152:6;:43;3146:50;;3133:10;:63;3132:79;3102:170;3095:177;;2558:1545;;;;;;;3401:13;3416:12;3432:24;3441:10;3454:1;3441:14;3432:8;:24::i;:::-;3400:56;;;;3528:12;3561:1;3551:6;3546:11;;:1;:11;;3545:17;3543:20;3528:35;;3577:14;3610:4;3594;:13;3599:7;3594:13;;;;;;;;;;;;;;;;:20;3577:37;;3753:6;3763:1;3753:11;;3739:25;;3895:11;:197;;4081:11;4070:6;4052:15;:24;4046:31;;4029:10;4042:1;4029:14;:48;4028:64;3895:197;;;3998:11;3987:6;3949:35;3977:6;3949:27;:35::i;:::-;:44;3943:51;;3926:10;3939:1;3926:14;:68;3925:84;3895:197;3888:204;;2558:1545;;;;;2188:1921;;;;;;;;:::o;1102:348::-;1255:11;1248:18;;:4;:18;;;;;;;;:23;;;1240:32;;;;;;1317:13;1332:12;1348:28;1364:11;1357:18;;:4;:18;;;;;;;;1348:8;:28::i;:::-;1401:1;1422:13;;;;;1386:12;1422:13;;;;;;;;;;;;:21;;1401:11;;;;;;;;1422:21;;;;;;-1:-1:-1;;;;1102:348:29:o;686:160::-;793:9;;801:1;793:9;;;;835:3;828:10;;;;686:160::o;671:731:17:-;733:7;764:1;760;:5;752:14;;;;;;-1:-1:-1;;;781:1:17;:40;777:102;;843:3;837:9;;;;860:8;777:102;897:19;892:1;:24;888:84;;938:2;932:8;;;;954:7;888:84;990:11;985:1;:16;981:76;;1023:2;1017:8;;;;1039:7;981:76;1075:7;1070:1;:12;1066:72;;1104:2;1098:8;;;;1120:7;1066:72;1156:5;1151:1;:10;1147:68;;1183:1;1177:7;;;;1198:6;1147:68;1233:4;1228:1;:9;1224:67;;1259:1;1253:7;;;;1274:6;1224:67;1309:3;1304:1;:8;1300:66;;1334:1;1328:7;;;;1349:6;1300:66;1384:3;1379:1;:8;1375:20;;1394:1;1389:6;671:731;;;:::o;1893:894::-;1956:7;1987:1;1983;:5;1975:14;;;;;;-1:-1:-1;2004:3:17;2025:17;2021:21;;:25;2017:104;;-1:-1:-1;;2062:8:17;2017:104;;;2107:3;2101:9;;;;;2017:104;2138:16;2134:20;;:24;2130:101;;-1:-1:-1;;2174:7:17;2130:101;;;2218:2;2212:8;;;;;2130:101;2248:16;2244:20;;:24;2240:101;;-1:-1:-1;;2284:7:17;2240:101;;;2328:2;2322:8;;;;;2240:101;2358:16;2354:20;;:24;2350:101;;-1:-1:-1;;2394:7:17;2350:101;;;2438:2;2432:8;;;;;2350:101;2468:15;2464:19;;:23;2460:98;;-1:-1:-1;;2503:6:17;2460:98;;;2546:1;2540:7;;;;;2460:98;2575:3;2571:7;;:11;2567:86;;-1:-1:-1;;2598:6:17;2567:86;;;2641:1;2635:7;;;;;2567:86;2670:3;2666:7;;:11;2662:86;;-1:-1:-1;;2693:6:17;2662:86;;;2736:1;2730:7;;;;;2662:86;2765:3;2761:7;;:11;2757:23;;-1:-1:-1;;2774:6:17;1893:894;;;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "bitmap(int16)": "3ffc81ee",
+    "flipTick(int24)": "8815912f",
+    "getGasCostOfFlipTick(int24)": "f04bc943",
+    "getGasCostOfNextInitializedTickWithinOneWord(int24,bool)": "f0fc9224",
+    "isInitialized(int24)": "2bdc2fd3",
+    "nextInitializedTickWithinOneWord(int24,bool)": "3e7ba228"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-core/contracts/test/TickBitmapTest.sol",
+    "id": 12099,
+    "exportedSymbols": {
+      "BitMath": [
+        3800
+      ],
+      "TickBitmap": [
+        6635
+      ],
+      "TickBitmapTest": [
+        12098
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "39:1236:54",
+    "nodes": [
+      {
+        "id": 11976,
+        "nodeType": "PragmaDirective",
+        "src": "39:23:54",
+        "literals": [
+          "solidity",
+          "=",
+          "0.7",
+          ".6"
+        ]
+      },
+      {
+        "id": 11977,
+        "nodeType": "ImportDirective",
+        "src": "64:37:54",
+        "absolutePath": "lib/v3-core/contracts/libraries/TickBitmap.sol",
+        "file": "../libraries/TickBitmap.sol",
+        "scope": 12099,
+        "sourceUnit": 6636,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 12098,
+        "nodeType": "ContractDefinition",
+        "src": "103:1171:54",
+        "nodes": [
+          {
+            "id": 11982,
+            "nodeType": "UsingForDirective",
+            "src": "133:47:54",
+            "libraryName": {
+              "id": 11978,
+              "name": "TickBitmap",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 6635,
+              "src": "139:10:54",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_TickBitmap_$6635",
+                "typeString": "library TickBitmap"
+              }
+            },
+            "typeName": {
+              "id": 11981,
+              "keyType": {
+                "id": 11979,
+                "name": "int16",
+                "nodeType": "ElementaryTypeName",
+                "src": "162:5:54",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_int16",
+                  "typeString": "int16"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "154:25:54",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                "typeString": "mapping(int16 => uint256)"
+              },
+              "valueType": {
+                "id": 11980,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "171:7:54",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              }
+            }
+          },
+          {
+            "id": 11986,
+            "nodeType": "VariableDeclaration",
+            "src": "186:39:54",
+            "constant": false,
+            "functionSelector": "3ffc81ee",
+            "mutability": "mutable",
+            "name": "bitmap",
+            "scope": 12098,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+              "typeString": "mapping(int16 => uint256)"
+            },
+            "typeName": {
+              "id": 11985,
+              "keyType": {
+                "id": 11983,
+                "name": "int16",
+                "nodeType": "ElementaryTypeName",
+                "src": "194:5:54",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_int16",
+                  "typeString": "int16"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "186:25:54",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                "typeString": "mapping(int16 => uint256)"
+              },
+              "valueType": {
+                "id": 11984,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "203:7:54",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 11999,
+            "nodeType": "FunctionDefinition",
+            "src": "232:80:54",
+            "body": {
+              "id": 11998,
+              "nodeType": "Block",
+              "src": "271:41:54",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 11994,
+                        "name": "tick",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11988,
+                        "src": "297:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      {
+                        "hexValue": "31",
+                        "id": 11995,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "303:1:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        },
+                        {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        }
+                      ],
+                      "expression": {
+                        "id": 11991,
+                        "name": "bitmap",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11986,
+                        "src": "281:6:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                          "typeString": "mapping(int16 => uint256)"
+                        }
+                      },
+                      "id": 11993,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "flipTick",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 6455,
+                      "src": "281:15:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_mapping$_t_int16_$_t_uint256_$_$_t_int24_$_t_int24_$returns$__$bound_to$_t_mapping$_t_int16_$_t_uint256_$_$",
+                        "typeString": "function (mapping(int16 => uint256),int24,int24)"
+                      }
+                    },
+                    "id": 11996,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "281:24:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 11997,
+                  "nodeType": "ExpressionStatement",
+                  "src": "281:24:54"
+                }
+              ]
+            },
+            "functionSelector": "8815912f",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "flipTick",
+            "parameters": {
+              "id": 11989,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11988,
+                  "mutability": "mutable",
+                  "name": "tick",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11999,
+                  "src": "250:10:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 11987,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "250:5:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "249:12:54"
+            },
+            "returnParameters": {
+              "id": 11990,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "271:0:54"
+            },
+            "scope": 12098,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 12024,
+            "nodeType": "FunctionDefinition",
+            "src": "318:187:54",
+            "body": {
+              "id": 12023,
+              "nodeType": "Block",
+              "src": "387:118:54",
+              "statements": [
+                {
+                  "assignments": [
+                    12007
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 12007,
+                      "mutability": "mutable",
+                      "name": "gasBefore",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 12023,
+                      "src": "397:17:54",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 12006,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "397:7:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 12010,
+                  "initialValue": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 12008,
+                      "name": "gasleft",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": -7,
+                      "src": "417:7:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 12009,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "417:9:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "397:29:54"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 12014,
+                        "name": "tick",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12001,
+                        "src": "452:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      {
+                        "hexValue": "31",
+                        "id": 12015,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "458:1:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        },
+                        {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        }
+                      ],
+                      "expression": {
+                        "id": 12011,
+                        "name": "bitmap",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11986,
+                        "src": "436:6:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                          "typeString": "mapping(int16 => uint256)"
+                        }
+                      },
+                      "id": 12013,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "flipTick",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 6455,
+                      "src": "436:15:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_mapping$_t_int16_$_t_uint256_$_$_t_int24_$_t_int24_$returns$__$bound_to$_t_mapping$_t_int16_$_t_uint256_$_$",
+                        "typeString": "function (mapping(int16 => uint256),int24,int24)"
+                      }
+                    },
+                    "id": 12016,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "436:24:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 12017,
+                  "nodeType": "ExpressionStatement",
+                  "src": "436:24:54"
+                },
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 12021,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "id": 12018,
+                      "name": "gasBefore",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 12007,
+                      "src": "477:9:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "-",
+                    "rightExpression": {
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "id": 12019,
+                        "name": "gasleft",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -7,
+                        "src": "489:7:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                          "typeString": "function () view returns (uint256)"
+                        }
+                      },
+                      "id": 12020,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "489:9:54",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "477:21:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 12005,
+                  "id": 12022,
+                  "nodeType": "Return",
+                  "src": "470:28:54"
+                }
+              ]
+            },
+            "functionSelector": "f04bc943",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasCostOfFlipTick",
+            "parameters": {
+              "id": 12002,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12001,
+                  "mutability": "mutable",
+                  "name": "tick",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12024,
+                  "src": "348:10:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 12000,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "348:5:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "347:12:54"
+            },
+            "returnParameters": {
+              "id": 12005,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12004,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12024,
+                  "src": "378:7:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 12003,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "378:7:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "377:9:54"
+            },
+            "scope": 12098,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 12043,
+            "nodeType": "FunctionDefinition",
+            "src": "511:222:54",
+            "body": {
+              "id": 12042,
+              "nodeType": "Block",
+              "src": "656:77:54",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 12037,
+                        "name": "tick",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12026,
+                        "src": "713:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      {
+                        "hexValue": "31",
+                        "id": 12038,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "719:1:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      {
+                        "id": 12039,
+                        "name": "lte",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12028,
+                        "src": "722:3:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        },
+                        {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      ],
+                      "expression": {
+                        "id": 12035,
+                        "name": "bitmap",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11986,
+                        "src": "673:6:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                          "typeString": "mapping(int16 => uint256)"
+                        }
+                      },
+                      "id": 12036,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "nextInitializedTickWithinOneWord",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 6634,
+                      "src": "673:39:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$_t_mapping$_t_int16_$_t_uint256_$_$_t_int24_$_t_int24_$_t_bool_$returns$_t_int24_$_t_bool_$bound_to$_t_mapping$_t_int16_$_t_uint256_$_$",
+                        "typeString": "function (mapping(int16 => uint256),int24,int24,bool) view returns (int24,bool)"
+                      }
+                    },
+                    "id": 12040,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "673:53:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$_t_int24_$_t_bool_$",
+                      "typeString": "tuple(int24,bool)"
+                    }
+                  },
+                  "functionReturnParameters": 12034,
+                  "id": 12041,
+                  "nodeType": "Return",
+                  "src": "666:60:54"
+                }
+              ]
+            },
+            "functionSelector": "3e7ba228",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "nextInitializedTickWithinOneWord",
+            "parameters": {
+              "id": 12029,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12026,
+                  "mutability": "mutable",
+                  "name": "tick",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12043,
+                  "src": "553:10:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 12025,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "553:5:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 12028,
+                  "mutability": "mutable",
+                  "name": "lte",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12043,
+                  "src": "565:8:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 12027,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "565:4:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "552:22:54"
+            },
+            "returnParameters": {
+              "id": 12034,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12031,
+                  "mutability": "mutable",
+                  "name": "next",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12043,
+                  "src": "622:10:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 12030,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "622:5:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 12033,
+                  "mutability": "mutable",
+                  "name": "initialized",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12043,
+                  "src": "634:16:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 12032,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "634:4:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "621:30:54"
+            },
+            "scope": 12098,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 12071,
+            "nodeType": "FunctionDefinition",
+            "src": "739:255:54",
+            "body": {
+              "id": 12070,
+              "nodeType": "Block",
+              "src": "847:147:54",
+              "statements": [
+                {
+                  "assignments": [
+                    12053
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 12053,
+                      "mutability": "mutable",
+                      "name": "gasBefore",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 12070,
+                      "src": "857:17:54",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 12052,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "857:7:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 12056,
+                  "initialValue": {
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "id": 12054,
+                      "name": "gasleft",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": -7,
+                      "src": "877:7:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                        "typeString": "function () view returns (uint256)"
+                      }
+                    },
+                    "id": 12055,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "877:9:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "857:29:54"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 12060,
+                        "name": "tick",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12045,
+                        "src": "936:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      {
+                        "hexValue": "31",
+                        "id": 12061,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "942:1:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      {
+                        "id": 12062,
+                        "name": "lte",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12047,
+                        "src": "945:3:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        },
+                        {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      ],
+                      "expression": {
+                        "id": 12057,
+                        "name": "bitmap",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11986,
+                        "src": "896:6:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                          "typeString": "mapping(int16 => uint256)"
+                        }
+                      },
+                      "id": 12059,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "nextInitializedTickWithinOneWord",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 6634,
+                      "src": "896:39:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$_t_mapping$_t_int16_$_t_uint256_$_$_t_int24_$_t_int24_$_t_bool_$returns$_t_int24_$_t_bool_$bound_to$_t_mapping$_t_int16_$_t_uint256_$_$",
+                        "typeString": "function (mapping(int16 => uint256),int24,int24,bool) view returns (int24,bool)"
+                      }
+                    },
+                    "id": 12063,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "896:53:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$_t_int24_$_t_bool_$",
+                      "typeString": "tuple(int24,bool)"
+                    }
+                  },
+                  "id": 12064,
+                  "nodeType": "ExpressionStatement",
+                  "src": "896:53:54"
+                },
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 12068,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "id": 12065,
+                      "name": "gasBefore",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 12053,
+                      "src": "966:9:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "-",
+                    "rightExpression": {
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "id": 12066,
+                        "name": "gasleft",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": -7,
+                        "src": "978:7:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_gasleft_view$__$returns$_t_uint256_$",
+                          "typeString": "function () view returns (uint256)"
+                        }
+                      },
+                      "id": 12067,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "978:9:54",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "966:21:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 12051,
+                  "id": 12069,
+                  "nodeType": "Return",
+                  "src": "959:28:54"
+                }
+              ]
+            },
+            "functionSelector": "f0fc9224",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasCostOfNextInitializedTickWithinOneWord",
+            "parameters": {
+              "id": 12048,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12045,
+                  "mutability": "mutable",
+                  "name": "tick",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12071,
+                  "src": "793:10:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 12044,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "793:5:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 12047,
+                  "mutability": "mutable",
+                  "name": "lte",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12071,
+                  "src": "805:8:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 12046,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "805:4:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "792:22:54"
+            },
+            "returnParameters": {
+              "id": 12051,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12050,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12071,
+                  "src": "838:7:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 12049,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "838:7:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "837:9:54"
+            },
+            "scope": 12098,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 12097,
+            "nodeType": "FunctionDefinition",
+            "src": "1053:219:54",
+            "body": {
+              "id": 12096,
+              "nodeType": "Block",
+              "src": "1117:155:54",
+              "statements": [
+                {
+                  "assignments": [
+                    12079,
+                    12081
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 12079,
+                      "mutability": "mutable",
+                      "name": "next",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 12096,
+                      "src": "1128:10:54",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_int24",
+                        "typeString": "int24"
+                      },
+                      "typeName": {
+                        "id": 12078,
+                        "name": "int24",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1128:5:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 12081,
+                      "mutability": "mutable",
+                      "name": "initialized",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 12096,
+                      "src": "1140:16:54",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "typeName": {
+                        "id": 12080,
+                        "name": "bool",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1140:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 12088,
+                  "initialValue": {
+                    "arguments": [
+                      {
+                        "id": 12084,
+                        "name": "tick",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12073,
+                        "src": "1200:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      {
+                        "hexValue": "31",
+                        "id": 12085,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1206:1:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      {
+                        "hexValue": "74727565",
+                        "id": 12086,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "bool",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1209:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "value": "true"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        },
+                        {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      ],
+                      "expression": {
+                        "id": 12082,
+                        "name": "bitmap",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 11986,
+                        "src": "1160:6:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_int16_$_t_uint256_$",
+                          "typeString": "mapping(int16 => uint256)"
+                        }
+                      },
+                      "id": 12083,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "nextInitializedTickWithinOneWord",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 6634,
+                      "src": "1160:39:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$_t_mapping$_t_int16_$_t_uint256_$_$_t_int24_$_t_int24_$_t_bool_$returns$_t_int24_$_t_bool_$bound_to$_t_mapping$_t_int16_$_t_uint256_$_$",
+                        "typeString": "function (mapping(int16 => uint256),int24,int24,bool) view returns (int24,bool)"
+                      }
+                    },
+                    "id": 12087,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1160:54:54",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$_t_int24_$_t_bool_$",
+                      "typeString": "tuple(int24,bool)"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "1127:87:54"
+                },
+                {
+                  "expression": {
+                    "condition": {
+                      "commonType": {
+                        "typeIdentifier": "t_int24",
+                        "typeString": "int24"
+                      },
+                      "id": 12091,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "id": 12089,
+                        "name": "next",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12079,
+                        "src": "1231:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "==",
+                      "rightExpression": {
+                        "id": 12090,
+                        "name": "tick",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 12073,
+                        "src": "1239:4:54",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      "src": "1231:12:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "falseExpression": {
+                      "hexValue": "66616c7365",
+                      "id": 12093,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "bool",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "1260:5:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "value": "false"
+                    },
+                    "id": 12094,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "nodeType": "Conditional",
+                    "src": "1231:34:54",
+                    "trueExpression": {
+                      "id": 12092,
+                      "name": "initialized",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 12081,
+                      "src": "1246:11:54",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 12077,
+                  "id": 12095,
+                  "nodeType": "Return",
+                  "src": "1224:41:54"
+                }
+              ]
+            },
+            "functionSelector": "2bdc2fd3",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "isInitialized",
+            "parameters": {
+              "id": 12074,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12073,
+                  "mutability": "mutable",
+                  "name": "tick",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12097,
+                  "src": "1076:10:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 12072,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1076:5:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1075:12:54"
+            },
+            "returnParameters": {
+              "id": 12077,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12076,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12097,
+                  "src": "1111:4:54",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 12075,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1111:4:54",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1110:6:54"
+            },
+            "scope": 12098,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          12098
+        ],
+        "name": "TickBitmapTest",
+        "scope": 12099
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 54
+}

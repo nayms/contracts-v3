@@ -1,0 +1,34 @@
+[submodule "lib/ds-test"]
+	path = lib/ds-test
+	url = https://github.com/dapphub/ds-test
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/brockelmore/forge-std
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/rari-capital/solmate
+[submodule "lib/solidity-lib"]
+	path = lib/solidity-lib
+	url = https://github.com/uniswap/solidity-lib
+[submodule "lib/sdk-core"]
+	path = lib/sdk-core
+	url = https://github.com/uniswap/sdk-core
+[submodule "lib/v2-core"]
+	path = lib/v2-core
+	url = https://github.com/uniswap/v2-core
+[submodule "lib/v3-core"]
+	path = lib/v3-core
+	url = https://github.com/uniswap/v3-core
+[submodule "lib/v3-periphery"]
+	path = lib/v3-periphery
+	url = https://github.com/uniswap/v3-periphery
+[submodule "lib/ozv3"]
+	path = lib/ozv3
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+	branch = release-v3.4
+[submodule "lib/ozv4"]
+	path = lib/ozv4
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "lib/v3-periphery-foundry"]
+	path = lib/v3-periphery-foundry
+	url = https://github.com/gakonst/v3-periphery-foundry

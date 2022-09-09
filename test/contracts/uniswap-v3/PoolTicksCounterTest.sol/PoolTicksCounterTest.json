@@ -1,0 +1,387 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IUniswapV3Pool",
+          "name": "pool",
+          "type": "address"
+        },
+        {
+          "internalType": "int24",
+          "name": "tickBefore",
+          "type": "int24"
+        },
+        {
+          "internalType": "int24",
+          "name": "tickAfter",
+          "type": "int24"
+        }
+      ],
+      "name": "countInitializedTicksCrossed",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "initializedTicksCrossed",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b50610680806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80634c5b941c14610030575b600080fd5b6100696004803603606081101561004657600080fd5b506001600160a01b03813516906020810135600290810b9160400135900b610082565b6040805163ffffffff9092168252519081900360200190f35b60006100986001600160a01b03851684846100a0565b949350505050565b60008060008060008060008060088b6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b1580156100e757600080fd5b505afa1580156100fb573d6000803e3d6000fd5b505050506040513d602081101561011157600080fd5b5051600290810b908c900b8161012357fe5b0560020b901d905060006101008c6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561016957600080fd5b505afa15801561017d573d6000803e3d6000fd5b505050506040513d602081101561019357600080fd5b5051600290810b908d900b816101a557fe5b0560020b816101b057fe5b079050600060088d6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b1580156101f057600080fd5b505afa158015610204573d6000803e3d6000fd5b505050506040513d602081101561021a57600080fd5b5051600290810b908d900b8161022c57fe5b0560020b901d905060006101008e6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561027257600080fd5b505afa158015610286573d6000803e3d6000fd5b505050506040513d602081101561029c57600080fd5b5051600290810b908e900b816102ae57fe5b0560020b816102b957fe5b07905060008160ff166001901b8f6001600160a01b0316635339c296856040518263ffffffff1660e01b8152600401808260010b815260200191505060206040518083038186803b15801561030d57600080fd5b505afa158015610321573d6000803e3d6000fd5b505050506040513d602081101561033757600080fd5b5051161180156103bd57508d6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561037b57600080fd5b505afa15801561038f573d6000803e3d6000fd5b505050506040513d60208110156103a557600080fd5b5051600290810b908d900b816103b757fe5b0760020b155b80156103ce57508b60020b8d60020b135b945060008360ff166001901b8f6001600160a01b0316635339c296876040518263ffffffff1660e01b8152600401808260010b815260200191505060206040518083038186803b15801561042157600080fd5b505afa158015610435573d6000803e3d6000fd5b505050506040513d602081101561044b57600080fd5b5051161180156104d157508d6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561048f57600080fd5b505afa1580156104a3573d6000803e3d6000fd5b505050506040513d60208110156104b957600080fd5b5051600290810b908e900b816104cb57fe5b0760020b155b80156104e257508b60020b8d60020b125b95508160010b8460010b128061050e57508160010b8460010b14801561050e57508060ff168360ff1611155b1561052457839950829750819850809650610531565b8199508097508398508296505b505060001960ff87161b9150505b8560010b8760010b13610601578560010b8760010b14156105665760001960ff858103161c165b6000818c6001600160a01b0316635339c2968a6040518263ffffffff1660e01b8152600401808260010b815260200191505060206040518083038186803b1580156105b057600080fd5b505afa1580156105c4573d6000803e3d6000fd5b505050506040513d60208110156105da57600080fd5b50511690506105e881610629565b61ffff169890980197505060019095019460001961053f565b811561060e576001880397505b821561061b576001880397505b505050505050509392505050565b6000805b82156106445760001983019092169160010161062d565b9291505056fea2646970667358221220857cd2160afe47d0c7c38f99b49b731370b87837ab6043021e82afd3059f296264736f6c63430007060033",
+    "sourceMap": "184:345:113:-:0;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c80634c5b941c14610030575b600080fd5b6100696004803603606081101561004657600080fd5b506001600160a01b03813516906020810135600290810b9160400135900b610082565b6040805163ffffffff9092168252519081900360200190f35b60006100986001600160a01b03851684846100a0565b949350505050565b60008060008060008060008060088b6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b1580156100e757600080fd5b505afa1580156100fb573d6000803e3d6000fd5b505050506040513d602081101561011157600080fd5b5051600290810b908c900b8161012357fe5b0560020b901d905060006101008c6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561016957600080fd5b505afa15801561017d573d6000803e3d6000fd5b505050506040513d602081101561019357600080fd5b5051600290810b908d900b816101a557fe5b0560020b816101b057fe5b079050600060088d6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b1580156101f057600080fd5b505afa158015610204573d6000803e3d6000fd5b505050506040513d602081101561021a57600080fd5b5051600290810b908d900b8161022c57fe5b0560020b901d905060006101008e6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561027257600080fd5b505afa158015610286573d6000803e3d6000fd5b505050506040513d602081101561029c57600080fd5b5051600290810b908e900b816102ae57fe5b0560020b816102b957fe5b07905060008160ff166001901b8f6001600160a01b0316635339c296856040518263ffffffff1660e01b8152600401808260010b815260200191505060206040518083038186803b15801561030d57600080fd5b505afa158015610321573d6000803e3d6000fd5b505050506040513d602081101561033757600080fd5b5051161180156103bd57508d6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561037b57600080fd5b505afa15801561038f573d6000803e3d6000fd5b505050506040513d60208110156103a557600080fd5b5051600290810b908d900b816103b757fe5b0760020b155b80156103ce57508b60020b8d60020b135b945060008360ff166001901b8f6001600160a01b0316635339c296876040518263ffffffff1660e01b8152600401808260010b815260200191505060206040518083038186803b15801561042157600080fd5b505afa158015610435573d6000803e3d6000fd5b505050506040513d602081101561044b57600080fd5b5051161180156104d157508d6001600160a01b031663d0c93a7c6040518163ffffffff1660e01b815260040160206040518083038186803b15801561048f57600080fd5b505afa1580156104a3573d6000803e3d6000fd5b505050506040513d60208110156104b957600080fd5b5051600290810b908e900b816104cb57fe5b0760020b155b80156104e257508b60020b8d60020b125b95508160010b8460010b128061050e57508160010b8460010b14801561050e57508060ff168360ff1611155b1561052457839950829750819850809650610531565b8199508097508398508296505b505060001960ff87161b9150505b8560010b8760010b13610601578560010b8760010b14156105665760001960ff858103161c165b6000818c6001600160a01b0316635339c2968a6040518263ffffffff1660e01b8152600401808260010b815260200191505060206040518083038186803b1580156105b057600080fd5b505afa1580156105c4573d6000803e3d6000fd5b505050506040513d60208110156105da57600080fd5b50511690506105e881610629565b61ffff169890980197505060019095019460001961053f565b811561060e576001880397505b821561061b576001880397505b505050505050509392505050565b6000805b82156106445760001983019092169160010161062d565b9291505056fea2646970667358221220857cd2160afe47d0c7c38f99b49b731370b87837ab6043021e82afd3059f296264736f6c63430007060033",
+    "sourceMap": "184:345:113:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;268:259;;;;;;;;;;;;;;;;-1:-1:-1;;;;;;268:259:113;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;415:30;464:56;-1:-1:-1;;;;;464:33:113;;498:10;510:9;464:33;:56::i;:::-;457:63;268:259;-1:-1:-1;;;;268:259:113:o;637:3305:95:-;784:30;826:18;854:19;883:17;910:18;938:26;974:25;1127:13;1186:1;1163:4;-1:-1:-1;;;;;1163:16:95;;:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;1163:18:95;1150:31;;;;;;;;;;;;;;1149:38;;;;1127:61;;1202:12;1259:3;1237:4;-1:-1:-1;;;;;1237:16:95;;:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;1237:18:95;1224:31;;;;;;;;;;;;;;1223:39;;;;;;;;1202:61;;1278:18;1341:1;1318:4;-1:-1:-1;;;;;1318:16:95;;:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;1318:18:95;1306:30;;;;;;;;;;;;;;1305:37;;;;1278:65;;1357:17;1418:3;1396:4;-1:-1:-1;;;;;1396:16:95;;:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;1396:18:95;1384:30;;;;;;;;;;;;;;1383:38;;;;;;;;1357:65;;1897:1;1881:11;1876:16;;:1;:16;;1843:4;-1:-1:-1;;;;;1843:15:95;;1859:12;1843:29;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;1843:29:95;:50;1842:56;1841:117;;;;;1933:4;-1:-1:-1;;;;;1933:16:95;;:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;1933:18:95;1921:30;;;;;;;;;;;;;;1920:37;;;1841:117;:161;;;;;1992:9;1979:22;;:10;:22;;;1841:161;1802:200;;2312:1;2301:6;2296:11;;:1;:11;;2268:4;-1:-1:-1;;;;;2268:15:95;;2284:7;2268:24;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;2268:24:95;:40;2267:46;2266:108;;;;;2349:4;-1:-1:-1;;;;;2349:16:95;;:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;2349:18:95;2336:31;;;;;;;;;;;;;;2335:38;;;2266:108;:152;;;;;2408:9;2395:22;;:10;:22;;;2266:152;2226:192;;2447:12;2437:22;;:7;:22;;;:76;;;;2475:12;2464:23;;:7;:23;;;:48;;;;;2501:11;2491:21;;:6;:21;;;;2464:48;2433:454;;;2548:7;2533:22;;2587:6;2573:20;;2627:12;2611:28;;2672:11;2657:26;;2433:454;;;2737:12;2722:27;;2781:11;2767:25;;2826:7;2810:23;;2866:6;2851:21;;2433:454;-1:-1:-1;;;;3101:32:95;;;;;-1:-1:-1;;3143:573:95;3166:13;3150:29;;:12;:29;;;3143:573;;3329:13;3313:29;;:12;:29;;;3309:125;;;-1:-1:-1;;3399:3:95;:18;;;3377:41;;3369:50;3309:125;3448:14;3497:4;3465;-1:-1:-1;;;;;3465:15:95;;3481:12;3465:29;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;3465:29:95;:36;;-1:-1:-1;3542:20:95;3465:36;3542:12;:20::i;:::-;3515:47;;;;;;;-1:-1:-1;;3576:14:95;;;;;-1:-1:-1;;3143:573:95;;;3730:20;3726:79;;;3793:1;3766:28;;;;3726:79;3819:21;3815:80;;;3883:1;3856:28;;;;3815:80;3905:30;;;;;;;637:3305;;;;;:::o;3948:197::-;4003:6;;4046:72;4053:6;;4046:72;;-1:-1:-1;;4101:5:95;;4095:12;;;;4075:6;;4046:72;;;4134:4;3948:197;-1:-1:-1;;3948:197:95:o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "countInitializedTicksCrossed(address,int24,int24)": "4c5b941c"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-periphery/contracts/test/PoolTicksCounterTest.sol",
+    "id": 21134,
+    "exportedSymbols": {
+      "IUniswapV3Pool": [
+        5194
+      ],
+      "IUniswapV3PoolActions": [
+        5332
+      ],
+      "IUniswapV3PoolDerivedState": [
+        5363
+      ],
+      "IUniswapV3PoolEvents": [
+        5482
+      ],
+      "IUniswapV3PoolImmutables": [
+        5522
+      ],
+      "IUniswapV3PoolOwnerActions": [
+        5548
+      ],
+      "IUniswapV3PoolState": [
+        5656
+      ],
+      "PoolTicksCounter": [
+        19040
+      ],
+      "PoolTicksCounterTest": [
+        21133
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "45:485:113",
+    "nodes": [
+      {
+        "id": 21109,
+        "nodeType": "ImportDirective",
+        "src": "45:66:113",
+        "absolutePath": "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol",
+        "file": "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol",
+        "scope": 21134,
+        "sourceUnit": 5195,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 21110,
+        "nodeType": "PragmaDirective",
+        "src": "113:24:113",
+        "literals": [
+          "solidity",
+          ">=",
+          "0.6",
+          ".0"
+        ]
+      },
+      {
+        "id": 21111,
+        "nodeType": "ImportDirective",
+        "src": "139:43:113",
+        "absolutePath": "lib/v3-periphery/contracts/libraries/PoolTicksCounter.sol",
+        "file": "../libraries/PoolTicksCounter.sol",
+        "scope": 21134,
+        "sourceUnit": 19041,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 21133,
+        "nodeType": "ContractDefinition",
+        "src": "184:345:113",
+        "nodes": [
+          {
+            "id": 21114,
+            "nodeType": "UsingForDirective",
+            "src": "220:42:113",
+            "libraryName": {
+              "id": 21112,
+              "name": "PoolTicksCounter",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 19040,
+              "src": "226:16:113",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_PoolTicksCounter_$19040",
+                "typeString": "library PoolTicksCounter"
+              }
+            },
+            "typeName": {
+              "id": 21113,
+              "name": "IUniswapV3Pool",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 5194,
+              "src": "247:14:113",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IUniswapV3Pool_$5194",
+                "typeString": "contract IUniswapV3Pool"
+              }
+            }
+          },
+          {
+            "id": 21132,
+            "nodeType": "FunctionDefinition",
+            "src": "268:259:113",
+            "body": {
+              "id": 21131,
+              "nodeType": "Block",
+              "src": "447:80:113",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 21127,
+                        "name": "tickBefore",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 21118,
+                        "src": "498:10:113",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      },
+                      {
+                        "id": 21128,
+                        "name": "tickAfter",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 21120,
+                        "src": "510:9:113",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        },
+                        {
+                          "typeIdentifier": "t_int24",
+                          "typeString": "int24"
+                        }
+                      ],
+                      "expression": {
+                        "id": 21125,
+                        "name": "pool",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 21116,
+                        "src": "464:4:113",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_IUniswapV3Pool_$5194",
+                          "typeString": "contract IUniswapV3Pool"
+                        }
+                      },
+                      "id": 21126,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "countInitializedTicksCrossed",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 19010,
+                      "src": "464:33:113",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$_t_contract$_IUniswapV3Pool_$5194_$_t_int24_$_t_int24_$returns$_t_uint32_$bound_to$_t_contract$_IUniswapV3Pool_$5194_$",
+                        "typeString": "function (contract IUniswapV3Pool,int24,int24) view returns (uint32)"
+                      }
+                    },
+                    "id": 21129,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "464:56:113",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint32",
+                      "typeString": "uint32"
+                    }
+                  },
+                  "functionReturnParameters": 21124,
+                  "id": 21130,
+                  "nodeType": "Return",
+                  "src": "457:63:113"
+                }
+              ]
+            },
+            "functionSelector": "4c5b941c",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "countInitializedTicksCrossed",
+            "parameters": {
+              "id": 21121,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 21116,
+                  "mutability": "mutable",
+                  "name": "pool",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 21132,
+                  "src": "315:19:113",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_contract$_IUniswapV3Pool_$5194",
+                    "typeString": "contract IUniswapV3Pool"
+                  },
+                  "typeName": {
+                    "id": 21115,
+                    "name": "IUniswapV3Pool",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5194,
+                    "src": "315:14:113",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IUniswapV3Pool_$5194",
+                      "typeString": "contract IUniswapV3Pool"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 21118,
+                  "mutability": "mutable",
+                  "name": "tickBefore",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 21132,
+                  "src": "344:16:113",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 21117,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "344:5:113",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 21120,
+                  "mutability": "mutable",
+                  "name": "tickAfter",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 21132,
+                  "src": "370:15:113",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_int24",
+                    "typeString": "int24"
+                  },
+                  "typeName": {
+                    "id": 21119,
+                    "name": "int24",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "370:5:113",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_int24",
+                      "typeString": "int24"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "305:86:113"
+            },
+            "returnParameters": {
+              "id": 21124,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 21123,
+                  "mutability": "mutable",
+                  "name": "initializedTicksCrossed",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 21132,
+                  "src": "415:30:113",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint32",
+                    "typeString": "uint32"
+                  },
+                  "typeName": {
+                    "id": 21122,
+                    "name": "uint32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "415:6:113",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint32",
+                      "typeString": "uint32"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "414:32:113"
+            },
+            "scope": 21133,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          21133
+        ],
+        "name": "PoolTicksCounterTest",
+        "scope": 21134
+      }
+    ],
+    "license": "GPL-2.0-or-later"
+  },
+  "id": 113
+}

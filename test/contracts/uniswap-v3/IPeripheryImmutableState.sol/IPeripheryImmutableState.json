@@ -1,0 +1,213 @@
+{
+  "abi": [
+    {
+      "inputs": [],
+      "name": "WETH9",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "factory",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "WETH9()": "4aa4a4fc",
+    "factory()": "c45a0155"
+  },
+  "ast": {
+    "absolutePath": "lib/v3-periphery/contracts/interfaces/IPeripheryImmutableState.sol",
+    "id": 12616,
+    "exportedSymbols": {
+      "IPeripheryImmutableState": [
+        12615
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "45:374:68",
+    "nodes": [
+      {
+        "id": 12601,
+        "nodeType": "PragmaDirective",
+        "src": "45:24:68",
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".0"
+        ]
+      },
+      {
+        "id": 12615,
+        "nodeType": "ContractDefinition",
+        "src": "162:256:68",
+        "nodes": [
+          {
+            "id": 12608,
+            "nodeType": "FunctionDefinition",
+            "src": "265:51:68",
+            "documentation": {
+              "id": 12603,
+              "nodeType": "StructuredDocumentation",
+              "src": "203:57:68",
+              "text": "@return Returns the address of the Uniswap V3 factory"
+            },
+            "functionSelector": "c45a0155",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "factory",
+            "parameters": {
+              "id": 12604,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "281:2:68"
+            },
+            "returnParameters": {
+              "id": 12607,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12606,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12608,
+                  "src": "307:7:68",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 12605,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "307:7:68",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "306:9:68"
+            },
+            "scope": 12615,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 12614,
+            "nodeType": "FunctionDefinition",
+            "src": "367:49:68",
+            "documentation": {
+              "id": 12609,
+              "nodeType": "StructuredDocumentation",
+              "src": "322:40:68",
+              "text": "@return Returns the address of WETH9"
+            },
+            "functionSelector": "4aa4a4fc",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "WETH9",
+            "parameters": {
+              "id": 12610,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "381:2:68"
+            },
+            "returnParameters": {
+              "id": 12613,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12612,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 12614,
+                  "src": "407:7:68",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 12611,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "407:7:68",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "406:9:68"
+            },
+            "scope": 12615,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 12602,
+          "nodeType": "StructuredDocumentation",
+          "src": "71:91:68",
+          "text": "@title Immutable state\n @notice Functions that return immutable state of the router"
+        },
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          12615
+        ],
+        "name": "IPeripheryImmutableState",
+        "scope": 12616
+      }
+    ],
+    "license": "GPL-2.0-or-later"
+  },
+  "id": 68
+}

@@ -1,0 +1,57 @@
+{
+  "name": "@nayms/contracts",
+  "version": "3.0.11",
+  "main": "index.js",
+  "repository": "https://github.com/nayms/contracts3.git",
+  "author": "Kevin Park <kevin@fruitful.fi>",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "forge-artifacts/**",
+    "broadcast/**",
+    "deployedAddresses.json",
+    "index.js",
+    "src/diamonds/nayms/interfaces/**",
+    "src/diamonds/nayms/FreeStructs.sol",
+    "src/diamonds/nayms/Constants.sol",
+    "src/ERC20/IERC20.sol"
+  ],
+  "scripts": {
+    "prettier": "yarn prettier:test && yarn prettier:src && yarn prettier:script",
+    "prettier:test": "prettier --write 'test/**/*.sol'",
+    "prettier:src": "prettier --write 'src/**/*.sol'",
+    "prettier:script": "prettier --write 'src/**/*.sol'",
+    "prettier:list": "prettier --list-different 'src/**/*.sol'",
+    "prettier:check": "prettier --check 'src/**/*.sol'",
+    "solhint": "yarn run solhint:test && yarn run solhint:src",
+    "solhint:test": "solhint --config .solhint.json 'test/**/*.sol' --fix",
+    "solhint:src": "solhint --config .solhint.json 'src/**/*.sol' --fix",
+    "solhint:check": "solhint --config ./.solhint.json 'src/**/*.sol'",
+    "lint": "yarn prettier && yarn run solhint",
+    "lint:check": "yarn prettier:check && yarn run solhint:check",
+    "docgen": "node docgen/docgen.js"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.1",
+    "eslint": "^8.18.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.0.0",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.9",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "solc": "^0.8.16",
+    "solidity-docgen": "0.5.16",
+    "solhint": "^3.3.7",
+    "solidity-coverage": "^0.7.21"
+  },
+  "dependencies": {
+    "yarn": "^1.22.19"
+  }
+}
