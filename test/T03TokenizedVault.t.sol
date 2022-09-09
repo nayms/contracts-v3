@@ -46,12 +46,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     // ) public {
     //     Entity memory entityInfo;
     //     // LibConstants.ROLE_UNDERWRITER
-    //     nayms.createEntity(account0Id, objectContext1, entityInfo);
+    //     nayms.createEntity(account0Id, objectContext1, entityInfo, "entity test hash");
 
     //     // if account0Id == account0Id, createEntity will revert
     //     vm.assume(account0Id != account0Id);
 
-    //     nayms.createEntity(account0Id, objectContext1, entityInfo);
+    //     nayms.createEntity(account0Id, objectContext1, entityInfo, "entity test hash");
 
     //     weth.approve(address(nayms), depositAmount);
     //     address assetAddress = address(weth);

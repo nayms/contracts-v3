@@ -7,11 +7,26 @@ import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
 import { Entity } from "src/diamonds/nayms/AppStorage.sol";
 
+import { ERC20 } from "src/erc20/ERC20.sol";
+
 /// @dev Testing creating entities
+
+function initEntity(
+    ERC20 _asset,
+    uint256 _collateralRatio,
+    uint256 _maxCapacity,
+    uint256 _utilizedCapacity,
+    bool simplePolicyEnabled
+) pure returns (Entity memory e) {
+    e.assetId = LibHelpers._getIdForAddress(address(_asset));
+    e.collateralRatio = _collateralRatio;
+    e.maxCapacity = _maxCapacity;
+    e.utilizedCapacity = _utilizedCapacity;
+    e.simplePolicyEnabled = simplePolicyEnabled;
+}
 
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal immutable objectContext1 = "0x1";
-    Entity internal entityInfo;
 
     function setUp() public virtual override {
         super.setUp();
@@ -24,33 +39,39 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         assertEq(DEFAULT_ACCOUNT0_ENTITY_ID, parentId, "User, parent (derived from entity ID) don't match");
     }
 
+    function testZeroCollateralRatioWhenCreatingEntity() public {
+        bytes32 objectId1 = "0x1";
+        vm.expectRevert("collateral ratio should be 1 to 1000");
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 0, 1, 0, false), "entity test hash");
+    }
+
     function testNonManagerCreateEntity() public {
         bytes32 objectId1 = "0x1";
 
         vm.expectRevert("not a system manager");
         vm.prank(account1);
-        nayms.createEntity(objectId1, objectContext1, entityInfo);
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
     }
 
     function testSingleCreateEntity() public {
         bytes32 objectId1 = "0x1";
-        nayms.createEntity(objectId1, objectContext1, entityInfo);
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
     }
 
     function testMultipleCreateEntity() public {
         bytes32 objectId1 = "0x1";
-        nayms.createEntity(objectId1, objectContext1, entityInfo);
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
 
         // cannot create an object that already exists in a given context
         vm.expectRevert("object already exists");
-        nayms.createEntity(objectId1, objectContext1, entityInfo);
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
 
         // still reverts regardless of role being assigned
         vm.expectRevert("object already exists");
-        nayms.createEntity(objectId1, objectContext1, entityInfo);
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
 
         bytes32 objectId2 = "0x2";
-        nayms.createEntity(objectId2, objectContext1, entityInfo);
+        nayms.createEntity(objectId2, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
     }
 
     function testApproveUser() public {
@@ -58,7 +79,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         bytes32 approvedUserId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
 
         // create an entity
-        nayms.createEntity(objectId1, objectContext1, entityInfo);
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
 
         vm.prank(account9);
         vm.expectRevert("not a system manager");

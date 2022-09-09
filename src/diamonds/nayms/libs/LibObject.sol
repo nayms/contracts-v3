@@ -16,6 +16,7 @@ library LibObject {
 
         // check if the id has been used (has a parent account associated with it) and revert if it has
         require(!s.existingObjects[_objectId], "object already exists");
+
         s.existingObjects[_objectId] = true;
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
@@ -25,6 +26,7 @@ library LibObject {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(!s.existingObjects[_objectId], "object already exists");
+
         s.existingObjects[_objectId] = true;
         s.objectDataHashes[_objectId] = _dataHash;
     }
@@ -33,13 +35,14 @@ library LibObject {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(!s.existingObjects[_objectId], "object already exists");
+
         s.existingObjects[_objectId] = true;
     }
 
     function _setDataHash(bytes32 _objectId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(!s.existingObjects[_objectId], "object already exists");
+        require(s.existingObjects[_objectId], "setDataHash: object doesn't exist");
         s.objectDataHashes[_objectId] = _dataHash;
     }
 

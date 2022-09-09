@@ -12,7 +12,6 @@ interface IMarketFacet {
     /**
      * @notice Execute a limit offer.
      *
-     * @param _entityId User's entity ID.
      * @param _sellToken Token to sell.
      * @param _sellAmount Amount to sell.
      * @param _buyToken Token to buy.
@@ -23,26 +22,12 @@ interface IMarketFacet {
      * totally fulfilled immediately. In this case the return value is the created offer's id.
      */
     function executeLimitOffer(
-        bytes32 _entityId,
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount,
         uint256 _feeSchedule
     ) external returns (uint256);
-
-    /**
-     * @notice Execute a market offer, ensuring the full amount gets sold.
-     * @dev This will revert if the full amount could not be sold.
-     * @param _sellToken token to sell.
-     * @param _sellAmount amount to sell.
-     * @param _buyToken token to buy.
-     */
-    function executeMarketOffer(
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken
-    ) external;
 
     /**
      * @notice Cancel offer #`_offerId`.
@@ -73,25 +58,6 @@ interface IMarketFacet {
         uint256 _buyAmount,
         uint256 _feeSchedule
     ) external view returns (address feeToken_, uint256 feeAmount_);
-
-    /**
-     * @notice Simulate a market offer and calculate the final amount bought.
-     *
-     * @dev This complements the `executeMarketOffer` method and is useful for when you want to display the average
-     * trade price to the user prior to executing the transaction. Note that if the requested `_sellAmount` cannot
-     * be sold then the function will throw.
-     *
-     * @param _sellToken The sell unit.
-     * @param _sellAmount The sell amount.
-     * @param _buyToken The buy unit.
-     *
-     * @return The amount that would get bought.
-     */
-    function simulateMarketOffer(
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken
-    ) external view returns (uint256);
 
     /**
      * @notice Get current best offer for given token pair.

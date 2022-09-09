@@ -50,13 +50,21 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        Entity memory entity;
+        nayms.addSupportedExternalToken(address(weth));
 
-        nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity);
-        nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity);
-        nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity);
-        nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity);
-        nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity);
+        Entity memory entity = Entity({
+            assetId: LibHelpers._getIdForAddress(address(weth)),
+            collateralRatio: 1000,
+            maxCapacity: 100e18,
+            utilizedCapacity: 0,
+            simplePolicyEnabled: true
+        });
+
+        nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
         console2.log("\n --\n");
     }

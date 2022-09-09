@@ -15,9 +15,10 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         bytes32 _policyId,
         bytes32 _entityId,
         Stakeholders calldata stakeholders,
-        SimplePolicy calldata simplePolicy
+        SimplePolicy calldata simplePolicy,
+        bytes32 _dataHash
     ) external assertSimplePolicyEnabled(_entityId) assertSysMgr {
-        LibEntity._createSimplePolicy(_policyId, _entityId, stakeholders, simplePolicy);
+        LibEntity._createSimplePolicy(_policyId, _entityId, stakeholders, simplePolicy, _dataHash);
     }
 
     function updateAllowSimplePolicy(bytes32 _entityId, bool _allow) external assertSysMgr {

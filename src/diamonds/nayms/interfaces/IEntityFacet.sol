@@ -24,12 +24,14 @@ interface IEntityFacet {
      * @param _entityId id of the entity
      * @param stakeholders Struct of roles, entity IDs and signatures for the policy
      * @param simplePolicy policy to create
+     * @param _dataHash hash of the offchain data
      */
     function createSimplePolicy(
         bytes32 _policyId,
         bytes32 _entityId,
         Stakeholders calldata stakeholders,
-        SimplePolicy calldata simplePolicy
+        SimplePolicy calldata simplePolicy,
+        bytes32 _dataHash
     ) external;
 
     /**

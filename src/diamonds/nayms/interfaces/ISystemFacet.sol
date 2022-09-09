@@ -33,11 +33,13 @@ interface ISystemFacet {
      * @param _entityId Unique ID for the entity
      * @param _entityAdmin Unique ID of the entity administrator
      * @param _entityData remaining entity metadata
+     * @param _dataHash hash of the offchain data
      */
     function createEntity(
         bytes32 _entityId,
         bytes32 _entityAdmin,
-        Entity memory _entityData
+        Entity memory _entityData,
+        bytes32 _dataHash
     ) external;
 
     /**

@@ -42,6 +42,9 @@ contract InitDiamond {
         LibAdmin._updateRoleAssigner(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibAdmin._updateRoleAssigner(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS);
 
+        // dissalow creating an object with ID of 0
+        s.existingObjects[0] = true;
+
         // assign msg.sender as a Nayms System Admin
         bytes32 userId = LibHelpers._getIdForAddress(msg.sender);
         s.existingObjects[userId] = true;

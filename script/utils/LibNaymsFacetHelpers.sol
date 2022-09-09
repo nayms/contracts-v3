@@ -46,15 +46,13 @@ library LibNaymsFacetHelpers {
             functionSelectorsTokenizedVaultIOFacet[1] = ITokenizedVaultIOFacet.externalDepositToEntity.selector;
             functionSelectorsTokenizedVaultIOFacet[2] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
 
-            bytes4[] memory functionSelectorsMarketFacet = new bytes4[](8);
+            bytes4[] memory functionSelectorsMarketFacet = new bytes4[](6);
             functionSelectorsMarketFacet[0] = IMarketFacet.executeLimitOffer.selector;
-            functionSelectorsMarketFacet[1] = IMarketFacet.executeMarketOffer.selector;
-            functionSelectorsMarketFacet[2] = IMarketFacet.cancelOffer.selector;
-            functionSelectorsMarketFacet[3] = IMarketFacet.getOffer.selector;
-            functionSelectorsMarketFacet[4] = IMarketFacet.getLastOfferId.selector;
-            functionSelectorsMarketFacet[5] = IMarketFacet.getBestOfferId.selector;
-            functionSelectorsMarketFacet[6] = IMarketFacet.calculateFee.selector;
-            functionSelectorsMarketFacet[7] = IMarketFacet.simulateMarketOffer.selector;
+            functionSelectorsMarketFacet[1] = IMarketFacet.cancelOffer.selector;
+            functionSelectorsMarketFacet[2] = IMarketFacet.getOffer.selector;
+            functionSelectorsMarketFacet[3] = IMarketFacet.getLastOfferId.selector;
+            functionSelectorsMarketFacet[4] = IMarketFacet.getBestOfferId.selector;
+            functionSelectorsMarketFacet[5] = IMarketFacet.calculateFee.selector;
 
             bytes4[] memory functionSelectorsACLFacet = new bytes4[](4);
             functionSelectorsACLFacet[0] = IACLFacet.assignRole.selector;
