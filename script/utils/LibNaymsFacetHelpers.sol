@@ -56,11 +56,13 @@ library LibNaymsFacetHelpers {
             functionSelectorsMarketFacet[6] = IMarketFacet.calculateFee.selector;
             functionSelectorsMarketFacet[7] = IMarketFacet.simulateMarketOffer.selector;
 
-            bytes4[] memory functionSelectorsACLFacet = new bytes4[](4);
+            bytes4[] memory functionSelectorsACLFacet = new bytes4[](6);
             functionSelectorsACLFacet[0] = IACLFacet.assignRole.selector;
             functionSelectorsACLFacet[1] = IACLFacet.unassignRole.selector;
-            functionSelectorsACLFacet[2] = IACLFacet.isInGroup.selector;
-            functionSelectorsACLFacet[3] = IACLFacet.getRoleInContext.selector;
+            functionSelectorsACLFacet[2] = IACLFacet.canAssign.selector;
+            functionSelectorsACLFacet[3] = IACLFacet.isInGroup.selector;
+            functionSelectorsACLFacet[4] = IACLFacet.isParentInGroup.selector;
+            functionSelectorsACLFacet[5] = IACLFacet.getRoleInContext.selector;
 
             bytes4[] memory functionSelectorsEntityFacet = new bytes4[](6);
             functionSelectorsEntityFacet[0] = IEntityFacet.createSimplePolicy.selector;
