@@ -11,6 +11,7 @@ import { Nayms } from "src/diamonds/nayms/Nayms.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
 
 import "solmate/utils/CREATE3.sol";
 
