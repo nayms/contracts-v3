@@ -136,6 +136,7 @@ contract NaymsERC20Facet is Modifiers {
         emit Approval(owner, spender, value);
     }
 
+    // solhint-disable func-name-mixedcase
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
         return block.chainid == INITIAL_CHAIN_ID ? INITIAL_DOMAIN_SEPARATOR : computeDomainSeparator();
     }

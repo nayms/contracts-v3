@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+// solhint-disable no-empty-blocks
+
 import { IDiamondCut } from "../shared/interfaces/IDiamondCut.sol";
 import { IDiamondLoupe } from "../shared/interfaces/IDiamondLoupe.sol";
 import { IERC165 } from "../shared/interfaces/IERC165.sol";
