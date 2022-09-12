@@ -20,7 +20,7 @@ contract T02ACLTest is D03ProtocolDefaults {
         // create entity with signer2 as child
         entityId = "0xe1";
         Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);           
-        nayms.createEntity(entityId, adminId, entity1);
+        nayms.createEntity(entityId, adminId, entity1, bytes32(0));
     }
 
     // the deployer should be in the system admin group at initialization
@@ -91,9 +91,9 @@ contract T02ACLTest is D03ProtocolDefaults {
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string,address,address)"));
+        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string)"));
         assertEq(entries[0].topics[1], signer1Id);
-        (bytes32 contextId, bytes32 roleId, string memory action, , ) = abi.decode(entries[0].data, (bytes32, bytes32, string, address, address));
+        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
         assertEq(contextId, context);
         assertEq(roleId, LibHelpers._stringToBytes32(role));
         assertEq(action, "_assignRole");
@@ -222,9 +222,9 @@ contract T02ACLTest is D03ProtocolDefaults {
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string,address,address)"));
+        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string)"));
         assertEq(entries[0].topics[1], signer2Id);
-        (bytes32 contextId, bytes32 roleId, string memory action, , ) = abi.decode(entries[0].data, (bytes32, bytes32, string, address, address));
+        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
         assertEq(contextId, context);
         assertEq(roleId, LibHelpers._stringToBytes32(role));
         assertEq(action, "_unassignRole");
