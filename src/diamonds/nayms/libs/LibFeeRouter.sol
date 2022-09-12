@@ -20,7 +20,7 @@ library LibFeeRouter {
 
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
         for (uint256 i = 0; i < commissionsCount; i++) {
-            uint256 commission = (_premiumPaid * simplePolicy.comissionBasisPoints[i]) / 1000;
+            uint256 commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / 1000;
             LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, commission);
         }
 

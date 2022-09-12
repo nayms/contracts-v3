@@ -18,23 +18,6 @@ library LibAdmin {
     event RoleCanAssignUpdated(string role, string group, uint256 index);
     event SupportedTokenAdded(address tokenAddress);
 
-    function initSystem() internal {
-        _initReserveObjectIds();
-        // TODO Ted have a look
-        //Init all reserved IDs from constants
-        //Init supported tokens by calling _addSupportedTokens() with supported tokens array from deployment
-    }
-
-    function _reserveObject(bytes32 objectId) internal {}
-
-    function _initReserveObjectIds() internal {
-        _reserveObject(LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER));
-        _reserveObject(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER));
-        _reserveObject(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER));
-        _reserveObject(LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER));
-        _reserveObject(LibHelpers._stringToBytes32(LibConstants.NAYM_TOKEN_IDENTIFIER));
-    }
-
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
     }

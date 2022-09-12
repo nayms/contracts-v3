@@ -21,7 +21,8 @@ Update simple policy creation allow flag
     bytes32 _policyId,
     bytes32 _entityId,
     struct Stakeholders stakeholders,
-    struct SimplePolicy simplePolicy
+    struct SimplePolicy simplePolicy,
+    bytes32 _dataHash
   ) external
 ```
 Create a Simple Policy
@@ -32,6 +33,7 @@ Create a Simple Policy
 |`_entityId` | bytes32 | id of the entity
 |`stakeholders` | struct Stakeholders | Struct of roles, entity IDs and signatures for the policy
 |`simplePolicy` | struct SimplePolicy | policy to create
+|`_dataHash` | bytes32 | hash of the offchain data
 ### enableEntityTokenization
 ```solidity
   function enableEntityTokenization(

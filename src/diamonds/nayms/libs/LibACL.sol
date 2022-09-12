@@ -13,10 +13,8 @@ library LibACL {
      * @param contextId The context where the role was assigned to.
      * @param roleId The ID of the role which got unassigned. (empty ID when unassigned)
      * @param functionName The function performing the action
-     * @param txOrigin tx.origin
-     * @param msgSender msg.sender
      */
-    event RoleUpdate(bytes32 indexed objectId, bytes32 contextId, bytes32 roleId, string functionName, address txOrigin, address msgSender);
+    event RoleUpdate(bytes32 indexed objectId, bytes32 contextId, bytes32 roleId, string functionName);
 
     function _assignRole(
         bytes32 _objectId,
@@ -25,12 +23,12 @@ library LibACL {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.roles[_objectId][_contextId] = _roleId;
-        emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole", tx.origin, msg.sender);
+        emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
     }
 
     function _unassignRole(bytes32 _objectId, bytes32 _contextId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole", tx.origin, msg.sender);
+        emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
         delete s.roles[_objectId][_contextId];
     }
 

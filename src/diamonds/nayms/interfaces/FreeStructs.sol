@@ -36,12 +36,24 @@ struct MultiToken {
     mapping(bytes32 => mapping(bytes32 => bool)) tokenOpApprovals; // account to operator approvals
 }
 
+/**
+ * @param maxCapacity Maxmimum allowable amount of capacity that an entity is given. Denominated by assetId.
+ * @param utilizedCapacity The utilized capacity of the entity. Denominated by assetId.
+ */
 struct Entity {
     bytes32 assetId;
     uint256 collateralRatio;
-    uint256 maxCapital;
-    uint256 totalLimit;
+    uint256 maxCapacity;
+    uint256 utilizedCapacity;
     bool simplePolicyEnabled;
+}
+
+enum SimplePolicyStates {
+    Created,
+    Approved,
+    Active,
+    Matured,
+    Cancelled
 }
 
 struct SimplePolicy {
@@ -49,13 +61,11 @@ struct SimplePolicy {
     uint256 maturationDate;
     bytes32 asset;
     uint256 limit;
-    uint256 state;
+    SimplePolicyStates state;
     uint256 claimsPaid;
     uint256 premiumsPaid;
-    uint256[] premiums;
-    uint256[] premiumDueDates;
     bytes32[] commissionReceivers;
-    uint256[] comissionBasisPoints;
+    uint256[] commissionBasisPoints;
     uint256 sponsorComissionBasisPoints; //underwriter is  parent
 }
 

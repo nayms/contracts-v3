@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Entity, LibAppStorage, SimplePolicy } from "../AppStorage.sol";
+import { AppStorage, SimplePolicyStates, Entity, LibAppStorage, SimplePolicy } from "../AppStorage.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -10,7 +10,7 @@ import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 
 library LibSimplePolicy {
-    event SimplePolicyStateUpdated(bytes32 id, uint256 indexed state, address indexed caller);
+    event SimplePolicyStateUpdated(bytes32 id, SimplePolicyStates indexed state, address indexed caller);
     event SimplePolicyPremiumPaid(bytes32 indexed _id, uint256 _amount);
     event SimplePolicyClaimPaid(bytes32 indexed _policyId, bytes32 indexed _insuredId, uint256 _amount);
 
@@ -23,21 +23,22 @@ library LibSimplePolicy {
         AppStorage storage s = LibAppStorage.diamondStorage();
         SimplePolicy storage simplePolicy = s.simplePolicies[_id];
 
-        if (block.timestamp >= simplePolicy.maturationDate && simplePolicy.state < LibConstants.SIMPLE_POLICY_STATE_MATURED) {
+        if (block.timestamp >= simplePolicy.maturationDate && simplePolicy.state < SimplePolicyStates.Matured) {
             // move to matured state
-            simplePolicy.state = LibConstants.SIMPLE_POLICY_STATE_MATURED;
+            simplePolicy.state = SimplePolicyStates.Matured;
 
+            // When the policy matures, the entity regains their capacity that was being utilized for that policy.
             Entity storage entity = s.entities[LibObject._getParent(_id)];
-            entity.totalLimit -= simplePolicy.limit;
+            entity.utilizedCapacity -= simplePolicy.limit;
 
             // emit event
-            emit SimplePolicyStateUpdated(_id, LibConstants.SIMPLE_POLICY_STATE_MATURED, msg.sender);
-        } else if (block.timestamp >= simplePolicy.startDate && simplePolicy.state < LibConstants.SIMPLE_POLICY_STATE_ACTIVE) {
+            emit SimplePolicyStateUpdated(_id, SimplePolicyStates.Matured, msg.sender);
+        } else if (block.timestamp >= simplePolicy.startDate && simplePolicy.state < SimplePolicyStates.Active) {
             // move state to active
-            simplePolicy.state = LibConstants.SIMPLE_POLICY_STATE_ACTIVE;
+            simplePolicy.state = SimplePolicyStates.Active;
 
             // emit event
-            emit SimplePolicyStateUpdated(_id, LibConstants.SIMPLE_POLICY_STATE_ACTIVE, msg.sender);
+            emit SimplePolicyStateUpdated(_id, SimplePolicyStates.Active, msg.sender);
         }
     }
 

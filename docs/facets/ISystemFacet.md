@@ -19,7 +19,8 @@ Whitelist an underlying asset
   function createEntity(
     bytes32 _entityId,
     bytes32 _entityAdmin,
-    struct Entity _entityData
+    struct Entity _entityData,
+    bytes32 _dataHash
   ) external
 ```
 Create an entity
@@ -30,6 +31,7 @@ Create a new entity with given properties
 |`_entityId` | bytes32 | Unique ID for the entity
 |`_entityAdmin` | bytes32 | Unique ID of the entity administrator
 |`_entityData` | struct Entity | remaining entity metadata
+|`_dataHash` | bytes32 | hash of the offchain data
 ### approveUser
 ```solidity
   function approveUser(

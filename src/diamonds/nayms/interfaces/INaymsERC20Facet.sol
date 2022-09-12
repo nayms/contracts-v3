@@ -113,8 +113,9 @@ interface INaymsERC20Facet {
 
     /**
      * @notice Domain separator
-     @return domain separator
+     * @return domain separator
      */
+    // solhint-disable func-name-mixedcase
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
     /**

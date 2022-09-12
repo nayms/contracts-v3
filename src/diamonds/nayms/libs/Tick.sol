@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable func-visibility
 pragma solidity >=0.8.13;
 
 import "./TickMath.sol";

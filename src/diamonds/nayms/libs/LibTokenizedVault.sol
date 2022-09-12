@@ -70,13 +70,13 @@ library LibTokenizedVault {
         // This will calcualte the hypothetical dividends that would correspond to this number of shares.
         // It must be added to the withdrawn dividend for every denomination for the user who receives the minted tokens
         bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
-        bytes32 dividendDenominationId;
 
         for (uint256 i = 0; i < dividendDenominations.length; ++i) {
-            dividendDenominationId = dividendDenominations[i];
+            bytes32 dividendDenominationId = dividendDenominations[i];
             uint256 totalDividend = s.totalDividends[_tokenId][dividendDenominationId];
+            uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to];
 
-            (, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend);
+            (, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, withdrawnSoFar);
             s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeduction;
         }
 
@@ -118,13 +118,12 @@ library LibTokenizedVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
 
-        uint256 amount = s.tokenBalances[_tokenId][_ownerId];
+        uint256 amountOwned = s.tokenBalances[_tokenId][_ownerId];
         uint256 supply = _internalTokenSupply(_tokenId);
         uint256 totalDividend = s.totalDividends[_tokenId][_dividendTokenId];
+        uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
-        uint256 withdrawableDividend;
-        uint256 dividendDeduction;
-        (withdrawableDividend, dividendDeduction) = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend);
+        (uint256 withdrawableDividend, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
         require(withdrawableDividend > 0, "_withdrawDividend: no dividend");
 
         // Bump the withdrawn dividends for the owner
@@ -148,8 +147,9 @@ library LibTokenizedVault {
         uint256 amount = s.tokenBalances[_tokenId][_ownerId];
         uint256 supply = _internalTokenSupply(_tokenId);
         uint256 totalDividend = s.totalDividends[_tokenId][_dividendTokenId];
+        uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
-        (withdrawableDividend_, ) = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend);
+        (withdrawableDividend_, ) = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend, withdrawnSoFar);
     }
 
     function _withdrawAllDividends(bytes32 _ownerId, bytes32 _tokenId) internal {
@@ -211,14 +211,15 @@ library LibTokenizedVault {
     function _getWithdrawableDividendAndDeductionMath(
         uint256 _amount,
         uint256 _supply,
-        uint256 _totalDividend
+        uint256 _totalDividend,
+        uint256 _withdrawnSoFar
     ) internal pure returns (uint256 _withdrawableDividend, uint256 _dividendDeduction) {
-        // The dividend that can be withdrawn is: withdrawableDividend = (totalDividend/tokenSupply) * _amount. The remainer (dust) is lost.
-        // To get a smaller remainder we re-arrange to: withdrawableDividend = (totalDividend * _amount) / _supply
-
+        // The holder dividend is: holderDividend = (totalDividend/tokenSupply) * _amount. The remainer (dust) is lost.
+        // To get a smaller remainder we re-arrange to: holderDividend = (totalDividend * _amount) / _supply
         uint256 totalDividendTimesAmount = _totalDividend * _amount;
+        uint256 holderDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
 
-        _withdrawableDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
+        _withdrawableDividend = (_withdrawnSoFar >= holderDividend) ? 0 : holderDividend - _withdrawnSoFar;
         _dividendDeduction = _withdrawableDividend;
 
         // If there is a remainder, add 1 to the _dividendDeduction

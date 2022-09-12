@@ -189,7 +189,10 @@ Gasless allowance approval
   ) external returns (bytes32)
 ```
 Domain separator
-     @return domain separator
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`domain`|  | separator
 ### mint
 ```solidity
   function mint(

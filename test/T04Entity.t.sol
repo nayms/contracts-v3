@@ -8,23 +8,9 @@ import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nay
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
 
-import { ERC20 } from "src/erc20/ERC20.sol";
-
 import "src/utils/ECDSA.sol";
 
-function initEntity(
-    ERC20 _asset,
-    uint256 _collateralRatio,
-    uint256 _maxCapital,
-    uint256 _totalLimit,
-    bool simplePolicyEnabled
-) pure returns (Entity memory e) {
-    e.assetId = LibHelpers._getIdForAddress(address(_asset));
-    e.collateralRatio = _collateralRatio;
-    e.maxCapital = _maxCapital;
-    e.totalLimit = _totalLimit;
-    e.simplePolicyEnabled = simplePolicyEnabled;
-}
+import { initEntity } from "test/T03SystemFacet.t.sol";
 
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
@@ -78,7 +64,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.maturationDate = 10000;
         simplePolicy.asset = wethId;
         simplePolicy.commissionReceivers = commissionReceivers;
-        simplePolicy.comissionBasisPoints = commissions;
+        simplePolicy.commissionBasisPoints = commissions;
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
@@ -99,8 +85,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         uint256 sellAmount = 100;
         uint256 sellAtPrice = 100;
 
-        Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);
-        nayms.createEntity(entityId1, objectContext1, entity1);
+        Entity memory entity1 = initEntity(weth, 500, 1000, 0, false);
+        nayms.createEntity(entityId1, objectContext1, entity1, "entity test hash");
 
         assertEq(nayms.getLastOfferId(), 0);
 
@@ -130,16 +116,24 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testSimplePolicy() public {
-        nayms.createEntity(policySponsorEntityId, objectContext1, initEntity(weth, 500, 10000, 10000, false));
+        vm.expectRevert("object already exists");
+        nayms.createEntity(0, objectContext1, initEntity(weth, 500, 10000, 10000, false), "entity test hash");
+
+        nayms.createEntity(policySponsorEntityId, objectContext1, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("simple policy creation disabled");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 0, 1000, 1000, true));
+        vm.expectRevert("collateral ratio should be 1 to 1000");
+        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 0, 1000, 0, true));
+
+        // nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 0, 0, true));
+
+        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 1000, 1000, 0, true));
 
         // test limit
         vm.expectRevert("limit not > 0");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
         simplePolicy.limit = 10000;
 
@@ -150,43 +144,42 @@ contract T04EntityTest is D03ProtocolDefaults {
         // test entity admin constraint
         vm.expectRevert("not a system manager");
         vm.prank(account9);
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
         vm.stopPrank();
 
         nayms.assignRole(account0Id, policySponsorEntityId, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, policySponsorEntityId, LibConstants.GROUP_ENTITY_ADMINS));
 
-        // fail on 0 collateral ratio
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 0, 1000, 1000, true));
-        vm.expectRevert("currency disabled");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
-
-        // fail on 0 max capital
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 0, 1000, true));
-        vm.expectRevert("currency disabled");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
+        // fail on 0 collateral ratio note: an entity can no longer be created when its collateral ratio is == 0
 
         // test collateral ratio constraint
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 30000, 10000, true));
-        vm.expectRevert("collateral ratio not met");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
+        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 30000, 0, true));
+        vm.expectRevert("not enough capital");
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
         // mint weth for test account
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 20000, 10000, true));
+        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 20000, 0, true));
 
         // fund the policy sponsor entity
+        weth.approve(address(nayms), 10000);
         writeTokenBalance(account0, address(nayms), address(weth), 10000);
+        assertEq(weth.balanceOf(account0), 10000);
         nayms.externalDeposit(policySponsorEntityId, address(weth), 10000);
         assertEq(nayms.internalBalanceOf(policySponsorEntityId, wethId), 10000);
 
-        // create simple policy
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+
+        // todo: improve this error message when a premium is being created with the same premium ID
+        vm.expectRevert("object already exists");
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
         vm.expectRevert("invalid premium amount");
         nayms.paySimplePremium(policyId1, 0);
 
         // fund the insured party entity
+        weth.approve(address(nayms), 10000);
         writeTokenBalance(account0, address(nayms), address(weth), 10000);
+        assertEq(weth.balanceOf(account0), 10000);
         nayms.externalDeposit(DEFAULT_INSURED_PARTY_ENTITY_ID, address(weth), 10000);
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), 10000);
 
@@ -203,7 +196,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
             uint256 netPremiumAmount = premiumAmount;
             for (uint256 i = 0; i < simplePolicy.commissionReceivers.length; ++i) {
-                uint256 commission = (premiumAmount * simplePolicy.comissionBasisPoints[i]) / 1000;
+                uint256 commission = (premiumAmount * simplePolicy.commissionBasisPoints[i]) / 1000;
                 netPremiumAmount -= commission;
                 assertEq(nayms.internalBalanceOf(simplePolicy.commissionReceivers[i], simplePolicy.asset), commission);
             }

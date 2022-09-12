@@ -130,7 +130,7 @@ library LibMarket {
         bytes32 sellToken = s.offers[_offerId].sellToken;
         bytes32 buyToken = s.offers[_offerId].buyToken;
 
-        return s.offers[_offerId].rankNext != 0 || s.offers[_offerId].rankPrev != 0 || s.bestOfferId[sellToken][buyToken] == _offerId;
+        return _offerId != 0 && (s.offers[_offerId].rankNext != 0 || s.offers[_offerId].rankPrev != 0 || s.bestOfferId[sellToken][buyToken] == _offerId);
     }
 
     function _matchToExistingOffers(
@@ -157,12 +157,6 @@ library LibMarket {
             uint256 bestBuyAmount = s.offers[bestOfferId].buyAmount;
             uint256 bestSellAmount = s.offers[bestOfferId].sellAmount;
 
-            if (_buyAmount == 0) {
-                // market offer pay_amt is smaller than 1 wei of the other token
-                if (result.remainingSellAmount * 1 ether < LibMath.wdiv(bestBuyAmount, bestSellAmount)) {
-                    break; // We consider that all amount is sold
-                }
-            }
             // check if price is better or same as the one taker is willing to pay, within error margin
             // Ugly hack to work around rounding errors. Based on the idea that
             // the furthest the amounts can stray from their "true" values is 1.
@@ -173,7 +167,7 @@ library LibMarket {
             //
             // (For detailed breakdown see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
             //
-            else if (
+            if (
                 bestBuyAmount * result.remainingBuyAmount >
                 result.remainingSellAmount * bestSellAmount + bestBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + bestSellAmount
             ) {
@@ -328,7 +322,10 @@ library LibMarket {
         }
 
         // don't emit event stating market order is canceled if the market order was executed and fulfilled
-        if (marketInfo.state != LibConstants.OFFER_STATE_FULFILLED) emit OrderCancelled(_offerId, marketInfo.creator, marketInfo.sellToken);
+        if (marketInfo.state != LibConstants.OFFER_STATE_FULFILLED) {
+            s.offers[_offerId].state = LibConstants.OFFER_STATE_CANCELLED;
+            emit OrderCancelled(_offerId, marketInfo.creator, marketInfo.sellToken);
+        }
     }
 
     function _assertValidOffer(
@@ -352,6 +349,9 @@ library LibMarket {
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
         require(s.tokenBalances[_sellToken][_entityId] - s.marketLockedBalances[_entityId][_sellToken] >= _sellAmount, "verify offer: tokens for sale in mkt");
+
+        // must have a valid fee schedule
+        require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
 
         // if caller requested the 'platform action' fee schedule then check that they're allowed to do so
         if (_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION) {
@@ -415,48 +415,5 @@ library LibMarket {
     function _getLastOfferId() internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.lastOfferId;
-    }
-
-    function _simulateMarketOffer(
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken
-    ) internal view returns (uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 boughtAmount_;
-        uint256 soldAmount_;
-        uint256 sellAmount = _sellAmount;
-
-        uint256 bestOfferId = s.bestOfferId[_sellToken][_buyToken];
-
-        while (sellAmount > 0 && bestOfferId > 0) {
-            uint256 offerBuyAmount = s.offers[bestOfferId].buyAmount;
-            uint256 offerSellAmount = s.offers[bestOfferId].sellAmount;
-
-            // There is a chance that pay_amt is smaller than 1 wei of the other token
-            if (sellAmount * 1 ether < LibMath.wdiv(offerBuyAmount, offerSellAmount)) {
-                break; // We consider that all amount is sold
-            }
-
-            // if sell amount >= offer buy amount then lets buy the whole offer
-            if (sellAmount >= offerBuyAmount) {
-                soldAmount_ = soldAmount_ + offerBuyAmount;
-                boughtAmount_ = boughtAmount_ + offerSellAmount;
-                sellAmount = sellAmount - offerBuyAmount;
-            }
-            // otherwise, let's just buy what we can
-            else {
-                soldAmount_ = soldAmount_ + sellAmount;
-                boughtAmount_ = boughtAmount_ + ((sellAmount * offerSellAmount) / offerBuyAmount);
-                sellAmount = 0;
-            }
-
-            // move to next best offer
-            bestOfferId = s.offers[bestOfferId].rankPrev;
-        }
-
-        require(_sellAmount <= soldAmount_, "not enough orders in market");
-
-        return boughtAmount_;
     }
 }
