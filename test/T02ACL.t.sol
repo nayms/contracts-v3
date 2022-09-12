@@ -2,6 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+import { Vm } from "forge-std/Vm.sol";
 import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
 import { initEntity } from "./T04Entity.t.sol";
@@ -79,15 +80,24 @@ contract T02ACLTest is D03ProtocolDefaults {
         assertFalse(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_ENTITY_ADMINS));
     }
 
-    /* TODO: event comparison not working */
-    // function testRoleAssignmentEmitsAnEvent() public {
-    //     bytes32 context = LibHelpers._stringToBytes32("test");
-    //     string memory role = LibConstants.ROLE_APPROVED_USER;
+    function testRoleAssignmentEmitsAnEvent() public {
+        bytes32 context = LibHelpers._stringToBytes32("test");
+        string memory role = LibConstants.ROLE_APPROVED_USER;
 
-    //     vm.expectEmit(true, false, false, true);
-    //     emit LibACL.RoleUpdate(signer1Id, context, LibHelpers._stringToBytes32(role), "_assignRole", address(this), address(this));
-    //     nayms.assignRole(signer1Id, context, role);
-    // }
+        vm.recordLogs();
+
+        nayms.assignRole(signer1Id, context, role);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2);
+        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string,address,address)"));
+        assertEq(entries[0].topics[1], signer1Id);
+        (bytes32 contextId, bytes32 roleId, string memory action, , ) = abi.decode(entries[0].data, (bytes32, bytes32, string, address, address));
+        assertEq(contextId, context);
+        assertEq(roleId, LibHelpers._stringToBytes32(role));
+        assertEq(action, "_assignRole");
+    }
 
     function testInvalidObjectIdWhenAssignRole() public {
         bytes32 invalidObjectId = bytes32(0);
@@ -196,6 +206,29 @@ contract T02ACLTest is D03ProtocolDefaults {
         nayms.unassignRole(signer2Id, context);     
         assertFalse(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_APPROVED_USERS));
     }    
+
+    function testRoleUnassignmentEmitsAnEvent() public {
+        string memory role = LibConstants.ROLE_APPROVED_USER;
+        bytes32 context = LibHelpers._stringToBytes32("test");
+
+        // signer3 makes signer2 an approved user
+        testAssignersCanAssignRole();
+
+        vm.prank(signer3);
+        vm.recordLogs();
+
+        nayms.unassignRole(signer2Id, context);     
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2);
+        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string,address,address)"));
+        assertEq(entries[0].topics[1], signer2Id);
+        (bytes32 contextId, bytes32 roleId, string memory action, , ) = abi.decode(entries[0].data, (bytes32, bytes32, string, address, address));
+        assertEq(contextId, context);
+        assertEq(roleId, LibHelpers._stringToBytes32(role));
+        assertEq(action, "_unassignRole");
+    }
 
     function testGetRoleInContext() public {
         string memory role = LibConstants.ROLE_APPROVED_USER;
