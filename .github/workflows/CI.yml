@@ -91,6 +91,7 @@ jobs:
       #   id: slither
       #   continue-on-error: true
       #   with:
+      #     node-version: 16
       #     sarif: results.sarif
 
       # - name: Upload Slither SARIF file
