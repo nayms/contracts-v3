@@ -1,0 +1,30 @@
+name: Lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "yarn"
+          registry-url: 'https://registry.npmjs.org'
+          scope: "@nayms"
+
+      - name: Install node dev dependencies
+        run: yarn
+            
+      - name: Run prettier check
+        run: yarn run prettier:check
+
+      - name: Run lint check
+        run: yarn run solhint:check
