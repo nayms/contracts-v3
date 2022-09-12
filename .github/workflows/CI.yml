@@ -70,21 +70,21 @@ jobs:
       #   run: forge snapshot --diff -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000
       #   continue-on-error: true
 
-      # - name: Coverage report
-      #   run: forge coverage --report lcov
-      #   continue-on-error: true
+      - name: Coverage report
+        run: forge coverage --report lcov
+        continue-on-error: true
 
       # - name: Coverage report from fork compiled via-ir
       #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir 
       #   continue-on-error: true
 
-      # - name: Coveralls
-      #   uses: coverallsapp/github-action@master
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     path-to-lcov: "${GITHUB_WORKSPACE}/lcov.info"
-      #   if: always()
-      #   continue-on-error: true
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: "${GITHUB_WORKSPACE}/lcov.info"
+        if: always()
+        continue-on-error: true
 
       # - name: Static analyser Slither (todo)
       #   uses: crytic/slither-action@v0.1.1
