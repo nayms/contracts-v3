@@ -60,7 +60,7 @@ jobs:
       #   continue-on-error: true
 
       - name: Coverage report
-        run: forge coverage --report lcov
+        run: make coverage
         continue-on-error: true
 
       # - name: Coverage report from fork compiled via-ir
@@ -71,7 +71,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "./lcov.info"
+          path-to-lcov: "./lcov-filtered.info"
         if: always()
         continue-on-error: true
 

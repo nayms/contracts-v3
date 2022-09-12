@@ -2,6 +2,7 @@
 coverage
 coverage.json
 lcov.info
+lcov*.info
 typechain
 
 # SECURITY
