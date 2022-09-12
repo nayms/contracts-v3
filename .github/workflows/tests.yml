@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  run-ci:
+  run-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,9 +19,6 @@ jobs:
           cache: "yarn"
           registry-url: 'https://registry.npmjs.org'
           scope: "@nayms"
-
-      - name: Install node dev dependencies
-        run: yarn
 
       - uses: actions/cache@v3
         with:
@@ -42,14 +39,6 @@ jobs:
         uses: onbjerg/foundry-toolchain@v1
         with:
           version: nightly
-            
-      - name: Run prettier check
-        run: yarn run prettier:check
-        continue-on-error: true
-
-      - name: Run lint check
-        run: yarn run solhint:check
-        continue-on-error: true
 
       - name: Install Forge dependencies
         run: forge install
@@ -70,21 +59,21 @@ jobs:
       #   run: forge snapshot --diff -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000
       #   continue-on-error: true
 
-      - name: Coverage report
-        run: forge coverage --report lcov
-        continue-on-error: true
+      # - name: Coverage report
+      #   run: forge coverage --report lcov
+      #   continue-on-error: true
 
       # - name: Coverage report from fork compiled via-ir
       #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir 
       #   continue-on-error: true
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "${GITHUB_WORKSPACE}/lcov.info"
-        if: always()
-        continue-on-error: true
+      # - name: Coveralls
+      #   uses: coverallsapp/github-action@master
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     path-to-lcov: "${GITHUB_WORKSPACE}/lcov.info"
+      #   if: always()
+      #   continue-on-error: true
 
       # - name: Static analyser Slither (todo)
       #   uses: crytic/slither-action@v0.1.1
@@ -107,4 +96,3 @@ jobs:
       #   run: yarn publish
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        
