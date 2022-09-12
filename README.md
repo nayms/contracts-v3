@@ -1,6 +1,6 @@
 # Nayms Smart Contracts v3
 
-[![Lint](https://github.com/nayms/contracts-v3/actions/workflows/lint.yml/badge.svg)](https://github.com/nayms/contracts-v3/actions/workflows/lint.yml) [![Tests](https://github.com/nayms/contracts-v3/actions/workflows/tests.yml/badge.svg)](https://github.com/nayms/contracts-v3/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/nayms/contracts-v3.svg)](https://github.com/nayms/contracts-v3/blob/main/LICENSE)
+[![Lint](https://github.com/nayms/contracts-v3/actions/workflows/lint.yml/badge.svg)](https://github.com/nayms/contracts-v3/actions/workflows/lint.yml) [![Tests](https://github.com/nayms/contracts-v3/actions/workflows/tests.yml/badge.svg)](https://github.com/nayms/contracts-v3/actions/workflows/tests.yml) [![Coverage Status](https://coveralls.io/repos/github/nayms/contracts-v3/badge.svg?branch=main)](https://coveralls.io/github/nayms/contracts-v3?branch=main) [![License](https://img.shields.io/github/license/nayms/contracts-v3.svg)](https://github.com/nayms/contracts-v3/blob/main/LICENSE)
  [![npm version](https://img.shields.io/npm/v/@nayms/contracts/latest.svg)](https://www.npmjs.com/package/@nayms/contracts/v/latest)
 
 This repository contains Nayms V3 smart contracts.

@@ -71,7 +71,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "${GITHUB_WORKSPACE}/lcov.info"
+          path-to-lcov: "./lcov.info"
         if: always()
         continue-on-error: true
 
