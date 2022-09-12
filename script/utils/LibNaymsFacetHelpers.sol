@@ -3,24 +3,25 @@ pragma solidity >=0.8.13;
 
 import "src/diamonds/nayms/INayms.sol";
 
-struct NaymsFacetAddresses {
-    address aclFacet;
-    address naymsERC20Facet;
-    address adminFacet;
-    address userFacet;
-    address systemFacet;
-    address tokenizedVaultFacet;
-    address tokenizedVaultIOFacet;
-    address marketFacet;
-    address entityFacet;
-    address simplePolicyFacet;
-    address ndfFacet;
-    address ssfFacet;
-    address stakingFacet;
+// Index into naymsFacetAddresses array
+enum NaymsFacetAddressIndex {
+    ACL,
+    NAYMS_ERC20,
+    ADMIN,
+    USER,
+    SYSTEM,
+    TOKENIZED_VAULT,
+    TOKENIZED_VAULT_IO,
+    MARKET,
+    ENTITY,
+    SIMPLE_POLICY,
+    NDF,
+    SSF,
+    STAKING
 }
 
 library LibNaymsFacetHelpers {
-    function createNaymsDiamondFunctionsCut(NaymsFacetAddresses memory naymsFacetAddresses) internal pure returns (IDiamondCut.FacetCut[] memory cut) {
+    function createNaymsDiamondFunctionsCut(address[] memory naymsFacetAddresses) internal pure returns (IDiamondCut.FacetCut[] memory cut) {
         // initialize the diamond as well as cut in all facets
         cut = new IDiamondCut.FacetCut[](13);
 
@@ -96,52 +97,52 @@ library LibNaymsFacetHelpers {
             functionSelectorsSSFFacet[2] = ISSFFacet.payReward.selector;
 
             cut[0] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.systemFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.SYSTEM)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsSystemFacet
             });
             cut[1] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.tokenizedVaultFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.TOKENIZED_VAULT)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsTokenizedVaultFacet
             });
             cut[2] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.tokenizedVaultIOFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.TOKENIZED_VAULT_IO)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsTokenizedVaultIOFacet
             });
             cut[3] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.marketFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.MARKET)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsMarketFacet
             });
             cut[4] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.aclFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.ACL)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsACLFacet
             });
             cut[5] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.entityFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.ENTITY)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsEntityFacet
             });
             cut[6] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.simplePolicyFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.SIMPLE_POLICY)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsSimplePolicyFacet
             });
             cut[7] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.userFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.USER)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsUserFacet
             });
             cut[8] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.ndfFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.NDF)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsNDFFacet
             });
             cut[9] = IDiamondCut.FacetCut({
-                facetAddress: address(naymsFacetAddresses.ssfFacet),
+                facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.SSF)]),
                 action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: functionSelectorsSSFFacet
             });
@@ -200,17 +201,17 @@ library LibNaymsFacetHelpers {
         functionSelectorsStakingFacet[11] = IStakingFacet.getNAYMForVENAYM.selector;
 
         cut[10] = IDiamondCut.FacetCut({
-            facetAddress: address(naymsFacetAddresses.naymsERC20Facet),
+            facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.NAYMS_ERC20)]),
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectorsNaymsERC20Facet
         });
         cut[11] = IDiamondCut.FacetCut({
-            facetAddress: address(naymsFacetAddresses.adminFacet),
+            facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.ADMIN)]),
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectorsAdminFacet
         });
         cut[12] = IDiamondCut.FacetCut({
-            facetAddress: address(naymsFacetAddresses.stakingFacet),
+            facetAddress: address(naymsFacetAddresses[uint(NaymsFacetAddressIndex.STAKING)]),
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectorsStakingFacet
         });

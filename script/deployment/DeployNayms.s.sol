@@ -12,7 +12,7 @@ import { Nayms } from "src/diamonds/nayms/Nayms.sol";
 
 import { Create3Deployer } from "src/utils/Create3Deployer.sol";
 
-import { LibDeployNayms, NaymsFacetAddresses } from "script/utils/LibDeployNayms.sol";
+import { LibDeployNayms } from "script/utils/LibDeployNayms.sol";
 import { LibNaymsFacetHelpers } from "script/utils/LibNaymsFacetHelpers.sol";
 
 contract DeployNayms is Script {
@@ -39,7 +39,7 @@ contract DeployNayms is Script {
         deploymentInfo.initDiamond = address(initDiamond);
 
         // deploy all facets
-        NaymsFacetAddresses memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
+        address[] memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
 
         Create3Deployer c3Deployer = new Create3Deployer();
 

@@ -23,24 +23,25 @@ import { StakingFacet } from "src/diamonds/nayms/facets/StakingFacet.sol";
 
 // import { Nayms } from "src/diamonds/nayms/Nayms.sol";
 
-import { NaymsFacetAddresses } from "./LibNaymsFacetHelpers.sol";
+import { NaymsFacetAddressIndex } from "./LibNaymsFacetHelpers.sol";
 
 library LibDeployNayms {
     /// @notice deploy all Nayms facets
-    function deployNaymsFacets() internal returns (NaymsFacetAddresses memory naymsFacetAddresses) {
-        naymsFacetAddresses.aclFacet = address(new ACLFacet());
-        naymsFacetAddresses.naymsERC20Facet = address(new NaymsERC20Facet());
-        naymsFacetAddresses.adminFacet = address(new AdminFacet());
-        naymsFacetAddresses.userFacet = address(new UserFacet());
-        naymsFacetAddresses.systemFacet = address(new SystemFacet());
-        naymsFacetAddresses.tokenizedVaultFacet = address(new TokenizedVaultFacet());
-        naymsFacetAddresses.tokenizedVaultIOFacet = address(new TokenizedVaultIOFacet());
-        naymsFacetAddresses.marketFacet = address(new MarketFacet());
-        naymsFacetAddresses.entityFacet = address(new EntityFacet());
-        naymsFacetAddresses.simplePolicyFacet = address(new SimplePolicyFacet());
-        naymsFacetAddresses.ndfFacet = address(new NDFFacet());
-        naymsFacetAddresses.ssfFacet = address(new SSFFacet());
-        naymsFacetAddresses.stakingFacet = address(new StakingFacet());
+    function deployNaymsFacets() internal returns (address[] memory naymsFacetAddresses) {
+        naymsFacetAddresses = new address[](13);
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.ACL)] = address(new ACLFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.NAYMS_ERC20)] = address(new NaymsERC20Facet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.ADMIN)] = address(new AdminFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.USER)] = address(new UserFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.SYSTEM)] = address(new SystemFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.TOKENIZED_VAULT)] = address(new TokenizedVaultFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.TOKENIZED_VAULT_IO)] = address(new TokenizedVaultIOFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.MARKET)] = address(new MarketFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.ENTITY)] = address(new EntityFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.SIMPLE_POLICY)] = address(new SimplePolicyFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.NDF)] = address(new NDFFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.SSF)] = address(new SSFFacet());
+        naymsFacetAddresses[uint(NaymsFacetAddressIndex.STAKING)] = address(new StakingFacet());
     }
 
     // function deployNaymsAndInit() internal returns (address naymsAddress) {

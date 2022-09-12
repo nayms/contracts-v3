@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 
 import { INayms } from "src/diamonds/nayms/INayms.sol";
 
-import { LibNaymsFacetHelpers, NaymsFacetAddresses } from "script/utils/LibNaymsFacetHelpers.sol";
+import { LibNaymsFacetHelpers } from "script/utils/LibNaymsFacetHelpers.sol";
 
 interface IInitDiamond {
     function initialize() external;
@@ -17,22 +17,21 @@ contract InitialDiamondCut is Script {
 
     INayms public nayms = INayms(naymsDiamondAddress);
 
-    NaymsFacetAddresses public naymsFacetAddresses =
-        NaymsFacetAddresses({
-            aclFacet: 0x0A959115a6a2451dE84693B15a637753da26421f,
-            naymsERC20Facet: 0xE20a522D8dde275eE590598D7A57b6B193d2D511,
-            adminFacet: 0x8422b00d9d61b6319ed73Fa5a079A3e444F5D0cd,
-            userFacet: 0x6520664ccb920c6764aeE349dBB41377f033E4B1,
-            systemFacet: 0xcf3A9D64dC5CD17b8246668FA9a16b5A7eAcc4dd,
-            tokenizedVaultFacet: 0x65C0A9652FBE9bD140d421aEc0818F43D10423F5,
-            tokenizedVaultIOFacet: 0xC0F6Ce2D23AD487a29f2654dEdd2bfDd8c8a1b63,
-            marketFacet: 0xf6f8F965fB60d7a1B2861fBA266FEe7371770c1f,
-            entityFacet: 0x3aC8B50598fC1B015CfE6D77bdaD82DA653B9Cc5,
-            simplePolicyFacet: 0x55FbeaA15215747fc2d8d9A655d5e1C97Cc8Bf65,
-            ndfFacet: 0xc7bf919d7Fe54C01CBfC15d74360898250D44107,
-            ssfFacet: 0xd01BfDb0435F726c23e19E6Fcfd7B4AE11420CAf,
-            stakingFacet: 0x03e13a105D298Cb8BF3De40A337052f83eEF3571
-        });
+    address[] public naymsFacetAddresses = [
+        0x0A959115a6a2451dE84693B15a637753da26421f, // ACL
+        0xE20a522D8dde275eE590598D7A57b6B193d2D511, // NAYMS_ERC20
+        0x8422b00d9d61b6319ed73Fa5a079A3e444F5D0cd, // ADMIN
+        0x6520664ccb920c6764aeE349dBB41377f033E4B1, // USER
+        0xcf3A9D64dC5CD17b8246668FA9a16b5A7eAcc4dd, // SYSTEM
+        0x65C0A9652FBE9bD140d421aEc0818F43D10423F5, // TOKENIZED_VAULT
+        0xC0F6Ce2D23AD487a29f2654dEdd2bfDd8c8a1b63, // TOKENIZED_VAULT_IO
+        0xf6f8F965fB60d7a1B2861fBA266FEe7371770c1f, // MARKET
+        0x3aC8B50598fC1B015CfE6D77bdaD82DA653B9Cc5, // ENTITY
+        0x55FbeaA15215747fc2d8d9A655d5e1C97Cc8Bf65, // SIMPLE_POLICY
+        0xc7bf919d7Fe54C01CBfC15d74360898250D44107, // NDF
+        0xd01BfDb0435F726c23e19E6Fcfd7B4AE11420CAf, // SSF
+        0x03e13a105D298Cb8BF3De40A337052f83eEF3571  // STAKING
+    ];
 
     IInitDiamond initDiamond = IInitDiamond(initDiamondAddress);
 
