@@ -1,6 +1,6 @@
 # Nayms Smart Contracts v3
 
-![build](https://github.com/nayms/contracts3/actions/workflows/CI.yml)  [![npm version](https://img.shields.io/npm/v/@nayms/contracts/latest.svg)](https://www.npmjs.com/package/@nayms/contracts/v/latest)
+[![build](https://github.com/nayms/contracts3/actions/workflows/CI.yml/badge.svg)](https://github.com/nayms/contracts3/actions/workflows/CI.yml)  [![npm version](https://img.shields.io/npm/v/@nayms/contracts/latest.svg)](https://www.npmjs.com/package/@nayms/contracts/v/latest)
 
 
 This repository contains Nayms V3 smart contracts.
