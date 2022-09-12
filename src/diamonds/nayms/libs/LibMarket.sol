@@ -9,15 +9,16 @@ import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
+
 library LibMarket {
     /// @notice order has been added
-    event OrderAdded(uint256 indexed orderId, bytes32 indexed seller, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
+    event OrderAdded(uint256 indexed orderId, bytes32 indexed taker, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
 
     /// @notice order has been executed
-    event OrderExecuted(uint256 indexed orderId, bytes32 indexed seller, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 category);
+    event OrderExecuted(uint256 indexed orderId, bytes32 indexed taker, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
 
     /// @notice order has been canceled
-    event OrderCancelled(uint256 indexed orderId, bytes32 indexed seller, bytes32 sellToken);
+    event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
 
     struct MatchingOfferResult {
         uint256 remainingBuyAmount;
@@ -150,7 +151,6 @@ library LibMarket {
         while (result.remainingSellAmount != 0) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
-            // uint256 bestOfferId = s.bestOfferId[_sellToken][_buyToken];
             if (bestOfferId == 0) {
                 break;
             }
@@ -158,6 +158,7 @@ library LibMarket {
             uint256 bestBuyAmount = s.offers[bestOfferId].buyAmount;
             uint256 bestSellAmount = s.offers[bestOfferId].sellAmount;
 
+            // check if price is better or same as the one taker is willing to pay, within error margin
             // Ugly hack to work around rounding errors. Based on the idea that
             // the furthest the amounts can stray from their "true" values is 1.
             // Ergo the worst case has `sellAmount` and `bestSellAmount` at +1 away from
@@ -237,36 +238,35 @@ library LibMarket {
 
     function _buy(
         uint256 _offerId,
-        bytes32 _takerId,
+        bytes32 _makerId,
         uint256 _requestedBuyAmount // entity token(?)
     ) internal returns (uint256 buyTokenComissionsPaid_, uint256 sellTokenComissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // (a / b) * c = c * a / b  -> do multiplication first to avoid underflow
-        uint256 thisSaleSellAmount = (_requestedBuyAmount * s.offers[_offerId].sellAmount) / s.offers[_offerId].buyAmount; // nWETH
+        // (a / b) * c = c * a / b  -> multiply first, to avoid underflow
+        uint256 actualSellAmount = (_requestedBuyAmount * s.offers[_offerId].sellAmount) / s.offers[_offerId].buyAmount; // nWETH
 
         // check bounds and update balances
-        _checkBoundsAndUpdateBalances(_offerId, thisSaleSellAmount, _requestedBuyAmount);
+        _checkBoundsAndUpdateBalances(_offerId, actualSellAmount, _requestedBuyAmount);
 
         // Check before paying commissions
         if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
-            // Fees are paid by the taker.
-            // Maker pays no fees
+            // Fees are paid by the taker, maker pays no fees
             // Fees are paid only in external token
             // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
             // If both are internal tokens no commissions are paid
             if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
-                buyTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
+                buyTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
             } else if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].sellToken)) {
-                sellTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, thisSaleSellAmount);
+                sellTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
             }
         }
 
-        s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _requestedBuyAmount;
+        s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= actualSellAmount;
 
-        require(LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _requestedBuyAmount), "maker transfer failed");
-        require(LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, thisSaleSellAmount), "taker transfer failed");
+        require(LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount), "maker transfer failed");
+        require(LibTokenizedVault._internalTransfer(_makerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount), "taker transfer failed");
 
         // cancel offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
@@ -274,7 +274,15 @@ library LibMarket {
             _cancelOffer(_offerId);
         }
 
-        emit OrderExecuted(_offerId, _takerId, s.offers[_offerId].sellToken, thisSaleSellAmount, s.offers[_offerId].buyToken, _requestedBuyAmount, s.offers[_offerId].state);
+        emit OrderExecuted(
+            _offerId,
+            _makerId,
+            s.offers[_offerId].sellToken,
+            s.offers[_offerId].sellAmount,
+            s.offers[_offerId].buyToken,
+            s.offers[_offerId].buyAmount,
+            s.offers[_offerId].state
+        );
     }
 
     function _checkBoundsAndUpdateBalances(

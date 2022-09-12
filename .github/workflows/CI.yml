@@ -36,7 +36,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run: cargo install svm-rs && svm install "0.7.6" && svm install "0.8.13"
+      - run: cargo install --force svm-rs && svm install "0.7.6" && svm install "0.8.13"
 
       - name: Install Foundry
         uses: onbjerg/foundry-toolchain@v1
@@ -70,13 +70,13 @@ jobs:
         run: forge snapshot --diff -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000
         continue-on-error: true
 
-      - name: Coverage report from fork
-        run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000
+      - name: Coverage report
+        run: forge coverage --report lcov
         continue-on-error: true
 
-      - name: Coverage report from fork compiled via-ir
-        run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir 
-        continue-on-error: true
+      # - name: Coverage report from fork compiled via-ir
+      #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir 
+      #   continue-on-error: true
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
