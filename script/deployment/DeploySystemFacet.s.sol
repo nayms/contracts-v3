@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import "forge-std/Script.sol";
-import { LibDeployNayms, NaymsFacetAddresses } from "script/utils/LibDeployNayms.sol";
+import { LibDeployNayms } from "script/utils/LibDeployNayms.sol";
 import { LibNaymsFacetHelpers } from "script/utils/LibNaymsFacetHelpers.sol";
 
 import { SystemFacet } from "src/diamonds/nayms/facets/SystemFacet.sol";

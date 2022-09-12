@@ -15,7 +15,7 @@ import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
 
 import "solmate/utils/CREATE3.sol";
 
-import { LibDeployNayms, NaymsFacetAddresses } from "script/utils/LibDeployNayms.sol";
+import { LibDeployNayms } from "script/utils/LibDeployNayms.sol";
 import { LibNaymsFacetHelpers } from "script/utils/LibNaymsFacetHelpers.sol";
 
 /// @notice Default test setup part 01
@@ -40,7 +40,7 @@ contract D01Deployment is D00GlobalDefaults {
         initDiamond = new InitDiamond();
 
         // deploy all facets
-        NaymsFacetAddresses memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
+        address[] memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
 
         // deterministically deploy Nayms diamond
         console2.log("Deterministic contract address for Nayms", CREATE3.getDeployed(salt));

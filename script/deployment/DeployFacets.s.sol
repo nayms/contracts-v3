@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import "forge-std/Script.sol";
-import { LibDeployNayms, NaymsFacetAddresses } from "script/utils/LibDeployNayms.sol";
+import { LibDeployNayms } from "script/utils/LibDeployNayms.sol";
 
 contract DeployFacets is Script {
     function run() external {
@@ -12,7 +12,7 @@ contract DeployFacets is Script {
         console2.log("msg.sender's starting nonce", vm.getNonce(msg.sender));
 
         // deploy all facets
-        NaymsFacetAddresses memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
+        address[] memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
 
         vm.stopBroadcast();
     }
