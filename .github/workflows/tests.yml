@@ -2,8 +2,7 @@ name: Tests
 on:
   push:
     branches:
-      - main
-      - split-ci-tasks
+      - '**'
   pull_request:
 
 jobs:
@@ -49,3 +48,51 @@ jobs:
 
       - name: Tests - local
         run: make tlocal
+
+      # - name: Check gas snapshots on local tests
+      #   run: forge snapshot --diff --gas-report --no-match-test testWithNaymsTokenCreateLiquidityPool
+
+      # - name: Tests - mainnet fork
+      #   run: forge t -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --etherscan-api-key ${{secrets.ETHERSCAN_API_KEY}} --gas-report
+
+      # - name: Gas snapshot diff (not via-ir, yet)
+      #   run: forge snapshot --diff -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000
+      #   continue-on-error: true
+
+      # - name: Coverage report
+      #   run: forge coverage --report lcov
+      #   continue-on-error: true
+
+      # - name: Coverage report from fork compiled via-ir
+      #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir 
+      #   continue-on-error: true
+
+      # - name: Coveralls
+      #   uses: coverallsapp/github-action@master
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     path-to-lcov: "${GITHUB_WORKSPACE}/lcov.info"
+      #   if: always()
+      #   continue-on-error: true
+
+      # - name: Static analyser Slither (todo)
+      #   uses: crytic/slither-action@v0.1.1
+      #   id: slither
+      #   continue-on-error: true
+      #   with:
+      #     sarif: results.sarif
+
+      # - name: Upload Slither SARIF file
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   continue-on-error: true
+      #   with:
+      #     sarif_file: ${{ steps.slither.outputs.sarif }}
+
+      # - name: Static analyser Mythril (todo)
+      #   run: mythril
+      #   continue-on-error: true
+          
+      # - name: Publish to NPM
+      #   run: yarn publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
