@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { D02TestSetup, console2, LibAdmin, LibConstants, LibHelpers } from "./D02TestSetup.sol";
+import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
+
 
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 

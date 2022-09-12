@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { D01Deployment, console2, LibHelpers, LibConstants, LibAdmin } from "./D01Deployment.sol";
+import { D01Deployment, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D01Deployment.sol";
 
 import { ERC20 } from "src/erc20/ERC20.sol";
 
