@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - split-ci-tasks
   pull_request:
 
 jobs:
