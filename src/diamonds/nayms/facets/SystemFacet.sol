@@ -17,7 +17,7 @@ contract SystemFacet is Modifiers {
     ) external assertSysMgr {
         // note: An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.
 
-        LibObject._createObject(_entityId);
+        LibObject._createObject(_entityId, _dataHash);
 
         // state that this is an entity
         s.existingEntities[_entityId] = true;
