@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { LibAppStorage, AppStorage, SimplePolicyStates, LibAdmin, LibConstants, LibHelpers, Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { LibAppStorage, AppStorage, LibAdmin, LibConstants, LibHelpers, Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
@@ -47,7 +47,6 @@ library LibEntity {
         // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
         require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= capitalRequirementForUpdatedUtilizedCapacity, "not enough capital");
 
-        require(simplePolicy.state == SimplePolicyStates.Created, "state is not == Created");
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
