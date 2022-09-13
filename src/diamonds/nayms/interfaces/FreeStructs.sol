@@ -48,20 +48,12 @@ struct Entity {
     bool simplePolicyEnabled;
 }
 
-enum SimplePolicyStates {
-    Created,
-    Approved,
-    Active,
-    Matured,
-    Cancelled
-}
-
 struct SimplePolicy {
     uint256 startDate;
     uint256 maturationDate;
     bytes32 asset;
     uint256 limit;
-    SimplePolicyStates state;
+    bool fundsLocked;
     uint256 claimsPaid;
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
