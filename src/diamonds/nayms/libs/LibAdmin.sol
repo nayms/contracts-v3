@@ -14,8 +14,8 @@ library LibAdmin {
     event DiscountTokenUpdated(address oldToken, address newToken);
     event PoolFeeUpdated(uint256 oldFee, uint256 newFee);
     event CoefficientUpdated(uint256 oldCoefficient, uint256 newCoefficient);
-    event RoleGroupUpdated(string role, string group, bool roleInGroup, uint256 index);
-    event RoleCanAssignUpdated(string role, string group, uint256 index);
+    event RoleGroupUpdated(string role, string group, bool roleInGroup);
+    event RoleCanAssignUpdated(string role, string group);
     event SupportedTokenAdded(address tokenAddress);
 
     function _getSystemId() internal pure returns (bytes32) {
@@ -79,7 +79,6 @@ library LibAdmin {
 
     function _setCoefficient(uint256 _newCoefficient) internal {
         require(_newCoefficient <= 1000, "Coefficient too high");
-        require(_newCoefficient >= 0, "Coefficient too low");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -93,8 +92,7 @@ library LibAdmin {
     function _updateRoleAssigner(string memory _role, string memory _assignerGroup) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.canAssign[LibHelpers._stringToBytes32(_role)] = LibHelpers._stringToBytes32(_assignerGroup);
-        s.canAssignConfigUpdateIndex++;
-        emit RoleCanAssignUpdated(_role, _assignerGroup, s.canAssignConfigUpdateIndex);
+        emit RoleCanAssignUpdated(_role, _assignerGroup);
     }
 
     function _updateRoleGroup(
@@ -104,8 +102,7 @@ library LibAdmin {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.groups[LibHelpers._stringToBytes32(_role)][LibHelpers._stringToBytes32(_group)] = _roleInGroup;
-        s.groupsConfigUpdateIndex++;
-        emit RoleGroupUpdated(_role, _group, _roleInGroup, s.groupsConfigUpdateIndex);
+        emit RoleGroupUpdated(_role, _group, _roleInGroup);
     }
 
     function _isSupportedExternalToken(bytes32 _tokenId) internal view returns (bool) {

@@ -80,7 +80,7 @@ contract AdminFacet is Modifiers {
         LibAdmin._updateRoleGroup(_role, _group, _roleInGroup);
     }
 
-    function _getSystemId() external pure returns (bytes32) {
+    function getSystemId() external pure returns (bytes32) {
         return LibAdmin._getSystemId();
     }
 }

@@ -82,8 +82,6 @@ struct AppStorage {
     //// ACL Configuration////
     mapping(bytes32 => mapping(bytes32 => bool)) groups; //role => (group => isRoleInGroup)
     mapping(bytes32 => bytes32) canAssign; //role => Group that can assign/unassign that role
-    uint256 groupsConfigUpdateIndex;
-    uint256 canAssignConfigUpdateIndex;
     string[][] groupsConfig;
     string[][] canAssignConfig;
     //// User Data ////

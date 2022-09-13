@@ -26,6 +26,10 @@ library LibHelpers {
 
     // Conversion Utilities
 
+    function _addressToBytes32(address addr) internal pure returns (bytes32 result) {
+        return _bytesToBytes32(abi.encode(addr));
+    }
+
     function _stringToBytes32(string memory strIn) internal pure returns (bytes32 result) {
         return _bytesToBytes32(bytes(strIn));
     }
