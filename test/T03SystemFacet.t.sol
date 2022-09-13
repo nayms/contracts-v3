@@ -1,29 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, initEntity } from "./defaults/D03ProtocolDefaults.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
+import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { Entity } from "src/diamonds/nayms/AppStorage.sol";
 
 import { ERC20 } from "src/erc20/ERC20.sol";
 
-/// @dev Testing creating entities
 
-function initEntity(
-    ERC20 _asset,
-    uint256 _collateralRatio,
-    uint256 _maxCapacity,
-    uint256 _utilizedCapacity,
-    bool simplePolicyEnabled
-) pure returns (Entity memory e) {
-    e.assetId = LibHelpers._getIdForAddress(address(_asset));
-    e.collateralRatio = _collateralRatio;
-    e.maxCapacity = _maxCapacity;
-    e.utilizedCapacity = _utilizedCapacity;
-    e.simplePolicyEnabled = simplePolicyEnabled;
-}
 
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal immutable objectContext1 = "0x1";

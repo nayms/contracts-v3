@@ -5,7 +5,6 @@ import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibO
 import { Vm } from "forge-std/Vm.sol";
 import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
-import { initEntity } from "./T04Entity.t.sol";
 
 /// @dev Testing for Nayms RBAC - Access Control List (ACL)
 
@@ -14,13 +13,6 @@ import { initEntity } from "./T04Entity.t.sol";
 contract T02ACLTest is D03ProtocolDefaults {
     function setUp() public virtual override {
         super.setUp();
-    }
-
-    function createEntity(bytes32 adminId) internal returns (bytes32 entityId) {
-        // create entity with signer2 as child
-        entityId = "0xe1";
-        Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);           
-        nayms.createEntity(entityId, adminId, entity1, bytes32(0));
     }
 
     // the deployer should be in the system admin group at initialization
@@ -133,7 +125,7 @@ contract T02ACLTest is D03ProtocolDefaults {
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // create entity with signer2 as child
-        bytes32 entityId1 = createEntity(signer2Id);
+        bytes32 entityId1 = createTestEntity(signer2Id);
         // assign entity as system manager
         nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
@@ -181,7 +173,7 @@ contract T02ACLTest is D03ProtocolDefaults {
         testAssignersCanAssignRole();
 
         // create entity with signer1 as child
-        bytes32 entityId1 = createEntity(signer1Id);
+        bytes32 entityId1 = createTestEntity(signer1Id);
         // assign entity as system manager
         nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
@@ -270,7 +262,7 @@ contract T02ACLTest is D03ProtocolDefaults {
         string memory group = LibConstants.GROUP_ENTITY_ADMINS;
 
         // create entity with signer2 as child
-        bytes32 entityId1 = createEntity(signer2Id);
+        bytes32 entityId1 = createTestEntity(signer2Id);
 
         // assign entity as entity admin
         nayms.assignRole(entityId1, systemContext, role);

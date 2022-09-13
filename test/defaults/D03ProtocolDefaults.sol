@@ -2,13 +2,26 @@
 pragma solidity >=0.8.13;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
-
-
+import { ERC20 } from "src/erc20/ERC20.sol";
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
+
+function initEntity(
+    ERC20 _asset,
+    uint256 _collateralRatio,
+    uint256 _maxCapacity,
+    uint256 _utilizedCapacity,
+    bool simplePolicyEnabled
+) pure returns (Entity memory e) {
+    e.assetId = LibHelpers._getIdForAddress(address(_asset));
+    e.collateralRatio = _collateralRatio;
+    e.maxCapacity = _maxCapacity;
+    e.utilizedCapacity = _utilizedCapacity;
+    e.simplePolicyEnabled = simplePolicyEnabled;
+}
 
 contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(address(this));
@@ -69,4 +82,12 @@ contract D03ProtocolDefaults is D02TestSetup {
 
         console2.log("\n --\n");
     }
+
+
+    function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
+        // create entity with signer2 as child
+        entityId = "0xe1";
+        Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);           
+        nayms.createEntity(entityId, adminId, entity1, bytes32(0));
+    }    
 }
