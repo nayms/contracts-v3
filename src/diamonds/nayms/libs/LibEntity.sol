@@ -81,6 +81,7 @@ library LibEntity {
 
         LibObject._createObject(_policyId, _entityId, _dataHash);
         s.simplePolicies[_policyId] = simplePolicy;
+        s.simplePolicies[_policyId].fundsLocked = true;
 
         // todo: move check up to follow checks, effects, interactions pattern
         require(stakeholders.entityIds.length == stakeholders.signatures.length, "incorrect number of signatures");
