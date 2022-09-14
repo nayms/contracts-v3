@@ -195,8 +195,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
 
         vm.expectRevert("fee schedule invalid");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt , 55);
-        
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, 55);
+
         vm.startPrank(signer2);
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
@@ -206,7 +206,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("offer not active");
         nayms.cancelOffer(2);
 
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);        
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
         vm.stopPrank();
 
         // assert trading commisions payed
@@ -257,8 +257,13 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMarketFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
+        // avoid overflow issues
         vm.assume(saleAmount < 1_000_000_000_000 ether);
         vm.assume(salePrice < 1_000_000_000_000 ether);
+
+        // avoid dust issues
+        vm.assume(saleAmount > 1_000);
+        vm.assume(salePrice > 1_000);
 
         // whitelist underlying token
         nayms.addSupportedExternalToken(address(weth));
@@ -293,19 +298,19 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
             assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "state");
 
-        vm.prank(signer2);
-        nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount, LibConstants.FEE_SCHEDULE_STANDARD);
-        vm.stopPrank();
+            vm.prank(signer2);
+            nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount, LibConstants.FEE_SCHEDULE_STANDARD);
+            vm.stopPrank();
 
-        marketInfo1 = nayms.getOffer(1);
-        assertEq(marketInfo1.creator, entity1, "creator");
-        assertEq(marketInfo1.sellToken, entity1, "sell token");
-        assertEq(marketInfo1.sellAmount, 0, "sell amount");
-        assertEq(marketInfo1.sellAmountInitial, saleAmount, "sell amount initial");
-        assertEq(marketInfo1.buyToken, nWETH, "buy token");
-        assertEq(marketInfo1.buyAmount, 0, "buy amount");
-        assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
-        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "state");
+            marketInfo1 = nayms.getOffer(1);
+            assertEq(marketInfo1.creator, entity1, "creator");
+            assertEq(marketInfo1.sellToken, entity1, "sell token");
+            assertEq(marketInfo1.sellAmount, 0, "sell amount");
+            assertEq(marketInfo1.sellAmountInitial, saleAmount, "sell amount initial");
+            assertEq(marketInfo1.buyToken, nWETH, "buy token");
+            assertEq(marketInfo1.buyAmount, 0, "buy amount");
+            assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
+            assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "state");
         }
     }
 

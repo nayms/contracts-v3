@@ -207,8 +207,7 @@ library LibMarket {
     ) internal returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        s.lastOfferId++;
-        uint256 lastOfferId = s.lastOfferId;
+        uint256 lastOfferId = ++s.lastOfferId;
 
         MarketInfo memory marketInfo = s.offers[lastOfferId];
         marketInfo.creator = _from;
@@ -220,7 +219,7 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeSchedule;
 
-        if (_sellAmount == 0) {
+        if (_sellAmount <= LibConstants.DUST) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -389,17 +388,12 @@ library LibMarket {
         buyTokenComissionsPaid_ = result.buyTokenComissionsPaid;
         sellTokenComissionsPaid_ = result.sellTokenComissionsPaid;
 
+        offerId_ = _createOffer(_from, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
+
         // if still some left
         if (result.remainingBuyAmount > 0 && result.remainingSellAmount > 0 && result.remainingSellAmount >= LibConstants.DUST) {
-            // new offer should be created
-            uint256 lastOfferId = _createOffer(_from, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
-
             // ensure it's in the right position in the list
-            _insertOfferIntoSortedList(lastOfferId);
-
-            offerId_ = lastOfferId;
-        } else {
-            offerId_ = 0; // no limit offer created, fully matched
+            _insertOfferIntoSortedList(offerId_);
         }
     }
 
