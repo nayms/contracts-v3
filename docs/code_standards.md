@@ -1,6 +1,4 @@
-
-
-- Comments in the code should be in Natspec format. (https://www.w3schools.io/blockchain/solidity-comments/)
+- Comments in the code should be in [Natspec Format](https://www.w3schools.io/blockchain/solidity-comments/).
 
 - As the interfaces are automatically generated from the facets, comments should be put in the relevant facet and not the interface.
 
