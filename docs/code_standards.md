@@ -6,8 +6,6 @@
 
 - Events are used to share low-level technical data with off-chain applications. As such, events generally should be emitted in libraries where the state is changed.
 
-- Facets should be used to expose public functionality and control access (apply moderators).
+- Facets should be used to expose public functionality and control access (apply modifiers).
 
-- Functionality is logically separated into facets. 
-
-
+- Functionality is logically separated into facets.
