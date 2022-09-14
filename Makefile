@@ -282,4 +282,4 @@ initial-diamond-cut :; @forge script InitialDiamondCut \
 				--chain-id 5 \
 				--broadcast
 
-subgraphABI :; node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json
+subgraph-abi :; yarn subgraph:abi
