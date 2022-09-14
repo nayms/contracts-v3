@@ -1,6 +1,6 @@
 const NODE_DIR     = "./node_modules";
 const INPUT_DIR    = "./src/diamonds/nayms/interfaces";
-const CONFIG_DIR   = "./docgen";
+const CONFIG_DIR   = "./cli-tools";
 const OUTPUT_DIR   = "./docs/facets";
 const README_FILE  = "./docs/index.md";
 const SUMMARY_FILE = "./docs/SUMMARY.md";
