@@ -56,6 +56,14 @@ bytecode_hash = "ipfs"
 sparse_mode = false
 etherscan_api_key = "${FOUNDRY_ETHERSCAN_API_KEY}"
 # Setting this option enables decoding of error traces from mainnet deployed / verfied contracts via etherscan
+# permissions for read-write
+fs_permissions = [
+    { access = "read-write", path = "./facetsdeployed.txt" },
+    { access = "read-write", path = "./deployedAddresses.json" },
+    { access = "read-write", path = "./deployedAddressesTest.json" },
+    { access = "read", path = "./forge-artifacts/" },
+    { access = "read", path = "./broadcast/" },
+]
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 # 0x00a329c0648769a73afac7f9381e08fb43dbea72

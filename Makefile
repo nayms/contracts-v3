@@ -131,6 +131,26 @@ erc20g      :; @forge script DeployERC20 -s "deploy(string memory _name, string 
 				-vvvv
 
 # Deployment
+smart-deploy :; forge script SmartDeploy \
+				-s "smartDeploy(bool, bool, FacetDeploymentAction, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+				--chain-id 5 \
+				--etherscan-api-key ${ETHERSCAN_API_KEY} \
+				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+				--mnemonic-paths ./nayms_mnemonic.txt \
+				--mnemonic-indexes 0 \
+				-vvvv
+smart-deploy-test :; forge script SmartDeploy \
+				-s "smartDeploy(bool, bool)" ${newDiamond} ${initNewDiamond} \
+				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+				--chain-id 5 \
+				--etherscan-api-key ${ETHERSCAN_API_KEY} \
+				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+				--mnemonic-paths ./nayms_mnemonic.txt \
+				--mnemonic-indexes 0 \
+				-vvvv \
+				--ffi
+
 deploy-facet-goerli-sim :; @forge script script/deployment/Deploy${contract}.s.sol:Deploy${contract} \
 				-s "deploy(bool)" ${upgrade} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
