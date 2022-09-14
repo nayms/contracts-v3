@@ -36,3 +36,6 @@ bin/
 .idea/vcs.xml
 
 broadcast/**/31337/*
+
+// subgraph artifact
+NaymsDiamond.json
