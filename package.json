@@ -1,6 +1,6 @@
 {
   "name": "@nayms/contracts",
-  "version": "3.0.11",
+  "version": "3.0.13",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts3.git",
   "author": "Kevin Park <kevin@fruitful.fi>",
@@ -14,7 +14,6 @@
     "deployedAddresses.json",
     "index.js",
     "src/diamonds/nayms/interfaces/**",
-    "src/diamonds/nayms/FreeStructs.sol",
     "src/diamonds/nayms/Constants.sol",
     "src/ERC20/IERC20.sol"
   ],
