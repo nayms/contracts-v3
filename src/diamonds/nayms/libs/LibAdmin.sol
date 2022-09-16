@@ -9,6 +9,7 @@ import { LibObject } from "../libs/LibObject.sol";
 library LibAdmin {
     event BalanceUpdated(uint256 oldBalance, uint256 newBalance);
     event EquilibriumLevelUpdated(uint256 oldLevel, uint256 newLevel);
+    event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
     event MaxDiscountUpdated(uint256 oldDiscount, uint256 newDiscount);
     event TargetNaymsAllocationUpdated(uint256 oldTarget, uint256 newTarget);
     event DiscountTokenUpdated(address oldToken, address newToken);
@@ -29,7 +30,10 @@ library LibAdmin {
     function _updateMaxDividendDenominations(uint8 _newMaxDividendDenominations) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(_newMaxDividendDenominations > s.maxDividendDenominations, "_updateMaxDividendDenominations: cannot reduce");
+        uint8 old = s.maxDividendDenominations;
         s.maxDividendDenominations = _newMaxDividendDenominations;
+
+        emit MaxDividendDenominationsUpdated(old, _newMaxDividendDenominations);
     }
 
     function _getMaxDividendDenominations() internal view returns (uint8) {

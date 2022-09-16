@@ -180,6 +180,42 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.setCoefficient(_newCoefficient);
     }
 
+    function testGetMaxDividendDenominationsDefaultValue() public {
+        assertEq(nayms.getMaxDividendDenominations(), 1);
+    }
+
+    function testSetMaxDividendDenominationsFailIfNotAdmin() public {
+        vm.startPrank(account1);
+        vm.expectRevert("not a system admin");
+        nayms.setMaxDividendDenominations(100);
+        vm.stopPrank();
+    }
+
+    function testSetMaxDividendDenominationsFailIfLowerThanBefore() public {
+        nayms.setMaxDividendDenominations(2);
+        
+        vm.expectRevert("_updateMaxDividendDenominations: cannot reduce");
+        nayms.setMaxDividendDenominations(2);
+
+        nayms.setMaxDividendDenominations(3);
+    }
+
+    function testSetMaxDividendDenominations() public {
+        uint orig = nayms.getMaxDividendDenominations();
+
+        vm.recordLogs();
+
+        nayms.setMaxDividendDenominations(100);
+        assertEq(nayms.getMaxDividendDenominations(), 100);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("MaxDividendDenominationsUpdated(uint8,uint8)"));
+        (uint8 oldV, uint8 newV) = abi.decode(entries[0].data, (uint8, uint8));
+        assertEq(oldV, orig);
+        assertEq(newV, 100);
+    }
+
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
         vm.startPrank(account1);
         vm.expectRevert("not a system admin");

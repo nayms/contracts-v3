@@ -64,6 +64,7 @@ contract InitDiamond {
 
         s.naymsTokenId = LibHelpers._getIdForAddress(address(this));
         s.naymsToken = address(this);
+        s.maxDividendDenominations = 1;
         s.targetNaymsAllocation = 20;
         s.equilibriumLevel = 20;
         s.maxDiscount = 10;

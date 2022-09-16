@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { initEntity, D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
@@ -9,8 +9,6 @@ import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/AppStorage.sol";
 import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
-
-import { initEntity } from "./T04Entity.t.sol";
 
 /* 
     Terminology:
