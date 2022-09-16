@@ -55,7 +55,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         console2.log("Test contract address ID, aka account0Id:");
         console2.logBytes32(account0Id);
 
-        naymsTokenId = LibHelpers._getIdForAddress(naymsPredeterminedAddress);
+        naymsTokenId = LibHelpers._getIdForAddress(naymsAddress);
         console2.log("Nayms Token ID:");
         console2.logBytes32(naymsTokenId);
 
@@ -64,10 +64,10 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        nayms.addSupportedExternalToken(address(weth));
+        nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({
-            assetId: LibHelpers._getIdForAddress(address(weth)),
+            assetId: LibHelpers._getIdForAddress(wethAddress),
             collateralRatio: 1000,
             maxCapacity: 100e18,
             utilizedCapacity: 0,

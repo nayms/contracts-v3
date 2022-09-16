@@ -26,7 +26,7 @@ contract D01Deployment is D00GlobalDefaults {
     Nayms public naymsDiamond;
     INayms public nayms;
 
-    address public naymsPredeterminedAddress;
+    address public naymsAddress;
 
     //// test constant variables ////
     bytes32 public immutable salt = keccak256(bytes("A salt!"));
@@ -44,12 +44,12 @@ contract D01Deployment is D00GlobalDefaults {
 
         // deterministically deploy Nayms diamond
         console2.log("Deterministic contract address for Nayms", CREATE3.getDeployed(salt));
-        naymsPredeterminedAddress = CREATE3.getDeployed(salt);
+        naymsAddress = CREATE3.getDeployed(salt);
         vm.label(CREATE3.getDeployed(salt), "Nayms Diamond");
 
         nayms = INayms(CREATE3.deploy(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(account0)), 0));
 
-        assertEq(address(nayms), CREATE3.getDeployed(salt));
+        assertEq(naymsAddress, CREATE3.getDeployed(salt));
 
         // initialize the diamond as well as cut in all facets
         INayms.FacetCut[] memory cut = LibNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);

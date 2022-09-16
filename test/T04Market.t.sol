@@ -66,7 +66,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public virtual override {
         super.setUp();
 
-        nWETH = LibHelpers._getIdForAddress(address(weth));
+        nWETH = LibHelpers._getIdForAddress(wethAddress);
         marketplaceId = LibHelpers._stringToBytes32(LibConstants.MARKET_IDENTIFIER);
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
     }
@@ -98,35 +98,24 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     function testMarketStartTokenSale() public {
         // whitelist underlying token
-        nayms.addSupportedExternalToken(address(weth));
+        nayms.addSupportedExternalToken(wethAddress);
 
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
 
         // mint weth for account0
-        writeTokenBalance(account0, address(nayms), address(weth), dt.entity1StartingBal);
+        writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
         // NOTE and maybe todo: when using writeTokenBalance, this does not update the total supply!
-        // assertEq(weth.totalSupply(), address(nayms), 10_000, "weth total supply after mint should INCREASE (mint)");
+        // assertEq(weth.totalSupply(), naymsAddress, 10_000, "weth total supply after mint should INCREASE (mint)");
 
         // note: deposits must be an exisiting entity: s.existingEntities[_receiverId]
         vm.expectRevert("extDeposit: invalid receiver");
-        nayms.externalDepositToEntity(dividendBankId, address(weth), 1_000);
+        nayms.externalDepositToEntity(dividendBankId, wethAddress, 1_000);
 
-        nayms.externalDeposit(DEFAULT_ACCOUNT0_ENTITY_ID, address(weth), dt.entity1ExternalDepositAmt);
-        assertEq(weth.balanceOf(account0), dt.entity1StartingBal - dt.entity1ExternalDepositAmt, "account0 WETH balance after externalDeposit should DECREASE (transfer)");
-        assertEq(weth.balanceOf(address(nayms)), dt.entity1ExternalDepositAmt, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), dt.entity1ExternalDepositAmt, "entity0 nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), dt.entity1ExternalDepositAmt, "nWETH total supply should INCREASE (1:1 internal mint)");
-
+        nayms.externalDeposit(DEFAULT_ACCOUNT0_ENTITY_ID, wethAddress, dt.entity1ExternalDepositAmt);
         // deposit into nayms vaults
         // note: the entity creator can deposit funds into an entity
-        nayms.externalDeposit(entity1, address(weth), dt.entity1ExternalDepositAmt);
-        assertEq(weth.balanceOf(account0), dt.entity1StartingBal - (dt.entity1ExternalDepositAmt * 2), "account0 WETH balance after externalDeposit should DECREASE (transfer)");
-        assertEq(weth.balanceOf(address(nayms)), dt.entity1ExternalDepositAmt * 2, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), dt.entity1ExternalDepositAmt, "entity0 nWETH balance should STAY THE SAME");
-
-        assertEq(nayms.internalBalanceOf(entity1, nWETH), dt.entity1ExternalDepositAmt, "entity1 nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), dt.entity1ExternalDepositAmt * 2, "nWETH total supply should INCREASE (1:1 internal mint)");
+        nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt);
 
         // start a token sale: sell entity tokens for nWETH
         // when a token sale starts: entity tokens are minted to the entity,
@@ -179,7 +168,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
     }
 
-    function testMarketDividendsAndFees() public {
+    function testMarketFullyMatchingOfferForTokenSale() public {
         testMarketStartTokenSale();
 
         // init taker entity
@@ -187,8 +176,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
 
         // fund taker entity
-        nayms.externalDepositToEntity(entity2, address(weth), dt.entity2ExternalDepositAmt);
-        nayms.externalDepositToEntity(entity3, address(weth), dt.entity3ExternalDepositAmt);
+        nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2ExternalDepositAmt);
+        nayms.externalDepositToEntity(entity3, wethAddress, dt.entity3ExternalDepositAmt);
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
 
@@ -217,41 +206,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             naymsBalanceAfterTrade,
             "Nayms should receive half of trading commissions"
         );
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH), totalCommissions / 4, "NDF should get a trading commission");
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH), naymsBalanceAfterTrade / 2, "NDF should get a trading commission");
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), nWETH),
-            totalCommissions / 4,
+            naymsBalanceAfterTrade / 2,
             "Staking mechanism should get a trading commission"
         );
 
         // assert Entity1 holds `buyAmount` of nE1
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
-
-        // pay dividend to nE1 holders (in nWETH)
-        vm.startPrank(signer3);
-        nayms.payDividendFromEntity(entity1, nWETH, dividendAmount);
-        vm.stopPrank();
-
-        // assert dividend bank balance
-        assertEq(
-            nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER), nWETH),
-            dividendAmount,
-            "dividend bank balance should increase after payment"
-        );
-
-        uint256 balanceBeforeDividend = nayms.internalBalanceOf(entity2, nWETH);
-
-        // Entity2 withdraw dividend for owning a share of nE1
-        nayms.withdrawDividend(entity2, entity1, nWETH);
-
-        // assert dividend withdrawn
-        uint256 actualDividentToWithdraw = (dividendAmount * dt.entity1MintAndSaleAmt) / nayms.internalTokenSupply(entity1);
-        assertEq(nayms.internalBalanceOf(entity2, nWETH), balanceBeforeDividend + actualDividentToWithdraw);
-
-        // assert dividend is not withdrawable twice!
-        vm.expectRevert("_withdrawDividend: no dividend");
-        nayms.withdrawDividend(entity2, entity1, nWETH);
-        assertEq(nayms.internalBalanceOf(entity2, nWETH), balanceBeforeDividend + actualDividentToWithdraw);
     }
 
     function testMarketFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
@@ -264,23 +227,23 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.assume(salePrice > 1_000);
 
         // whitelist underlying token
-        nayms.addSupportedExternalToken(address(weth));
+        nayms.addSupportedExternalToken(wethAddress);
 
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "entity test hash");
         nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "entity test hash");
 
         // init test funds to maxint
-        writeTokenBalance(account0, address(nayms), address(weth), 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
 
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
             nayms.startTokenSale(entity1, saleAmount, salePrice);
         } else if (salePrice == 0) {
             vm.expectRevert("MultiToken: mint zero tokens");
-            nayms.externalDeposit(entity2, address(weth), salePrice);
+            nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
             uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingComissionTotalBP`
-            nayms.externalDeposit(entity2, address(weth), e2Balance);
+            nayms.externalDeposit(entity2, wethAddress, e2Balance);
 
             // putting an offer on behalf of entity1 to sell their nENTITY1 for the entity's associated asset
             // x nENTITY1 for x nWETH  (1:1 ratio)
