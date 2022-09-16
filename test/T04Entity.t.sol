@@ -28,7 +28,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     function setUp() public virtual override {
         super.setUp();
 
-        wethId = LibHelpers._getIdForAddress(address(weth));
+        wethId = LibHelpers._getIdForAddress(wethAddress);
 
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
@@ -77,8 +77,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testTokenSale() public {
         // whitelist underlying token
-        // nayms.whitelistExternalToken(address(weth));
-        nayms.addSupportedExternalToken(address(weth));
+        // nayms.whitelistExternalToken(wethAddress);
+        nayms.addSupportedExternalToken(wethAddress);
 
         bytes32 entityId1 = "0xe1";
 
@@ -161,10 +161,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 20000, 0, true));
 
         // fund the policy sponsor entity
-        weth.approve(address(nayms), 10000);
-        writeTokenBalance(account0, address(nayms), address(weth), 10000);
+        weth.approve(naymsAddress, 10000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
         assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(policySponsorEntityId, address(weth), 10000);
+        nayms.externalDeposit(policySponsorEntityId, wethAddress, 10000);
         assertEq(nayms.internalBalanceOf(policySponsorEntityId, wethId), 10000);
 
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
@@ -177,10 +177,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimplePremium(policyId1, 0);
 
         // fund the insured party entity
-        weth.approve(address(nayms), 10000);
-        writeTokenBalance(account0, address(nayms), address(weth), 10000);
+        weth.approve(naymsAddress, 10000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
         assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(DEFAULT_INSURED_PARTY_ENTITY_ID, address(weth), 10000);
+        nayms.externalDeposit(DEFAULT_INSURED_PARTY_ENTITY_ID, wethAddress, 10000);
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), 10000);
 
         // test commissions
