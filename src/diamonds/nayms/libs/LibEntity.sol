@@ -12,6 +12,7 @@ import "../../../utils/ECDSA.sol";
 library LibEntity {
     using ECDSA for bytes32;
 
+    event EntityCreated(bytes32 entityId, bytes32 _entityAdmin);
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId);
@@ -121,6 +122,31 @@ library LibEntity {
         (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
 
         emit TokenSaleStarted(_entityId, offerId);
+    }
+
+    function _createEntity(
+        bytes32 _entityId,
+        bytes32 _entityAdmin,
+        Entity memory _entity,
+        bytes32 _dataHash
+    ) internal {
+        require(LibAdmin._isSupportedExternalToken(_entity.assetId), "external token is not supported");
+        require(1 <= _entity.collateralRatio && _entity.collateralRatio <= 1000, "collateral ratio should be 1 to 1000");
+
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        LibObject._createObject(_entityId, _dataHash);
+        LibObject._setParent(_entityAdmin, _entityId);
+        s.existingEntities[_entityId] = true;
+
+        LibACL._assignRole(_entityAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
+
+        // An entity starts without any capacity being utilized
+        delete _entity.utilizedCapacity;
+
+        s.entities[_entityId] = _entity;
+
+        emit EntityCreated(_entityId, _entityAdmin);
     }
 
     function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {

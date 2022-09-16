@@ -29,7 +29,7 @@ interface ISystemFacet {
 
     /**
      * @notice Create an entity
-     * @dev Create a new entity with given properties
+     * @dev An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.
      * @param _entityId Unique ID for the entity
      * @param _entityAdmin Unique ID of the entity administrator
      * @param _entityData remaining entity metadata
