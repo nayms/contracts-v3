@@ -50,6 +50,13 @@ interface IAdminFacet {
     function setCoefficient(uint256 _newCoefficient) external;
 
     /**
+     * @notice Set `_newMax` as the max dividend denominations value.
+     * @dev TODO explain
+     * @param _newMax new value to be used.
+     */
+    function setMaxDividendDenominations(uint8 _newMax) external;
+
+    /**
      * @notice Get the discount token
      * @dev TODO explain
      * @return address of the token used for discounts
@@ -97,6 +104,13 @@ interface IAdminFacet {
      * @return coefficient for rewards
      */
     function getRewardsCoefficient() external view returns (uint256);
+
+    /**
+     * @notice Get the max dividend denominations value
+     * @dev TODO explain
+     * @return max dividend denominations
+     */
+    function getMaxDividendDenominations() external view returns (uint8);
 
     /**
      * @notice is the specified token an external ERC20?

@@ -165,7 +165,7 @@ library LibNaymsFacetHelpers {
         functionSelectorsNaymsERC20Facet[13] = INaymsERC20Facet.mint.selector;
         functionSelectorsNaymsERC20Facet[14] = INaymsERC20Facet.mintTo.selector;
 
-        bytes4[] memory functionSelectorsAdminFacet = new bytes4[](19);
+        bytes4[] memory functionSelectorsAdminFacet = new bytes4[](21);
         functionSelectorsAdminFacet[0] = IAdminFacet.isSupportedExternalToken.selector;
         functionSelectorsAdminFacet[1] = IAdminFacet.addSupportedExternalToken.selector;
         functionSelectorsAdminFacet[2] = IAdminFacet.getSupportedExternalTokens.selector;
@@ -185,6 +185,8 @@ library LibNaymsFacetHelpers {
         functionSelectorsAdminFacet[16] = IAdminFacet.getPoolFee.selector;
         functionSelectorsAdminFacet[17] = IAdminFacet.getRewardsCoefficient.selector;
         functionSelectorsAdminFacet[18] = IAdminFacet.getSystemId.selector;
+        functionSelectorsAdminFacet[19] = IAdminFacet.setMaxDividendDenominations.selector;
+        functionSelectorsAdminFacet[20] = IAdminFacet.getMaxDividendDenominations.selector;
 
         bytes4[] memory functionSelectorsStakingFacet = new bytes4[](12);
         functionSelectorsStakingFacet[0] = IStakingFacet.checkpoint.selector;

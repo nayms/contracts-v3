@@ -28,6 +28,10 @@ contract AdminFacet is Modifiers {
         LibAdmin._setCoefficient(_newCoefficient);
     }
 
+    function setMaxDividendDenominations(uint8 _newMax) external assertSysAdmin {
+        LibAdmin._updateMaxDividendDenominations(_newMax);
+    }
+
     function getDiscountToken() external view returns (address) {
         return s.discountToken;
     }
@@ -54,6 +58,10 @@ contract AdminFacet is Modifiers {
 
     function getRewardsCoefficient() external view returns (uint256) {
         return s.rewardsCoefficient;
+    }
+
+    function getMaxDividendDenominations() external view returns (uint8) {
+        return s.maxDividendDenominations;
     }
 
     function isSupportedExternalToken(bytes32 _tokenId) external view returns (bool) {
