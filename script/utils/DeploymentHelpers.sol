@@ -36,7 +36,7 @@ contract DeploymentHelpers is Test {
 
     bytes4[] public replaceSelectors;
     bytes4[] public addSelectors;
-    bytes4[] public sRemoveSelectors;
+    bytes4[] public removeSelectors;
 
     enum FacetDeploymentAction {
         DeployAllFacets,
@@ -291,6 +291,15 @@ contract DeploymentHelpers is Test {
         string sig19;
     }
 
+    function removeFromArray(uint256 index) public {
+        require(removeSelectors.length > index, "Out of bounds");
+        // move all elements to the left, starting from the `index + 1`
+        for (uint256 i = index; i < removeSelectors.length - 1; i++) {
+            removeSelectors[i] = removeSelectors[i + 1];
+        }
+        removeSelectors.pop(); // delete the last item
+    }
+
     function getDiamondAddressFromFile() internal returns (address diamondAddress) {
         // Read in current diamond address
         string memory deployData = vm.readFile(deployFile);
@@ -299,6 +308,8 @@ contract DeploymentHelpers is Test {
         bytes memory parsed = vm.parseJson(deployData, key);
         diamondAddress = abi.decode(parsed, (address));
     }
+
+    function getFacetNameFromFacetAddress() internal returns (string memory facetName) {}
 
     // true: deploys a new diamond, writes to deployFile
     // false: reads deployFile .NaymsDiamond
@@ -876,15 +887,43 @@ contract DeploymentHelpers is Test {
         // if there are selectors in the old facet that are not being replaced, then they should be removed, since they are not in the new facet
         // from the list of selectors from the old facet, remove from the list the selectors that are being replaced.
         uint256 numberOfSelectorsFromOldFacet;
-        bytes4[] memory removeSelectors;
+        // bytes4[] memory removeSelectors;
         if (oldFacetAddress != address(0)) {
-            numberOfSelectorsFromOldFacet = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress).length;
+            bytes4[] memory oldFacetSelectors = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress);
+            numberOfSelectorsFromOldFacet = oldFacetSelectors.length;
+
+            for (uint256 i; i < numberOfSelectorsFromOldFacet; i++) {
+                // console2.logBytes4(oldFacetSelectors[i]);
+                address facetAddress = IDiamondLoupe(diamondAddress).facetAddress(oldFacetSelectors[i]);
+                console2.log(string.concat(vm.toString(oldFacetSelectors[i]), vm.toString(facetAddress)));
+            }
             removeSelectors = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress);
-            removeCount = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress).length - replaceCount;
-            for (uint256 k; k < removeCount; k++) {
+            uint256 oldFacetCount = removeSelectors.length;
+            removeCount = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress).length - replaceCount - addCount;
+            console2.log("remove selectors array prior to outer join");
+            for (uint256 q; q < removeSelectors.length; q++) {
+                console2.log(string.concat(facetName, vm.toString(removeSelectors[q])));
+            }
+            console2.log("old facet address", oldFacetAddress);
+            console2.log("num selectors from old facet", numberOfSelectorsFromOldFacet);
+            console2.log("calculated add count", addCount);
+            console2.log("calculated replace count", replaceCount);
+            console2.log("calculated remove count", removeCount);
+            for (uint256 k; k < oldFacetCount; k++) {
+                console2.log(string.concat(vm.toString(k), "remaining selectors in remove"));
+                for (uint256 i; i < removeSelectors.length; i++) {
+                    console2.logBytes4(removeSelectors[i]);
+                }
+                console2.log(string.concat(vm.toString(k), " selectors in replace"));
+                for (uint256 i; i < replaceSelectors.length; i++) {
+                    console2.logBytes4(replaceSelectors[i]);
+                }
                 for (uint256 j; j < replaceCount; j++) {
                     if (removeSelectors[k] == replaceSelectors[j]) {
-                        delete removeSelectors[k];
+                        console2.log(string.concat("removing selector ", vm.toString(removeSelectors[k])));
+                        // delete removeSelectors[k];
+                        removeFromArray(k);
+                        break;
                         // todo break out? not necessary, but cleaner?
                     }
                 }
@@ -894,7 +933,8 @@ contract DeploymentHelpers is Test {
         // deploy a new facet if it's needed
         address newFacetAddress;
         // todo or remove count == 0 is needed here?
-        if (addCount != 0 || replaceCount != 0 || removeCount != 0) {
+        // if (addCount != 0 || replaceCount != 0 || removeCount != 0) {
+        if (addCount != 0 || replaceCount != 0) {
             newFacetAddress = deploySelectFacet(facetName);
         }
 
@@ -903,13 +943,31 @@ contract DeploymentHelpers is Test {
 
             cut[0] = IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Replace, functionSelectors: replaceSelectors });
             cut[1] = IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: addSelectors });
-            cut[2] = IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: addSelectors });
+            cut[2] = IDiamondCut.FacetCut({ facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: removeSelectors });
             cutS.push(IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Replace, functionSelectors: replaceSelectors }));
             cutS.push(IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: addSelectors }));
             cutS.push(IDiamondCut.FacetCut({ facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: removeSelectors }));
+            console2.log("adding functions:");
+            for (uint256 a; a < addCount; a++) {
+                console2.log(string.concat(facetName, vm.toString(addSelectors[a])));
+                // console2.logBytes4(addSelectors[a]);
+            }
+            console2.log("replacing functions:");
+            for (uint256 r; r < replaceCount; r++) {
+                console2.log(string.concat(facetName, vm.toString(replaceSelectors[r])));
+
+                // console2.logBytes4(replaceSelectors[r]);
+            }
             console2.log("removing functions:");
             for (uint256 q; q < removeCount; q++) {
-                console2.logBytes4(removeSelectors[q]);
+                console2.log(string.concat(facetName, vm.toString(removeSelectors[q])));
+
+                // console2.logBytes4(removeSelectors[q]);
+
+                if (removeSelectors[q] == bytes4(0)) {
+                    console2.log("reverted");
+                    revert();
+                }
             }
 
             // cutS.push(IDiamondCut.FacetCut({ facetAddress: address(oldFacetAddress), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: removeSelectors }));
@@ -937,6 +995,7 @@ contract DeploymentHelpers is Test {
         // todo: perhaps just make these storage arrays memory?
         delete replaceSelectors;
         delete addSelectors;
+        delete removeSelectors;
     }
 
     function cutAndInit(
@@ -953,6 +1012,56 @@ contract DeploymentHelpers is Test {
 
             IDiamondCut(diamondAddress).diamondCut(cut, address(initAddress), abi.encodeCall(initDiamond.initialize, ()));
         } else {
+            uint256 addCount;
+            uint256 replaceCount;
+            uint256 removeCount;
+            console2.log("Remove selectors");
+            for (uint256 i; i < cutS.length; i++) {
+                if (cutS[i].action == IDiamondCut.FacetCutAction.Remove) {
+                    for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
+                        string memory out = string.concat(vm.toString(cutS[i].facetAddress), " ", vm.toString(cutS[i].functionSelectors[q]));
+                        console2.log(out);
+                        // console2.logBytes4(cutS[i].functionSelectors[q]);
+                        removeCount++;
+                    }
+                }
+            }
+            console2.log("Add selectors");
+            for (uint256 i; i < cutS.length; i++) {
+                if (cutS[i].action == IDiamondCut.FacetCutAction.Add) {
+                    for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
+                        console2.logBytes4(cutS[i].functionSelectors[q]);
+                        addCount++;
+                    }
+                }
+            }
+            console2.log("Replace selectors");
+            for (uint256 i; i < cutS.length; i++) {
+                if (cutS[i].action == IDiamondCut.FacetCutAction.Replace) {
+                    for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
+                        address currentFacetAddress;
+                        currentFacetAddress = IDiamondLoupe(diamondAddress).facetAddress(cutS[i].functionSelectors[q]);
+                        string memory out = string.concat(
+                            "new address: ",
+                            vm.toString(cutS[i].facetAddress),
+                            " old address: ",
+                            vm.toString(currentFacetAddress),
+                            " ",
+                            vm.toString(cutS[i].functionSelectors[q])
+                        );
+                        console2.log(out);
+
+                        console2.logBytes4(cutS[i].functionSelectors[q]);
+                        replaceCount++;
+                    }
+                }
+            }
+
+            console2.log("num remove", removeCount);
+
+            console2.log("num add", addCount);
+            console2.log("num replace", replaceCount);
+
             IDiamondCut(diamondAddress).diamondCut(cut, address(0), "");
         }
     }

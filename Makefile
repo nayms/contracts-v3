@@ -139,7 +139,11 @@ smart-deploy :; forge script SmartDeploy \
 				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
-				-vvvv
+				-vvvv \
+				--ffi \
+				--broadcast \
+				--verify --delay 30 --retries 10
+
 smart-deploy-test :; forge script SmartDeploy \
 				-s "smartDeploy(bool, bool)" ${newDiamond} ${initNewDiamond} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
@@ -149,7 +153,34 @@ smart-deploy-test :; forge script SmartDeploy \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
 				-vvvv \
+				--ffi \
+				--broadcast \
+				--verify --delay 30 --retries 10
+
+deploy-facets-and-cut :; forge script DeployAndUpgradeAllFacets \
+				-s "deployAndUpgradeAllFacets()" \
+				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+				--chain-id 5 \
+				--etherscan-api-key ${ETHERSCAN_API_KEY} \
+				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+				--mnemonic-paths ./nayms_mnemonic.txt \
+				--mnemonic-indexes 0 \
+				-vvvv \
 				--ffi
+
+
+deploy-facets-and-cut-prod :; forge script DeployAndUpgradeAllFacets \
+				-s "deployAndUpgradeAllFacets()" \
+				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+				--chain-id 5 \
+				--etherscan-api-key ${ETHERSCAN_API_KEY} \
+				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+				--mnemonic-paths ./nayms_mnemonic.txt \
+				--mnemonic-indexes 0 \
+				-vvvv \
+				--ffi \
+				--broadcast \
+				--verify --delay 30 --retries 10
 
 deploy-facet-goerli-sim :; @forge script script/deployment/Deploy${contract}.s.sol:Deploy${contract} \
 				-s "deploy(bool)" ${upgrade} \

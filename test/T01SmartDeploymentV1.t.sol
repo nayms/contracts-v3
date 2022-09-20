@@ -234,6 +234,13 @@ contract T01SmartDeploymentV1 is DeploymentHelpers {
         // (address diamondAddress2, address initDiamondAddress2) = smartDeployment(false, true, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
     }
 
+    function getSelectorsFromFacetAddress() public {
+        address diamondAddress = getDiamondAddressFromFile();
+
+        IDiamondLoupe nayms = IDiamondLoupe(diamondAddress);
+
+        // nayms.facetFunctionSelectors();
+    }
     // test scenarios
     // deploy new diamond, deploy all facets
     // deploy
