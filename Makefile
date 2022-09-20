@@ -132,7 +132,7 @@ erc20g      :; @forge script DeployERC20 -s "deploy(string memory _name, string 
 
 # Deployment
 smart-deploy :; forge script SmartDeploy \
-				-s "smartDeploy(bool, bool, FacetDeploymentAction, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+				-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 				--chain-id 5 \
 				--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -144,8 +144,12 @@ smart-deploy :; forge script SmartDeploy \
 				--broadcast \
 				--verify --delay 30 --retries 10
 
+# note:
+# pass in 0, 1, 2 for facetAction
+# pass in facetsToCutIn as "[]", e.g. "[ACL, Admin]"
 smart-deploy-test :; forge script SmartDeploy \
-				-s "smartDeploy(bool, bool)" ${newDiamond} ${initNewDiamond} \
+				-s "smartDeploy(bool, bool, uint8, string[] memory)" \
+				${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 				--chain-id 5 \
 				--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -153,11 +157,9 @@ smart-deploy-test :; forge script SmartDeploy \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
 				-vvvv \
-				--ffi \
-				--broadcast \
-				--verify --delay 30 --retries 10
+				--ffi
 
-deploy-facets-and-cut :; forge script DeployAndUpgradeAllFacets \
+deploy-facets-and-cut :; forge script DeployAndUpgradeAllFacets2 \
 				-s "deployAndUpgradeAllFacets()" \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 				--chain-id 5 \
@@ -169,7 +171,7 @@ deploy-facets-and-cut :; forge script DeployAndUpgradeAllFacets \
 				--ffi
 
 
-deploy-facets-and-cut-prod :; forge script DeployAndUpgradeAllFacets \
+deploy-facets-and-cut-prod :; forge script DeployAndUpgradeAllFacets2 \
 				-s "deployAndUpgradeAllFacets()" \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 				--chain-id 5 \

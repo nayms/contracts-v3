@@ -10,14 +10,14 @@ pragma solidity >=0.8.13;
 import { LibDiamond } from "../shared/libs/LibDiamond.sol";
 import { DiamondCutFacet } from "../shared/facets/DiamondCutFacet.sol";
 import { DiamondLoupeFacet } from "../shared/facets/DiamondLoupeFacet.sol";
-// import { NaymsOwnershipFacet } from "./facets/NaymsOwnershipFacet.sol";
-import { OwnershipFacet } from "src/diamonds/shared/facets/OwnershipFacet.sol";
+import { NaymsOwnershipFacet } from "src/diamonds/shared/facets/NaymsOwnershipFacet.sol";
+// import { OwnershipFacet } from "src/diamonds/shared/facets/OwnershipFacet.sol";
 import { AppStorage } from "./AppStorage.sol";
 
 contract Nayms {
     constructor(address _contractOwner) payable {
         LibDiamond.setContractOwner(_contractOwner);
-        LibDiamond.addDiamondFunctions(address(new DiamondCutFacet()), address(new DiamondLoupeFacet()), address(new OwnershipFacet()));
+        LibDiamond.addDiamondFunctions(address(new DiamondCutFacet()), address(new DiamondLoupeFacet()), address(new NaymsOwnershipFacet()));
     }
 
     // Find facet for function that is called and execute the

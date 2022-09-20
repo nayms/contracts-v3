@@ -63,6 +63,7 @@ fs_permissions = [
     { access = "read-write", path = "./deployedAddressesTest.json" },
     { access = "read", path = "./forge-artifacts/" },
     { access = "read", path = "./broadcast/" },
+    { access = "read", path = "./nayms_mnemonic.txt" },
 ]
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

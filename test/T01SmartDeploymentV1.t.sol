@@ -1,15 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13 <0.9;
 
-import "script/utils/DeploymentHelpers.sol";
+// import "script/utils/DeploymentHelpers.sol";
 import "src/diamonds/shared/interfaces/IDiamondCut.sol";
 import { INayms } from "src/diamonds/nayms/INayms.sol";
+// import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+// import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
+// import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import "script/utils/LibWriteJson.sol";
+import "src/diamonds/shared/interfaces/IDiamondLoupe.sol";
+
+import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
 
 // TODO:
 // append to deployedAddresses.json
 
-contract T01SmartDeploymentV1 is DeploymentHelpers {
-    function setUp() public {}
+contract T01SmartDeploymentV1 is D03ProtocolDefaults {
+    function setUp() public virtual override {
+        super.setUp();
+    }
 
     function testNewDiamondDeployment() public {
         address diamondAddress = diamondDeployment(true);
@@ -234,6 +243,29 @@ contract T01SmartDeploymentV1 is DeploymentHelpers {
         // (address diamondAddress2, address initDiamondAddress2) = smartDeployment(false, true, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
     }
 
+    // Test UpgradeFacetsListedOnly
+    function test3SmartDeploy() public {
+        string[] memory facetsToCutIn = new string[](2);
+        facetsToCutIn[0] = "ACL";
+        facetsToCutIn[1] = "System";
+
+        vm.startPrank(msg.sender);
+        (address diamondAddress, address initDiamondAddress) = smartDeployment(true, true, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
+
+        // (address diamondAddress2, address initDiamondAddress2) = smartDeployment(false, true, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
+    }
+
+    function testSmartUpgrade() public {
+        string[] memory facetsToCutIn;
+        vm.startPrank(msg.sender);
+        (address diamondAddress, address initDiamondAddress) = smartDeployment(false, false, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
+    }
+
+    function testGetFunctionSignaturesFromArtifact() public {
+        string memory facetName = "Admin";
+        (uint256 numFunctionSelectors, bytes4[] memory functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
+    }
+
     function getSelectorsFromFacetAddress() public {
         address diamondAddress = getDiamondAddressFromFile();
 
@@ -241,9 +273,26 @@ contract T01SmartDeploymentV1 is DeploymentHelpers {
 
         // nayms.facetFunctionSelectors();
     }
-    // test scenarios
-    // deploy new diamond, deploy all facets
-    // deploy
 
-    // first deploy
+    function testAssignUserRole() public {
+        // Which network (set network)?
+        vm.chainId(5); // goerli
+        string memory role = LibConstants.ROLE_APPROVED_USER; // role in question
+        bytes32 bytes32Role = LibHelpers._stringToBytes32(role);
+        // string memory decodedRole = abi.decode(bytes(bytes32Role), (string));
+        string memory decodedRole = LibHelpers._bytes32ToString(bytes32Role);
+        console2.log((decodedRole));
+        address acc1 = msg.sender; // 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
+        bytes32 acc1Id = LibHelpers._getIdForAddress(acc1);
+        address diamondAddress = getDiamondAddressFromFile(); // 0x53A7a83834445d0570f9786Ef56D5B68CfB8920C
+        bytes32 systemContext = LibAdmin._getSystemId();
+        INayms nayms = INayms(diamondAddress);
+        string memory mnemonic = vm.readFile("nayms_mnemonic.txt");
+        console2.log("acc1", acc1);
+        uint256 pk = vm.deriveKey(mnemonic, 5); // acc6
+        address acc6 = vm.addr(pk);
+        bytes32 acc6Id = LibHelpers._getIdForAddress(acc6);
+        vm.startPrank(acc1);
+        nayms.assignRole(acc6Id, systemContext, role);
+    }
 }

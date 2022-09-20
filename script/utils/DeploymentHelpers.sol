@@ -16,10 +16,6 @@ interface IInitDiamond {
     function initialize() external;
 }
 
-interface IOwnership {
-    function owner() external view returns (address owner_);
-}
-
 contract DeploymentHelpers is Test {
     using stdJson for *;
     using strings for *;
@@ -27,7 +23,7 @@ contract DeploymentHelpers is Test {
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
 
-    string public constant deployFile = "deployedAddresses.json";
+    string public deployFile = "deployedAddresses.json";
     string public constant deploySmartFile = "deploySmartTest.json";
 
     address internal sDiamondAddress;
@@ -289,6 +285,53 @@ contract DeploymentHelpers is Test {
         string sig17;
         string sig18;
         string sig19;
+    }
+
+    struct MethodId20 {
+        string sig1;
+        string sig2;
+        string sig3;
+        string sig4;
+        string sig5;
+        string sig6;
+        string sig7;
+        string sig8;
+        string sig9;
+        string sig10;
+        string sig11;
+        string sig12;
+        string sig13;
+        string sig14;
+        string sig15;
+        string sig16;
+        string sig17;
+        string sig18;
+        string sig19;
+        string sig20;
+    }
+
+    struct MethodId21 {
+        string sig1;
+        string sig2;
+        string sig3;
+        string sig4;
+        string sig5;
+        string sig6;
+        string sig7;
+        string sig8;
+        string sig9;
+        string sig10;
+        string sig11;
+        string sig12;
+        string sig13;
+        string sig14;
+        string sig15;
+        string sig16;
+        string sig17;
+        string sig18;
+        string sig19;
+        string sig20;
+        string sig21;
     }
 
     function removeFromArray(uint256 index) public {
@@ -769,24 +812,74 @@ contract DeploymentHelpers is Test {
             functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
             functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
             functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
+        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 19) {
+            MethodId20 memory decodedData = abi.decode(parsedArtifactData, (MethodId20));
+
+            functionSelectors = new bytes4[](20);
+            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
+            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
+            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
+            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
+            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
+            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
+            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
+            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
+            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
+            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
+            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
+            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
+            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
+            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
+            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
+            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
+            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
+            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
+            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
+            functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
+        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 20) {
+            MethodId21 memory decodedData = abi.decode(parsedArtifactData, (MethodId21));
+
+            functionSelectors = new bytes4[](21);
+            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
+            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
+            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
+            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
+            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
+            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
+            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
+            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
+            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
+            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
+            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
+            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
+            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
+            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
+            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
+            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
+            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
+            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
+            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
+            functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
+            functionSelectors[20] = bytes4(vm.parseBytes(decodedData.sig21));
         }
 
         numberOfFunctionSignaturesFromArtifact = functionSelectors.length;
-        console2.log("getFunctionSignaturesFromArtifact end");
     }
 
+    /**
+     * @notice Deploys a new facet by its name (calling deploySelectFacet()) and creates the Cut struct
+     */
     function deployFacetAndCreateFacetCut(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
-        console2.log("start of deployFacetAndCreateFacetCut");
         cut.facetAddress = deploySelectFacet(facetName);
-        console2.log("deployFacetAndCreateFacetCut getFunctionSignaturesFromArtifact");
 
         (, cut.functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
-        console2.log("deployFacetAndCreateFacetCut cut.action");
 
         cut.action = IDiamondCut.FacetCutAction.Add;
     }
 
-    /// @dev Pass in the facet deployment pattern that is desired. The various facet deployment patterns are explained in the FacetDeploymentAction enum.
+    /**
+     * @notice Pass in the facet deployment pattern that is desired. The various facet deployment patterns are explained in the FacetDeploymentAction enum.
+     */
     function facetDeploymentAndCut(
         address diamondAddress,
         FacetDeploymentAction facetDeploymentAction,
@@ -802,40 +895,31 @@ contract DeploymentHelpers is Test {
 
         if (facetDeploymentAction == FacetDeploymentAction.DeployAllFacets) {
             // loop through allFacetNames and deploy them
-            // string[] memory allFacetNames = new string[](1);
-            // allFacetNames[0] = "ACL";
-            console2.log("in loop, before deployFacetAndCreateFacetCut");
             // note this purely adds all facet methods.
             cut = new IDiamondCut.FacetCut[](numberOfFacets);
             for (uint256 i; i < numberOfFacets; i++) {
-                // cut = new IDiamondCut.FacetCut[](facetsToCutIn.length);
-                console2.log("deployFacetAndCreateFacetCut number", i);
                 cut[i] = deployFacetAndCreateFacetCut(allFacetNames[i]);
-                // deployFacetAndCreateFacetCut(allFacetNames[i]);
-                // console2.log(cut[i].facetAddress);
             }
         } else if (facetDeploymentAction == FacetDeploymentAction.UpgradeFacetsWithChangesOnly) {
             // V1: check if facet bytecode is different. If so, then deploy facet and add, remove, replace methods.
             // loop through allFacetNames
             // check if function sig exists
-            // todo make sure this removes / replaces all methods from the old facet
+
             for (uint256 i; i < numberOfFacets; i++) {
                 if (!compareBytecode(diamondAddress, allFacetNames[i])) {
                     dynamicFacetCutV1(diamondAddress, allFacetNames[i]);
                 }
             }
 
-            // todo have dynamicFacetCut return the cut array
             cut = cutS;
         } else if (facetDeploymentAction == FacetDeploymentAction.UpgradeFacetsListedOnly) {
             // Deploy the facets listed in facetsToCutIn
             require(facetsToCutIn.length > 0, "facetDeployment: did not provide any facet names to be manually deployed");
 
-            // todo let's remove all of the previous facet's methods
             for (uint256 i; i < facetsToCutIn.length; i++) {
                 dynamicFacetCutV1(diamondAddress, facetsToCutIn[i]);
             }
-            // todo have dynamicFacetCut return the cut array
+
             cut = cutS;
         }
     }
@@ -861,7 +945,7 @@ contract DeploymentHelpers is Test {
         address oldFacetAddress;
 
         (uint256 numFunctionSelectors, bytes4[] memory functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
-        console2.log("numFunctionSelectors", numFunctionSelectors);
+        console2.log("numFunctionSelectors - dynamicFacetCutV1()", numFunctionSelectors);
         console2.log(facetName);
         // REPLACE, ADD (remove is after REPLACE and ADD)
         if (numFunctionSelectors > 0) {
@@ -891,49 +975,39 @@ contract DeploymentHelpers is Test {
         if (oldFacetAddress != address(0)) {
             bytes4[] memory oldFacetSelectors = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress);
             numberOfSelectorsFromOldFacet = oldFacetSelectors.length;
-
+            console2.log("numberOfSelectorsFromOldFacet", numberOfSelectorsFromOldFacet);
             for (uint256 i; i < numberOfSelectorsFromOldFacet; i++) {
-                // console2.logBytes4(oldFacetSelectors[i]);
                 address facetAddress = IDiamondLoupe(diamondAddress).facetAddress(oldFacetSelectors[i]);
                 console2.log(string.concat(vm.toString(oldFacetSelectors[i]), vm.toString(facetAddress)));
             }
+
+            // get list of selectors in "current" facet
             removeSelectors = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress);
             uint256 oldFacetCount = removeSelectors.length;
-            removeCount = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress).length - replaceCount - addCount;
-            console2.log("remove selectors array prior to outer join");
             for (uint256 q; q < removeSelectors.length; q++) {
                 console2.log(string.concat(facetName, vm.toString(removeSelectors[q])));
             }
-            console2.log("old facet address", oldFacetAddress);
-            console2.log("num selectors from old facet", numberOfSelectorsFromOldFacet);
-            console2.log("calculated add count", addCount);
-            console2.log("calculated replace count", replaceCount);
-            console2.log("calculated remove count", removeCount);
+
+            uint256 numSelectorsRemovedFromFacet;
             for (uint256 k; k < oldFacetCount; k++) {
-                console2.log(string.concat(vm.toString(k), "remaining selectors in remove"));
-                for (uint256 i; i < removeSelectors.length; i++) {
-                    console2.logBytes4(removeSelectors[i]);
-                }
-                console2.log(string.concat(vm.toString(k), " selectors in replace"));
-                for (uint256 i; i < replaceSelectors.length; i++) {
-                    console2.logBytes4(replaceSelectors[i]);
-                }
-                for (uint256 j; j < replaceCount; j++) {
-                    if (removeSelectors[k] == replaceSelectors[j]) {
-                        console2.log(string.concat("removing selector ", vm.toString(removeSelectors[k])));
-                        // delete removeSelectors[k];
-                        removeFromArray(k);
+                for (uint256 j; j < numFunctionSelectors; j++) {
+                    // compare list of old selectors with list of new selectors, if any are the same, then remove from the list of old selectors (removeSelectors[])
+                    if (removeSelectors[k - numSelectorsRemovedFromFacet] == functionSelectors[j]) {
+                        console2.log(string.concat("removing selector ", vm.toString(functionSelectors[k])));
+                        removeFromArray(k - numSelectorsRemovedFromFacet);
+
+                        numSelectorsRemovedFromFacet++;
                         break;
-                        // todo break out? not necessary, but cleaner?
                     }
                 }
             }
         }
-        console2.log("hello before deploy new facet");
+
+        removeCount = removeSelectors.length;
+
         // deploy a new facet if it's needed
         address newFacetAddress;
-        // todo or remove count == 0 is needed here?
-        // if (addCount != 0 || replaceCount != 0 || removeCount != 0) {
+
         if (addCount != 0 || replaceCount != 0) {
             newFacetAddress = deploySelectFacet(facetName);
         }
@@ -950,27 +1024,20 @@ contract DeploymentHelpers is Test {
             console2.log("adding functions:");
             for (uint256 a; a < addCount; a++) {
                 console2.log(string.concat(facetName, vm.toString(addSelectors[a])));
-                // console2.logBytes4(addSelectors[a]);
             }
             console2.log("replacing functions:");
             for (uint256 r; r < replaceCount; r++) {
                 console2.log(string.concat(facetName, vm.toString(replaceSelectors[r])));
-
-                // console2.logBytes4(replaceSelectors[r]);
             }
             console2.log("removing functions:");
             for (uint256 q; q < removeCount; q++) {
                 console2.log(string.concat(facetName, vm.toString(removeSelectors[q])));
 
-                // console2.logBytes4(removeSelectors[q]);
-
                 if (removeSelectors[q] == bytes4(0)) {
-                    console2.log("reverted");
+                    console2.log("reverted because selector is 0x");
                     revert();
                 }
             }
-
-            // cutS.push(IDiamondCut.FacetCut({ facetAddress: address(oldFacetAddress), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: removeSelectors }));
         } else if (addCount > 0 && replaceCount > 0) {
             cut = new IDiamondCut.FacetCut[](2);
 
@@ -981,8 +1048,6 @@ contract DeploymentHelpers is Test {
         } else {
             cut = new IDiamondCut.FacetCut[](1);
             if (addCount > 0) {
-                console2.log("hello in add cut");
-
                 cut[0] = IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: addSelectors });
                 cutS.push(IDiamondCut.FacetCut({ facetAddress: address(newFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: addSelectors }));
             } else if (replaceCount > 0) {
@@ -992,7 +1057,6 @@ contract DeploymentHelpers is Test {
         }
 
         // clear out storage arrays. Otherwise, these storage arrays will retain the state from the first iteration of this method which is not desired for a subsequent call.
-        // todo: perhaps just make these storage arrays memory?
         delete replaceSelectors;
         delete addSelectors;
         delete removeSelectors;
@@ -1005,63 +1069,11 @@ contract DeploymentHelpers is Test {
     ) public {
         // todo check if init contract has initialize method
         // if the initAddress param is not null, then we assume to call initialize from the provided initAddress to "initialize" the diamond.
-        console2.log(msg.sender);
-        console2.log(IOwnership(diamondAddress).owner());
         if (initAddress != address(0)) {
             IInitDiamond initDiamond = IInitDiamond(initAddress);
 
             IDiamondCut(diamondAddress).diamondCut(cut, address(initAddress), abi.encodeCall(initDiamond.initialize, ()));
         } else {
-            uint256 addCount;
-            uint256 replaceCount;
-            uint256 removeCount;
-            console2.log("Remove selectors");
-            for (uint256 i; i < cutS.length; i++) {
-                if (cutS[i].action == IDiamondCut.FacetCutAction.Remove) {
-                    for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
-                        string memory out = string.concat(vm.toString(cutS[i].facetAddress), " ", vm.toString(cutS[i].functionSelectors[q]));
-                        console2.log(out);
-                        // console2.logBytes4(cutS[i].functionSelectors[q]);
-                        removeCount++;
-                    }
-                }
-            }
-            console2.log("Add selectors");
-            for (uint256 i; i < cutS.length; i++) {
-                if (cutS[i].action == IDiamondCut.FacetCutAction.Add) {
-                    for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
-                        console2.logBytes4(cutS[i].functionSelectors[q]);
-                        addCount++;
-                    }
-                }
-            }
-            console2.log("Replace selectors");
-            for (uint256 i; i < cutS.length; i++) {
-                if (cutS[i].action == IDiamondCut.FacetCutAction.Replace) {
-                    for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
-                        address currentFacetAddress;
-                        currentFacetAddress = IDiamondLoupe(diamondAddress).facetAddress(cutS[i].functionSelectors[q]);
-                        string memory out = string.concat(
-                            "new address: ",
-                            vm.toString(cutS[i].facetAddress),
-                            " old address: ",
-                            vm.toString(currentFacetAddress),
-                            " ",
-                            vm.toString(cutS[i].functionSelectors[q])
-                        );
-                        console2.log(out);
-
-                        console2.logBytes4(cutS[i].functionSelectors[q]);
-                        replaceCount++;
-                    }
-                }
-            }
-
-            console2.log("num remove", removeCount);
-
-            console2.log("num add", addCount);
-            console2.log("num replace", replaceCount);
-
             IDiamondCut(diamondAddress).diamondCut(cut, address(0), "");
         }
     }
@@ -1092,6 +1104,59 @@ contract DeploymentHelpers is Test {
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
+        debugDeployment(diamondAddress, facetsToCutIn);
         cutAndInit(diamondAddress, cut, initDiamond);
+    }
+
+    function debugDeployment(address diamondAddress, string[] memory facetsToCutIn) internal {
+        uint256 addCount;
+        uint256 replaceCount;
+        uint256 removeCount;
+        console2.log("Remove selectors");
+        for (uint256 i; i < cutS.length; i++) {
+            if (cutS[i].action == IDiamondCut.FacetCutAction.Remove) {
+                for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
+                    string memory out = string.concat(vm.toString(cutS[i].facetAddress), " ", vm.toString(cutS[i].functionSelectors[q]));
+                    console2.log(out);
+                    removeCount++;
+                }
+            }
+        }
+        console2.log("Add selectors");
+        for (uint256 i; i < cutS.length; i++) {
+            if (cutS[i].action == IDiamondCut.FacetCutAction.Add) {
+                for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
+                    console2.logBytes4(cutS[i].functionSelectors[q]);
+                    addCount++;
+                }
+            }
+        }
+        console2.log("Replace selectors");
+        for (uint256 i; i < cutS.length; i++) {
+            if (cutS[i].action == IDiamondCut.FacetCutAction.Replace) {
+                for (uint256 q; q < cutS[i].functionSelectors.length; q++) {
+                    address currentFacetAddress;
+                    currentFacetAddress = IDiamondLoupe(diamondAddress).facetAddress(cutS[i].functionSelectors[q]);
+                    string memory out = string.concat(
+                        "new address: ",
+                        vm.toString(cutS[i].facetAddress),
+                        " old address: ",
+                        vm.toString(currentFacetAddress),
+                        " ",
+                        vm.toString(cutS[i].functionSelectors[q])
+                    );
+                    console2.log(out);
+
+                    console2.logBytes4(cutS[i].functionSelectors[q]);
+                    replaceCount++;
+                }
+            }
+        }
+
+        console2.log("num facets to cut in", facetsToCutIn.length);
+        console2.log("num remove", removeCount);
+
+        console2.log("num add", addCount);
+        console2.log("num replace", replaceCount);
     }
 }
