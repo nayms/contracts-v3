@@ -91,27 +91,27 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
         ffiFindFacetNames();
     }
 
-    function testFfiGenerateInterfaces() public {
-        string[] memory facetNames = ffiFindFacetNames();
+    // function testFfiGenerateInterfaces() public {
+    //     string[] memory facetNames = ffiFindFacetNames();
 
-        string memory artifactFile;
-        string memory outputPathAndName;
+    //     string memory artifactFile;
+    //     string memory outputPathAndName;
 
-        string[] memory inputs = new string[](5);
-        inputs[0] = "cast";
-        inputs[1] = "interface";
-        inputs[2] = artifactFile;
-        inputs[3] = "-o";
-        inputs[4] = outputPathAndName;
+    //     string[] memory inputs = new string[](5);
+    //     inputs[0] = "cast";
+    //     inputs[1] = "interface";
+    //     inputs[2] = artifactFile;
+    //     inputs[3] = "-o";
+    //     inputs[4] = outputPathAndName;
 
-        for (uint256 i; i < facetNames.length; i++) {
-            artifactFile = string.concat(artifactsPath, facetNames[i], "Facet.sol/", facetNames[i], "Facet.json");
-            outputPathAndName = string.concat("test-interfaces/I", facetNames[i], ".sol");
-            inputs[2] = artifactFile;
-            inputs[4] = outputPathAndName;
-            bytes memory res = vm.ffi(inputs);
-        }
-    }
+    //     for (uint256 i; i < facetNames.length; i++) {
+    //         artifactFile = string.concat(artifactsPath, facetNames[i], "Facet.sol/", facetNames[i], "Facet.json");
+    //         outputPathAndName = string.concat("test-interfaces/I", facetNames[i], ".sol");
+    //         inputs[2] = artifactFile;
+    //         inputs[4] = outputPathAndName;
+    //         bytes memory res = vm.ffi(inputs);
+    //     }
+    // }
 
     function testReadBroadcast() public {
         vm.chainId(5);
@@ -257,7 +257,6 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
 
     function testSmartUpgrade() public {
         string[] memory facetsToCutIn;
-        vm.startPrank(msg.sender);
         (address diamondAddress, address initDiamondAddress) = smartDeployment(false, false, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
     }
 
@@ -274,25 +273,25 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
         // nayms.facetFunctionSelectors();
     }
 
-    function testAssignUserRole() public {
-        // Which network (set network)?
-        vm.chainId(5); // goerli
-        string memory role = LibConstants.ROLE_APPROVED_USER; // role in question
-        bytes32 bytes32Role = LibHelpers._stringToBytes32(role);
-        // string memory decodedRole = abi.decode(bytes(bytes32Role), (string));
-        string memory decodedRole = LibHelpers._bytes32ToString(bytes32Role);
-        console2.log((decodedRole));
-        address acc1 = msg.sender; // 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
-        bytes32 acc1Id = LibHelpers._getIdForAddress(acc1);
-        address diamondAddress = getDiamondAddressFromFile(); // 0x53A7a83834445d0570f9786Ef56D5B68CfB8920C
-        bytes32 systemContext = LibAdmin._getSystemId();
-        INayms nayms = INayms(diamondAddress);
-        string memory mnemonic = vm.readFile("nayms_mnemonic.txt");
-        console2.log("acc1", acc1);
-        uint256 pk = vm.deriveKey(mnemonic, 5); // acc6
-        address acc6 = vm.addr(pk);
-        bytes32 acc6Id = LibHelpers._getIdForAddress(acc6);
-        vm.startPrank(acc1);
-        nayms.assignRole(acc6Id, systemContext, role);
-    }
+    // function testAssignUserRole() public {
+    //     // Which network (set network)?
+    //     vm.chainId(5); // goerli
+    //     string memory role = LibConstants.ROLE_APPROVED_USER; // role in question
+    //     bytes32 bytes32Role = LibHelpers._stringToBytes32(role);
+    //     // string memory decodedRole = abi.decode(bytes(bytes32Role), (string));
+    //     string memory decodedRole = LibHelpers._bytes32ToString(bytes32Role);
+    //     console2.log((decodedRole));
+    //     address acc1 = msg.sender; // 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
+    //     bytes32 acc1Id = LibHelpers._getIdForAddress(acc1);
+    //     address diamondAddress = getDiamondAddressFromFile(); // 0x53A7a83834445d0570f9786Ef56D5B68CfB8920C
+    //     bytes32 systemContext = LibAdmin._getSystemId();
+    //     INayms nayms = INayms(diamondAddress);
+    //     string memory mnemonic = vm.readFile("nayms_mnemonic.txt");
+    //     console2.log("acc1", acc1);
+    //     uint256 pk = vm.deriveKey(mnemonic, 5); // acc6
+    //     address acc6 = vm.addr(pk);
+    //     bytes32 acc6Id = LibHelpers._getIdForAddress(acc6);
+    //     vm.startPrank(acc1);
+    //     nayms.assignRole(acc6Id, systemContext, role);
+    // }
 }
