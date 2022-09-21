@@ -24,7 +24,7 @@ Whitelist an underlying asset
   ) external
 ```
 Create an entity
-Create a new entity with given properties
+An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |

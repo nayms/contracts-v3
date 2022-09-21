@@ -73,6 +73,18 @@ TODO explain
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`_newCoefficient` | uint256 | new value to be used as coefficient
+### setMaxDividendDenominations
+```solidity
+  function setMaxDividendDenominations(
+    uint8 _newMax
+  ) external
+```
+Set `_newMax` as the max dividend denominations value.
+TODO explain
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`_newMax` | uint8 | new value to be used.
 ### getDiscountToken
 ```solidity
   function getDiscountToken(
@@ -150,6 +162,17 @@ TODO explain
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
 |`coefficient`|  | for rewards
+### getMaxDividendDenominations
+```solidity
+  function getMaxDividendDenominations(
+  ) external returns (uint8)
+```
+Get the max dividend denominations value
+TODO explain
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`max`|  | dividend denominations
 ### isSupportedExternalToken
 ```solidity
   function isSupportedExternalToken(
