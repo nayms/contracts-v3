@@ -18,9 +18,10 @@ contract SmartDeploy is DeploymentHelpers {
         )
     {
         deployFile = "deployedAddressesTest.json";
-        // string[] memory facetsToCutIn;
+        vm.startBroadcast();
 
-        vm.startPrank(msg.sender);
         (diamondAddress, initDiamondAddress) = smartDeployment(deployNewDiamond, initNewDiamond, facetDeploymentAction, facetsToCutIn);
+
+        vm.stopBroadcast();
     }
 }
