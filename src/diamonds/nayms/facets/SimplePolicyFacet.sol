@@ -26,7 +26,7 @@ contract SimplePolicyFacet is Modifiers {
 
     /**
      * @dev Pay a claim of `_amount` for simple policy
-     * @param _id Id of the simple policy
+     * @param _policyId Id of the simple policy
      * @param _insuredId Id of the insured party
      * @param _amount Amount of the claim
      */
@@ -40,7 +40,7 @@ contract SimplePolicyFacet is Modifiers {
 
     /**
      * @dev Get simple policy info
-     * @param _id Id of the simple policy
+     * @param _policyId Id of the simple policy
      * @return Simple policy metadata
      */
     function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicy memory) {
@@ -49,7 +49,7 @@ contract SimplePolicyFacet is Modifiers {
 
     /**
      * @dev Check and update simple policy state
-     * @param _id Id of the simple policy
+     * @param _policyId Id of the simple policy
      */
     function checkAndUpdateSimplePolicyState(bytes32 _policyId) external {
         LibSimplePolicy._checkAndUpdateState(_policyId);

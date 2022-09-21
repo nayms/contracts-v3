@@ -160,7 +160,19 @@ smart-deploy-sim :; forge script SmartDeploy \
 				-vvvv \
 				--ffi
 
-deploy-anvil :;
+anvil-fork :; anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
+
+smart-deploy-anvil :; forge script SmartDeploy \
+				-s "smartDeploy(bool, bool, uint8, string[] memory)" \
+				${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+				-f http:\\127.0.0.1:8545 \
+				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+				--mnemonic-paths ./nayms_mnemonic.txt \
+				--mnemonic-indexes 0 \
+				-vvvv \
+				--ffi \
+				--broadcast
+
 
 deploy-goerli-fork :;
 deploy-mainnet-fork :;

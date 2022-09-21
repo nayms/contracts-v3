@@ -169,9 +169,6 @@ contract NaymsERC20Facet is Modifiers {
      * @param r r value
      * @param _s s value
      *
-    /**
-     * @notice Domain separator
-     * @return domain separator
      */
     function permit(
         address owner,

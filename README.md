@@ -115,18 +115,6 @@ facetAction - Check the enum `FacetDeploymentAction` in `script/utils/Deployment
               
 facetsToCutIn - If facetAction=`2`, then the script will deploy and cut in the methods from the names of the facets listed from this parameter. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. Note: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository.
 
-Deploy a specific contract:
-
-```zsh
-make deploy-<NETWORK_NAME> contract=<CONTRACT_NAME>
-```
-
-NETWORK_NAME can be:
-
- - mainnet
- - goerli
- - anvil
-
 ## Development Flow
 
 ### Run tests using Forge
