@@ -3,41 +3,16 @@ pragma solidity >=0.8.13;
 
 import { SimplePolicy } from "./FreeStructs.sol";
 
-/**
- * @title Simple Policies
- * @notice Facet for working with Simple Policies
- * @dev Simple Policy facet
- */
 interface ISimplePolicyFacet {
-    /**
-     * @dev Pay a premium of `_amount` on simple policy
-     * @param _policyId Id of the simple policy
-     * @param _amount Amount of the premium
-     */
     function paySimplePremium(bytes32 _policyId, uint256 _amount) external;
 
-    /**
-     * @dev Pay a claim of `_amount` for simple policy
-     * @param _id Id of the simple policy
-     * @param _insuredId Id of the insured party
-     * @param _amount Amount of the claim
-     */
     function paySimpleClaim(
         bytes32 _id,
         bytes32 _insuredId,
         uint256 _amount
     ) external;
 
-    /**
-     * @dev Get simple policy info
-     * @param _id Id of the simple policy
-     * @return Simple policy metadata
-     */
     function getSimplePolicyInfo(bytes32 _id) external view returns (SimplePolicy memory);
 
-    /**
-     * @dev Check and update simple policy state
-     * @param _id Id of the simple policy
-     */
     function checkAndUpdateSimplePolicyState(bytes32 _id) external;
 }

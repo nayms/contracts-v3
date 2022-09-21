@@ -6,6 +6,11 @@ import { Modifiers } from "../AppStorage.sol";
 import { LibSSF } from "../libs/LibSSF.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 
+/**
+ * @title Sub Surplus Fund
+ * @notice Facet for the Sub Surplus Fund
+ * @dev SSF facet
+ */
 contract SSFFacet is Modifiers, ReentrancyGuard {
     /**
      * @notice Pay `_amountIn` tokens of reward to `_to`
@@ -23,12 +28,13 @@ contract SSFFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
-    _estimateAmountOut uses the uniswap V3 library to recieve a conversion between two tokens
-    @param _tokenIn is the address of the token we are qouting from
-    @param _quoteToken is the address of the token we want the quote of
-    @param _amountIn is the amount of the tokenIn that was paid
-    @param _sqrtPriceX96 is the sqrt price needed
-    @return amountOut is the amount of the quote token that equals the inputted token
+     * @notice Estimate conversion rate of `_amountIn` tokens
+     * @dev Uses the uniswap V3 library to recieve a conversion between two tokens
+     * @param _tokenIn is the address of the token we are qouting from
+     * @param _quoteToken is the address of the token we want the quote of
+     * @param _amountIn is the amount of the tokenIn that was paid
+     * @param _sqrtPriceX96 is the sqrt price needed
+     * @return amountOut is the amount of the quote token that equals the inputted token
      */
     function estimateAmountOut(
         address _tokenIn,
@@ -40,10 +46,10 @@ contract SSFFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
-    @notice uses the _estimateAmountOut return value to calculate the given reward for the user and perform the transfer
-    @param _amountIn is the amount the user paid
-    @param _to is the user recieving the reward
-    @return returning the value of the end reward paid out
+     * @notice uses the _estimateAmountOut return value to calculate the given reward for the user and perform the transfer
+     * @param _amountIn is the amount the user paid
+     * @param _to is the user recieving the reward
+     * @return returning the value of the end reward paid out
      */
     function payReward(uint256 _amountIn, address _to) public returns (uint256) {
         return LibSSF._payReward(_amountIn, _to);
