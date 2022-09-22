@@ -98,8 +98,8 @@ gasforkdiff     :; forge snapshot --diff \
 tv4 		 :; forge test --mt testStaking -vvvv -w
 
 # coverage
-cov         :; forge coverage -vvv
-coverage    :; forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js --ffi
+cov         :; forge coverage -vvv --ffi
+coverage    :; forge coverage -vvv --report lcov --ffi && node ./cli-tools/filter-lcov.js 
 lcov        :; forge coverage --report lcov \
 				--via-ir
 lcovfork    :; forge coverage --report lcov \
