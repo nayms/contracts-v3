@@ -255,10 +255,10 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
         // (address diamondAddress2, address initDiamondAddress2) = smartDeployment(false, true, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
     }
 
-    function testSmartUpgrade() public {
-        string[] memory facetsToCutIn;
-        (address diamondAddress, address initDiamondAddress) = smartDeployment(false, false, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
-    }
+    // function testSmartUpgrade() public {
+    //     string[] memory facetsToCutIn;
+    //     (address diamondAddress, address initDiamondAddress) = smartDeployment(false, false, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
+    // }
 
     function testGetFunctionSignaturesFromArtifact() public {
         string memory facetName = "Admin";
