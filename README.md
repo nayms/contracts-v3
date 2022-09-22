@@ -117,39 +117,6 @@ facetsToCutIn - If facetAction=`2`, then the script will deploy and cut in the m
 
 ## Development Flow
 
-### Run tests using Forge
-
-```zsh
-make test
-```
-
-We test with mainnet forking.
-
-We have test defaults in `./test/defaults/`. Defaults follow a hierarchy:
-
-#### D00: Global configuration
-
-#### D01: Nayms protocol deployment
-
-#### D02: Testing defaults such as deploying test tokens and giving addresses starting balances
-
-#### D03: Protocol level defaults such as setting Nayms internal IDs
-
-Tests follow a hierarchy:
-
-#### T01: Test defaults, deployment
-
-#### T02: RBAC, Admin functions
-
-#### T03: Token transfer level
-
-T03SystemFacet - test creating entities
-
-#### T04: Business functions
-
-Tests should be fixed in order of the hierarchy (T01 first).
-
-
 ### Output, compare gas snapshots
 
 ```zsh
