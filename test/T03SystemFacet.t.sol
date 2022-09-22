@@ -10,7 +10,6 @@ import { Entity } from "src/diamonds/nayms/AppStorage.sol";
 
 import { ERC20 } from "src/erc20/ERC20.sol";
 
-
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal immutable objectContext1 = "0x1";
 
@@ -58,21 +57,5 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
 
         bytes32 objectId2 = "0x2";
         nayms.createEntity(objectId2, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
-    }
-
-    function testApproveUser() public {
-        bytes32 objectId1 = "0x1";
-        bytes32 approvedUserId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
-
-        // create an entity
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
-
-        vm.prank(account9);
-        vm.expectRevert("not a system manager");
-        nayms.approveUser(approvedUserId, objectId1);
-        vm.stopPrank();
-
-        nayms.approveUser(approvedUserId, objectId1);
-        assertTrue(nayms.isInGroup(approvedUserId, objectId1, LibConstants.GROUP_APPROVED_USERS));
     }
 }

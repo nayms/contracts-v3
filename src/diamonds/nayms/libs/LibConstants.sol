@@ -26,7 +26,6 @@ library LibConstants {
     string internal constant ROLE_SYSTEM_MANAGER = "System Manager";
     string internal constant ROLE_ENTITY_ADMIN = "Entity Admin";
     string internal constant ROLE_ENTITY_MANAGER = "Entity Manager";
-    string internal constant ROLE_APPROVED_USER = "Approved User";
     string internal constant ROLE_BROKER = "Broker";
     string internal constant ROLE_INSURED_PARTY = "Insured";
     string internal constant ROLE_UNDERWRITER = "Underwriter";
