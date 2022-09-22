@@ -7,6 +7,11 @@ import { LibConstants } from "../libs/LibConstants.sol";
 
 /// @notice https://github.com/aavegotchi/aavegotchi-contracts/blob/master/contracts/GHST/facets/GHSTFacet.sol
 
+/**
+ * @title Nayms Token
+ * @notice External facing representation of the NAYM token
+ * @dev ERC20 compliant Nayms' token
+ */
 contract NaymsERC20Facet is Modifiers {
     uint256 private constant MAX_UINT = type(uint256).max;
 
@@ -18,26 +23,53 @@ contract NaymsERC20Facet is Modifiers {
 
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 
+    /**
+     * @notice Get the token name
+     * @return token name
+     */
     function name() public pure returns (string memory) {
         return "Nayms Token";
     }
 
+    /**
+     * @notice Get the token symbol
+     * @return token symbol
+     */
     function symbol() external pure returns (string memory) {
         return "NAYM";
     }
 
+    /**
+     * @notice Get the number of decimals for the token
+     * @return number of decimals
+     */
     function decimals() external pure returns (uint8) {
         return 18;
     }
 
+    /**
+     * @notice Get the total supply of token
+     * @return total number of tokens in circulation
+     */
     function totalSupply() external view returns (uint256) {
         return s.totalSupply;
     }
 
+    /**
+     * @notice Get token balance for `_owner`
+     * @param _owner token owner
+     * @return balance holding balance
+     */
     function balanceOf(address _owner) external view returns (uint256 balance) {
         balance = s.balances[_owner];
     }
 
+    /**
+     * @notice Transfer `_value` of tokens to `_to`
+     * @param _to address to transfer to
+     * @param _value amount to transfer
+     * @return success true if transfer was successful, false otherwise
+     */
     function transfer(address _to, uint256 _value) external returns (bool success) {
         uint256 frombalances = s.balances[msg.sender];
         require(frombalances >= _value, "NAYM: Not enough NAYM to transfer");
@@ -47,6 +79,13 @@ contract NaymsERC20Facet is Modifiers {
         success = true;
     }
 
+    /**
+     * @notice Transfer `_value` of tokens from `_from` to `_to`
+     * @param _from address to transfer tokens from
+     * @param _to address to transfer tokens to
+     * @param _value amount to transfer
+     * @return success true if transfer was successful, false otherwise
+     */
     function transferFrom(
         address _from,
         address _to,
@@ -68,12 +107,24 @@ contract NaymsERC20Facet is Modifiers {
         success = true;
     }
 
+    /**
+     * @notice Approve spending of `_value` to `_spender`
+     * @param _spender address to approve spending
+     * @param _value amount to approve
+     * @return success true if approval was successful, false otherwise
+     */
     function approve(address _spender, uint256 _value) external returns (bool success) {
         s.allowance[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         success = true;
     }
 
+    /**
+     * @notice Increase allowance for `_value` to `_spender`
+     * @param _spender address to approve spending
+     * @param _value amount to approve
+     * @return success true if approval was successful, false otherwise
+     */
     function increaseAllowance(address _spender, uint256 _value) external returns (bool success) {
         uint256 l_allowance = s.allowance[msg.sender][_spender];
         uint256 newAllowance = l_allowance + _value;
@@ -83,6 +134,12 @@ contract NaymsERC20Facet is Modifiers {
         success = true;
     }
 
+    /**
+     * @notice Decrease allowance for `_value` to `_spender`
+     * @param _spender address to approve spending
+     * @param _value amount to approve
+     * @return success true if approval was successful, false otherwise
+     */
     function decreaseAllowance(address _spender, uint256 _value) external returns (bool success) {
         uint256 l_allowance = s.allowance[msg.sender][_spender];
         require(l_allowance >= _value, "NAYMFacet: Allowance decreased below 0");
@@ -92,10 +149,27 @@ contract NaymsERC20Facet is Modifiers {
         success = true;
     }
 
+    /**
+     * @notice Remaining allowance from `_owner` to `_spender`
+     * @param _owner address that approved spending
+     * @param _spender address that is approved for spending
+     * @return remaining_ remaining unspent allowance
+     */
     function allowance(address _owner, address _spender) external view returns (uint256 remaining_) {
         remaining_ = s.allowance[_owner][_spender];
     }
 
+    /**
+     * @notice Gasless allowance approval
+     * @param owner address that approves spending
+     * @param spender address that is approved for spending
+     * @param value approved amount
+     * @param deadline permit deadline
+     * @param v v value
+     * @param r r value
+     * @param _s s value
+     *
+     */
     function permit(
         address owner,
         address spender,
@@ -136,12 +210,19 @@ contract NaymsERC20Facet is Modifiers {
         emit Approval(owner, spender, value);
     }
 
+    /**
+     * @notice Domain separator
+     * @return domain separator
+     */
     // solhint-disable func-name-mixedcase
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
         return block.chainid == INITIAL_CHAIN_ID ? INITIAL_DOMAIN_SEPARATOR : computeDomainSeparator();
     }
 
-    // todo: don't do this.name() to retrive name of token
+    /**
+     * @notice Compute the domain separator based on the token `name()` and  block.chainid.
+     * @return domainSeparator
+     */
     function computeDomainSeparator() internal view virtual returns (bytes32) {
         return
             keccak256(
@@ -155,6 +236,9 @@ contract NaymsERC20Facet is Modifiers {
             );
     }
 
+    /**
+     * @notice Mint tokens
+     */
     function mint() external {
         uint256 amount = 10000000e18;
         s.balances[msg.sender] += amount;
@@ -162,6 +246,10 @@ contract NaymsERC20Facet is Modifiers {
         emit Transfer(address(0), msg.sender, amount);
     }
 
+    /**
+     * @notice Mint tokens to `_user`
+     * @param _user addres to mint tokens to
+     */
     function mintTo(address _user) external {
         uint256 amount = 10000000e18;
         s.balances[_user] += amount;

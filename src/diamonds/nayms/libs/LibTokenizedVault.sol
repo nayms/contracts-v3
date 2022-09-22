@@ -5,6 +5,26 @@ import { AppStorage, LibAppStorage, LibAdmin, LibConstants, LibHelpers } from ".
 
 library LibTokenizedVault {
     /**
+     * @notice Entity funds deposit
+     * @dev Thrown when entity is funded
+     * @param caller address of the funder
+     * @param receivingEntityId Unique ID of the entity receiving the funds
+     * @param assetId Unique ID of the asset being deposited
+     * @param shares Amount deposited
+     */
+    event EntityDeposit(address indexed caller, bytes32 indexed receivingEntityId, bytes32 assetId, uint256 shares);
+
+    /**
+     * @notice Entity funds withdrawn
+     * @dev Thrown when entity funds are withdrawn
+     * @param caller address of the account initiating the transfer
+     * @param receiver address of the account receiving the funds
+     * @param assetId Unique ID of the asset being transferred
+     * @param shares Withdrawn amount
+     */
+    event EntityWithdraw(address indexed caller, address indexed receiver, address assetId, uint256 shares);
+
+    /**
      * @dev Emitted when a token balance gets updated.
      * @param ownerId Id of owner
      * @param tokenId ID of token

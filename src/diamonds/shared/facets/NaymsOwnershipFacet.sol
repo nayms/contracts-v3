@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { LibACL } from "../libs/LibACL.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
-import { LibDiamond } from "../../shared/libs/LibDiamond.sol";
-import { OwnershipFacet } from "../../shared/facets/OwnershipFacet.sol";
+import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
+import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { LibDiamond } from "src/diamonds/shared/libs/LibDiamond.sol";
+import { OwnershipFacet } from "src/diamonds/shared/facets/OwnershipFacet.sol";
 
 contract NaymsOwnershipFacet is OwnershipFacet {
     function transferOwnership(address _newOwner) public override {

@@ -11,7 +11,12 @@ import "../../../utils/ECDSA.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
-
+    /**
+     * @notice New entity has been created
+     * @dev Thrown when entity is created
+     * @param entityId Unique ID for the entity
+     * @param _entityAdmin Unique ID of the entity administrator
+     */
     event EntityCreated(bytes32 entityId, bytes32 _entityAdmin);
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);

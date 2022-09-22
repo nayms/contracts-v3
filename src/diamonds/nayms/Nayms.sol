@@ -10,7 +10,8 @@ pragma solidity >=0.8.13;
 import { LibDiamond } from "../shared/libs/LibDiamond.sol";
 import { DiamondCutFacet } from "../shared/facets/DiamondCutFacet.sol";
 import { DiamondLoupeFacet } from "../shared/facets/DiamondLoupeFacet.sol";
-import { NaymsOwnershipFacet } from "./facets/NaymsOwnershipFacet.sol";
+import { NaymsOwnershipFacet } from "src/diamonds/shared/facets/NaymsOwnershipFacet.sol";
+// import { OwnershipFacet } from "src/diamonds/shared/facets/OwnershipFacet.sol";
 import { AppStorage } from "./AppStorage.sol";
 
 contract Nayms {

@@ -94,39 +94,26 @@ make swap
 
 ## Nayms Deployment Flow
 
-1. Create3 Nayms system deployment contract
-2. Deploy all facets
-3. Deploy Nayms Diamond using create3 Nayms system deployment contract
-4. Call the method `diamondCut()` from the Nayms Diamond and cut in facets. Also, in the same call with the 2nd and 3rd parameter on the `diamondCut()` method, pass in the `InitDiamond` contract address with a signed transaction calling the `initialization()` method in `InitDiamond.sol`. See this being done in, for example, `./script/DeployNayms.s.sol`.
+Current deployment flow, 2022-09-21:
 
-Current deployment flow, 2022-08-31:
-
-Run the following:
+Simulate the deployment:
 
 ```zsh
-make deploy-nayms-diamond create3=<bool - use create3? true or false> salt=<salt> && make deploy-facets && make deploy-init-diamond && make init-diamond-cut
+make smart-deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]>
 ```
 
-`make deploy-nayms-diamond create3=<bool - use create3? true or false> salt=<salt>`: Runs the script `script/deployment/DeployDiamond.s.sol`. Deploys the Nayms Diamond, and also verifies it on Etherscan. This script also outputs the file `deployedAddresses.json` which includes the output consumed by our backend and frontend to obtain our latest Diamond address. Eventually, this should be consumed from `broadcast/DeployDiamond.s.sol/run-latest.json`.
+newDiamond -  `true`: Deploy a new Nayms diamond.
+             `false`: Read the address from deployedAddresses.json.
 
-`make deploy-facets`: Runs the script `script/deployment/DeployFacets.s.sol`. Deploys all of the facets we want to cut into our Nayms Diamond, and also verifies them on Etherscan.
-
-`make deploy-init-diamond`: Runs the script `script/deployment/DeployInitDiamond.s.sol`. Deploys the initialization contract which is used to initialize the state of the Nayms Diamond.
-
-`make init-diamond-cut`: Runs the script `script/InitialDiamondCut.s.sol`. Calls `diamondCut()` to "cut in" (adding in) the methods into the Nayms Diamond. The methods we are cutting in are listed in 'scripts/utils/LibNaymsFacetHelpers.sol`. If a method is not listed there, then it is not being cut in during this step. This script is also calling the `initialize()` method on the InitDiamond contract to initialize the state of the Nayms Diamond. The initial state that is being set can be checked in `src/diamonds/nayms/InitDiamond.sol`.
-
-
-Deploy a specific contract:
-
-```zsh
-make deploy-<NETWORK_NAME> contract=<CONTRACT_NAME>
-```
-
-NETWORK_NAME can be:
-
- - mainnet
- - goerli
- - anvil
+initNewDiamond -  `true`: Deploy a new InitDiamond and call `initialize()` when calling `diamondCut()`.
+                 `false`: Does not call `initialize()` when calling `diamondCut()`.
+                 
+facetAction - Check the enum `FacetDeploymentAction` in `script/utils/DeploymentHelpers.sol`.
+              `0`: DeployAllFacets
+              `1`: UpgradeFacetsWithChangesOnly
+              `2`: UpgradeFacetsListedOnly
+              
+facetsToCutIn - If facetAction=`2`, then the script will deploy and cut in the methods from the names of the facets listed from this parameter. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. Note: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository.
 
 ## Development Flow
 

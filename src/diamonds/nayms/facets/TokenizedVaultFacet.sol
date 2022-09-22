@@ -6,25 +6,40 @@ import { AppStorage, Modifiers, LibConstants, LibHelpers, LibObject, MultiToken 
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 
 /**
+ * @title Token Vault
+ * @notice Vault for keeping track of platform tokens
+ * @dev Used for internal platform token transfers
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
-
 contract TokenizedVaultFacet is Modifiers {
+    /**
+     * @notice Gets balance of an account within platform
+     * @dev Internal balance for given account
+     * @param ownerId Internal ID of the account
+     * @param tokenId Internal ID of the asset
+     * @return current balance
+     */
     function internalBalanceOf(bytes32 ownerId, bytes32 tokenId) external view returns (uint256) {
         return LibTokenizedVault._internalBalanceOf(ownerId, tokenId);
     }
 
+    /**
+     * @notice Current supply for the asset
+     * @dev Total supply of platform asset
+     * @param tokenId Internal ID of the asset
+     * @return current balance
+     */
     function internalTokenSupply(bytes32 tokenId) external view returns (uint256) {
         return LibTokenizedVault._internalTokenSupply(tokenId);
     }
 
-    // kp NOTE: currently, this method transfers from the user (userId) to an internal Id of choice
-    // do we want an "internalTransferFrom" which allows a user to transfer from a specific Id?
-    /// @notice this function allows an entity to transfer an internal token
-    /// @param to the user receiving the internal token
-    /// @dev only entity admins can transfer internal tokens
-    /// @dev make sure staking tokens cannot be transferred
+    /**
+     * @notice Internal transfer of `amount` tokens
+     * @dev Transfer tokens internally
+     * @param to token receiver
+     * @param tokenId Internal ID of the token
+     */
     function internalTransferFromEntity(
         bytes32 to,
         bytes32 tokenId,
@@ -37,6 +52,12 @@ contract TokenizedVaultFacet is Modifiers {
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
 
+    /**
+     * @notice Internal transfer of `amount` tokens
+     * @dev Transfer tokens internally
+     * @param to token receiver
+     * @param tokenId Internal ID of the token
+     */
     function internalTransfer(
         bytes32 to,
         bytes32 tokenId,
@@ -48,6 +69,14 @@ contract TokenizedVaultFacet is Modifiers {
         LibTokenizedVault._internalTransfer(senderId, to, tokenId, amount);
     }
 
+    /**
+     * @notice Get withdrawable dividend amount
+     * @dev Divident available for an entity to withdraw
+     * @param ownerId Unique ID of the entity
+     * @param tokenId Unique ID of token
+     * @param dividendTokenId Unique ID of dividend token
+     * @return _entityPayout accumulated dividend
+     */
     function getWithdrawableDividend(
         bytes32 ownerId,
         bytes32 tokenId,
@@ -56,6 +85,13 @@ contract TokenizedVaultFacet is Modifiers {
         return LibTokenizedVault._getWithdrawableDividend(ownerId, tokenId, dividendTokenId);
     }
 
+    /**
+     * @notice Withdraw available dividend
+     * @dev Transfer dividends to the entity
+     * @param ownerId Unique ID of the dividend receiver
+     * @param tokenId Unique ID of token
+     * @param dividendTokenId Unique ID of dividend token
+     */
     function withdrawDividend(
         bytes32 ownerId,
         bytes32 tokenId,
@@ -68,6 +104,13 @@ contract TokenizedVaultFacet is Modifiers {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
 
+    /**
+     * @notice Pay dividends
+     * @dev Transfer dividends to the entity
+     * @param to object ID of the dividend receiver.
+     * @param dividendTokenId the internal token Id of the token to be paid as dividends.
+     * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
+     */
     function payDividend(
         bytes32 to,
         bytes32 dividendTokenId,
