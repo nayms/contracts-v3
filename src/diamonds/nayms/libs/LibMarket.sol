@@ -11,7 +11,17 @@ import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 library LibMarket {
     /// @notice order has been added
-    event OrderAdded(uint256 indexed orderId, bytes32 indexed taker, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
+    event OrderAdded(
+        uint256 indexed orderId,
+        bytes32 indexed taker,
+        bytes32 indexed sellToken,
+        uint256 sellAmount,
+        uint256 sellAmountInitial,
+        bytes32 buyToken,
+        uint256 buyAmount,
+        uint256 buyAmountInitial,
+        uint256 state
+    );
 
     /// @notice order has been executed
     event OrderExecuted(uint256 indexed orderId, bytes32 indexed taker, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
@@ -229,7 +239,7 @@ library LibMarket {
         }
 
         s.offers[lastOfferId] = marketInfo;
-        emit OrderAdded(lastOfferId, marketInfo.creator, _sellToken, _sellAmount, _buyToken, _buyAmount, marketInfo.state);
+        emit OrderAdded(lastOfferId, marketInfo.creator, _sellToken, _sellAmount, _sellAmountInitial, _buyToken, _buyAmount, _buyAmountInitial, marketInfo.state);
 
         return lastOfferId;
     }
