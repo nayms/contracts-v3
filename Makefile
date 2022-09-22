@@ -99,7 +99,7 @@ tv4 		 :; forge test --mt testStaking -vvvv -w
 
 # coverage
 cov         :; forge coverage -vvv
-coverage    :; forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js
+coverage    :; forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js --ffi
 lcov        :; forge coverage --report lcov \
 				--via-ir
 lcovfork    :; forge coverage --report lcov \
