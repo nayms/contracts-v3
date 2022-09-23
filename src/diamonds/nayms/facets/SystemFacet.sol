@@ -30,17 +30,6 @@ contract SystemFacet is Modifiers {
     }
 
     /**
-     * @notice Approve user on entity
-     * @dev Assign user the approved user role in context of entity
-     * @param _userId Unique ID of the user
-     * @param _entityId Unique ID for the entity
-     */
-    function approveUser(bytes32 _userId, bytes32 _entityId) external assertSysMgr {
-        LibACL._assignRole(_userId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.ROLE_APPROVED_USER));
-        LibObject._setParent(_userId, _entityId);
-    }
-
-    /**
      * @notice Convert a string type to a bytes32 type
      * @param _strIn a string
      */

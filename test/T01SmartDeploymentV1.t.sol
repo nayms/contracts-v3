@@ -276,7 +276,7 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
     // function testAssignUserRole() public {
     //     // Which network (set network)?
     //     vm.chainId(5); // goerli
-    //     string memory role = LibConstants.ROLE_APPROVED_USER; // role in question
+    //     string memory role = LibConstants.ROLE_ENTITY_ADMIN; // role in question
     //     bytes32 bytes32Role = LibHelpers._stringToBytes32(role);
     //     // string memory decodedRole = abi.decode(bytes(bytes32Role), (string));
     //     string memory decodedRole = LibHelpers._bytes32ToString(bytes32Role);

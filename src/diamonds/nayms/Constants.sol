@@ -21,7 +21,6 @@ contract Constants {
     string public constant ROLE_SYSTEM_MANAGER = "System Manager";
     string public constant ROLE_ENTITY_ADMIN = "Entity Admin";
     string public constant ROLE_ENTITY_MANAGER = "Entity Manager";
-    string public constant ROLE_APPROVED_USER = "Approved User";
     string public constant ROLE_BROKER = "Broker";
     string public constant ROLE_INSURED_PARTY = "Insured";
     string public constant ROLE_UNDERWRITER = "Underwriter";

@@ -23,14 +23,14 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testSetEquilibriumLevel() public {
         vm.recordLogs();
-        uint orig = nayms.getEquilibriumLevel();
+        uint256 orig = nayms.getEquilibriumLevel();
         nayms.setEquilibriumLevel(50);
         assertEq(nayms.getEquilibriumLevel(), 50);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("EquilibriumLevelUpdated(uint256,uint256)"));
-        (uint oldV, uint newV) = abi.decode(entries[0].data, (uint, uint));
+        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
         assertEq(oldV, orig);
         assertEq(newV, 50);
     }
@@ -47,17 +47,17 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetMaxDiscount() public {
-        uint orig = nayms.getMaxDiscount();
+        uint256 orig = nayms.getMaxDiscount();
 
         vm.recordLogs();
-        
+
         nayms.setMaxDiscount(70);
         assertEq(nayms.getMaxDiscount(), 70);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("MaxDiscountUpdated(uint256,uint256)"));
-        (uint oldV, uint newV) = abi.decode(entries[0].data, (uint, uint));
+        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
         assertEq(oldV, orig);
         assertEq(newV, 70);
     }
@@ -74,7 +74,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetTargetNaymsAllocation() public {
-        uint orig = nayms.getTargetNaymsAllocation();
+        uint256 orig = nayms.getTargetNaymsAllocation();
 
         vm.recordLogs();
 
@@ -84,7 +84,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("TargetNaymsAllocationUpdated(uint256,uint256)"));
-        (uint oldV, uint newV) = abi.decode(entries[0].data, (uint, uint));
+        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
         assertEq(oldV, orig);
         assertEq(newV, 70);
     }
@@ -128,7 +128,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetPoolFee() public {
-        uint orig = nayms.getPoolFee();
+        uint256 orig = nayms.getPoolFee();
 
         vm.recordLogs();
 
@@ -138,7 +138,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("PoolFeeUpdated(uint256,uint256)"));
-        (uint oldV, uint newV) = abi.decode(entries[0].data, (uint, uint));
+        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
         assertEq(oldV, orig);
         assertEq(newV, 4000);
     }
@@ -160,7 +160,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetCoefficient() public {
-        uint orig = nayms.getRewardsCoefficient();
+        uint256 orig = nayms.getRewardsCoefficient();
 
         vm.recordLogs();
 
@@ -170,7 +170,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("CoefficientUpdated(uint256,uint256)"));
-        (uint oldV, uint newV) = abi.decode(entries[0].data, (uint, uint));
+        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
         assertEq(oldV, orig);
         assertEq(newV, 100);
     }
@@ -193,7 +193,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testSetMaxDividendDenominationsFailIfLowerThanBefore() public {
         nayms.setMaxDividendDenominations(2);
-        
+
         vm.expectRevert("_updateMaxDividendDenominations: cannot reduce");
         nayms.setMaxDividendDenominations(2);
 
@@ -201,7 +201,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetMaxDividendDenominations() public {
-        uint orig = nayms.getMaxDividendDenominations();
+        uint256 orig = nayms.getMaxDividendDenominations();
 
         vm.recordLogs();
 
@@ -225,7 +225,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testAddSupportedExternalToken() public {
         address[] memory orig = nayms.getSupportedExternalTokens();
-        
+
         vm.recordLogs();
 
         nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
@@ -236,7 +236,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
-        (address tok) = abi.decode(entries[0].data, (address));
+        address tok = abi.decode(entries[0].data, (address));
         assertEq(tok, LibConstants.DAI_CONSTANT);
     }
 
@@ -252,7 +252,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testAddSupportedExternalTokenIfAlreadyAdded() public {
         address[] memory orig = nayms.getSupportedExternalTokens();
-        
+
         vm.recordLogs();
 
         nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
@@ -267,7 +267,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
     }
 
-
     function testUpdateRoleAssignerFailIfNotAdmin() public {
         vm.startPrank(account1);
         vm.expectRevert("not a system admin");
@@ -279,19 +278,19 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         // setup signer1 as broker
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
         // brokers can't usually assign approved users
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_APPROVED_USER));
-        
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+
         // now change this
         vm.recordLogs();
 
-        nayms.updateRoleAssigner(LibConstants.ROLE_APPROVED_USER, LibConstants.GROUP_BROKERS);
-        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_APPROVED_USER));
+        nayms.updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS);
+        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("RoleCanAssignUpdated(string,string)"));
-        (string memory r, string memory g) = abi.decode(entries[0].data, (string,string));
-        assertEq(r, LibConstants.ROLE_APPROVED_USER);
+        (string memory r, string memory g) = abi.decode(entries[0].data, (string, string));
+        assertEq(r, LibConstants.ROLE_ENTITY_ADMIN);
         assertEq(g, LibConstants.GROUP_BROKERS);
     }
 
@@ -306,18 +305,18 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         // setup signer1 as broker
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
         // brokers can't usually assign approved users
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_APPROVED_USER));
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
 
         // now change this
         vm.recordLogs();
 
         nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
-        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_APPROVED_USER));
+        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
-        (string memory r, string memory g, bool v) = abi.decode(entries[0].data, (string,string,bool));
+        (string memory r, string memory g, bool v) = abi.decode(entries[0].data, (string, string, bool));
         assertEq(r, LibConstants.ROLE_BROKER);
         assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
         assertTrue(v);
@@ -326,12 +325,12 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         vm.recordLogs();
 
         nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, false);
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_APPROVED_USER));
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
 
         entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
-        (r, g, v) = abi.decode(entries[0].data, (string,string,bool));
+        (r, g, v) = abi.decode(entries[0].data, (string, string, bool));
         assertEq(r, LibConstants.ROLE_BROKER);
         assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
         assertFalse(v);
