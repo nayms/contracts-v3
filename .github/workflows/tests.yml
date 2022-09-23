@@ -20,6 +20,21 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: "@nayms"
 
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo install --force svm-rs && svm install "0.7.6" && svm install "0.8.13"
+
       - name: Install Foundry
         uses: onbjerg/foundry-toolchain@v1
         with:
