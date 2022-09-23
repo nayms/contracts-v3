@@ -26,6 +26,7 @@ out
 .vscode/configurationCache.log
 .vscode/dryrun.log
 .vscode/targets.log
+.vscode/launch.json
 
 bin/
 .idea/.gitignore

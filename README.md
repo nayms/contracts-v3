@@ -39,12 +39,6 @@ make gen-i
 
 ### Build Project
 
-In order to test the Nayms platform, first build the platforms that Nayms composes with, such as Uniswap v3:
-
-```zsh
-make buniswap
-```
-
 ```zsh
 make build
 ```
