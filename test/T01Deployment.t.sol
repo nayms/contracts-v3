@@ -26,4 +26,9 @@ contract T01DeploymentTest is D03ProtocolDefaults {
 
         nayms.facetAddresses();
     }
+
+    function testFork() public {
+        string memory url = vm.rpcUrl("mainnet");
+        uint256 forkId = vm.createSelectFork(url);
+    }
 }

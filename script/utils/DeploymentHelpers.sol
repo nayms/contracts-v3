@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13 <0.9;
 
-// import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 import "forge-std/Test.sol";
 import "forge-std/StdJson.sol";
@@ -9,6 +8,7 @@ import "script/utils/LibWriteJson.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
 import "src/diamonds/shared/interfaces/IDiamondCut.sol";
 import "src/diamonds/shared/interfaces/IDiamondLoupe.sol";
+import "solmate/utils/CREATE3.sol";
 
 /// @notice helper methods to deploy a diamond,
 
@@ -22,9 +22,7 @@ contract DeploymentHelpers is Test {
 
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
-
     string public deployFile = "deployedAddresses.json";
-    string public constant deploySmartFile = "deploySmartTest.json";
 
     address internal sDiamondAddress;
 
@@ -354,6 +352,15 @@ contract DeploymentHelpers is Test {
 
     function getFacetNameFromFacetAddress() internal returns (string memory facetName) {}
 
+    function deployDeterministically() internal returns (address) {
+        // // deterministically deploy Nayms diamond
+        // console2.log("Deterministic contract address for Nayms", CREATE3.getDeployed(salt));
+        // naymsAddress = CREATE3.getDeployed(salt);
+        // vm.label(CREATE3.getDeployed(salt), "Nayms Diamond");
+        // nayms = INayms(CREATE3.deploy(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(account0)), 0));
+        // assertEq(naymsAddress, CREATE3.getDeployed(salt));
+    }
+
     // true: deploys a new diamond, writes to deployFile
     // false: reads deployFile .NaymsDiamond
     function diamondDeployment(bool deployNewDiamond) public returns (address naymsDiamondAddress) {
@@ -375,8 +382,6 @@ contract DeploymentHelpers is Test {
                 )
             );
             vm.writeFile(deployFile, write);
-
-            // vm.writeFile(deploySmartFile, write);
         } else {
             // Read in current diamond address
             naymsDiamondAddress = getDiamondAddressFromFile();
@@ -500,18 +505,15 @@ contract DeploymentHelpers is Test {
         console2.log("deploySelectFacet facet address", facetAddress);
     }
 
-    // compares the bytecode in the artifact to the matching onchain facet bytecode
-    // This method returns true for matching bytecode
-
+    /** @notice Compares the bytecode in the artifact to the matching onchain facet bytecode .
+     * @dev This method returns true for matching bytecode.
+     */
     function compareBytecode(address diamondAddress, string memory facetName) public returns (bool bytecodeMatchFlag) {
         // read the newly compiled artifact file for the facet
         string memory artifactFile = string.concat(artifactsPath, facetName, "Facet.sol/", facetName, "Facet.json");
-        // bytes memory bytecode = vm.getCode(artifactFile);
         string memory artifactData = vm.readFile(artifactFile);
 
         bytes memory bytecode = vm.parseJson(artifactData, ".deployedBytecode.object");
-        // bytes memory bytecode = vm.parseJson(artifactData, ".bytecode.object");
-        // bytes memory bytecode = vm.readBytes(artifactData, ".bytecode.object");
         bytes memory bytecodeDecoded = abi.decode(bytecode, (bytes));
 
         (uint256 numberOfFunctionSignaturesFromArtifact, bytes4[] memory functionSignatures) = getFunctionSignaturesFromArtifact(facetName);
@@ -527,12 +529,6 @@ contract DeploymentHelpers is Test {
 
         bytes memory targetFacetBytecode = targetFacetAddress.code;
         bytecodeMatchFlag = checkEq0(targetFacetBytecode, bytecodeDecoded);
-
-        //todo delete
-        console2.logBytes(targetFacetBytecode);
-        console2.logBytes(bytecodeDecoded);
-
-        console2.log(bytecodeMatchFlag);
     }
 
     function getFunctionSignaturesFromArtifact(string memory facetName) public returns (uint256 numberOfFunctionSignaturesFromArtifact, bytes4[] memory functionSelectors) {
@@ -543,14 +539,11 @@ contract DeploymentHelpers is Test {
         // todo rename for clarity,
         numberOfFunctionSignaturesFromArtifact = parsedArtifactData.length / 32;
 
-        console2.log("getFunctionSignaturesFromArtifact number of function sigs", numberOfFunctionSignaturesFromArtifact);
         if (numberOfFunctionSignaturesFromArtifact == 4) {
-            console2.log("1 selector");
             MethodId1 memory decodedData = abi.decode(parsedArtifactData, (MethodId1));
 
             functionSelectors = new bytes4[](1);
             functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            console2.log("1 selector end");
         } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 1) {
             MethodId2 memory decodedData = abi.decode(parsedArtifactData, (MethodId2));
 
@@ -928,11 +921,13 @@ contract DeploymentHelpers is Test {
     /// @notice V1 of dynamic facet cuts. If the facet has a new method, then the facet will be newly deployed and cut in
     // If the facet has a method with the same function sig
 
-    /// @dev If the facet only has methods with the same function sig (no new function sigs), then this method is not smart enough
-    /// to know whether or not there's a change in the function itself to warrent a new deployment / diamond cut.
-    /// This extra smartness will come in V2 of dynamicFacetCut() :)
-    /// @param diamondAddress The address of the diamond to be upgraded. note: The diamond must have the standard diamond loupe functions
-    /// @param facetName Name of the facet to cut in
+    /**
+     * @dev If the facet only has methods with the same function sig (no new function sigs), then this method is not smart enough
+     * to know whether or not there's a change in the function itself to warrent a new deployment / diamond cut.
+     * This extra smartness will come in V2 of dynamicFacetCut() :)
+     * @param diamondAddress The address of the diamond to be upgraded. note: The diamond must have the standard diamond loupe functions
+     * @param facetName Name of the facet to cut in
+     */
     function dynamicFacetCutV1(address diamondAddress, string memory facetName) public returns (IDiamondCut.FacetCut[] memory cut) {
         // if it already exists - replace
         // if it doesn't exist in the old facet - add
@@ -978,7 +973,6 @@ contract DeploymentHelpers is Test {
             console2.log("numberOfSelectorsFromOldFacet", numberOfSelectorsFromOldFacet);
             for (uint256 i; i < numberOfSelectorsFromOldFacet; i++) {
                 address facetAddress = IDiamondLoupe(diamondAddress).facetAddress(oldFacetSelectors[i]);
-                console2.log(string.concat(vm.toString(oldFacetSelectors[i]), vm.toString(facetAddress)));
             }
 
             // get list of selectors in "current" facet
@@ -1104,11 +1098,15 @@ contract DeploymentHelpers is Test {
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
-        debugDeployment(diamondAddress, facetsToCutIn);
+        debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
         cutAndInit(diamondAddress, cut, initDiamond);
     }
 
-    function debugDeployment(address diamondAddress, string[] memory facetsToCutIn) internal {
+    function debugDeployment(
+        address diamondAddress,
+        string[] memory facetsToCutIn,
+        FacetDeploymentAction facetDeploymentAction
+    ) internal {
         uint256 addCount;
         uint256 replaceCount;
         uint256 removeCount;
@@ -1153,7 +1151,10 @@ contract DeploymentHelpers is Test {
             }
         }
 
-        console2.log("num facets to cut in", facetsToCutIn.length);
+        if (facetDeploymentAction == FacetDeploymentAction.UpgradeFacetsListedOnly) {
+            console2.log("num facets to cut in", facetsToCutIn.length);
+        }
+
         console2.log("num remove", removeCount);
 
         console2.log("num add", addCount);

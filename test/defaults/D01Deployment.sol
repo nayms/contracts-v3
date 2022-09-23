@@ -9,8 +9,6 @@ import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
 
-import "solmate/utils/CREATE3.sol";
-
 import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
 /// @notice Default test setup part 01
@@ -34,25 +32,5 @@ contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         (naymsAddress, ) = smartDeployment(true, true, FacetDeploymentAction.DeployAllFacets, facetsToCutIn);
         vm.stopPrank();
         nayms = INayms(naymsAddress);
-        // NOTE OLD DEPLOYMENT PATTERN
-        // deploy the init contract
-        // initDiamond = new InitDiamond();
-
-        // // deploy all facets
-        // address[] memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
-
-        // // deterministically deploy Nayms diamond
-        // console2.log("Deterministic contract address for Nayms", CREATE3.getDeployed(salt));
-        // naymsAddress = CREATE3.getDeployed(salt);
-        // vm.label(CREATE3.getDeployed(salt), "Nayms Diamond");
-
-        // nayms = INayms(CREATE3.deploy(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(account0)), 0));
-
-        // assertEq(naymsAddress, CREATE3.getDeployed(salt));
-
-        // // initialize the diamond as well as cut in all facets
-        // INayms.FacetCut[] memory cut = LibNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
-
-        // nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
     }
 }

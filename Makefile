@@ -25,7 +25,8 @@ devnet      :; anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 
 # helper scripts
 gen-i :; forge script GenerateInterfaces \
-			-s "run(string memory ${path})" path="./src/nayms/diamonds/interfaces/"
+			-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
+			--ffi
 
 # forge build
 b           :; forge build --names --sizes
@@ -137,9 +138,6 @@ erc20g      :; @forge script DeployERC20 -s "deploy(string memory _name, string 
 
 # Deployment
 
-# note:
-# pass in 0, 1, 2 for facetAction
-# pass in facetsToCutIn as "[]", e.g. "[ACL, Admin]"
 smart-deploy :; @forge script SmartDeploy \
 				-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
@@ -148,7 +146,7 @@ smart-deploy :; @forge script SmartDeploy \
 				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
-				-vvvv \
+				-vv \
 				--ffi \
 				--broadcast \
 				--verify --delay 30 --retries 10
@@ -162,7 +160,7 @@ smart-deploy-sim :; forge script SmartDeploy \
 				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
-				-vvvv \
+				-vv \
 				--ffi
 
 anvil-fork :; anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
@@ -174,7 +172,7 @@ smart-deploy-anvil :; forge script SmartDeploy \
 				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
-				-vvvv \
+				-vv \
 				--ffi \
 				--broadcast
 
