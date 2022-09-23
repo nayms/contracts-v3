@@ -23,6 +23,10 @@ devnet      :; anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 					--fork-block-number 15078000 \
 					-vvvv
 
+# helper scripts
+gen-i :; forge script GenerateInterfaces \
+			-s "run(string memory ${path})" path="./src/nayms/diamonds/interfaces/"
+
 # forge build
 b           :; forge build --names --sizes
 build 	    :; forge build --names --sizes

@@ -13,11 +13,11 @@ Defaults follow a hierarchy:
 
 Tests follow a hierarchy:
 
-#### T01: Test defaults, deployment
+#### T01: Test defaults, deployment, ownership
 
-#### T02: ACL, Admin functions
+#### T02: ACL, Admin functions, user functions
 
-#### T03: Token transfers, creating entities
+#### T03: Creating entities, depositing, withdrawing
 
 #### T04: Creating policies, marketplace functionality
 
