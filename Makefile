@@ -37,7 +37,7 @@ bscript     :; forge build --root . --contracts script/
 t           :; forge test
 test        :; forge test
 
-tlocal      :; forge t --no-match-contract T03NaymsTokenTest --ffi
+tlocal      :; @forge t --no-match-contract T03NaymsTokenTest --ffi
 
 tlocalgs    :; forge t --no-match-contract T03NaymsTokenTest \
 				--gas-report \
@@ -140,7 +140,7 @@ erc20g      :; @forge script DeployERC20 -s "deploy(string memory _name, string 
 # note:
 # pass in 0, 1, 2 for facetAction
 # pass in facetsToCutIn as "[]", e.g. "[ACL, Admin]"
-smart-deploy :; forge script SmartDeploy \
+smart-deploy :; @forge script SmartDeploy \
 				-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 				--chain-id 5 \
