@@ -11,8 +11,8 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 
 library LibSimplePolicy {
     event SimplePolicyStateUpdated(bytes32 id, address indexed caller);
-    event SimplePolicyPremiumPaid(bytes32 indexed _id, uint256 _amount);
-    event SimplePolicyClaimPaid(bytes32 indexed _policyId, bytes32 indexed _insuredId, uint256 _amount);
+    event SimplePolicyPremiumPaid(bytes32 indexed id, uint256 amount);
+    event SimplePolicyClaimPaid(bytes32 indexed policyId, bytes32 indexed insuredId, uint256 amount);
 
     function _getSimplePolicyInfo(bytes32 _policyId) internal view returns (SimplePolicy memory simplePolicyInfo) {
         AppStorage storage s = LibAppStorage.diamondStorage();
