@@ -40,9 +40,6 @@ jobs:
         with:
           version: nightly
 
-      - name: Setup env file
-        run: echo 'export ALCHEMY_ETH_MAINNET_RPC_URL=$ALCHEMY_ETH_MAINNET_RPC_URL' >> .env && echo 'export ALCHEMY_ETH_GOERLI_RPC_URL=$ALCHEMY_ETH_GOERLI_RPC_URL' >> .env
-
       - name: Install Forge dependencies
         run: forge install
 
@@ -50,6 +47,9 @@ jobs:
         run: make build
 
       - name: Tests - local
+        env:
+          ALCHEMY_ETH_MAINNET_RPC_URL: ${{ secrets.ALCHEMY_ETH_MAINNET_RPC_URL }}
+          ALCHEMY_ETH_GOERLI_RPC_URL: ${{ secrets.ALCHEMY_ETH_GOERLI_RPC_URL }}
         run: make tlocal
 
       # - name: Check gas snapshots on local tests
