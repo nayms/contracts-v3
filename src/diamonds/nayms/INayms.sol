@@ -16,6 +16,7 @@ import { ITokenizedVaultFacet } from "./interfaces/ITokenizedVaultFacet.sol";
 import { ITokenizedVaultIOFacet } from "./interfaces/ITokenizedVaultIOFacet.sol";
 import { IMarketFacet } from "./interfaces/IMarketFacet.sol";
 import { IEntityFacet } from "./interfaces/IEntityFacet.sol";
+import { ISimplePolicyFacet } from "./interfaces/ISimplePolicyFacet.sol";
 
 /**
  * @title Nayms Diamond
@@ -34,7 +35,8 @@ interface INayms is
     ITokenizedVaultFacet,
     ITokenizedVaultIOFacet,
     IMarketFacet,
-    IEntityFacet
+    IEntityFacet,
+    ISimplePolicyFacet
 {
 
 }
