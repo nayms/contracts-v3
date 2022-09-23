@@ -108,18 +108,36 @@ Simulate the deployment:
 make smart-deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]>
 ```
 
-newDiamond -  `true`: Deploy a new Nayms diamond.
-             `false`: Read the address from deployedAddresses.json.
+| | |
+|-|-|
+| *newDiamond* |  |
+|`true` |Deploy a new Nayms diamond|
+|`false`|Read the address from deployedAddresses.json|
+| | |
+| *initNewDiamond* | |
+| `true` | Deploy a new InitDiamond and call `initialize()` when calling `diamondCut()` |
+| `false` | Does not call `initialize()` when calling `diamondCut()` |
+| | |
+| *facetAction* | See [`FacetDeploymentAction`](https://github.com/nayms/contracts-v3/tree/main/script/utils/DeploymentHelpers.sol) enum |
+| `0` | DeployAllFacets |
+| `1` | UpgradeFacetsWithChangesOnly |
+| `2` | UpgradeFacetsListedOnly |
+| *facetsToCutIn* | Requires facetAction=`2`|
+| `["Facet1","Facet2",...]`| List of facets to cut into the diamond. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. *Note*: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository.|
 
-initNewDiamond -  `true`: Deploy a new InitDiamond and call `initialize()` when calling `diamondCut()`.
-                 `false`: Does not call `initialize()` when calling `diamondCut()`.
-                 
-facetAction - Check the enum `FacetDeploymentAction` in `script/utils/DeploymentHelpers.sol`.
-              `0`: DeployAllFacets
-              `1`: UpgradeFacetsWithChangesOnly
-              `2`: UpgradeFacetsListedOnly
-              
-facetsToCutIn - If facetAction=`2`, then the script will deploy and cut in the methods from the names of the facets listed from this parameter. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. Note: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository.
+Below are several examples on how you would use the smart deploy scripts.
+
+To upgrade the facets that have been changed since the last deployment, run the following:
+
+```zsh
+make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=1 facetsToCutIn="[]"
+```
+
+To upgrade specific set of facets, run command like this one:
+
+```zsh
+make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
+```
 
 ## Development Flow
 
@@ -128,6 +146,7 @@ facetsToCutIn - If facetAction=`2`, then the script will deploy and cut in the m
 ```zsh
 make gas
 ```
+
 ### Build Troubleshooting Tips
 
 In case you run into an issue of `forge` not being able to find a compatible version of solidity compiler for one of your contracts/scripts, you may want to install the solidity version manager `svm`. To be able to do so, you will need to have [Rust](https://www.rust-lang.org/tools/install) installed on your system and with it the acompanying package manager `cargo`. Once that is done, to install `svm` run the following command:
@@ -142,11 +161,12 @@ To list the available versions of solidity compiler run:
 svm list
 ```
 
-Make sure the version you need is in this list, or choose the closest one and install it: 
+Make sure the version you need is in this list, or choose the closest one and install it:
 
 ```zsh
 svm install "0.7.6"
 ```
+
 ## Staging for Production Deployment Flow
 
 Run integration tests with mainnet forking.
