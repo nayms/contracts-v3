@@ -3,8 +3,8 @@ const INPUT_DIR    = "./src/diamonds/nayms/interfaces";
 const CONFIG_DIR   = "./cli-tools";
 const OUTPUT_DIR   = "./docs/facets";
 const README_FILE  = "./docs/index.md";
-const SUMMARY_FILE = "./docs/SUMMARY.md";
-const EXCLUDES     = "./src/nayms/diamond/impl,./src/nayms/diamond,./src/nayms/ERC20,./src/nayms/facets,./src/nayms/libs,./src/nayms/core,./src/utils";
+const SUMMARY_FILE = "./docs/summary.md";
+const EXCLUDES     = "./src/utils";
 
 const fs           = require("fs");
 const path         = require("path");
