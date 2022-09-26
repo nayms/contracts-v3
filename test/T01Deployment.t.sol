@@ -28,7 +28,9 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     }
 
     function testFork() public {
-        string memory url = vm.rpcUrl("mainnet");
-        uint256 forkId = vm.createSelectFork(url);
+        string memory mainnetUrl = vm.rpcUrl("mainnet");
+        string memory goerliUrl = vm.rpcUrl("goerli");
+        uint256 mainnetFork = vm.createSelectFork(mainnetUrl, 15615850);
+        uint256 goerliFork = vm.createSelectFork(goerliUrl, 7661570);
     }
 }

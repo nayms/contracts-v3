@@ -10,6 +10,8 @@ import "src/diamonds/shared/interfaces/IDiamondCut.sol";
 import "src/diamonds/shared/interfaces/IDiamondLoupe.sol";
 import "solmate/utils/CREATE3.sol";
 
+import "./LibDeployNayms.sol";
+
 /// @notice helper methods to deploy a diamond,
 
 interface IInitDiamond {
@@ -871,6 +873,18 @@ contract DeploymentHelpers is Test {
     }
 
     /**
+     * @notice OLD WAY TO MAKE COVERAGE WORK. Deploys a new facet by its name (calling deploySelectFacet()) and creates the Cut struct
+     */
+
+    function deployFacetAndCreateFacetCutOLD(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
+        cut.facetAddress = LibDeployNayms.deployNaymsFacetsByName(facetName);
+
+        (, cut.functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
+
+        cut.action = IDiamondCut.FacetCutAction.Add;
+    }
+
+    /**
      * @notice Pass in the facet deployment pattern that is desired. The various facet deployment patterns are explained in the FacetDeploymentAction enum.
      */
     function facetDeploymentAndCut(
@@ -891,7 +905,8 @@ contract DeploymentHelpers is Test {
             // note this purely adds all facet methods.
             cut = new IDiamondCut.FacetCut[](numberOfFacets);
             for (uint256 i; i < numberOfFacets; i++) {
-                cut[i] = deployFacetAndCreateFacetCut(allFacetNames[i]);
+                // cut[i] = deployFacetAndCreateFacetCut(allFacetNames[i]);
+                cut[i] = deployFacetAndCreateFacetCutOLD(allFacetNames[i]);
             }
         } else if (facetDeploymentAction == FacetDeploymentAction.UpgradeFacetsWithChangesOnly) {
             // V1: check if facet bytecode is different. If so, then deploy facet and add, remove, replace methods.
