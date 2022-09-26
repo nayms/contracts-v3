@@ -56,14 +56,14 @@ library LibEntity {
         // Calculate the entity's required capital for its capacity utilization based on its collateral requirements.
         uint256 capitalRequirementForUpdatedUtilizedCapacity = (updatedUtilizedCapacity * entity.collateralRatio) / 1000;
 
+        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
+
         // The entity's balance must be >= to the updated capacity requirement
         // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
         require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= capitalRequirementForUpdatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
-        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
-        require(simplePolicy.limit > 0, "limit == 0");
 
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
         require(commissionReceiversArrayLength > 0, "must have commission receivers");

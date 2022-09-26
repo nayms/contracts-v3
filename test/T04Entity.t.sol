@@ -134,16 +134,18 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(id, entityId1);
     }
 
-    function testSimplePolicy() public {
+    function testCreateSimplePolicyValidation() public {
         nayms.createEntity(policySponsorEntityId, objectContext1, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("simple policy creation disabled");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
+
         // enable simple policy creation
         nayms.updateEntity(policySponsorEntityId, initEntity(weth, 1000, 1000, 0, true));
 
         // test limit
+        simplePolicy.limit = 0;
         vm.expectRevert("limit not > 0");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
         simplePolicy.limit = 10000;
@@ -162,10 +164,20 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(account0Id, policySponsorEntityId, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, policySponsorEntityId, LibConstants.GROUP_ENTITY_ADMINS));
 
-        // fail on 0 collateral ratio note: an entity can no longer be created when its collateral ratio is == 0
+        // test capacity
+        vm.expectRevert("not enough available capacity");
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+
+        // update max capacity
+        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 30000, 0, true));
+
+        // external token not supported
+        vm.expectRevert("external token is not supported");
+        simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.asset = wethId;
 
         // test collateral ratio constraint
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 30000, 0, true));
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
@@ -179,7 +191,60 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.externalDeposit(policySponsorEntityId, wethAddress, 10000);
         assertEq(nayms.internalBalanceOf(policySponsorEntityId, wethId), 10000);
 
+        // start date too early
+        vm.warp(1);
+        simplePolicy.startDate = block.timestamp - 1;
+        vm.expectRevert("start date < block.timestamp");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.startDate = 1000;
+
+        // start date after maturation date
+        simplePolicy.startDate = simplePolicy.maturationDate;
+        vm.expectRevert("start date > maturation date");
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.startDate = 1000;
+
+        // commission receivers
+        vm.expectRevert("must have commission receivers");
+        bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
+        simplePolicy.commissionReceivers = new bytes32[](0);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.commissionReceivers = commissionReceiversOrig;
+
+        // commission basis points
+        vm.expectRevert("must have commission basis points");
+        uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;
+        simplePolicy.commissionBasisPoints = new uint256[](0);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
+        
+        // commission basis points array and commission receivers array must have same length
+        vm.expectRevert("commissions lengths !=");
+        simplePolicy.commissionBasisPoints = new uint256[](1);
+        simplePolicy.commissionBasisPoints.push(1);
+        simplePolicy.commissionReceivers = new bytes32[](2);
+        simplePolicy.commissionReceivers.push(keccak256("a"));
+        simplePolicy.commissionReceivers.push(keccak256("b"));
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
+        simplePolicy.commissionReceivers = commissionReceiversOrig;
+
+        // commission basis points total > 1000
+        vm.expectRevert("bp cannot be > 1000");
+        simplePolicy.commissionReceivers = new bytes32[](1);
+        simplePolicy.commissionReceivers.push(keccak256("a"));
+        simplePolicy.commissionBasisPoints = new uint256[](1);
+        simplePolicy.commissionBasisPoints.push(1001);
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
+        simplePolicy.commissionReceivers = commissionReceiversOrig;
+
+        // try again
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+    }
+
+    function testCreateSimplePolicy() public {
+        testCreateSimplePolicyValidation();
 
         // todo: improve this error message when a premium is being created with the same premium ID
         vm.expectRevert("object already exists");
