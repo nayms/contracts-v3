@@ -9,7 +9,7 @@ This should only be called through an entity, never directly by an EOA
     bytes32 _buyToken,
     uint256 _buyAmount,
     uint256 _feeSchedule
-  ) external returns (uint256)
+  ) external returns (uint256 offerId_, uint256 buyTokenComissionsPaid_, uint256 sellTokenComissionsPaid_)
 ```
 Execute a limit offer.
 #### Parameters:
@@ -23,16 +23,24 @@ Execute a limit offer.
 #### Return Values:
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`0`| bytes32 | if a limit offer was created on the market, because the offer couldn't be
-totally fulfilled immediately. In this case the return value is the created offer's id.
+|`offerId_`| bytes32 | returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
+|`buyTokenComissionsPaid_`| uint256 | The amount of the buy token paid as commissions on this particular order.
+|`sellTokenComissionsPaid_`| bytes32 | The amount of the sell token paid as commissions on this particular order.
 ### cancelOffer
 ```solidity
   function cancelOffer(
     uint256 _offerId
   ) external
 ```
-Cancel offer #`_offerId`.
-This will revert the offer, so that it's no longer active.
+Cancel offer #`_offerId`. This will cancel the offer so that it's no longer active.
+This function can be frontrun: In the scenario where a user wants to cancel an unfavorable market offer, an attacker can potentially monitor and identify
+      that the user has called this method, determine that filling this market offer is profitable, and as a result call executeLimitOffer with a higher gas price to have
+      their transaction filled before the user can have cancelOffer filled. The most ideal situation for the user is to not have placed the unfavorable market offer
+      in the first place since an attacker can always monitor our marketplace and potentially identify profitable market offers. Our UI will aide users in not placing
+      market offers that are obviously unfavorable to the user and/or seem like mistake orders. In the event that a user needs to cancel an offer, it is recommended to
+      use Flashbots in order to privately send your transaction so an attack cannot be triggered from monitoring the mempool for calls to cancelOffer. A user is recommended
+      to change their RPC endpoint to point to https://rpc.flashbots.net when calling cancelOffer. We will add additional documentation to aide our users in this process.
+      More information on using Flashbots: https://docs.flashbots.net/flashbots-protect/rpc/quick-start/
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
@@ -40,29 +48,8 @@ This will revert the offer, so that it's no longer active.
 ### calculateFee
 ```solidity
   function calculateFee(
-    bytes32 _sellToken,
-    uint256 _sellAmount,
-    bytes32 _buyToken,
-    uint256 _buyAmount,
-    uint256 _feeSchedule
   ) external returns (address feeToken_, uint256 feeAmount_)
 ```
-Calculate the fee that must be paid for placing the given order.
-Assuming that the given order will be matched immediately to existing orders,
-this method returns the fee the caller will have to pay as a taker.
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
-|`_sellToken` | bytes32 | The sell unit.
-|`_sellAmount` | uint256 | The sell amount.
-|`_buyToken` | bytes32 | The buy unit.
-|`_buyAmount` | uint256 | The buy amount.
-|`_feeSchedule` | uint256 | Fee schedule.
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`feeToken_`| bytes32 | The unit in which the fees are denominated.
-|`feeAmount_`| uint256 | The fee required to place the order.
 ### getBestOfferId
 ```solidity
   function getBestOfferId(

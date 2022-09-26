@@ -1,10 +1,7 @@
-Vault for keeping track of platform tokens
-Used for internal platform token transfers
 ## Functions
 ### internalBalanceOf
 ```solidity
   function internalBalanceOf(
-    bytes32 accountId,
     bytes32 tokenId
   ) external returns (uint256)
 ```
@@ -13,7 +10,6 @@ Internal balance for given account
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
-|`accountId` | bytes32 | Internal ID of the account
 |`tokenId` | bytes32 | Internal ID of the asset
 #### Return Values:
 | Name                           | Type          | Description                                                                  |
@@ -115,50 +111,40 @@ Transfer dividends to the entity
 |`ownerId` | bytes32 | Unique ID of the dividend receiver
 |`tokenId` | bytes32 | Unique ID of token
 |`dividendTokenId` | bytes32 | Unique ID of dividend token
+### withdrawAllDividends
+```solidity
+  function withdrawAllDividends(
+  ) external
+```
 ### payDividend
 ```solidity
   function payDividend(
+    bytes32 to,
+    bytes32 dividendTokenId,
+    uint256 amount
   ) external
 ```
+Pay dividends
+Transfer dividends to the receiver
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`to` | bytes32 | object ID of the dividend receiver.
+|`dividendTokenId` | bytes32 | the internal token Id of the token to be paid as dividends.
+|`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.
 ### payDividendFromEntity
 ```solidity
   function payDividendFromEntity(
+    bytes32 to,
+    bytes32 dividendTokenId,
+    uint256 amount
   ) external
 ```
-## Events
-### EntityDeposit
-```solidity
-  event EntityDeposit(
-    address caller,
-    bytes32 receivingEntityId,
-    bytes32 assetId,
-    uint256 shares
-  )
-```
-Entity funds deposit
-Thrown when entity is funded
+Pay dividends from sender's entity
+Transfer dividends from sender's entity to the receiver
 #### Parameters:
-| Name                           | Type          | Description                                    |
-| :----------------------------- | :------------ | :--------------------------------------------- |
-|`caller`| address | address of the funder
-|`receivingEntityId`| bytes32 | Unique ID of the entity receiving the funds
-|`assetId`| bytes32 | Unique ID of the asset being deposited
-|`shares`| uint256 | Amount deposited
-### EntityWithdraw
-```solidity
-  event EntityWithdraw(
-    address caller,
-    address receiver,
-    address assetId,
-    uint256 shares
-  )
-```
-Entity funds withdrawn
-Thrown when entity funds are withdrawn
-#### Parameters:
-| Name                           | Type          | Description                                    |
-| :----------------------------- | :------------ | :--------------------------------------------- |
-|`caller`| address | address of the account initiating the transfer
-|`receiver`| address | address of the account receiving the funds
-|`assetId`| address | Unique ID of the asset being transferred
-|`shares`| uint256 | Withdrawn amount
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`to` | bytes32 | object ID of the dividend receiver.
+|`dividendTokenId` | bytes32 | the internal token Id of the token to be paid as dividends.
+|`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.

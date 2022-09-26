@@ -7,14 +7,10 @@ import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
 
 /**
- * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
- * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
- */
-
-/**
  * @title Token Vault IO
  * @notice External interface to the Token Vault
- * @dev Used for external transfers
+ * @dev Used for external transfers. Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
+ *      https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
 contract TokenizedVaultIOFacet is Modifiers {
     /**

@@ -181,3 +181,5 @@ deploy-goerli-fork :;
 deploy-mainnet-fork :;
 
 subgraph-abi :; yarn subgraph:abi
+
+docgen :; yarn docgen

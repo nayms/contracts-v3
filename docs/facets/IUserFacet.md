@@ -66,5 +66,17 @@ Gets the entity related to the user
 ### getBalanceOfTokensForSale
 ```solidity
   function getBalanceOfTokensForSale(
+    bytes32 _entityId,
+    bytes32 _tokenId
   ) external returns (uint256 amount)
 ```
+Get the amount of tokens that an entity has for sale in the marketplace.
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`_entityId` | bytes32 |  Unique platform ID of the entity.
+|`_tokenId` | bytes32 | The ID assigned to an external token.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`amount`| bytes32 | of tokens that the entity has for sale in the marketplace.

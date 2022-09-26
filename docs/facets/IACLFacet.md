@@ -94,5 +94,17 @@ Check permission to assign to a role
 ### getRoleInContext
 ```solidity
   function getRoleInContext(
+    bytes32 objectId,
+    bytes32 contextId
   ) external returns (bytes32)
 ```
+Get a user's (an objectId's) assigned role in a specific context
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`objectId` | bytes32 | ID of an object that is being checked for its assigned role in a specific context
+|`contextId` | bytes32 | ID of the context in which the objectId's role is being checked
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`roleId`| bytes32 | objectId's role in the contextId

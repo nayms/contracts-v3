@@ -75,30 +75,30 @@ library LibEntity {
     function _createSimplePolicy(
         bytes32 _policyId,
         bytes32 _entityId,
-        Stakeholders calldata stakeholders,
-        SimplePolicy calldata simplePolicy,
+        Stakeholders calldata _stakeholders,
+        SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
         // Update state with the entity's updated utilized capacity.
-        s.entities[_entityId].utilizedCapacity = _validateSimplePolicyCreation(_entityId, simplePolicy);
+        s.entities[_entityId].utilizedCapacity = _validateSimplePolicyCreation(_entityId, _simplePolicy);
 
         LibObject._createObject(_policyId, _entityId, _dataHash);
-        s.simplePolicies[_policyId] = simplePolicy;
+        s.simplePolicies[_policyId] = _simplePolicy;
         s.simplePolicies[_policyId].fundsLocked = true;
 
         // todo: move check up to follow checks, effects, interactions pattern
-        require(stakeholders.entityIds.length == stakeholders.signatures.length, "incorrect number of signatures");
-        uint256 rolesCount = stakeholders.roles.length;
+        require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
+        uint256 rolesCount = _stakeholders.roles.length;
 
         for (uint256 i = 0; i < rolesCount; i++) {
-            address signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(_policyId), stakeholders.signatures[i]);
+            address signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(_policyId), _stakeholders.signatures[i]);
             bytes32 signerId = LibHelpers._getIdForAddress(signer);
 
-            require(LibACL._isInGroup(signerId, stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
-            LibACL._assignRole(stakeholders.entityIds[i], _policyId, stakeholders.roles[i]);
+            require(LibACL._isInGroup(signerId, _stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
+            LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 
         emit SimplePolicyCreated(_policyId, _entityId);

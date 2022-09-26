@@ -1,5 +1,6 @@
 External interface to the Token Vault
-Used for external transfers
+Used for external transfers. Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
+     https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
 ## Functions
 ### externalDepositToEntity
 ```solidity

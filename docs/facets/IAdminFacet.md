@@ -247,7 +247,7 @@ Update role group memebership
   function getSystemId(
   ) external returns (bytes32)
 ```
-gets the System context ID.
+Gets the System context ID.
 #### Return Values:
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
