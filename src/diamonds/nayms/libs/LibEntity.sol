@@ -22,6 +22,12 @@ library LibEntity {
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId);
 
+    modifier assertSimplePolicyEnabled(bytes32 _entityId) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(s.entities[_entityId].simplePolicyEnabled, "simple policy creation disabled");
+        _;
+    }
+
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
@@ -36,8 +42,9 @@ library LibEntity {
         Entity memory entity = s.entities[_entityId];
 
         // todo: ensure that the capital raised is >= max capacity. Probably want to do this check when the trade is made.
-        // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity. We can keep these checks here for now.
-        require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
+        
+        // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity, so no need to check this here.
+        // require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
 
         // Calculate the entity's utilized capacity after it writes this policy.
         updatedUtilizedCapacity = entity.utilizedCapacity + simplePolicy.limit;
@@ -78,7 +85,7 @@ library LibEntity {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) internal {
+    ) internal assertSimplePolicyEnabled(_entityId) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
@@ -164,7 +171,7 @@ library LibEntity {
         // Max capacity is the capital amount that an entity can write across all of their policies.
         // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy. First, we use the bool simplePolicyEnabled to control and dictate
         //       whether an entity can or cannot write a policy. If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
-
+        require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
         // note: When first creating an entity, utilizedCapacity should be 0. Utilized capacity is determined by the policy limits the entity has written.
         // Update state.
         s.entities[_entityId] = _entity;

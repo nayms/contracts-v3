@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+import { Vm } from "forge-std/Vm.sol";
+
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-
 import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/AppStorage.sol";
-
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
-
 import "src/utils/ECDSA.sol";
-
 import { initEntity } from "test/T03SystemFacet.t.sol";
+
 
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
 
-    bytes32 internal objectContext1 = "0xe1c";
+    bytes32 internal entityId1 = "0xe1";
     bytes32 internal policySponsorEntityId = "0xe1";
+    bytes32 internal objectContext1 = "0xe1c";
     bytes32 internal policyId1 = "0xC0FFEE";
 
     Stakeholders internal stakeholders;
@@ -80,8 +80,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         // nayms.whitelistExternalToken(wethAddress);
         nayms.addSupportedExternalToken(wethAddress);
 
-        bytes32 entityId1 = "0xe1";
-
         uint256 sellAmount = 100;
         uint256 sellAtPrice = 100;
 
@@ -115,38 +113,52 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(marketInfo.state, LibConstants.OFFER_STATE_ACTIVE);
     }
 
-    function testSimplePolicy() public {
-        vm.expectRevert("object already exists");
-        nayms.createEntity(0, objectContext1, initEntity(weth, 500, 10000, 10000, false), "entity test hash");
+    function testUpdateEntity() public {
+        nayms.createEntity(entityId1, objectContext1, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
+        vm.expectRevert("collateral ratio should be 1 to 1000");
+        nayms.updateEntity(entityId1, initEntity(weth, 0, 1000, 0, false));
+
+        vm.expectRevert("external token is not supported");
+        nayms.updateEntity(entityId1, initEntity(wbtc, 1000, 1000, 0, false));
+
+        vm.expectRevert("max capacity should be greater than 0 for policy creation");
+        nayms.updateEntity(entityId1, initEntity(weth, 1000, 0, 0, true));
+
+        vm.recordLogs();
+        nayms.updateEntity(entityId1, initEntity(weth, 1000, 1000, 0, false));
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
+        (bytes32 id) = abi.decode(entries[0].data, (bytes32));
+        assertEq(id, entityId1);
+    }
+
+    function testSimplePolicy() public {
         nayms.createEntity(policySponsorEntityId, objectContext1, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("simple policy creation disabled");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
 
-        vm.expectRevert("collateral ratio should be 1 to 1000");
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 0, 1000, 0, true));
-
-        // nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 0, 0, true));
-
+        // enable simple policy creation
         nayms.updateEntity(policySponsorEntityId, initEntity(weth, 1000, 1000, 0, true));
 
         // test limit
         vm.expectRevert("limit not > 0");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
-
         simplePolicy.limit = 10000;
 
-        // kp note todo: for the following test below, some notes -
-        // nayms.createSimplePolicy currently checks if msg.sender (in this case account9) is a system manager in the system context
-        // todo - is that the desired check?
-        //
-        // test entity admin constraint
+        // test caller is system manager
         vm.expectRevert("not a system manager");
         vm.prank(account9);
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
         vm.stopPrank();
 
+        // test caller is entity admin
+        vm.expectRevert("must be entity admin");
+        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+
+        // assign entity admin role to caller
         nayms.assignRole(account0Id, policySponsorEntityId, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, policySponsorEntityId, LibConstants.GROUP_ENTITY_ADMINS));
 
