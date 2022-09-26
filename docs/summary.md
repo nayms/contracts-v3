@@ -2,7 +2,6 @@
 # Summary
 
 * interfaces
-  * [FreeStructs](facets/FreeStructs.md)
   * [IACLFacet](facets/IACLFacet.md)
   * [IAdminFacet](facets/IAdminFacet.md)
   * [IEntityFacet](facets/IEntityFacet.md)

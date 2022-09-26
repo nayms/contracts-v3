@@ -24,7 +24,7 @@ function scan(pathName, indentation) {
             for (const fileName of fs.readdirSync(pathName))
                 scan(pathName + "/" + fileName, indentation + "  ");
         }
-        else if (pathName.endsWith(".sol")) {
+        else if (pathName.endsWith("Facet.sol")) {
             const text = path.basename(pathName).slice(0, -4);
             const link = pathName.slice(INPUT_DIR.length, -4);
             fs.appendFileSync(SUMMARY_FILE, indentation + "* [" + text + "](" + relativePath + link + ".md)\n");
