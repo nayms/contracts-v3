@@ -58,4 +58,9 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         bytes32 objectId2 = "0x2";
         nayms.createEntity(objectId2, objectContext1, initEntity(weth, 500, 1000, 0, true), "entity test hash");
     }
+
+    function testStringToBytes32() public {
+        assertEq(nayms.stringToBytes32(""), bytes32(0), "stringToBytes32 empty");
+        assertEq(nayms.stringToBytes32("test"), bytes32("test"), "stringToBytes32 non-empty");
+    }
 }
