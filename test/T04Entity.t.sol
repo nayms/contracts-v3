@@ -10,7 +10,6 @@ import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol
 import "src/utils/ECDSA.sol";
 import { initEntity } from "test/T03SystemFacet.t.sol";
 
-
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
 
@@ -130,7 +129,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
-        (bytes32 id) = abi.decode(entries[0].data, (bytes32));
+        bytes32 id = abi.decode(entries[0].data, (bytes32));
         assertEq(id, entityId1);
     }
 
@@ -139,7 +138,6 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("simple policy creation disabled");
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
-
 
         // enable simple policy creation
         nayms.updateEntity(policySponsorEntityId, initEntity(weth, 1000, 1000, 0, true));
@@ -217,7 +215,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionBasisPoints = new uint256[](0);
         nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
-        
+
         // commission basis points array and commission receivers array must have same length
         vm.expectRevert("commissions lengths !=");
         simplePolicy.commissionBasisPoints = new uint256[](1);
