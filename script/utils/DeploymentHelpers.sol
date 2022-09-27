@@ -1108,7 +1108,8 @@ contract DeploymentHelpers is Test {
 
         // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
         if (initNewDiamond) {
-            initDiamond = deployContract("InitDiamond");
+            // initDiamond = deployContract("InitDiamond");
+            initDiamond = LibDeployNayms.deployNaymsFacetsByName("InitDiamond");
         }
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);

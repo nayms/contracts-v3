@@ -5,6 +5,7 @@ pragma solidity >=0.8.13;
 ///         Any other place we need this deployment (in a v0.8 solc file) should inherit this contract.
 
 import { Nayms } from "src/diamonds/nayms/Nayms.sol";
+import { InitDiamond } from "src/diamonds/nayms/InitDiamond.sol";
 
 import { ACLFacet } from "src/diamonds/nayms/facets/ACLFacet.sol";
 import { AdminFacet } from "src/diamonds/nayms/facets/AdminFacet.sol";
@@ -62,6 +63,8 @@ library LibDeployNayms {
     function deployNaymsFacetsByName(string memory facetName) internal returns (address facetAddress) {
         if (keccak256(abi.encodePacked(facetName)) == keccak256(abi.encodePacked("Nayms"))) {
             facetAddress = address(new Nayms(msg.sender));
+        } else if (keccak256(abi.encodePacked(facetName)) == keccak256(abi.encodePacked("InitDiamond"))) {
+            facetAddress = address(new InitDiamond());
         } else if (keccak256(abi.encodePacked(facetName)) == keccak256(abi.encodePacked("ACL"))) {
             facetAddress = address(new ACLFacet());
         } else if (keccak256(abi.encodePacked(facetName)) == keccak256(abi.encodePacked("Admin"))) {

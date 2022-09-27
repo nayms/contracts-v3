@@ -8,8 +8,6 @@ import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { Entity } from "src/diamonds/nayms/AppStorage.sol";
 
-import { ERC20 } from "src/erc20/ERC20.sol";
-
 contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public virtual override {
         super.setUp();
