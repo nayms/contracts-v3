@@ -11,6 +11,11 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  * @dev Mainly used for token sale and policies
  */
 contract EntityFacet is Modifiers, ReentrancyGuard {
+    modifier assertSimplePolicyEnabled(bytes32 _entityId) {
+        require(s.entities[_entityId].simplePolicyEnabled, "simple policy creation disabled");
+        _;
+    }
+
     /**
      * @notice Create a Simple Policy
      * @param _policyId id of the policy
@@ -25,7 +30,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external assertSysMgr {
+    ) external assertSysMgr assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 

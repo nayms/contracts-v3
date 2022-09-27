@@ -22,12 +22,6 @@ library LibEntity {
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId);
 
-    modifier assertSimplePolicyEnabled(bytes32 _entityId) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        require(s.entities[_entityId].simplePolicyEnabled, "simple policy creation disabled");
-        _;
-    }
-
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
@@ -85,7 +79,7 @@ library LibEntity {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) internal assertSimplePolicyEnabled(_entityId) {
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
