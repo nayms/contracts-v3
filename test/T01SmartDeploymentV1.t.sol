@@ -1,21 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13 <0.9;
 
-// import "script/utils/DeploymentHelpers.sol";
-import "src/diamonds/shared/interfaces/IDiamondCut.sol";
-import { INayms } from "src/diamonds/nayms/INayms.sol";
-// import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
-// import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
-// import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 import "script/utils/LibWriteJson.sol";
-import "src/diamonds/shared/interfaces/IDiamondLoupe.sol";
+import "forge-std/Test.sol";
 
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+
+import { SmartDeploy } from "script/deployment/SmartDeploy.s.sol";
 
 // TODO:
 // append to deployedAddresses.json
 
 contract T01SmartDeploymentV1 is D03ProtocolDefaults {
+    using stdStorage for StdStorage;
+
     function setUp() public virtual override {
         super.setUp();
     }
@@ -30,7 +29,6 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
         string memory deployData = vm.readFile(deployFile);
 
         bytes memory parsed = vm.parseJson(deployData, ".NaymsDiamond.1");
-        // bytes memory parsed = vm.parseJson(deployData, ".NaymsDiamond.1");
 
         address decoded = abi.decode(parsed, (address));
         console2.log(decoded);
@@ -294,4 +292,19 @@ contract T01SmartDeploymentV1 is D03ProtocolDefaults {
     //     vm.startPrank(acc1);
     //     nayms.assignRole(acc6Id, systemContext, role);
     // }
+
+    function testSmartDeployScript() public {
+        SmartDeploy smartDeploy = new SmartDeploy();
+
+        // For tests, change the deploy output file name
+        smartDeploy.updateDeployOutputName("deployedAddressesTest.json");
+
+        string[] memory facetsToCutIn;
+
+        (address diamondAddress, address initDiamondAddress) = smartDeploy.smartDeploy(true, true, FacetDeploymentAction.DeployAllFacets, facetsToCutIn);
+
+        INayms nayms = INayms(diamondAddress);
+
+        assertEq(nayms.owner(), address(this), "New Nayms diamond owner is not the expected msg.sender");
+    }
 }

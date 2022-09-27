@@ -6,10 +6,9 @@ import "forge-std/Test.sol";
 import "forge-std/StdJson.sol";
 import "script/utils/LibWriteJson.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
-import "src/diamonds/shared/interfaces/IDiamondCut.sol";
-import "src/diamonds/shared/interfaces/IDiamondLoupe.sol";
 import "solmate/utils/CREATE3.sol";
 import "./LibDeployNayms.sol";
+import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 
 /// @notice helper methods to deploy a diamond,
 
@@ -20,6 +19,7 @@ interface IInitDiamond {
 contract DeploymentHelpers is Test {
     using stdJson for *;
     using strings for *;
+    using stdStorage for StdStorage;
 
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
@@ -1175,5 +1175,11 @@ contract DeploymentHelpers is Test {
 
         console2.log("num add", addCount);
         console2.log("num replace", replaceCount);
+        INayms nayms = INayms(diamondAddress);
+        console2.log("contract owner", nayms.owner());
+    }
+
+    function updateDeployOutputName(string memory outputName) public {
+        deployFile = outputName;
     }
 }
