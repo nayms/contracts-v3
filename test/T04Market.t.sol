@@ -39,6 +39,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal entity1 = bytes32("e5");
     bytes32 internal entity2 = bytes32("e6");
     bytes32 internal entity3 = bytes32("e7");
+    bytes32 internal entity4 = bytes32("e8");
 
     uint256 internal constant testBalance = 100_000 ether;
 
@@ -91,9 +92,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // assertEq(marketInfo.buyAmountInitial, dt.entity1SalePrice, "buy amount initial");
         // assertEq(marketInfo.state, LibConstants.OFFER_STATE_ACTIVE, "state");
     }
-
-    // test the dividends when a user is selling tokens in the marketplace
-    // ensure the dividends are recorded correctly and paid properly on transfer
 
     function testMarketStartTokenSale() public {
         // whitelist underlying token
@@ -177,9 +175,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2ExternalDepositAmt);
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
-
-        vm.expectRevert("fee schedule invalid");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, 55);
 
         vm.startPrank(signer2);
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
@@ -304,6 +299,89 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 balanceAfterWithdraw = nayms.internalBalanceOf(entity2, nWETH);
         assertEq(balanceAfterWithdraw, 500 ether);
     }
+
+    function testMarketGetBestOfferId() public {
+        testMarketStartTokenSale();
+
+        // init taker entity
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity4, signer4Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+
+        // fund taker entity
+        nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
+        nayms.externalDepositToEntity(entity3, wethAddress, 1_000 ether);
+        nayms.externalDepositToEntity(entity4, wethAddress, 1_000 ether);
+
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        vm.stopPrank();
+
+        vm.startPrank(signer3);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 150 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        vm.stopPrank();
+        // last offer at this point will be the actual best offer
+        uint256 bestOfferID = nayms.getLastOfferId();
+
+        vm.startPrank(signer4);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 190 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        vm.stopPrank();
+
+        // confirm best offer
+        assertEq(bestOfferID, nayms.getBestOfferId(nWETH, entity1), "Not the best offer");
+    }
+
+    function testMarketOfferValidation() public {
+        // checkBoundsAndUpdateBalances
+        testMarketStartTokenSale();
+
+        // init taker entity
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
+
+        vm.startPrank(signer2);
+
+        vm.expectRevert("sell amount must be uint128");
+        nayms.executeLimitOffer(nWETH, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("buy amount must be uint128");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("sell amount must be >0");
+        nayms.executeLimitOffer(nWETH, 0, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("buy amount must be >0");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 0, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("sell token must be valid");
+        nayms.executeLimitOffer("", dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("buy token must be valid");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, "", dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("cannot sell and buy same token");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWETH, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 10 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("tokens locked in market");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        uint256 lastOfferId = nayms.getLastOfferId();
+        nayms.cancelOffer(lastOfferId);
+
+        vm.expectRevert("fee schedule invalid");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, 55);
+
+        vm.expectRevert("only system can omit fees");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
+
+        vm.stopPrank();
+    }
+
+    // test the dividends when a user is selling tokens in the marketplace
+    // ensure the dividends are recorded correctly and paid properly on transfer
+    function testMarketDividends() public {}
 
     // executeLimitOffer() with a remaining amount of sell token, buy token
     // todo test order with two platform tokens, two entity tokens, eventually test with staking token (todo should this be allowed?)

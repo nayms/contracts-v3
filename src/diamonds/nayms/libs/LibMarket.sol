@@ -302,8 +302,8 @@ library LibMarket {
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
 
-        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds int limit");
-        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds int limit");
+        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds uint128 limit");
+        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds uint128 limit");
 
         require(_buyAmount > 0, "requested buy amount is 0");
         require(_buyAmount <= offerBuy.amount, "requested buy amount too large");
@@ -357,7 +357,7 @@ library LibMarket {
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
-        require(s.tokenBalances[_sellToken][_entityId] - s.marketLockedBalances[_entityId][_sellToken] >= _sellAmount, "verify offer: tokens for sale in mkt");
+        require(s.tokenBalances[_sellToken][_entityId] - s.marketLockedBalances[_entityId][_sellToken] >= _sellAmount, "tokens locked in market");
 
         // must have a valid fee schedule
         require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
