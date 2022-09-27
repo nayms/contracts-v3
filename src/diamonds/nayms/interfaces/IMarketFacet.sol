@@ -81,4 +81,11 @@ interface IMarketFacet {
      * @return _offerState details of the offer
      */
     function getOffer(uint256 _offerId) external view returns (MarketInfo memory _offerState);
+
+    /**
+     * @dev Check if the offer #`_offerId` is active or not.
+     * @param _offerId ID of a particular offer
+     * @return active or not
+     */
+    function isActiveOffer(uint256 _offerId) external view returns (bool);
 }

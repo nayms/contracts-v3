@@ -324,7 +324,7 @@ library LibMarket {
 
         MarketInfo memory marketInfo = s.offers[_offerId];
 
-        // transfer remaining sell amount back from marketplace (LibConstants.MARKET_IDENTIFIER) to creator
+        // unlock the remaining sell amount back to creator
         if (marketInfo.sellAmount > 0) {
             // note nothing is transferred since tokens for sale are UN-escrowed. Just unlock!
             s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
@@ -407,10 +407,6 @@ library LibMarket {
         }
     }
 
-    function _getMarketId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LibConstants.MARKET_IDENTIFIER);
-    }
-
     function _getOffer(uint256 _offerId) internal view returns (MarketInfo memory _offerState) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.offers[_offerId];
@@ -419,5 +415,10 @@ library LibMarket {
     function _getLastOfferId() internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.lastOfferId;
+    }
+
+    function _isActiveOffer(uint256 _offerId) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
     }
 }

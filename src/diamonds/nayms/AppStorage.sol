@@ -107,10 +107,6 @@ struct AppStorage {
     mapping(bytes32 => mapping(bytes32 => uint8)) ownedTokenIndex; // ownerId => tokenId => index
     mapping(bytes32 => mapping(uint8 => bytes32)) ownedTokenAtIndex; // ownerId => index => tokenId
     mapping(bytes32 => uint8) numOwnedTokens; //starts at 1. 0 means no tokens owned
-    // ownedTokenIndex
-    // ownedTokenAtIndex
-    // numOwnedTokens
-
     // issuedDividendsIndex
     // issuedDividendsAtIndex
     // numIssuedDividends

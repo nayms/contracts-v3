@@ -98,4 +98,13 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
     function getOffer(uint256 _offerId) external view returns (MarketInfo memory _offerState) {
         return LibMarket._getOffer(_offerId);
     }
+
+    /**
+     * @dev Check if the offer #`_offerId` is active or not.
+     * @param _offerId ID of a particular offer
+     * @return active or not
+     */
+    function isActiveOffer(uint256 _offerId) external view returns (bool) {
+        return LibMarket._isActiveOffer(_offerId);
+    }
 }

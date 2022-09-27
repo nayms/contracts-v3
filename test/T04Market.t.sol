@@ -33,7 +33,6 @@ struct TestInfo {
 
 contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal nWETH;
-    bytes32 internal marketplaceId;
     bytes32 internal dividendBankId;
 
     bytes32 internal entity1 = bytes32("e5");
@@ -68,7 +67,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         super.setUp();
 
         nWETH = LibHelpers._getIdForAddress(wethAddress);
-        marketplaceId = LibHelpers._stringToBytes32(LibConstants.MARKET_IDENTIFIER);
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
     }
 
@@ -163,6 +161,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("_internalTransferFrom: tokens for sale in mkt");
         nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
         vm.stopPrank();
+
+        assertTrue(nayms.isActiveOffer(1), "Token sale offer should be active");
     }
 
     function testMarketFullyMatchingOfferForTokenSale() public {
@@ -191,6 +191,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.expectRevert("offer not active");
         nayms.cancelOffer(2);
+
+        MarketInfo memory offer = nayms.getOffer(2);
+        assertEq(offer.rankNext, 0, "Next sibling not blank");
+        assertEq(offer.rankPrev, 0, "Prevoius sibling not blank");
 
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
         vm.stopPrank();
