@@ -93,7 +93,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     // test the dividends when a user is selling tokens in the marketplace
-    // ensure the user cannot transfer / burn or do anything with tokens that are for sale, besides canceling the order
     // ensure the dividends are recorded correctly and paid properly on transfer
 
     function testMarketStartTokenSale() public {
@@ -173,11 +172,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // init taker entity
         nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
 
         // fund taker entity
         nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2ExternalDepositAmt);
-        nayms.externalDepositToEntity(entity3, wethAddress, dt.entity3ExternalDepositAmt);
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
 
@@ -187,7 +184,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(signer2);
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
+        vm.stopPrank();
 
+        vm.startPrank(signer3);
+        vm.expectRevert("only creator can cancel");
+        nayms.cancelOffer(2);
+        vm.stopPrank();
+
+        vm.startPrank(signer2);
         nayms.cancelOffer(2);
 
         vm.expectRevert("offer not active");
@@ -273,6 +277,32 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
             assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "state");
         }
+    }
+
+    function testMarketUserCannotTransferFundsLockedInAnOffer() public {
+        testMarketStartTokenSale();
+
+        // init taker entity
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+
+        // fund taker entity
+        nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
+
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
+        vm.expectRevert("_internalBurn: tokens for sale in mkt");
+        nayms.externalWithdrawFromEntity(entity2, signer2, wethAddress, 500 ether);
+
+        uint256 lastOfferId = nayms.getLastOfferId();
+
+        nayms.cancelOffer(lastOfferId);
+        MarketInfo memory offer = nayms.getOffer(lastOfferId);
+        assertEq(offer.state, LibConstants.OFFER_STATE_CANCELLED);
+
+        nayms.externalWithdrawFromEntity(entity2, signer2, wethAddress, 500 ether);
+        uint256 balanceAfterWithdraw = nayms.internalBalanceOf(entity2, nWETH);
+        assertEq(balanceAfterWithdraw, 500 ether);
     }
 
     // executeLimitOffer() with a remaining amount of sell token, buy token
