@@ -14,8 +14,6 @@ contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
 
     bytes32 internal entityId1 = "0xe1";
-    bytes32 internal policySponsorEntityId = "0xe1";
-    bytes32 internal objectContext1 = "0xe1c";
     bytes32 internal policyId1 = "0xC0FFEE";
 
     Stakeholders internal stakeholders;
@@ -24,11 +22,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     address internal account9;
     bytes32 internal account9Id;
 
-    function setUp() public virtual override {
-        super.setUp();
-
-        wethId = LibHelpers._getIdForAddress(wethAddress);
-
+    function initPolicy(bytes32 policyId) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -42,12 +36,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
 
         bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initSig(0xACC1, policyId1);
-        signatures[1] = initSig(0xACC2, policyId1);
-        signatures[2] = initSig(0xACC3, policyId1);
-        signatures[3] = initSig(0xACC4, policyId1);
+        signatures[0] = initSig(0xACC1, policyId);
+        signatures[1] = initSig(0xACC2, policyId);
+        signatures[2] = initSig(0xACC3, policyId);
+        signatures[3] = initSig(0xACC4, policyId);
 
-        stakeholders = Stakeholders(roles, entityIds, signatures);
+        policyStakeholders = Stakeholders(roles, entityIds, signatures);
 
         bytes32[] memory commissionReceivers = new bytes32[](3);
         commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
@@ -59,14 +53,23 @@ contract T04EntityTest is D03ProtocolDefaults {
         commissions[1] = 10;
         commissions[2] = 10;
 
-        simplePolicy.startDate = 1000;
-        simplePolicy.maturationDate = 10000;
-        simplePolicy.asset = wethId;
-        simplePolicy.commissionReceivers = commissionReceivers;
-        simplePolicy.commissionBasisPoints = commissions;
+        policy.startDate = 1000;
+        policy.maturationDate = 10000;
+        policy.asset = wethId;
+        policy.commissionReceivers = commissionReceivers;
+        policy.commissionBasisPoints = commissions;
+        policy.limit = 10000;
+    }
+
+    function setUp() public virtual override {
+        super.setUp();
+
+        wethId = LibHelpers._getIdForAddress(wethAddress);
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
+
+        (stakeholders, simplePolicy) = initPolicy(policyId1);
     }
 
     function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
@@ -74,46 +77,24 @@ contract T04EntityTest is D03ProtocolDefaults {
         sig_ = abi.encodePacked(r, s, v);
     }
 
-    function testTokenSale() public {
-        // whitelist underlying token
-        // nayms.whitelistExternalToken(wethAddress);
-        nayms.addSupportedExternalToken(wethAddress);
+    function getReadyToCreatePolicies() public {
+        // create entity
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 30000, 0, true), "test entity");
 
-        uint256 sellAmount = 100;
-        uint256 sellAtPrice = 100;
+        // assign entity admin
+        nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+        assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
-        Entity memory entity1 = initEntity(weth, 500, 1000, 0, false);
-        nayms.createEntity(entityId1, objectContext1, entity1, "entity test hash");
-
-        assertEq(nayms.getLastOfferId(), 0);
-
-        vm.prank(account9);
-        vm.expectRevert("not a system manager");
-        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
-        vm.stopPrank();
-
-        vm.expectRevert("mint amount must be > 0");
-        nayms.startTokenSale(entityId1, 0, sellAtPrice);
-
-        vm.expectRevert("total price must be > 0");
-        nayms.startTokenSale(entityId1, sellAmount, 0);
-
-        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
-
-        uint256 lastOfferId = nayms.getLastOfferId();
-        assertEq(lastOfferId, 1);
-
-        MarketInfo memory marketInfo = nayms.getOffer(lastOfferId);
-        assertEq(marketInfo.creator, entityId1);
-        assertEq(marketInfo.sellToken, entityId1);
-        assertEq(marketInfo.sellAmount, sellAmount);
-        assertEq(marketInfo.buyToken, entity1.assetId);
-        assertEq(marketInfo.buyAmount, sellAtPrice);
-        assertEq(marketInfo.state, LibConstants.OFFER_STATE_ACTIVE);
+        // fund the entity balance
+        weth.approve(naymsAddress, 10000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
+        assertEq(weth.balanceOf(account0), 10000);
+        nayms.externalDeposit(entityId1, wethAddress, 10000);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
     }
 
     function testUpdateEntity() public {
-        nayms.createEntity(entityId1, objectContext1, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("collateral ratio should be 1 to 1000");
         nayms.updateEntity(entityId1, initEntity(weth, 0, 1000, 0, false));
@@ -133,87 +114,105 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(id, entityId1);
     }
 
-    function testCreateSimplePolicyValidation() public {
-        nayms.createEntity(policySponsorEntityId, objectContext1, initEntity(weth, 500, 10000, 0, false), "entity test hash");
-
-        vm.expectRevert("simple policy creation disabled");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+    function testUpdateAllowSimplePolicy() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
         // enable simple policy creation
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 1000, 1000, 0, true));
+        nayms.updateAllowSimplePolicy(entityId1, true);
+        Entity memory e = nayms.getEntityInfo(entityId1);
+        assertTrue(e.simplePolicyEnabled, "enabled");
+
+        // disable it
+        nayms.updateAllowSimplePolicy(entityId1, false);
+        e = nayms.getEntityInfo(entityId1);
+        assertFalse(e.simplePolicyEnabled, "disabled");
+    }
+
+    function testCreateSimplePolicyValidation() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+
+        // enable simple policy creation
+        vm.expectRevert("simple policy creation disabled");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.updateEntity(entityId1, initEntity(weth, 1000, 1000, 0, true));
+
+        // stakeholders entity ids array different length to signatures array
+        bytes[] memory sig = stakeholders.signatures;
+        stakeholders.signatures = new bytes[](0);
+        vm.expectRevert("incorrect number of signatures");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        stakeholders.signatures = sig;
+
+        // test caller is entity admin
+        nayms.unassignRole(account0Id, entityId1);
+        assertFalse(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
+        vm.expectRevert("must be entity admin");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+        assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
         // test limit
         simplePolicy.limit = 0;
         vm.expectRevert("limit not > 0");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.limit = 10000;
 
         // test caller is system manager
         vm.expectRevert("not a system manager");
         vm.prank(account9);
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         vm.stopPrank();
-
-        // test caller is entity admin
-        vm.expectRevert("must be entity admin");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
-
-        // assign entity admin role to caller
-        nayms.assignRole(account0Id, policySponsorEntityId, LibConstants.ROLE_ENTITY_ADMIN);
-        assertTrue(nayms.isInGroup(account0Id, policySponsorEntityId, LibConstants.GROUP_ENTITY_ADMINS));
 
         // test capacity
         vm.expectRevert("not enough available capacity");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
         // update max capacity
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 30000, 0, true));
+        nayms.updateEntity(entityId1, initEntity(weth, 500, 30000, 0, true));
 
         // external token not supported
         vm.expectRevert("external token is not supported");
         simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.asset = wethId;
 
         // test collateral ratio constraint
         vm.expectRevert("not enough capital");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
-
-        // mint weth for test account
-        nayms.updateEntity(policySponsorEntityId, initEntity(weth, 500, 20000, 0, true));
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
         // fund the policy sponsor entity
+        nayms.updateEntity(entityId1, initEntity(weth, 500, 30000, 0, true));
         weth.approve(naymsAddress, 10000);
         writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
         assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(policySponsorEntityId, wethAddress, 10000);
-        assertEq(nayms.internalBalanceOf(policySponsorEntityId, wethId), 10000);
+        nayms.externalDeposit(entityId1, wethAddress, 10000);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
 
         // start date too early
         vm.warp(1);
         simplePolicy.startDate = block.timestamp - 1;
         vm.expectRevert("start date < block.timestamp");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.startDate = 1000;
 
         // start date after maturation date
         simplePolicy.startDate = simplePolicy.maturationDate;
         vm.expectRevert("start date > maturation date");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.startDate = 1000;
 
         // commission receivers
         vm.expectRevert("must have commission receivers");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
         simplePolicy.commissionReceivers = new bytes32[](0);
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
         // commission basis points
         vm.expectRevert("must have commission basis points");
         uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;
         simplePolicy.commissionBasisPoints = new uint256[](0);
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
 
         // commission basis points array and commission receivers array must have same length
@@ -223,7 +222,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionReceivers = new bytes32[](2);
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionReceivers.push(keccak256("b"));
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
@@ -233,20 +232,119 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionBasisPoints = new uint256[](1);
         simplePolicy.commissionBasisPoints.push(1001);
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
-        // try again
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        // create it successfully
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
     }
 
-    function testCreateSimplePolicy() public {
-        testCreateSimplePolicyValidation();
+    function testCreateSimplePolicyAlreadyExists() public {
+        getReadyToCreatePolicies();
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
         // todo: improve this error message when a premium is being created with the same premium ID
         vm.expectRevert("object already exists");
-        nayms.createSimplePolicy(policyId1, policySponsorEntityId, stakeholders, simplePolicy, "simple policy test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+    }
+
+    function testCreateSimplePolicyUpdatesEntityUtilizedCapacity() public {
+        getReadyToCreatePolicies();
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        // check utilized capacity of entity
+        Entity memory e = nayms.getEntityInfo(entityId1);
+        assertEq(e.utilizedCapacity, 10000, "utilized capacity");
+
+        bytes32 policyId2 = "0xC0FFEF";
+        (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(policyId2);
+        nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, "policy2");
+
+        e = nayms.getEntityInfo(entityId1);
+        assertEq(e.utilizedCapacity, 20000, "utilized capacity");
+    }
+
+    function testCreateSimplePolicyFundsAreLockedInitially() public {
+        getReadyToCreatePolicies();
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        SimplePolicy memory p = nayms.getSimplePolicyInfo(policyId1);
+        assertTrue(p.fundsLocked, "funds locked");
+    }
+
+    function testCreateSimplePolicySignersAreNotEntityAdminsOfStakeholderEntities() public {
+        getReadyToCreatePolicies();
+
+        // assign parent entity as system manager so that I can assign roles below
+        nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+
+        bytes32[] memory signerIds = new bytes32[](4);
+        signerIds[0] = signer1Id;
+        signerIds[1] = signer1Id;
+        signerIds[2] = signer1Id;
+        signerIds[3] = signer1Id;
+
+        uint256 rolesCount = 1; //stakeholders.roles.length;
+        for (uint256 i = 0; i < rolesCount; i++) {
+            bytes32 signerId = signerIds[i];
+
+            // check permissions
+            assertEq(nayms.getRoleInContext(signerId, stakeholders.entityIds[i]), LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN), "must have role");
+            assertTrue(nayms.canAssign(account0Id, signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN), "can assign");
+
+            // remove role
+            nayms.unassignRole(signerId, stakeholders.entityIds[i]);
+
+            // try creating
+            vm.expectRevert("invalid stakeholder");
+            nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+            // restore role
+            nayms.assignRole(signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN);
+        }
+    }
+
+    function testCreateSimplePolicyEntitiesAreAssignedRolesOnPolicy() public {
+        getReadyToCreatePolicies();
+
+        string[] memory groups = new string[](4);
+        groups[0] = LibConstants.GROUP_UNDERWRITERS;
+        groups[1] = LibConstants.GROUP_BROKERS;
+        groups[2] = LibConstants.GROUP_CAPITAL_PROVIDERS;
+        groups[3] = LibConstants.GROUP_INSURED_PARTIES;
+
+        uint256 rolesCount = stakeholders.roles.length;
+        for (uint256 i = 0; i < rolesCount; i++) {
+            assertFalse(nayms.isInGroup(stakeholders.entityIds[i], policyId1, groups[i]), "not in group yet");
+        }
+
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        for (uint256 i = 0; i < rolesCount; i++) {
+            assertTrue(nayms.isInGroup(stakeholders.entityIds[i], policyId1, groups[i]), "in group");
+        }
+    }
+
+    function testCreateSimplePolicyEmitsEvent() public {
+        getReadyToCreatePolicies();
+
+        vm.recordLogs();
+
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        // events: 4 role assignments + 1 policy creation => we want event at index 4
+        assertEq(entries[4].topics.length, 2);
+        assertEq(entries[4].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
+        assertEq(entries[4].topics[1], policyId1);
+        bytes32 entityId = abi.decode(entries[4].data, (bytes32));
+        assertEq(entityId, entityId1);
+    }
+
+    function testSimplePolicyPremiumsCommissionsClaims() public {
+        getReadyToCreatePolicies();
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
         vm.expectRevert("invalid premium amount");
         nayms.paySimplePremium(policyId1, 0);
@@ -303,5 +401,43 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicy.claimsPaid, 1000);
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset), balanceBeforeClaim + claimAmount);
+    }
+
+    function testTokenSale() public {
+        // whitelist underlying token
+        // nayms.whitelistExternalToken(wethAddress);
+        nayms.addSupportedExternalToken(wethAddress);
+
+        uint256 sellAmount = 100;
+        uint256 sellAtPrice = 100;
+
+        Entity memory entity1 = initEntity(weth, 500, 1000, 0, false);
+        nayms.createEntity(entityId1, account0Id, entity1, "entity test hash");
+
+        assertEq(nayms.getLastOfferId(), 0);
+
+        vm.prank(account9);
+        vm.expectRevert("not a system manager");
+        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
+        vm.stopPrank();
+
+        vm.expectRevert("mint amount must be > 0");
+        nayms.startTokenSale(entityId1, 0, sellAtPrice);
+
+        vm.expectRevert("total price must be > 0");
+        nayms.startTokenSale(entityId1, sellAmount, 0);
+
+        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
+
+        uint256 lastOfferId = nayms.getLastOfferId();
+        assertEq(lastOfferId, 1);
+
+        MarketInfo memory marketInfo = nayms.getOffer(lastOfferId);
+        assertEq(marketInfo.creator, entityId1);
+        assertEq(marketInfo.sellToken, entityId1);
+        assertEq(marketInfo.sellAmount, sellAmount);
+        assertEq(marketInfo.buyToken, entity1.assetId);
+        assertEq(marketInfo.buyAmount, sellAtPrice);
+        assertEq(marketInfo.state, LibConstants.OFFER_STATE_ACTIVE);
     }
 }

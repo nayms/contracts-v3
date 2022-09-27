@@ -82,6 +82,8 @@ library LibEntity {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
+
         // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
         // Update state with the entity's updated utilized capacity.
         s.entities[_entityId].utilizedCapacity = _validateSimplePolicyCreation(_entityId, _simplePolicy);
@@ -90,8 +92,6 @@ library LibEntity {
         s.simplePolicies[_policyId] = _simplePolicy;
         s.simplePolicies[_policyId].fundsLocked = true;
 
-        // todo: move check up to follow checks, effects, interactions pattern
-        require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
         uint256 rolesCount = _stakeholders.roles.length;
 
         for (uint256 i = 0; i < rolesCount; i++) {
