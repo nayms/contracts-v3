@@ -85,8 +85,3 @@ struct FeeRatio {
     uint256 naymsLtdShareRatio;
     uint256 ndfShareRatio;
 }
-
-// todo where's the most optimal place to put this struct that passes into initialization()?
-struct Args {
-    bytes32 systemContext;
-}

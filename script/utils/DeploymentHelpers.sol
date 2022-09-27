@@ -9,7 +9,6 @@ import { strings } from "lib/solidity-stringutils/src/strings.sol";
 import "src/diamonds/shared/interfaces/IDiamondCut.sol";
 import "src/diamonds/shared/interfaces/IDiamondLoupe.sol";
 import "solmate/utils/CREATE3.sol";
-
 import "./LibDeployNayms.sol";
 
 /// @notice helper methods to deploy a diamond,
@@ -367,13 +366,14 @@ contract DeploymentHelpers is Test {
     // false: reads deployFile .NaymsDiamond
     function diamondDeployment(bool deployNewDiamond) public returns (address naymsDiamondAddress) {
         if (deployNewDiamond) {
-            string memory contractName = "Nayms";
-            string memory artifactFile = string.concat(artifactsPath, contractName, ".sol/", contractName, ".json");
+            // string memory contractName = "Nayms";
+            // string memory artifactFile = string.concat(artifactsPath, contractName, ".sol/", contractName, ".json");
 
             // Deploy new Diamond
-            bytes memory args = abi.encode(msg.sender);
-            naymsDiamondAddress = deployCode(artifactFile, args);
+            // bytes memory args = abi.encode(msg.sender);
+            // naymsDiamondAddress = deployCode(artifactFile, args);
 
+            naymsDiamondAddress = LibDeployNayms.deployNaymsFacetsByName("Nayms");
             vm.label(address(naymsDiamondAddress), "New Nayms Diamond");
 
             // Output diamond address
@@ -507,7 +507,8 @@ contract DeploymentHelpers is Test {
         console2.log("deploySelectFacet facet address", facetAddress);
     }
 
-    /** @notice Compares the bytecode in the artifact to the matching onchain facet bytecode .
+    /**
+     * @notice Compares the bytecode in the artifact to the matching onchain facet bytecode .
      * @dev This method returns true for matching bytecode.
      */
     function compareBytecode(address diamondAddress, string memory facetName) public returns (bool bytecodeMatchFlag) {
@@ -892,7 +893,6 @@ contract DeploymentHelpers is Test {
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn
     ) public returns (IDiamondCut.FacetCut[] memory cut) {
-        console2.log("start of facetDeploymentAndCut");
         // If deployAllFacets == true, then deploy all of the facets currently defined
         // If deployAllFacets == false, then only upgrade the facets listed in the array facetsToCutIn
         // deployAllFacets == false
@@ -905,6 +905,7 @@ contract DeploymentHelpers is Test {
             // note this purely adds all facet methods.
             cut = new IDiamondCut.FacetCut[](numberOfFacets);
             for (uint256 i; i < numberOfFacets; i++) {
+                // note: bring this back once coverage covers deployments from bytecode
                 // cut[i] = deployFacetAndCreateFacetCut(allFacetNames[i]);
                 cut[i] = deployFacetAndCreateFacetCutOLD(allFacetNames[i]);
             }
@@ -975,7 +976,6 @@ contract DeploymentHelpers is Test {
                 }
             }
         }
-        console2.log("hello after add / replace");
 
         // REMOVE
         // if there are selectors in the old facet that are not being replaced, then they should be removed, since they are not in the new facet
