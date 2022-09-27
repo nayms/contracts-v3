@@ -36,8 +36,9 @@ library LibEntity {
         Entity memory entity = s.entities[_entityId];
 
         // todo: ensure that the capital raised is >= max capacity. Probably want to do this check when the trade is made.
-        // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity. We can keep these checks here for now.
-        require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
+
+        // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity, so no need to check this here.
+        // require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
 
         // Calculate the entity's utilized capacity after it writes this policy.
         updatedUtilizedCapacity = entity.utilizedCapacity + simplePolicy.limit;
@@ -49,14 +50,14 @@ library LibEntity {
         // Calculate the entity's required capital for its capacity utilization based on its collateral requirements.
         uint256 capitalRequirementForUpdatedUtilizedCapacity = (updatedUtilizedCapacity * entity.collateralRatio) / 1000;
 
+        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
+
         // The entity's balance must be >= to the updated capacity requirement
         // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
         require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= capitalRequirementForUpdatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
-        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
-        require(simplePolicy.limit > 0, "limit == 0");
 
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
         require(commissionReceiversArrayLength > 0, "must have commission receivers");
@@ -81,6 +82,8 @@ library LibEntity {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
+
         // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
         // Update state with the entity's updated utilized capacity.
         s.entities[_entityId].utilizedCapacity = _validateSimplePolicyCreation(_entityId, _simplePolicy);
@@ -89,8 +92,6 @@ library LibEntity {
         s.simplePolicies[_policyId] = _simplePolicy;
         s.simplePolicies[_policyId].fundsLocked = true;
 
-        // todo: move check up to follow checks, effects, interactions pattern
-        require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
         uint256 rolesCount = _stakeholders.roles.length;
 
         for (uint256 i = 0; i < rolesCount; i++) {
@@ -164,7 +165,7 @@ library LibEntity {
         // Max capacity is the capital amount that an entity can write across all of their policies.
         // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy. First, we use the bool simplePolicyEnabled to control and dictate
         //       whether an entity can or cannot write a policy. If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
-
+        require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
         // note: When first creating an entity, utilizedCapacity should be 0. Utilized capacity is determined by the policy limits the entity has written.
         // Update state.
         s.entities[_entityId] = _entity;

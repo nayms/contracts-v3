@@ -30,8 +30,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
-        uint externalDepositAmount = depositAmount / 5;
-        
+        uint256 externalDepositAmount = depositAmount / 5;
+
         // note: deposits must be an exisiting entity: s.existingEntities[_receiverId]
         vm.expectRevert("extDeposit: invalid receiver");
         nayms.externalDepositToEntity(dividendBankId, wethAddress, 1);
@@ -96,10 +96,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     function testSingleExternalWithdraw() public {
         testSingleExternalDeposit();
 
-        uint account0WethBalanceAccount0 = weth.balanceOf(account0);
-        uint naymsWethBalancePre = weth.balanceOf(naymsAddress);
-        uint entity1WethInternalBalance = nayms.internalBalanceOf(entity1, nWETH);
-        uint naymsWethInternalTokenSupply = nayms.internalTokenSupply(nWETH);
+        uint256 account0WethBalanceAccount0 = weth.balanceOf(account0);
+        uint256 naymsWethBalancePre = weth.balanceOf(naymsAddress);
+        uint256 entity1WethInternalBalance = nayms.internalBalanceOf(entity1, nWETH);
+        uint256 naymsWethInternalTokenSupply = nayms.internalTokenSupply(nWETH);
 
         vm.prank(signer1);
         nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 100);
@@ -110,21 +110,20 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalTokenSupply(nWETH), naymsWethInternalTokenSupply - 100, "nayms burned internal WETH");
     }
 
-
     function TODO_testPayAndWithdrawDividendForEntity() public {
         bytes32 entity0Token = DEFAULT_ACCOUNT0_ENTITY_ID;
-        uint saleAmount = 100 ether;
+        uint256 saleAmount = 100 ether;
 
         writeTokenBalance(account0, naymsAddress, wethAddress, saleAmount);
 
         // complete a market token sale: entity2 will hold 50% of Entity0 tokens, entity2 holds the other 50%
         nayms.startTokenSale(DEFAULT_ACCOUNT0_ENTITY_ID, saleAmount, saleAmount);
-        
+
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
         nayms.externalDepositToEntity(entity1, wethAddress, saleAmount / 2);
         // vm.prank(signer1);
         // nayms.executeLimitOffer(nWETH, saleAmount / 2, entity0Token, saleAmount / 2, LibConstants.FEE_SCHEDULE_STANDARD);
-        
+
         // nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
         // nayms.externalDepositToEntity(entity2, wethAddress, saleAmount / 2);
         // vm.prank(signer2);

@@ -22,6 +22,12 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         assertEq(DEFAULT_ACCOUNT0_ENTITY_ID, parentId, "User, parent (derived from entity ID) don't match");
     }
 
+    function testUnsupportedExternalTokenWhenCreatingEntity() public {
+        bytes32 objectId1 = "0x1";
+        vm.expectRevert("external token is not supported");
+        nayms.createEntity(objectId1, objectContext1, initEntity(wbtc, 1000, 1000, 0, false), "entity test hash");
+    }
+
     function testZeroCollateralRatioWhenCreatingEntity() public {
         bytes32 objectId1 = "0x1";
         vm.expectRevert("collateral ratio should be 1 to 1000");
