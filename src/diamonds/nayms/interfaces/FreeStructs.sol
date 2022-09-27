@@ -67,19 +67,6 @@ struct Stakeholders {
     bytes[] signatures;
 }
 
-struct OfferState {
-    address creator;
-    address sellToken;
-    uint256 sellAmount;
-    uint256 sellAmountInitial;
-    address buyToken;
-    uint256 buyAmount;
-    uint256 buyAmountInitial;
-    uint256 averagePrice;
-    uint256 feeSchedule;
-    uint256 state;
-}
-
 // Used in StakingFacet
 struct LockedBalance {
     uint256 amount;

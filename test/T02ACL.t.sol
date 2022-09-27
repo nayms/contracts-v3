@@ -161,7 +161,6 @@ contract T02ACLTest is D03ProtocolDefaults {
     }
 
     function testNonAssignersCanUnassignRoleIfTheirParentAsAssignerRoleInSystemContext() public {
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign the role
