@@ -110,7 +110,7 @@ contract T02ACLTest is D03ProtocolDefaults {
         nayms.assignRole(signer1Id, context, role);
 
         // signer1 tries to assign to signer2
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, context, role));
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, context, role), "signer1 CAN assign role to signer2 when they SHOULDN'T be able to.");
         vm.prank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.assignRole(signer2Id, context, role);

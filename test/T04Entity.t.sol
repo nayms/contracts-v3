@@ -8,7 +8,7 @@ import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nay
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
 
-import "src/utils/ECDSA.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import { initEntity } from "test/T03SystemFacet.t.sol";
 
@@ -77,7 +77,6 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testTokenSale() public {
         // whitelist underlying token
-        // nayms.whitelistExternalToken(wethAddress);
         nayms.addSupportedExternalToken(wethAddress);
 
         bytes32 entityId1 = "0xe1";

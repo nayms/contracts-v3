@@ -15,11 +15,6 @@ library LibHelpers {
         return _getIdForAddress(msg.sender);
     }
 
-    function _getNaymsVaultTokenIdForAddress(address _addr) internal pure returns (bytes32) {
-        uint256 naymsVaultTokenId = uint256(uint160(_addr)) << 1;
-        return bytes32(naymsVaultTokenId);
-    }
-
     function _getAddressFromId(bytes32 _id) internal pure returns (address) {
         return address(bytes20(_id));
     }
@@ -53,25 +48,5 @@ library LibHelpers {
             mstore(add(b, 32), input)
         }
         return b;
-    }
-
-    function _strEqual(string memory s1, string memory s2) internal pure returns (bool) {
-        return (keccak256(abi.encode(s1)) == keccak256(abi.encode(s2)));
-    }
-
-    function isZeroAddress(bytes32 accountId) internal pure returns (bool) {
-        return _getAddressFromId(accountId) == address(0);
-    }
-
-    function _asSingletonArray(bytes32 element) internal pure returns (bytes32[] memory) {
-        bytes32[] memory array = new bytes32[](1);
-        array[0] = element;
-        return array;
-    }
-
-    function _asSingletonArray(uint256 element) internal pure returns (uint256[] memory) {
-        uint256[] memory array = new uint256[](1);
-        array[0] = element;
-        return array;
     }
 }

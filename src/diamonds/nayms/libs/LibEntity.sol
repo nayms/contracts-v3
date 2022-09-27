@@ -7,7 +7,7 @@ import { LibACL } from "../libs/LibACL.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 
-import "../../../utils/ECDSA.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 library LibEntity {
     using ECDSA for bytes32;

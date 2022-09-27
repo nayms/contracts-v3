@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
-import { ERC20 } from "src/erc20/ERC20.sol";
+import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 /// @notice Default test setup part 03
