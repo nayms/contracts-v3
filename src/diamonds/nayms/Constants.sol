@@ -62,6 +62,7 @@ contract Constants {
     uint256 public constant OFFER_STATE_FULFILLED = 3;
 
     uint256 public constant DUST = 1;
+    uint256 public constant BP_FACTOR = 1000;
 
     /*///////////////////////////////////////////////////////////////////////////
                         SIMPLE POLICY STATES
