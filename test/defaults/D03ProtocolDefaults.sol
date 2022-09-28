@@ -8,7 +8,7 @@ import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
-
+// solhint-disable func-visibility
 function initEntity(
     ERC20 _asset,
     uint256 _collateralRatio,

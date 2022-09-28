@@ -121,19 +121,44 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
-        assertEq(entries[0].topics.length, 2);
-
-        assertEq(entries[0].topics[0], keccak256("InternalTokenSupplyUpdate(bytes32,uint256,string,address)"));
-        assertEq(entries[0].topics[1], entity1); // assert entity token
+        assertEq(entries[0].topics.length, 2, "InternalTokenSupplyUpdate: topics length incorrect");
+        assertEq(entries[0].topics[0], keccak256("InternalTokenSupplyUpdate(bytes32,uint256,string,address)"), "InternalTokenSupplyUpdate: Invalid event signature");
+        assertEq(entries[0].topics[1], entity1, "InternalTokenSupplyUpdate: incorrect tokenID"); // assert entity token
         (uint256 newSupply, string memory fName, ) = abi.decode(entries[0].data, (uint256, string, address));
-        assertEq(fName, "_internalMint");
-        assertEq(newSupply, dt.entity1MintAndSaleAmt);
+        assertEq(fName, "_internalMint", "InternalTokenSupplyUpdate: invalid function name");
+        assertEq(newSupply, dt.entity1MintAndSaleAmt, "InternalTokenSupplyUpdate: invalid token supply");
 
-        assertEq(entries[1].topics[0], keccak256("InternalTokenBalanceUpdate(bytes32,bytes32,uint256,string,address)"));
+        assertEq(entries[1].topics.length, 2, "InternalTokenBalanceUpdate: topics length incorrect");
+        assertEq(entries[1].topics[0], keccak256("InternalTokenBalanceUpdate(bytes32,bytes32,uint256,string,address)"), "InternalTokenBalanceUpdate: Invalid event signature");
+        assertEq(entries[1].topics[1], entity1, "InternalTokenBalanceUpdate: incorrect tokenID"); // assert entity token
         (bytes32 tokenId, uint256 newSupply2, string memory fName2, ) = abi.decode(entries[1].data, (bytes32, uint256, string, address));
-        assertEq(fName2, "_internalMint");
-        assertEq(tokenId, entity1);
-        assertEq(newSupply2, dt.entity1MintAndSaleAmt);
+        assertEq(fName2, "_internalMint", "InternalTokenBalanceUpdate: invalid function name");
+        assertEq(tokenId, entity1, "InternalTokenBalanceUpdate: invalid token");
+        assertEq(newSupply2, dt.entity1MintAndSaleAmt, "InternalTokenBalanceUpdate: invalid balance");
+
+        assertEq(entries[2].topics.length, 4, "OrderAdded: topics length incorrect");
+        assertEq(entries[2].topics[0], keccak256("OrderAdded(uint256,bytes32,bytes32,uint256,uint256,bytes32,uint256,uint256,uint256)"), "OrderAdded: Invalid event signature");
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[2].topics[1]), (uint256)), 1, "OrderAdded: invalid offerId"); // assert offerId
+        assertEq(entries[2].topics[2], entity1, "OrderAdded: invalid maker"); // assert maker
+        assertEq(entries[2].topics[3], entity1, "OrderAdded: invalid sell token"); // assert entity token
+
+        (uint256 sellAmount, uint256 sellAmountInitial, bytes32 buyToken, uint256 buyAmount, uint256 buyAmountInitial, uint256 state) = abi.decode(
+            entries[2].data,
+            (uint256, uint256, bytes32, uint256, uint256, uint256)
+        );
+
+        assertEq(sellAmount, dt.entity1MintAndSaleAmt, "OrderAdded: invalid sell amount");
+        assertEq(sellAmountInitial, dt.entity1MintAndSaleAmt, "OrderAdded: invalid initial sell amount");
+        assertEq(buyToken, nWETH, "OrderAdded: invalid buy token");
+        assertEq(buyAmount, dt.entity1SalePrice, "OrderAdded: invalid buy amount");
+        assertEq(buyAmountInitial, dt.entity1SalePrice, "OrderAdded: invalid initial buy amount");
+        assertEq(state, LibConstants.OFFER_STATE_ACTIVE, "OrderAdded: invalid offer state");
+
+        assertEq(entries[3].topics.length, 2, "TokenSaleStarted: topics length incorrect");
+        assertEq(entries[3].topics[0], keccak256("TokenSaleStarted(bytes32,uint256)"));
+        assertEq(entries[3].topics[1], entity1, "TokenSaleStarted: incorrect entity"); // assert entity
+        uint256 offerId = abi.decode(entries[3].data, (uint256));
+        assertEq(offerId, 1, "TokenSaleStarted: invalid offerId");
 
         // note: the token balance for sale is not escrowed in the marketplace anymore, instead we keep track of another balance (user's tokens for sale)
         // in order to ensure a user cannot transfer the token balance that they have for sale
@@ -236,7 +261,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "entity test hash");
 
         // init test funds to maxint
-        writeTokenBalance(account0, naymsAddress, wethAddress, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+        writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
@@ -383,7 +408,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
     }
 
-    // test the dividends when a user is selling tokens in the marketplace
+    // test the comissions when a user is selling tokens in the marketplace
     // ensure the dividends are recorded correctly and paid properly on transfer
     function testMarketDividends() public {}
 
