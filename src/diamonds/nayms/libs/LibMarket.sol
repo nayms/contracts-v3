@@ -190,7 +190,6 @@ library LibMarket {
             {
                 // do the buy
                 uint256 finalSellAmount = bestBuyAmount < result.remainingSellAmount ? bestBuyAmount : result.remainingSellAmount;
-                // matchedAmount_ += finalSellAmount;
                 (uint256 nextBuyTokenComissionsPaid, uint256 nextSellTokenComissionsPaid) = _buy(bestOfferId, _fromEntityId, finalSellAmount);
 
                 // Keep track of total commissions
@@ -273,8 +272,8 @@ library LibMarket {
 
         s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= actualSellAmount;
 
-        require(LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount), "maker transfer failed");
-        require(LibTokenizedVault._internalTransfer(_makerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount), "taker transfer failed");
+        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
+        LibTokenizedVault._internalTransfer(_makerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount);
 
         // cancel offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {

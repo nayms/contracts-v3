@@ -361,7 +361,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMarketOfferValidation() public {
-        // checkBoundsAndUpdateBalances
         testMarketStartTokenSale();
 
         // init taker entity
@@ -406,6 +405,34 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
 
         vm.stopPrank();
+    }
+
+    function testMarketMatchingExternalTokenOnSellSide() public {
+        nayms.addSupportedExternalToken(wethAddress);
+        writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1MintAndSaleAmt);
+
+        // create counter offer first
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2MintAndSaleAmt);
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        vm.stopPrank();
+
+        // create matching token sale
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
+        nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt);
+        nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
+
+        MarketInfo memory marketInfo1 = nayms.getOffer(2);
+        assertEq(marketInfo1.creator, entity1);
+        assertEq(marketInfo1.sellToken, entity1);
+        assertEq(marketInfo1.sellAmount, 0);
+        assertEq(marketInfo1.sellAmountInitial, dt.entity1MintAndSaleAmt);
+        assertEq(marketInfo1.buyToken, nWETH);
+        assertEq(marketInfo1.buyAmount, 0);
+        assertEq(marketInfo1.buyAmountInitial, dt.entity1SalePrice);
+        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED);
     }
 
     // test the comissions when a user is selling tokens in the marketplace
