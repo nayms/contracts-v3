@@ -64,7 +64,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        vm.startPrank(msg.sender);
+        // vm.startPrank(msg.sender);
         nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({
@@ -82,8 +82,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
         // transfer ownership and change system admin to be the test contract address
-        nayms.transferOwnership(address(this));
-        vm.stopPrank();
+        // nayms.transferOwnership(address(this));
+        // vm.stopPrank();
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
