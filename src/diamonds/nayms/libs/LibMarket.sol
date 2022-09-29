@@ -205,7 +205,7 @@ library LibMarket {
     }
 
     function _createOffer(
-        bytes32 _from,
+        bytes32 _creator,
         bytes32 _sellToken,
         uint256 _sellAmount,
         uint256 _sellAmountInitial,
@@ -219,7 +219,7 @@ library LibMarket {
         uint256 lastOfferId = ++s.lastOfferId;
 
         MarketInfo memory marketInfo = s.offers[lastOfferId];
-        marketInfo.creator = _from;
+        marketInfo.creator = _creator;
         marketInfo.sellToken = _sellToken;
         marketInfo.sellAmount = _sellAmount;
         marketInfo.sellAmountInitial = _sellAmountInitial;
@@ -234,7 +234,7 @@ library LibMarket {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
 
             // lock tokens!
-            s.marketLockedBalances[_from][_sellToken] += _sellAmount;
+            s.marketLockedBalances[_creator][_sellToken] += _sellAmount;
         }
 
         s.offers[lastOfferId] = marketInfo;
@@ -346,13 +346,21 @@ library LibMarket {
     ) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(_entityId != 0 && s.existingEntities[_entityId], "must belong to entity to make an offer");
+
+        bool sellTokenIsEntity = s.existingEntities[_sellToken];
+        bool sellTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool buyTokenIsEntity = s.existingEntities[_buyToken];
+        bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+
         require(uint128(_sellAmount) == _sellAmount, "sell amount must be uint128");
         require(uint128(_buyAmount) == _buyAmount, "buy amount must be uint128");
         require(_sellAmount > 0, "sell amount must be >0");
-        require(_sellToken != "", "sell token must be valid");
+        require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
         require(_buyAmount > 0, "buy amount must be >0");
-        require(_buyToken != "", "buy token must be valid");
+        require(buyTokenIsEntity || buyTokenIsSupported, "buy token must be valid");
         require(_sellToken != _buyToken, "cannot sell and buy same token");
+        require((sellTokenIsEntity && buyTokenIsSupported) || (sellTokenIsSupported && buyTokenIsEntity), "must be one platform token");
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
@@ -377,7 +385,7 @@ library LibMarket {
     }
 
     function _executeLimitOffer(
-        bytes32 _from,
+        bytes32 _creator,
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
@@ -391,13 +399,13 @@ library LibMarket {
             uint256 sellTokenComissionsPaid_
         )
     {
-        _assertValidOffer(_from, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
+        _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
-        MatchingOfferResult memory result = _matchToExistingOffers(_from, _sellToken, _sellAmount, _buyToken, _buyAmount);
+        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount);
         buyTokenComissionsPaid_ = result.buyTokenComissionsPaid;
         sellTokenComissionsPaid_ = result.sellTokenComissionsPaid;
 
-        offerId_ = _createOffer(_from, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
+        offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
 
         // if still some left
         if (result.remainingBuyAmount > 0 && result.remainingSellAmount > 0 && result.remainingSellAmount >= LibConstants.DUST) {

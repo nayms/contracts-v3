@@ -29,10 +29,12 @@ struct TestInfo {
     uint256 entity2MintAndSaleAmt;
     uint256 entity3MintAndSaleAmt;
     uint256 entity1SalePrice;
+    uint256 entity2SalePrice;
 }
 
 contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal nWETH;
+    bytes32 internal nWBTC;
     bytes32 internal dividendBankId;
 
     bytes32 internal entity1 = bytes32("e5");
@@ -60,13 +62,21 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity1MintAndSaleAmt: 1_000 ether,
             entity2MintAndSaleAmt: 1_000 ether,
             entity3MintAndSaleAmt: 1_500 ether,
-            entity1SalePrice: 1_000 ether // 1:1 ratio, todo 0:1, 1:0
+            entity1SalePrice: 1_000 ether, // 1:1 ratio, todo 0:1, 1:0
+            entity2SalePrice: 1_000 ether
         });
 
     function setUp() public virtual override {
         super.setUp();
 
+        // init token IDs
         nWETH = LibHelpers._getIdForAddress(wethAddress);
+        nWBTC = LibHelpers._getIdForAddress(wbtcAddress);
+
+        // whitelist tokens
+        nayms.addSupportedExternalToken(wethAddress);
+        nayms.addSupportedExternalToken(wbtcAddress);
+
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
     }
 
@@ -92,9 +102,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMarketStartTokenSale() public {
-        // whitelist underlying token
-        nayms.addSupportedExternalToken(wethAddress);
-
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
 
         // mint weth for account0
@@ -190,7 +197,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.isActiveOffer(1), "Token sale offer should be active");
     }
 
-    function testMarketFullyMatchingOfferForTokenSale() public {
+    function testMarketOfferMatchedAndCommissionsPayed() public {
         testMarketStartTokenSale();
 
         // init taker entity
@@ -220,6 +227,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         MarketInfo memory offer = nayms.getOffer(2);
         assertEq(offer.rankNext, 0, "Next sibling not blank");
         assertEq(offer.rankPrev, 0, "Prevoius sibling not blank");
+        assertEq(offer.state, LibConstants.OFFER_STATE_CANCELLED, "offer state != Cancelled");
 
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
         vm.stopPrank();
@@ -363,6 +371,11 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function testMarketOfferValidation() public {
         testMarketStartTokenSale();
 
+        vm.startPrank(account9);
+        vm.expectRevert("must belong to entity to make an offer");
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        vm.stopPrank();
+
         // init taker entity
         nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
         nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
@@ -387,6 +400,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("buy token must be valid");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, "", dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
 
+        vm.expectRevert("must be one platform token"); // 2 non-platform tokens
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWBTC, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+
         vm.expectRevert("cannot sell and buy same token");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWETH, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
 
@@ -403,6 +419,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.expectRevert("only system can omit fees");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
+
+        vm.stopPrank();
+
+        nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
+
+        vm.startPrank(signer3);
+        vm.expectRevert("must be one platform token"); // 2 platform tokens
+        nayms.executeLimitOffer(entity2, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
 
         vm.stopPrank();
     }
