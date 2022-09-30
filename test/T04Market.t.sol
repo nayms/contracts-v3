@@ -253,6 +253,41 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
     }
 
+    function testMarketTakesNoFeesWhenPlatformAction() public {
+        testMarketStartTokenSale();
+
+        uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
+        uint256 ndfBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH);
+        uint256 stmBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), nWETH);
+
+        nayms.createEntity(
+            entity2,
+            LibHelpers._addressToBytes32(msg.sender),
+            initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true),
+            "entity test hash"
+        );
+        nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
+
+        // nayms.assignRole(account0Id, entity2, LibConstants.ROLE_ENTITY_ADMIN);
+        vm.startPrank(msg.sender);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
+
+        // assert trading commisions were NOT payed
+        assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt, "Trading commisions should NOT be payed");
+
+        assertEq(
+            nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
+            naymsBalanceBeforeTrade,
+            "Nayms should NOT receive any trading commissions"
+        );
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH), ndfBalanceBeforeTrade, "NDF should NOT get a trading commission");
+        assertEq(
+            nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), nWETH),
+            stmBalanceBeforeTrade,
+            "Staking mechanism should NOT get a trading commission"
+        );
+    }
+
     function testMarketFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
         // avoid overflow issues
         vm.assume(saleAmount < 1_000_000_000_000 ether);
@@ -458,10 +493,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyAmountInitial, dt.entity1SalePrice);
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED);
     }
-
-    // test the comissions when a user is selling tokens in the marketplace
-    // ensure the dividends are recorded correctly and paid properly on transfer
-    function testMarketDividends() public {}
 
     // executeLimitOffer() with a remaining amount of sell token, buy token
     // todo test order with two platform tokens, two entity tokens, eventually test with staking token (todo should this be allowed?)
