@@ -445,7 +445,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // start another token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
-        MarketInfo memory marketInfo1 = nayms.getOffer(3);
+        MarketInfo memory marketInfo1 = nayms.getOffer(1);
         assertEq(marketInfo1.creator, entity1);
         assertEq(marketInfo1.sellToken, entity1);
         assertEq(marketInfo1.sellAmount, 0);
@@ -454,6 +454,12 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyAmount, 0);
         assertEq(marketInfo1.buyAmountInitial, dt.entity1SalePrice);
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED);
+
+        MarketInfo memory marketInfo2 = nayms.getOffer(2);
+        assertEq(marketInfo2.state, LibConstants.OFFER_STATE_FULFILLED);
+
+        MarketInfo memory marketInfo3 = nayms.getOffer(3);
+        assertEq(marketInfo3.state, LibConstants.OFFER_STATE_FULFILLED);
     }
 
     // executeLimitOffer() with a remaining amount of sell token, buy token
