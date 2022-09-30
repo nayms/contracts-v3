@@ -432,7 +432,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
         nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt * 2);
 
-        // // start token sale
+        // start token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
         // create (x2) counter offer
@@ -442,6 +442,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt * 2);
         vm.stopPrank();
 
+        // start another token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
         MarketInfo memory marketInfo1 = nayms.getOffer(3);
