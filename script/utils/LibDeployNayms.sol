@@ -22,7 +22,6 @@ import { SimplePolicyFacet } from "src/diamonds/nayms/facets/SimplePolicyFacet.s
 // Index into naymsFacetAddresses array
 enum NaymsFacetAddressIndex {
     ACL,
-    NAYMS_ERC20,
     ADMIN,
     USER,
     SYSTEM,
@@ -30,13 +29,23 @@ enum NaymsFacetAddressIndex {
     TOKENIZED_VAULT_IO,
     MARKET,
     ENTITY,
-    SIMPLE_POLICY,
-    NDF,
-    SSF,
-    STAKING
+    SIMPLE_POLICY
 }
 
 library LibDeployNayms {
+    function deployNaymsFacets() internal returns (address[] memory naymsFacetAddresses) {
+        naymsFacetAddresses = new address[](9);
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.ACL)] = address(new ACLFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.ADMIN)] = address(new AdminFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.USER)] = address(new UserFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.SYSTEM)] = address(new SystemFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.TOKENIZED_VAULT)] = address(new TokenizedVaultFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.TOKENIZED_VAULT_IO)] = address(new TokenizedVaultIOFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.MARKET)] = address(new MarketFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.ENTITY)] = address(new EntityFacet());
+        naymsFacetAddresses[uint256(NaymsFacetAddressIndex.SIMPLE_POLICY)] = address(new SimplePolicyFacet());
+    }
+
     /// @notice deploy all Nayms facets
     function deployNaymsFacets(NaymsFacetAddressIndex naymsFacetAddressIndex) internal returns (address naymsFacetAddresses) {
         if (naymsFacetAddressIndex == NaymsFacetAddressIndex.ACL) {
