@@ -43,7 +43,6 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      * @param _sellAmount Amount to sell.
      * @param _buyToken Token to buy.
      * @param _buyAmount Amount to buy.
-     * @param _feeSchedule Requested fee schedule, one of the `FEE_SCHEDULE_...` constants.
      * @return offerId_ returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
      * @return buyTokenComissionsPaid_ The amount of the buy token paid as commissions on this particular order.
      * @return sellTokenComissionsPaid_ The amount of the sell token paid as commissions on this particular order.
@@ -52,8 +51,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
+        uint256 _buyAmount
     )
         external
         nonReentrant
@@ -66,8 +64,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_SCHEDULE_STANDARD);
     }
 
     /**

@@ -265,7 +265,7 @@ library LibMarket {
             // If both are internal tokens no commissions are paid
             if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
                 buyTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
-            } else if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].sellToken)) {
+            } else {
                 sellTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
             }
         }
@@ -355,6 +355,7 @@ library LibMarket {
 
         require(uint128(_sellAmount) == _sellAmount, "sell amount must be uint128");
         require(uint128(_buyAmount) == _buyAmount, "buy amount must be uint128");
+
         require(_sellAmount > 0, "sell amount must be >0");
         require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
         require(_buyAmount > 0, "buy amount must be >0");
@@ -368,11 +369,6 @@ library LibMarket {
 
         // must have a valid fee schedule
         require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
-
-        // if caller requested the 'platform action' fee schedule then check that they're allowed to do so
-        if (_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION) {
-            require(address(this) == msg.sender, "only system can omit fees");
-        }
     }
 
     function _getOfferTokenAmounts(uint256 _offerId) internal view returns (TokenAmount memory sell_, TokenAmount memory buy_) {

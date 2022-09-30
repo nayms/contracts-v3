@@ -15,12 +15,11 @@ contract DSTestPlusF is Test {
         uint256 amount
     ) public {
         IERC20 tkn = IERC20(token);
-        uint256 balanceBefore = tkn.balanceOf(to);
         tkn.approve(address(from), amount);
 
         stdstore.target(token).sig(IERC20(token).balanceOf.selector).with_key(to).checked_write(amount);
 
-        assertEq(tkn.balanceOf(to), balanceBefore + amount, "balance should INCREASE (after mint)");
+        assertEq(tkn.balanceOf(to), amount, "balance should INCREASE (after mint)");
     }
 
     function enforceHasContractCode(address _contract, string memory _errorMessage) public view {

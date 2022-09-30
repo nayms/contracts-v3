@@ -209,7 +209,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
 
         vm.startPrank(signer2);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
         vm.stopPrank();
 
@@ -229,7 +229,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(offer.rankPrev, 0, "Prevoius sibling not blank");
         assertEq(offer.state, LibConstants.OFFER_STATE_CANCELLED, "offer state != Cancelled");
 
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
         // assert trading commisions payed
@@ -251,41 +251,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // assert Entity1 holds `buyAmount` of nE1
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
-    }
-
-    function testMarketTakesNoFeesWhenPlatformAction() public {
-        testMarketStartTokenSale();
-
-        uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
-        uint256 ndfBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH);
-        uint256 stmBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), nWETH);
-
-        nayms.createEntity(
-            entity2,
-            LibHelpers._addressToBytes32(msg.sender),
-            initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true),
-            "entity test hash"
-        );
-        nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
-
-        // nayms.assignRole(account0Id, entity2, LibConstants.ROLE_ENTITY_ADMIN);
-        vm.startPrank(msg.sender);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
-
-        // assert trading commisions were NOT payed
-        assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt, "Trading commisions should NOT be payed");
-
-        assertEq(
-            nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
-            naymsBalanceBeforeTrade,
-            "Nayms should NOT receive any trading commissions"
-        );
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH), ndfBalanceBeforeTrade, "NDF should NOT get a trading commission");
-        assertEq(
-            nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), nWETH),
-            stmBalanceBeforeTrade,
-            "Staking mechanism should NOT get a trading commission"
-        );
     }
 
     function testMarketFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
@@ -331,7 +296,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "state");
 
             vm.prank(signer2);
-            nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount, LibConstants.FEE_SCHEDULE_STANDARD);
+            nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount);
             vm.stopPrank();
 
             marketInfo1 = nayms.getOffer(1);
@@ -356,7 +321,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
 
         vm.startPrank(signer2);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("_internalBurn: tokens for sale in mkt");
         nayms.externalWithdrawFromEntity(entity2, signer2, wethAddress, 500 ether);
@@ -386,17 +351,17 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDepositToEntity(entity4, wethAddress, 1_000 ether);
 
         vm.startPrank(signer2);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
         vm.startPrank(signer3);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 150 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 150 ether, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
         // last offer at this point will be the actual best offer
         uint256 bestOfferID = nayms.getLastOfferId();
 
         vm.startPrank(signer4);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 190 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 190 ether, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
         // confirm best offer
@@ -408,7 +373,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.startPrank(account9);
         vm.expectRevert("must belong to entity to make an offer");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
         // init taker entity
@@ -418,42 +383,36 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(signer2);
 
         vm.expectRevert("sell amount must be uint128");
-        nayms.executeLimitOffer(nWETH, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("buy amount must be uint128");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000);
 
         vm.expectRevert("sell amount must be >0");
-        nayms.executeLimitOffer(nWETH, 0, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, 0, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("buy amount must be >0");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 0, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 0);
 
         vm.expectRevert("sell token must be valid");
-        nayms.executeLimitOffer("", dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer("", dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("buy token must be valid");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, "", dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, "", dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("must be one platform token"); // 2 non-platform tokens
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWBTC, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWBTC, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("cannot sell and buy same token");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWETH, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWETH, dt.entity1MintAndSaleAmt);
 
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 10 ether, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 10 ether, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("tokens locked in market");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         uint256 lastOfferId = nayms.getLastOfferId();
         nayms.cancelOffer(lastOfferId);
-
-        vm.expectRevert("fee schedule invalid");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, 55);
-
-        vm.expectRevert("only system can omit fees");
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
 
         vm.stopPrank();
 
@@ -461,29 +420,31 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.startPrank(signer3);
         vm.expectRevert("must be one platform token"); // 2 platform tokens
-        nayms.executeLimitOffer(entity2, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_PLATFORM_ACTION);
+        nayms.executeLimitOffer(entity2, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         vm.stopPrank();
     }
 
     function testMarketMatchingExternalTokenOnSellSide() public {
         nayms.addSupportedExternalToken(wethAddress);
-        writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1MintAndSaleAmt);
-
-        // create counter offer first
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2MintAndSaleAmt);
-        vm.startPrank(signer2);
-        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt, LibConstants.FEE_SCHEDULE_STANDARD);
-        vm.stopPrank();
-
-        // create matching token sale
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
-        nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt);
+
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt * 2);
+
+        // // start token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
-        MarketInfo memory marketInfo1 = nayms.getOffer(2);
+        // create (x2) counter offer
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2ExternalDepositAmt * 2);
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt * 2);
+        vm.stopPrank();
+
+        nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
+
+        MarketInfo memory marketInfo1 = nayms.getOffer(3);
         assertEq(marketInfo1.creator, entity1);
         assertEq(marketInfo1.sellToken, entity1);
         assertEq(marketInfo1.sellAmount, 0);
