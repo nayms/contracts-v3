@@ -2,13 +2,14 @@
 pragma solidity >=0.8.13 <0.9;
 
 import "script/utils/DeploymentHelpers.sol";
+import "script/utils/LibGeneratedNaymsFacetHelpers.sol";
 
 contract GenerateInterfaces is DeploymentHelpers {
     function run(string memory pathToOutput, string memory solVersion) external {
         if (keccak256(abi.encodePacked(pathToOutput)) == keccak256(abi.encodePacked(""))) {
             pathToOutput = "test-interfaces";
         }
-        string[] memory facetNames = ffiFindFacetNames();
+        string[] memory facetNames = LibGeneratedNaymsFacetHelpers.getFacetNames();
 
         string memory artifactFile;
         string memory outputPathAndName;

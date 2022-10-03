@@ -1,11 +1,11 @@
 # Nayms Smart Contracts v3
 
 [![lint](https://github.com/nayms/contracts-v3/actions/workflows/lint.yml/badge.svg)](https://github.com/nayms/contracts-v3/actions/workflows/lint.yml) [![tests](https://github.com/nayms/contracts-v3/actions/workflows/tests.yml/badge.svg)](https://github.com/nayms/contracts-v3/actions/workflows/tests.yml) [![coverage status](https://coveralls.io/repos/github/nayms/contracts-v3/badge.svg?branch=main)](https://coveralls.io/github/nayms/contracts-v3?branch=main) [![license](https://img.shields.io/github/license/nayms/contracts-v3.svg)](https://github.com/nayms/contracts-v3/blob/main/LICENSE)
- [![npm version](https://img.shields.io/npm/v/@nayms/contracts/latest.svg)](https://www.npmjs.com/package/@nayms/contracts/v/latest)
+[![npm version](https://img.shields.io/npm/v/@nayms/contracts/latest.svg)](https://www.npmjs.com/package/@nayms/contracts/v/latest)
 
 This repository contains Nayms V3 smart contracts.
 
-## Get Started  
+## Get Started
 
 ### Install Foundry
 
@@ -37,6 +37,12 @@ make update
 make gen-i
 ```
 
+### Prepare the build
+
+```zsh
+make prep-build
+```
+
 ### Build Project
 
 ```zsh
@@ -45,7 +51,7 @@ make build
 
 ### Formatter and Linter
 
-Run `yarn` to install `package.json` which includes our formatter and linter. We will switch over to Foundry's sol formatter and linter once released.  
+Run `yarn` to install `package.json` which includes our formatter and linter. We will switch over to Foundry's sol formatter and linter once released.
 
 ## Set your environment variables
 
@@ -56,25 +62,25 @@ Check `.env.example` to see some of the environment variables you should have se
 ```md
 .
 ├── contracts
-│  ├── diamonds
-│  │  ├── nayms
-│  │  │  ├── facets
-│  │  │  ├── interfaces
-│  │  │  └── libs
-│  │  └── shared
-│  │     ├── facets
-│  │     ├── interfaces
-│  │     └── libs
-│  ├── ERC20
-│  └── utils
+│ ├── diamonds
+│ │ ├── nayms
+│ │ │ ├── facets
+│ │ │ ├── interfaces
+│ │ │ └── libs
+│ │ └── shared
+│ │ ├── facets
+│ │ ├── interfaces
+│ │ └── libs
+│ ├── ERC20
+│ └── utils
 ├── docs
-│  └── adr
+│ └── adr
 |── lib
 ├── scripts
 ├── src
-│  └── test
-│     └── utils
-│        └── users
+│ └── test
+│ └── utils
+│ └── users
 └── test
 ```
 
@@ -102,22 +108,22 @@ Simulate the deployment:
 make smart-deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]>
 ```
 
-| | |
-|-|-|
-| *newDiamond* |  |
-|`true` |Deploy a new Nayms diamond|
-|`false`|Read the address from deployedAddresses.json|
-| | |
-| *initNewDiamond* | |
-| `true` | Deploy a new InitDiamond and call `initialize()` when calling `diamondCut()` |
-| `false` | Does not call `initialize()` when calling `diamondCut()` |
-| | |
-| *facetAction* | See [`FacetDeploymentAction`](https://github.com/nayms/contracts-v3/tree/main/script/utils/DeploymentHelpers.sol) enum |
-| `0` | DeployAllFacets |
-| `1` | UpgradeFacetsWithChangesOnly |
-| `2` | UpgradeFacetsListedOnly |
-| *facetsToCutIn* | Requires facetAction=`2`|
-| `["Facet1","Facet2",...]`| List of facets to cut into the diamond. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. *Note*: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository.|
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _newDiamond_              |                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `true`                    | Deploy a new Nayms diamond                                                                                                                                                                                                                                                                                                                                                                                      |
+| `false`                   | Read the address from deployedAddresses.json                                                                                                                                                                                                                                                                                                                                                                    |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| _initNewDiamond_          |                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `true`                    | Deploy a new InitDiamond and call `initialize()` when calling `diamondCut()`                                                                                                                                                                                                                                                                                                                                    |
+| `false`                   | Does not call `initialize()` when calling `diamondCut()`                                                                                                                                                                                                                                                                                                                                                        |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| _facetAction_             | See [`FacetDeploymentAction`](https://github.com/nayms/contracts-v3/tree/main/script/utils/DeploymentHelpers.sol) enum                                                                                                                                                                                                                                                                                          |
+| `0`                       | DeployAllFacets                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `1`                       | UpgradeFacetsWithChangesOnly                                                                                                                                                                                                                                                                                                                                                                                    |
+| `2`                       | UpgradeFacetsListedOnly                                                                                                                                                                                                                                                                                                                                                                                         |
+| _facetsToCutIn_           | Requires facetAction=`2`                                                                                                                                                                                                                                                                                                                                                                                        |
+| `["Facet1","Facet2",...]` | List of facets to cut into the diamond. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. _Note_: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository. |
 
 Below are several examples on how you would use the smart deploy scripts.
 
@@ -177,7 +183,7 @@ Monitor all events, Nayms Diamond transactions, mempool.
 
 [Louper Diamond Inspector - Etherscan for Diamonds](https://louper.dev/)
 
-### Acknowledgements  
+### Acknowledgements
 
 Ramesh Nair @hiddentao
 
