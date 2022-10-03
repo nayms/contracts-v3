@@ -5,8 +5,8 @@ const glob = require('glob')
 const chalk = require('chalk')
 
 const PROJECT_DIR = path.join(__dirname, '..')
-const ARTIFACTS_FOLDER = path.join(PROJECT_DIR, 'forge-artifacts')
 const FACETS_SRC_DIR = path.join(PROJECT_DIR, 'src', 'diamonds', 'nayms', 'facets')
+const INTERFACES_SRC_DIR = path.join(PROJECT_DIR, 'src', 'diamonds', 'nayms', 'interfaces')
 const FACETS_DEPLOYED_TXT = path.join(PROJECT_DIR, 'facetsdeployed.txt')
 const GENERATED_DEPLOY_NAMES_SOL = path.join(PROJECT_DIR, 'script', 'utils', 'LibGeneratedNaymsFacetHelpers.sol')
 
@@ -15,11 +15,19 @@ const facetNames = glob.sync('*Facet.sol', { cwd: FACETS_SRC_DIR }).map(a => pat
 
 // load interfaces and methods
 const facetData = {}
+const REGEX = /function ([A-Za-z0-9_]+)\(/ig
 facetNames.forEach(f => {
   try {
     const interfaceName = `I${f}Facet`
-    const { abi } = JSON.parse(fs.readFileSync(path.join(ARTIFACTS_FOLDER, `${interfaceName}.sol`, `${interfaceName}.json`)))
-    const methods = abi.filter(n => n.type === 'function').map(n => n.name)
+    const src = fs.readFileSync(path.join(INTERFACES_SRC_DIR, `${interfaceName}.sol`)).toString('utf-8')
+    const methods = []
+    let m
+    while ((m = REGEX.exec(src))) {
+      methods.push(m[1])
+    }
+    if (!methods.length) {
+      throw new Error(`Empty interface`)
+    }
     facetData[f] = {
       interfaceName,
       methods,
