@@ -84,21 +84,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         MarketInfo memory marketInfo = nayms.getOffer(offerId);
 
         // console2.log("            creator", marketInfo.creator);
-        // console2.log("         sell token", marketInfo.sellToken);
+        // console2.log("         sell token");
+        // console2.logBytes32(marketInfo.sellToken);
         console2.log("        sell amount", marketInfo.sellAmount);
         console2.log("sell amount initial", marketInfo.sellAmountInitial);
-        // console2.log("          buy token", marketInfo.buyToken);
+        // console2.log("          buy token");
+        // console2.logBytes32(marketInfo.buyToken);
         console2.log("         buy amount", marketInfo.buyAmount);
         console2.log(" buy amount initial", marketInfo.buyAmountInitial);
         console2.log("              state", marketInfo.state);
-        // assertEq(marketInfo.creator, entity1, "creator");
-        // assertEq(marketInfo.sellToken, entity1, "sell token");
-        // assertEq(marketInfo.sellAmount, dt.entity1MintAndSaleAmt, "sell amount");
-        // assertEq(marketInfo.sellAmountInitial, dt.entity1MintAndSaleAmt, "sell amount initial");
-        // assertEq(marketInfo.buyToken, nWETH, "buy token");
-        // assertEq(marketInfo.buyAmount, dt.entity1SalePrice, "buy amount");
-        // assertEq(marketInfo.buyAmountInitial, dt.entity1SalePrice, "buy amount initial");
-        // assertEq(marketInfo.state, LibConstants.OFFER_STATE_ACTIVE, "state");
     }
 
     function testMarketStartTokenSale() public {
@@ -299,15 +293,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount);
             vm.stopPrank();
 
-            marketInfo1 = nayms.getOffer(1);
-            assertEq(marketInfo1.creator, entity1, "creator");
-            assertEq(marketInfo1.sellToken, entity1, "sell token");
-            assertEq(marketInfo1.sellAmount, 0, "sell amount");
-            assertEq(marketInfo1.sellAmountInitial, saleAmount, "sell amount initial");
-            assertEq(marketInfo1.buyToken, nWETH, "buy token");
-            assertEq(marketInfo1.buyAmount, 0, "buy amount");
-            assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
-            assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "state");
+            assertOfferFilled(1, entity1, entity1, saleAmount, nWETH, salePrice);
         }
     }
 
@@ -432,7 +418,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
         nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt * 2);
 
-        // start token sale
+        // start nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
         // create (x2) counter offer
@@ -442,24 +428,31 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt * 2);
         vm.stopPrank();
 
-        // start another token sale
+        // start another nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
-        MarketInfo memory marketInfo1 = nayms.getOffer(1);
-        assertEq(marketInfo1.creator, entity1);
-        assertEq(marketInfo1.sellToken, entity1);
-        assertEq(marketInfo1.sellAmount, 0);
-        assertEq(marketInfo1.sellAmountInitial, dt.entity1MintAndSaleAmt);
-        assertEq(marketInfo1.buyToken, nWETH);
-        assertEq(marketInfo1.buyAmount, 0);
-        assertEq(marketInfo1.buyAmountInitial, dt.entity1SalePrice);
-        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED);
+        assertOfferFilled(1, entity1, entity1, dt.entity1MintAndSaleAmt, nWETH, dt.entity1SalePrice);
+        assertOfferFilled(2, entity2, nWETH, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1SalePrice * 2);
+        assertOfferFilled(3, entity1, entity1, dt.entity1MintAndSaleAmt, nWETH, dt.entity1SalePrice);
+    }
 
-        MarketInfo memory marketInfo2 = nayms.getOffer(2);
-        assertEq(marketInfo2.state, LibConstants.OFFER_STATE_FULFILLED);
-
-        MarketInfo memory marketInfo3 = nayms.getOffer(3);
-        assertEq(marketInfo3.state, LibConstants.OFFER_STATE_FULFILLED);
+    function assertOfferFilled(
+        uint256 offerId,
+        bytes32 creator,
+        bytes32 sellToken,
+        uint256 initSellAmount,
+        bytes32 buyToken,
+        uint256 initBuyAmount
+    ) private {
+        MarketInfo memory marketInfo1 = nayms.getOffer(offerId);
+        assertEq(marketInfo1.creator, creator, "offer creator invalid");
+        assertEq(marketInfo1.sellToken, sellToken, "invalid sell token");
+        assertEq(marketInfo1.sellAmount, 0, "invalid sell amount");
+        assertEq(marketInfo1.sellAmountInitial, initSellAmount, "invalid initial sell amount");
+        assertEq(marketInfo1.buyToken, buyToken, "invalid buy token");
+        assertEq(marketInfo1.buyAmount, 0, "invalid buy amount");
+        assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
+        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "invalid state");
     }
 
     // executeLimitOffer() with a remaining amount of sell token, buy token
