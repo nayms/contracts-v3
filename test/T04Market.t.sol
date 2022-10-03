@@ -30,6 +30,7 @@ struct TestInfo {
     uint256 entity3MintAndSaleAmt;
     uint256 entity1SalePrice;
     uint256 entity2SalePrice;
+    uint256 entity3SalePrice;
 }
 
 contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
@@ -63,7 +64,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity2MintAndSaleAmt: 1_000 ether,
             entity3MintAndSaleAmt: 1_500 ether,
             entity1SalePrice: 1_000 ether, // 1:1 ratio, todo 0:1, 1:0
-            entity2SalePrice: 1_000 ether
+            entity2SalePrice: 1_000 ether,
+            entity3SalePrice: 1_000 ether
         });
 
     function setUp() public virtual override {
@@ -324,6 +326,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMarketGetBestOfferId() public {
+        assertEq(nayms.getBestOfferId(nWETH, entity1), 0, "invalid best offer, when no offer exists");
+
         testMarketStartTokenSale();
 
         // init taker entity
@@ -416,7 +420,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.externalDeposit(entity1, wethAddress, dt.entity1ExternalDepositAmt * 2);
 
         // start nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
@@ -427,6 +430,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(signer2);
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt * 2);
         vm.stopPrank();
+
+        assertOfferPartiallyFilled(2, entity2, nWETH, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2);
 
         // start another nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
@@ -453,6 +458,27 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyAmount, 0, "invalid buy amount");
         assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "invalid state");
+    }
+
+    function assertOfferPartiallyFilled(
+        uint256 offerId,
+        bytes32 creator,
+        bytes32 sellToken,
+        uint256 sellAmount,
+        uint256 initSellAmount,
+        bytes32 buyToken,
+        uint256 buyAmount,
+        uint256 initBuyAmount
+    ) private {
+        MarketInfo memory marketInfo1 = nayms.getOffer(offerId);
+        assertEq(marketInfo1.creator, creator, "offer creator invalid");
+        assertEq(marketInfo1.sellToken, sellToken, "invalid sell token");
+        assertEq(marketInfo1.sellAmount, sellAmount, "invalid sell amount");
+        assertEq(marketInfo1.sellAmountInitial, initSellAmount, "invalid initial sell amount");
+        assertEq(marketInfo1.buyToken, buyToken, "invalid buy token");
+        assertEq(marketInfo1.buyAmount, buyAmount, "invalid buy amount");
+        assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
+        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "invalid state");
     }
 
     // executeLimitOffer() with a remaining amount of sell token, buy token
