@@ -301,12 +301,9 @@ library LibMarket {
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
 
-        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds uint128 limit");
-        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds uint128 limit");
+        _assertAmounts(_sellAmount, _buyAmount);
 
-        require(_buyAmount > 0, "requested buy amount is 0");
         require(_buyAmount <= offerBuy.amount, "requested buy amount too large");
-        require(_sellAmount > 0, "calculated sell amount is 0");
         require(_sellAmount <= offerSell.amount, "calculated sell amount too large");
 
         // update balances
@@ -336,6 +333,13 @@ library LibMarket {
         }
     }
 
+    function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
+        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds uint128 limit");
+        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds uint128 limit");
+        require(_sellAmount > 0, "sell amount must be >0");
+        require(_buyAmount > 0, "buy amount must be >0");
+    }
+
     function _assertValidOffer(
         bytes32 _entityId,
         bytes32 _sellToken,
@@ -353,12 +357,9 @@ library LibMarket {
         bool buyTokenIsEntity = s.existingEntities[_buyToken];
         bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
 
-        require(uint128(_sellAmount) == _sellAmount, "sell amount must be uint128");
-        require(uint128(_buyAmount) == _buyAmount, "buy amount must be uint128");
+        _assertAmounts(_sellAmount, _buyAmount);
 
-        require(_sellAmount > 0, "sell amount must be >0");
         require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
-        require(_buyAmount > 0, "buy amount must be >0");
         require(buyTokenIsEntity || buyTokenIsSupported, "buy token must be valid");
         require(_sellToken != _buyToken, "cannot sell and buy same token");
         require((sellTokenIsEntity && buyTokenIsSupported) || (sellTokenIsSupported && buyTokenIsEntity), "must be one platform token");

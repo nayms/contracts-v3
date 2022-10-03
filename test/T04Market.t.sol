@@ -372,10 +372,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.startPrank(signer2);
 
-        vm.expectRevert("sell amount must be uint128");
+        vm.expectRevert("sell amount exceeds uint128 limit");
         nayms.executeLimitOffer(nWETH, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("buy amount must be uint128");
+        vm.expectRevert("buy amount exceeds uint128 limit");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000);
 
         vm.expectRevert("sell amount must be >0");
