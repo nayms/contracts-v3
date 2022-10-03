@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: "16"
           cache: "yarn"
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           scope: "@nayms"
 
       - uses: actions/cache@v3
@@ -43,6 +43,12 @@ jobs:
       - name: Install Forge dependencies
         run: forge install
 
+      - name: Install node dev dependencies
+        run: yarn
+
+      - name: Prepare build
+        run: make prep-build
+
       - name: Build solidity contracts
         run: make build
 
@@ -67,7 +73,7 @@ jobs:
         continue-on-error: true
 
       # - name: Coverage report from fork compiled via-ir
-      #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir 
+      #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir
       #   continue-on-error: true
 
       - name: Coveralls
@@ -94,7 +100,7 @@ jobs:
       # - name: Static analyser Mythril (todo)
       #   run: mythril
       #   continue-on-error: true
-          
+
       # - name: Publish to NPM
       #   run: yarn publish
       #   env:

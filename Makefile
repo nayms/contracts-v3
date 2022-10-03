@@ -28,6 +28,9 @@ gen-i :; forge script GenerateInterfaces \
 			-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
 			--ffi
 
+# prepare buld
+prep-build :; node ./cli-tools/prep-build.js 
+
 # forge build
 b           :; forge build --names --sizes
 build 	    :; forge build --names --sizes

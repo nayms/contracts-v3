@@ -11,8 +11,7 @@ import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
 
-import { LibDeployNayms } from "script/utils/LibDeployNayms.sol";
-import { LibNaymsFacetHelpers } from "script/utils/LibNaymsFacetHelpers.sol";
+import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
 
 // import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
@@ -45,14 +44,14 @@ contract D01Deployment is
         initDiamond = new InitDiamond();
 
         // deploy all facets
-        address[] memory naymsFacetAddresses = LibDeployNayms.deployNaymsFacets();
+        address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
 
         // deterministically deploy Nayms diamond
         nayms = INayms(address(new Nayms(address(this))));
 
         naymsAddress = address(nayms);
         // initialize the diamond as well as cut in all facets
-        INayms.FacetCut[] memory cut = LibNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
+        INayms.FacetCut[] memory cut = LibGeneratedNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
 
         // vm.prank(msg.sender);
         nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));

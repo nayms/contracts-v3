@@ -7,7 +7,7 @@ import "forge-std/StdJson.sol";
 import "script/utils/LibWriteJson.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
 import "solmate/utils/CREATE3.sol";
-import "./LibDeployNayms.sol";
+import "./LibGeneratedNaymsFacetHelpers.sol";
 import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 
 /// @notice helper methods to deploy a diamond,
@@ -373,7 +373,7 @@ contract DeploymentHelpers is Test {
             // bytes memory args = abi.encode(msg.sender);
             // naymsDiamondAddress = deployCode(artifactFile, args);
 
-            naymsDiamondAddress = LibDeployNayms.deployNaymsFacetsByName("Nayms");
+            naymsDiamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
             vm.label(address(naymsDiamondAddress), "New Nayms Diamond");
 
             // Output diamond address
@@ -394,59 +394,6 @@ contract DeploymentHelpers is Test {
 
         // store diamond address to be used later to create output
         sDiamondAddress = naymsDiamondAddress;
-    }
-
-    function ffiGetNamesFromFileNames(string calldata filePath) public returns (string[] memory parts) {
-        string[] memory inputs = new string[](12);
-        inputs[0] = "find";
-        inputs[1] = "src/diamonds/nayms/facets/";
-        inputs[2] = "-name";
-        inputs[3] = "*Facet.sol";
-        inputs[4] = "-type";
-        inputs[5] = "f";
-        inputs[6] = "-execdir";
-        inputs[7] = "basename";
-        inputs[8] = "-s";
-        inputs[9] = "Facet.sol";
-        inputs[10] = "{}";
-        inputs[11] = "+";
-
-        bytes memory res = vm.ffi(inputs);
-        console2.log(string(res));
-    }
-
-    function ffiFindFacetNames() public returns (string[] memory parts) {
-        string[] memory inputs = new string[](12);
-        inputs[0] = "find";
-        inputs[1] = "src/diamonds/nayms/facets/";
-        inputs[2] = "-name";
-        inputs[3] = "*Facet.sol";
-        inputs[4] = "-type";
-        inputs[5] = "f";
-        inputs[6] = "-execdir";
-        inputs[7] = "basename";
-        inputs[8] = "-s";
-        inputs[9] = "Facet.sol";
-        inputs[10] = "{}";
-        inputs[11] = "+";
-
-        bytes memory res = vm.ffi(inputs);
-        console2.log(string(res));
-
-        string memory outputFileName = string.concat(vm.projectRoot(), "/facetsdeployed.txt");
-        vm.writeFile(outputFileName, string(res));
-
-        string memory start = string(res);
-        strings.slice memory s = start.toSlice();
-        string memory d = "\n";
-        strings.slice memory delim = d.toSlice();
-        s.count(delim);
-        parts = new string[](s.count(delim) + 1);
-        for (uint256 i = 0; i < parts.length; i++) {
-            parts[i] = s.split(delim).toString();
-
-            console2.log(parts[i]);
-        }
     }
 
     function findAndReplace(bytes memory res, string memory find) public view returns (string[] memory parts) {
@@ -878,7 +825,7 @@ contract DeploymentHelpers is Test {
      */
 
     function deployFacetAndCreateFacetCutOLD(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
-        cut.facetAddress = LibDeployNayms.deployNaymsFacetsByName(facetName);
+        cut.facetAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName(facetName);
 
         (, cut.functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
 
@@ -897,7 +844,7 @@ contract DeploymentHelpers is Test {
         // If deployAllFacets == false, then only upgrade the facets listed in the array facetsToCutIn
         // deployAllFacets == false
 
-        string[] memory allFacetNames = ffiFindFacetNames();
+        string[] memory allFacetNames = LibGeneratedNaymsFacetHelpers.getFacetNames();
         uint256 numberOfFacets = allFacetNames.length;
 
         if (facetDeploymentAction == FacetDeploymentAction.DeployAllFacets) {
@@ -1109,7 +1056,7 @@ contract DeploymentHelpers is Test {
         // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
         if (initNewDiamond) {
             // initDiamond = deployContract("InitDiamond");
-            initDiamond = LibDeployNayms.deployNaymsFacetsByName("InitDiamond");
+            initDiamond = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond");
         }
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
