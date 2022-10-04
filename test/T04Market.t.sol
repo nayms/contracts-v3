@@ -5,11 +5,30 @@ import { initEntity, D03ProtocolDefaults, console2, LibConstants, LibHelpers } f
 import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
+import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
 
 import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/AppStorage.sol";
 import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
+import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
+
+/// Create a fixture to test the library LibFeeRouter
+
+contract LibFeeRouterFixture {
+    function payPremiumComissions(bytes32 _policyId, uint256 _premiumPaid) public {
+        LibFeeRouter._payPremiumComissions(_policyId, _premiumPaid);
+    }
+
+    function payTradingComissions(
+        bytes32 _makerId,
+        bytes32 _takerId,
+        bytes32 _tokenId,
+        uint256 _requestedBuyAmount
+    ) public returns (uint256 commissionPaid_) {
+        commissionPaid_ = LibFeeRouter._payTradingComissions(_makerId, _takerId, _tokenId, _requestedBuyAmount);
+    }
+}
 /* 
     Terminology:
     nWETH: bytes32 ID of WETH
@@ -493,6 +512,23 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "invalid state");
     }
 
+    function testLibFeeRouter() public {
+        // Deploy the LibFeeRouterFixture
+        LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory functionSelectors = new bytes4[](2);
+        functionSelectors[0] = libFeeRouterFixture.payPremiumComissions.selector;
+        functionSelectors[1] = libFeeRouterFixture.payTradingComissions.selector;
+
+        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
+
+        bytes32 policyId;
+        uint256 premiumPaid;
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumComissions.selector, policyId, premiumPaid));
+    }
     // executeLimitOffer() with a remaining amount of sell token, buy token
     // todo test order with two platform tokens, two entity tokens, eventually test with staking token (todo should this be allowed?)
 }
