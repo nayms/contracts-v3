@@ -262,7 +262,6 @@ library LibMarket {
             // Fees are paid only in external token
             // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
-            // If both are internal tokens no commissions are paid
             if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
                 buyTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
             } else {
