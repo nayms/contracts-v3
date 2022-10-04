@@ -5,30 +5,13 @@ import { initEntity, D03ProtocolDefaults, console2, LibConstants, LibHelpers } f
 import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
-import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
 
 import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/AppStorage.sol";
-import { INayms } from "src/diamonds/nayms/INayms.sol";
+import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
-import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
+import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
-/// Create a fixture to test the library LibFeeRouter
-
-contract LibFeeRouterFixture {
-    function payPremiumComissions(bytes32 _policyId, uint256 _premiumPaid) public {
-        LibFeeRouter._payPremiumComissions(_policyId, _premiumPaid);
-    }
-
-    function payTradingComissions(
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _requestedBuyAmount
-    ) public returns (uint256 commissionPaid_) {
-        commissionPaid_ = LibFeeRouter._payTradingComissions(_makerId, _takerId, _tokenId, _requestedBuyAmount);
-    }
-}
 /* 
     Terminology:
     nWETH: bytes32 ID of WETH
