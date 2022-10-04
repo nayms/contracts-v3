@@ -455,6 +455,50 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertOfferFilled(3, entity1, entity1, dt.entity1MintAndSaleAmt, nWETH, dt.entity1SalePrice);
     }
 
+    function testBestOffersWithCancel() public {
+        testStartTokenSale();
+
+        // init taker entity
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity4, signer4Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+
+        // fund taker entity
+        nayms.externalDepositToEntity(entity2, wethAddress, 1_000 ether);
+        nayms.externalDepositToEntity(entity3, wethAddress, 1_000 ether);
+        nayms.externalDepositToEntity(entity4, wethAddress, 1_000 ether);
+
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt);
+        vm.stopPrank();
+
+        vm.startPrank(signer3);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 300 ether, entity1, dt.entity1MintAndSaleAmt);
+        vm.stopPrank();
+
+        vm.startPrank(signer4);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 400 ether, entity1, dt.entity1MintAndSaleAmt);
+        vm.stopPrank();
+
+        vm.startPrank(signer4);
+        nayms.cancelOffer(4);
+        vm.stopPrank();
+
+        assertEq(nayms.getBestOfferId(nWETH, entity1), 2, "invalid best offer ID");
+
+        vm.startPrank(signer2);
+        nayms.cancelOffer(2);
+        vm.stopPrank();
+
+        assertEq(nayms.getBestOfferId(nWETH, entity1), 3, "invalid best offer ID");
+
+        vm.startPrank(signer3);
+        nayms.cancelOffer(3);
+        vm.stopPrank();
+
+        assertEq(nayms.getBestOfferId(nWETH, entity1), 0, "invalid best offer ID");
+    }
+
     function assertOfferFilled(
         uint256 offerId,
         bytes32 creator,
