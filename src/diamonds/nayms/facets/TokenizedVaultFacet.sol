@@ -125,6 +125,7 @@ contract TokenizedVaultFacet is Modifiers {
     }
 
     function payDividendFromEntity(
+        uint256 guid,
         bytes32 to,
         bytes32 dividendTokenId,
         uint256 amount
@@ -133,6 +134,6 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 senderEntityId = LibObject._getParent(senderId);
         require(LibTokenizedVault._internalBalanceOf(senderEntityId, dividendTokenId) >= amount, "_payDividend: insufficient balance");
 
-        LibTokenizedVault._payDividend(senderEntityId, to, dividendTokenId, amount);
+        LibTokenizedVault._payDividend(guid, senderEntityId, to, dividendTokenId, amount);
     }
 }

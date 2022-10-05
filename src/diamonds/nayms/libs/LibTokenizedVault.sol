@@ -224,7 +224,7 @@ library LibTokenizedVault {
             }
         }
         // Events are emitted from the _internalTransfer()
-        DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);
+        emit DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);
     }
 
     function _getTokenSymbol(bytes32 _objectId) internal view returns (string memory) {
