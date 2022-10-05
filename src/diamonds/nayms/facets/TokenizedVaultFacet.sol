@@ -107,11 +107,13 @@ contract TokenizedVaultFacet is Modifiers {
     /**
      * @notice Pay dividends
      * @dev Transfer dividends to the entity
+     * @param guid Globally unique identifier of a dividend distribution.
      * @param to object ID of the dividend receiver.
      * @param dividendTokenId the internal token Id of the token to be paid as dividends.
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
     function payDividend(
+        uint256 guid,
         bytes32 to,
         bytes32 dividendTokenId,
         uint256 amount
@@ -119,10 +121,11 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         require(LibTokenizedVault._internalBalanceOf(senderId, dividendTokenId) >= amount, "_payDividend: insufficient balance");
 
-        LibTokenizedVault._payDividend(senderId, to, dividendTokenId, amount);
+        LibTokenizedVault._payDividend(guid, senderId, to, dividendTokenId, amount);
     }
 
     function payDividendFromEntity(
+        uint256 guid,
         bytes32 to,
         bytes32 dividendTokenId,
         uint256 amount
@@ -131,6 +134,6 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 senderEntityId = LibObject._getParent(senderId);
         require(LibTokenizedVault._internalBalanceOf(senderEntityId, dividendTokenId) >= amount, "_payDividend: insufficient balance");
 
-        LibTokenizedVault._payDividend(senderEntityId, to, dividendTokenId, amount);
+        LibTokenizedVault._payDividend(guid, senderEntityId, to, dividendTokenId, amount);
     }
 }
