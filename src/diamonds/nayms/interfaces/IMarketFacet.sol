@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { MarketInfo } from "./FreeStructs.sol";
+import { MarketInfo, TradingCommissions } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -81,6 +81,13 @@ interface IMarketFacet {
      * @return _offerState details of the offer
      */
     function getOffer(uint256 _offerId) external view returns (MarketInfo memory _offerState);
+
+    /**
+     * @dev Calculate the trading commissions based on a buy amount.
+     * @param buyAmount The amount that the commissions payments are calculated from.
+     * @return tc TradingCommissions struct todo
+     */
+    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
 
     /**
      * @dev Get the basis points earned from trading commissions for Nayms Ltd.
