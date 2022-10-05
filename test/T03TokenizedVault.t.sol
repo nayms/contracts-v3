@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { initEntity, D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/AppStorage.sol";
 
 contract T03TokenizedVaultTest is D03ProtocolDefaults {
@@ -16,7 +16,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     uint256 internal constant maxCapital_3000eth = 3_000 ether;
     uint256 internal constant totalLimit_2000eth = 2_000 ether;
 
-    uint256 constant depositAmount = 2_000 ether;
+    uint256 internal constant depositAmount = 2_000 ether;
 
     function setUp() public virtual override {
         super.setUp();

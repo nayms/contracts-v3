@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, initEntity } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 

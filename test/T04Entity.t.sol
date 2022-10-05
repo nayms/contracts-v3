@@ -10,8 +10,6 @@ import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import { initEntity } from "test/T03SystemFacet.t.sol";
-
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
 

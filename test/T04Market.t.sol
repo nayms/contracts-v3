@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { initEntity, D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
@@ -82,21 +82,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(wbtcAddress);
 
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
-    }
-
-    function prettyGetOffer(uint256 offerId) public {
-        MarketInfo memory marketInfo = nayms.getOffer(offerId);
-
-        // console2.log("            creator", marketInfo.creator);
-        // console2.log("         sell token");
-        // console2.logBytes32(marketInfo.sellToken);
-        console2.log("        sell amount", marketInfo.sellAmount);
-        console2.log("sell amount initial", marketInfo.sellAmountInitial);
-        // console2.log("          buy token");
-        // console2.logBytes32(marketInfo.buyToken);
-        console2.log("         buy amount", marketInfo.buyAmount);
-        console2.log(" buy amount initial", marketInfo.buyAmountInitial);
-        console2.log("              state", marketInfo.state);
     }
 
     function testStartTokenSale() public {
