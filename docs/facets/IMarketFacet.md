@@ -7,8 +7,7 @@ This should only be called through an entity, never directly by an EOA
     bytes32 _sellToken,
     uint256 _sellAmount,
     bytes32 _buyToken,
-    uint256 _buyAmount,
-    uint256 _feeSchedule
+    uint256 _buyAmount
   ) external returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_)
 ```
 Execute a limit offer.
@@ -19,7 +18,6 @@ Execute a limit offer.
 |`_sellAmount` | uint256 | Amount to sell.
 |`_buyToken` | bytes32 | Token to buy.
 |`_buyAmount` | uint256 | Amount to buy.
-|`_feeSchedule` | uint256 | Requested fee schedule, one of the `FEE_SCHEDULE_...` constants.
 #### Return Values:
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
@@ -86,3 +84,73 @@ Get the details of the offer #`_offerId`
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
 |`_offerState`| uint256 | details of the offer
+### isActiveOffer
+```solidity
+  function isActiveOffer(
+    uint256 _offerId
+  ) external returns (bool)
+```
+Check if the offer #`_offerId` is active or not.
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`_offerId` | uint256 | ID of a particular offer
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`active`| uint256 | or not
+### calculateTradingCommissions
+```solidity
+  function calculateTradingCommissions(
+    uint256 buyAmount
+  ) external returns (struct TradingCommissions tc)
+```
+Calculate the trading commissions based on a buy amount.
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`buyAmount` | uint256 | The amount that the commissions payments are calculated from.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`tc`| uint256 | TradingCommissions struct todo
+### getNaymsLtdBP
+```solidity
+  function getNaymsLtdBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for Nayms Ltd.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
+### getNDFBP
+```solidity
+  function getNDFBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for Nayms discretionary Fund.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
+### getSTMBP
+```solidity
+  function getSTMBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for Nayms token stakers.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
+### getMakerBP
+```solidity
+  function getMakerBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for the market maker.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
