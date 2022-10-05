@@ -31,8 +31,8 @@ library LibMarket {
     struct MatchingOfferResult {
         uint256 remainingBuyAmount;
         uint256 remainingSellAmount;
-        uint256 buyTokenComissionsPaid;
-        uint256 sellTokenComissionsPaid;
+        uint256 buyTokenCommissionsPaid;
+        uint256 sellTokenCommissionsPaid;
     }
 
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
@@ -190,11 +190,11 @@ library LibMarket {
                 // do the buy
                 uint256 finalSellAmount = bestBuyAmount < result.remainingSellAmount ? bestBuyAmount : result.remainingSellAmount;
                 // matchedAmount_ += finalSellAmount;
-                (uint256 nextBuyTokenComissionsPaid, uint256 nextSellTokenComissionsPaid) = _buy(bestOfferId, _fromEntityId, finalSellAmount);
+                (uint256 nextBuyTokenCommissionsPaid, uint256 nextSellTokenCommissionsPaid) = _buy(bestOfferId, _fromEntityId, finalSellAmount);
 
                 // Keep track of total commissions
-                result.buyTokenComissionsPaid += nextBuyTokenComissionsPaid;
-                result.sellTokenComissionsPaid += nextSellTokenComissionsPaid;
+                result.buyTokenCommissionsPaid += nextBuyTokenCommissionsPaid;
+                result.sellTokenCommissionsPaid += nextSellTokenCommissionsPaid;
 
                 // calculate how much is left to buy/sell
                 uint256 sellAmountOld = result.remainingSellAmount;
@@ -247,7 +247,7 @@ library LibMarket {
         uint256 _offerId,
         bytes32 _makerId,
         uint256 _requestedBuyAmount // entity token(?)
-    ) internal returns (uint256 buyTokenComissionsPaid_, uint256 sellTokenComissionsPaid_) {
+    ) internal returns (uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // (a / b) * c = c * a / b  -> multiply first, to avoid underflow
@@ -264,9 +264,9 @@ library LibMarket {
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
             // If both are internal tokens no commissions are paid
             if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
-                buyTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
+                buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
             } else if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].sellToken)) {
-                sellTokenComissionsPaid_ = LibFeeRouter._payTradingComissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
+                sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
             }
         }
 
@@ -387,15 +387,15 @@ library LibMarket {
         internal
         returns (
             uint256 offerId_,
-            uint256 buyTokenComissionsPaid_,
-            uint256 sellTokenComissionsPaid_
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
         )
     {
         _assertValidOffer(_from, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
         MatchingOfferResult memory result = _matchToExistingOffers(_from, _sellToken, _sellAmount, _buyToken, _buyAmount);
-        buyTokenComissionsPaid_ = result.buyTokenComissionsPaid;
-        sellTokenComissionsPaid_ = result.sellTokenComissionsPaid;
+        buyTokenCommissionsPaid_ = result.buyTokenCommissionsPaid;
+        sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
         offerId_ = _createOffer(_from, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
 

@@ -197,10 +197,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         // assert trading commisions payed
-        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 4) / 1000; // see AppStorage: 4 => s.tradingComissionTotalBP
+        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 4) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Trading commisions should be payed");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / 2); // see AppStorage: 2 => s.tradingComissionNaymsLtdBP
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / 2); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
             naymsBalanceAfterTrade,
@@ -242,7 +242,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("MultiToken: mint zero tokens");
             nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingComissionTotalBP`
+            uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingCommissionTotalBP`
             nayms.externalDeposit(entity2, wethAddress, e2Balance);
 
             // putting an offer on behalf of entity1 to sell their nENTITY1 for the entity's associated asset

@@ -49,16 +49,16 @@ contract InitDiamond {
 
         LibACL._assignRole(userId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN));
 
-        // Set Comissions (all are in basis points)
-        s.tradingComissionTotalBP = 4;
-        s.tradingComissionNaymsLtdBP = 500;
-        s.tradingComissionNDFBP = 250;
-        s.tradingComissionSTMBP = 250;
-        s.tradingComissionMakerBP; // init 0
+        // Set Commissions (all are in basis points)
+        s.tradingCommissionTotalBP = 4;
+        s.tradingCommissionNaymsLtdBP = 500;
+        s.tradingCommissionNDFBP = 250;
+        s.tradingCommissionSTMBP = 250;
+        s.tradingCommissionMakerBP; // init 0
 
-        s.premiumComissionNaymsLtdBP = 4;
-        s.premiumComissionNDFBP = 4;
-        s.premiumComissionSTMBP = 4;
+        s.premiumCommissionNaymsLtdBP = 4;
+        s.premiumCommissionNDFBP = 4;
+        s.premiumCommissionSTMBP = 4;
 
         s.naymsTokenId = LibHelpers._getIdForAddress(address(this));
         s.naymsToken = address(this);

@@ -18,8 +18,8 @@ interface IMarketFacet {
      * @param _buyAmount Amount to buy.
      * @param _feeSchedule Requested fee schedule, one of the `FEE_SCHEDULE_...` constants.
      * @return offerId_ returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
-     * @return buyTokenComissionsPaid_ The amount of the buy token paid as commissions on this particular order.
-     * @return sellTokenComissionsPaid_ The amount of the sell token paid as commissions on this particular order.
+     * @return buyTokenCommissionsPaid_ The amount of the buy token paid as commissions on this particular order.
+     * @return sellTokenCommissionsPaid_ The amount of the sell token paid as commissions on this particular order.
      */
     function executeLimitOffer(
         bytes32 _sellToken,
@@ -31,8 +31,8 @@ interface IMarketFacet {
         external
         returns (
             uint256 offerId_,
-            uint256 buyTokenComissionsPaid_,
-            uint256 sellTokenComissionsPaid_
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
         );
 
     /**
