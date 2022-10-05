@@ -46,7 +46,7 @@ library LibSimplePolicy {
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
 
         LibTokenizedVault._internalTransfer(_payerEntityId, policyEntityId, simplePolicy.asset, _amount);
-        LibFeeRouter._payPremiumComissions(_policyId, _amount);
+        LibFeeRouter._payPremiumCommissions(_policyId, _amount);
 
         simplePolicy.premiumsPaid += _amount;
 

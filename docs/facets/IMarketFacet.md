@@ -9,7 +9,7 @@ This should only be called through an entity, never directly by an EOA
     bytes32 _buyToken,
     uint256 _buyAmount,
     uint256 _feeSchedule
-  ) external returns (uint256 offerId_, uint256 buyTokenComissionsPaid_, uint256 sellTokenComissionsPaid_)
+  ) external returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_)
 ```
 Execute a limit offer.
 #### Parameters:
@@ -24,8 +24,8 @@ Execute a limit offer.
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
 |`offerId_`| bytes32 | returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
-|`buyTokenComissionsPaid_`| uint256 | The amount of the buy token paid as commissions on this particular order.
-|`sellTokenComissionsPaid_`| bytes32 | The amount of the sell token paid as commissions on this particular order.
+|`buyTokenCommissionsPaid_`| uint256 | The amount of the buy token paid as commissions on this particular order.
+|`sellTokenCommissionsPaid_`| bytes32 | The amount of the sell token paid as commissions on this particular order.
 ### cancelOffer
 ```solidity
   function cancelOffer(

@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { MarketInfo, Modifiers } from "../AppStorage.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { TradingCommissions, MarketInfo, Modifiers, LibConstants, LibHelpers, LibObject } from "../AppStorage.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
-import { LibObject } from "../libs/LibObject.sol";
+import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
@@ -45,8 +43,8 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      * @param _buyAmount Amount to buy.
      * @param _feeSchedule Requested fee schedule, one of the `FEE_SCHEDULE_...` constants.
      * @return offerId_ returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
-     * @return buyTokenComissionsPaid_ The amount of the buy token paid as commissions on this particular order.
-     * @return sellTokenComissionsPaid_ The amount of the sell token paid as commissions on this particular order.
+     * @return buyTokenCommissionsPaid_ The amount of the buy token paid as commissions on this particular order.
+     * @return sellTokenCommissionsPaid_ The amount of the sell token paid as commissions on this particular order.
      */
     function executeLimitOffer(
         bytes32 _sellToken,
@@ -59,8 +57,8 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         nonReentrant
         returns (
             uint256 offerId_,
-            uint256 buyTokenComissionsPaid_,
-            uint256 sellTokenComissionsPaid_
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
         )
     {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
@@ -97,5 +95,25 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      */
     function getOffer(uint256 _offerId) external view returns (MarketInfo memory _offerState) {
         return LibMarket._getOffer(_offerId);
+    }
+
+    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
+        tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
+    }
+
+    function getNaymsLtdBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getNaymsLtdBP();
+    }
+
+    function getNDFBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getNDFBP();
+    }
+
+    function getSTMBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getSTMBP();
+    }
+
+    function getMakerBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getMakerBP();
     }
 }

@@ -3,10 +3,10 @@ pragma solidity >=0.8.13;
 
 // should add to 100% (1000)
 struct FeeTotal {
-    uint8 tradingComissionNaymsLtdBP;
-    uint8 tradingComissionNDFBP;
-    uint8 tradingComissionSTMBP;
-    uint8 tradingComissionMakerBP;
+    uint8 tradingCommissionNaymsLtdBP;
+    uint8 tradingCommissionNDFBP;
+    uint8 tradingCommissionSTMBP;
+    uint8 tradingCommissionMakerBP;
 }
 
 struct MarketInfo {
@@ -58,7 +58,7 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
-    uint256 sponsorComissionBasisPoints; //underwriter is  parent
+    uint256 sponsorCommissionBasisPoints; //underwriter is  parent
 }
 
 struct Stakeholders {
@@ -84,4 +84,13 @@ struct FeeRatio {
     uint256 brokerShareRatio;
     uint256 naymsLtdShareRatio;
     uint256 ndfShareRatio;
+}
+
+struct TradingCommissions {
+    uint256 roughCommissionPaid;
+    uint256 commissionNaymsLtd;
+    uint256 commissionNDF;
+    uint256 commissionSTM;
+    uint256 commissionMaker;
+    uint256 totalCommissions;
 }
