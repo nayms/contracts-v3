@@ -43,6 +43,8 @@ library LibTokenizedVault {
      */
     event InternalTokenSupplyUpdate(bytes32 indexed tokenId, uint256 newTokenSupply, string functionName, address msgSender);
 
+    event DividendDistribution(uint256 indexed guid, bytes32 from, bytes32 to, bytes32 dividendTokenId, uint256 amount);
+
     function _internalBalanceOf(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.tokenBalances[_tokenId][_ownerId];
@@ -185,6 +187,7 @@ library LibTokenizedVault {
     }
 
     function _payDividend(
+        uint256 _guid,
         bytes32 _from,
         bytes32 _to,
         bytes32 _dividendTokenId,
@@ -221,6 +224,7 @@ library LibTokenizedVault {
             }
         }
         // Events are emitted from the _internalTransfer()
+        DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);
     }
 
     function _getTokenSymbol(bytes32 _objectId) internal view returns (string memory) {
