@@ -53,7 +53,6 @@ library LibObject {
 
     function _getParent(bytes32 _objectId) internal view returns (bytes32) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         return s.objectParent[_objectId];
     }
 
@@ -65,7 +64,6 @@ library LibObject {
 
     function _setParent(bytes32 _objectId, bytes32 _parentId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         s.objectParent[_objectId] = _parentId;
     }
 

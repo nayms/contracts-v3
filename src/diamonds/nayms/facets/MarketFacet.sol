@@ -41,7 +41,6 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      * @param _sellAmount Amount to sell.
      * @param _buyToken Token to buy.
      * @param _buyAmount Amount to buy.
-     * @param _feeSchedule Requested fee schedule, one of the `FEE_SCHEDULE_...` constants.
      * @return offerId_ returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
      * @return buyTokenCommissionsPaid_ The amount of the buy token paid as commissions on this particular order.
      * @return sellTokenCommissionsPaid_ The amount of the sell token paid as commissions on this particular order.
@@ -50,8 +49,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
+        uint256 _buyAmount
     )
         external
         nonReentrant
@@ -62,10 +60,9 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         )
     {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
-        // note: Only the entityId associated with the msg.sender can call executeLimitOffer().
+        // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_SCHEDULE_STANDARD);
     }
 
     /**
@@ -97,22 +94,52 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         return LibMarket._getOffer(_offerId);
     }
 
+    /**
+     * @dev Check if the offer #`_offerId` is active or not.
+     * @param _offerId ID of a particular offer
+     * @return active or not
+     */
+    function isActiveOffer(uint256 _offerId) external view returns (bool) {
+        return LibMarket._isActiveOffer(_offerId);
+    }
+
+    /**
+     * @dev Calculate the trading commissions based on a buy amount.
+     * @param buyAmount The amount that the commissions payments are calculated from.
+     * @return tc TradingCommissions struct todo
+     */
     function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
         tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
     }
 
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms Ltd.
+     * @return bp Nayms Ltd commissions basis points
+     */
     function getNaymsLtdBP() external view returns (uint256 bp) {
         bp = LibFeeRouter._getNaymsLtdBP();
     }
 
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms discretionary Fund.
+     * @return bp Nayms Ltd commissions basis points
+     */
     function getNDFBP() external view returns (uint256 bp) {
         bp = LibFeeRouter._getNDFBP();
     }
 
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms token stakers.
+     * @return bp Nayms Ltd commissions basis points
+     */
     function getSTMBP() external view returns (uint256 bp) {
         bp = LibFeeRouter._getSTMBP();
     }
 
+    /**
+     * @dev Get the basis points earned from trading commissions for the market maker.
+     * @return bp Nayms Ltd commissions basis points
+     */
     function getMakerBP() external view returns (uint256 bp) {
         bp = LibFeeRouter._getMakerBP();
     }

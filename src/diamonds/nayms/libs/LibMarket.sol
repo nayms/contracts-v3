@@ -12,7 +12,7 @@ library LibMarket {
     /// @notice order has been added
     event OrderAdded(
         uint256 indexed orderId,
-        bytes32 indexed taker,
+        bytes32 indexed maker,
         bytes32 indexed sellToken,
         uint256 sellAmount,
         uint256 sellAmountInitial,
@@ -189,7 +189,6 @@ library LibMarket {
             {
                 // do the buy
                 uint256 finalSellAmount = bestBuyAmount < result.remainingSellAmount ? bestBuyAmount : result.remainingSellAmount;
-                // matchedAmount_ += finalSellAmount;
                 (uint256 nextBuyTokenCommissionsPaid, uint256 nextSellTokenCommissionsPaid) = _buy(bestOfferId, _fromEntityId, finalSellAmount);
 
                 // Keep track of total commissions
@@ -205,7 +204,7 @@ library LibMarket {
     }
 
     function _createOffer(
-        bytes32 _from,
+        bytes32 _creator,
         bytes32 _sellToken,
         uint256 _sellAmount,
         uint256 _sellAmountInitial,
@@ -219,7 +218,7 @@ library LibMarket {
         uint256 lastOfferId = ++s.lastOfferId;
 
         MarketInfo memory marketInfo = s.offers[lastOfferId];
-        marketInfo.creator = _from;
+        marketInfo.creator = _creator;
         marketInfo.sellToken = _sellToken;
         marketInfo.sellAmount = _sellAmount;
         marketInfo.sellAmountInitial = _sellAmountInitial;
@@ -234,7 +233,7 @@ library LibMarket {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
 
             // lock tokens!
-            s.marketLockedBalances[_from][_sellToken] += _sellAmount;
+            s.marketLockedBalances[_creator][_sellToken] += _sellAmount;
         }
 
         s.offers[lastOfferId] = marketInfo;
@@ -262,18 +261,17 @@ library LibMarket {
             // Fees are paid only in external token
             // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
-            // If both are internal tokens no commissions are paid
             if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
                 buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
-            } else if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].sellToken)) {
+            } else {
                 sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
             }
         }
 
         s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= actualSellAmount;
 
-        require(LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount), "maker transfer failed");
-        require(LibTokenizedVault._internalTransfer(_makerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount), "taker transfer failed");
+        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
+        LibTokenizedVault._internalTransfer(_makerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount);
 
         // cancel offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
@@ -301,12 +299,9 @@ library LibMarket {
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
 
-        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds int limit");
-        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds int limit");
+        _assertAmounts(_sellAmount, _buyAmount);
 
-        require(_buyAmount > 0, "requested buy amount is 0");
         require(_buyAmount <= offerBuy.amount, "requested buy amount too large");
-        require(_sellAmount > 0, "calculated sell amount is 0");
         require(_sellAmount <= offerSell.amount, "calculated sell amount too large");
 
         // update balances
@@ -323,7 +318,7 @@ library LibMarket {
 
         MarketInfo memory marketInfo = s.offers[_offerId];
 
-        // transfer remaining sell amount back from marketplace (LibConstants.MARKET_IDENTIFIER) to creator
+        // unlock the remaining sell amount back to creator
         if (marketInfo.sellAmount > 0) {
             // note nothing is transferred since tokens for sale are UN-escrowed. Just unlock!
             s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
@@ -336,6 +331,13 @@ library LibMarket {
         }
     }
 
+    function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
+        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds uint128 limit");
+        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds uint128 limit");
+        require(_sellAmount > 0, "sell amount must be >0");
+        require(_buyAmount > 0, "buy amount must be >0");
+    }
+
     function _assertValidOffer(
         bytes32 _entityId,
         bytes32 _sellToken,
@@ -346,25 +348,26 @@ library LibMarket {
     ) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(uint128(_sellAmount) == _sellAmount, "sell amount must be uint128");
-        require(uint128(_buyAmount) == _buyAmount, "buy amount must be uint128");
-        require(_sellAmount > 0, "sell amount must be >0");
-        require(_sellToken != "", "sell token must be valid");
-        require(_buyAmount > 0, "buy amount must be >0");
-        require(_buyToken != "", "buy token must be valid");
+        require(_entityId != 0 && s.existingEntities[_entityId], "must belong to entity to make an offer");
+
+        bool sellTokenIsEntity = s.existingEntities[_sellToken];
+        bool sellTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool buyTokenIsEntity = s.existingEntities[_buyToken];
+        bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+
+        _assertAmounts(_sellAmount, _buyAmount);
+
+        require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
+        require(buyTokenIsEntity || buyTokenIsSupported, "buy token must be valid");
         require(_sellToken != _buyToken, "cannot sell and buy same token");
+        require((sellTokenIsEntity && buyTokenIsSupported) || (sellTokenIsSupported && buyTokenIsEntity), "must be one platform token");
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
-        require(s.tokenBalances[_sellToken][_entityId] - s.marketLockedBalances[_entityId][_sellToken] >= _sellAmount, "verify offer: tokens for sale in mkt");
+        require(s.tokenBalances[_sellToken][_entityId] - s.marketLockedBalances[_entityId][_sellToken] >= _sellAmount, "tokens locked in market");
 
         // must have a valid fee schedule
         require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
-
-        // if caller requested the 'platform action' fee schedule then check that they're allowed to do so
-        if (_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION) {
-            require(address(this) == msg.sender, "only system can omit fees");
-        }
     }
 
     function _getOfferTokenAmounts(uint256 _offerId) internal view returns (TokenAmount memory sell_, TokenAmount memory buy_) {
@@ -377,7 +380,7 @@ library LibMarket {
     }
 
     function _executeLimitOffer(
-        bytes32 _from,
+        bytes32 _creator,
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
@@ -391,23 +394,19 @@ library LibMarket {
             uint256 sellTokenCommissionsPaid_
         )
     {
-        _assertValidOffer(_from, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
+        _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
-        MatchingOfferResult memory result = _matchToExistingOffers(_from, _sellToken, _sellAmount, _buyToken, _buyAmount);
+        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount);
         buyTokenCommissionsPaid_ = result.buyTokenCommissionsPaid;
         sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
-        offerId_ = _createOffer(_from, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
+        offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
 
         // if still some left
         if (result.remainingBuyAmount > 0 && result.remainingSellAmount > 0 && result.remainingSellAmount >= LibConstants.DUST) {
             // ensure it's in the right position in the list
             _insertOfferIntoSortedList(offerId_);
         }
-    }
-
-    function _getMarketId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LibConstants.MARKET_IDENTIFIER);
     }
 
     function _getOffer(uint256 _offerId) internal view returns (MarketInfo memory _offerState) {
@@ -418,5 +417,10 @@ library LibMarket {
     function _getLastOfferId() internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.lastOfferId;
+    }
+
+    function _isActiveOffer(uint256 _offerId) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
     }
 }

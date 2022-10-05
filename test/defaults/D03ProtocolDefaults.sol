@@ -9,20 +9,6 @@ import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
 
-function initEntity(
-    ERC20 _asset,
-    uint256 _collateralRatio,
-    uint256 _maxCapacity,
-    uint256 _utilizedCapacity,
-    bool simplePolicyEnabled
-) pure returns (Entity memory e) {
-    e.assetId = LibHelpers._getIdForAddress(address(_asset));
-    e.collateralRatio = _collateralRatio;
-    e.maxCapacity = _maxCapacity;
-    e.utilizedCapacity = _utilizedCapacity;
-    e.simplePolicyEnabled = simplePolicyEnabled;
-}
-
 contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(address(this));
     bytes32 public naymsTokenId;
@@ -93,5 +79,19 @@ contract D03ProtocolDefaults is D02TestSetup {
         entityId = "0xe1";
         Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
+    }
+
+    function initEntity(
+        ERC20 _asset,
+        uint256 _collateralRatio,
+        uint256 _maxCapacity,
+        uint256 _utilizedCapacity,
+        bool simplePolicyEnabled
+    ) public pure returns (Entity memory e) {
+        e.assetId = LibHelpers._getIdForAddress(address(_asset));
+        e.collateralRatio = _collateralRatio;
+        e.maxCapacity = _maxCapacity;
+        e.utilizedCapacity = _utilizedCapacity;
+        e.simplePolicyEnabled = simplePolicyEnabled;
     }
 }

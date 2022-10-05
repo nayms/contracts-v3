@@ -4,7 +4,6 @@ pragma solidity >=0.8.13;
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { initEntity } from "./T04Entity.t.sol";
 
 contract T02UserTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public virtual override {

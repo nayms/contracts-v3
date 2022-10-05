@@ -21,6 +21,7 @@ out
 
 # Project specific
 .staging
+deployedAddressesTest.json
 
 # VS Code
 .vscode/configurationCache.log

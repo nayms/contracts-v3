@@ -13,13 +13,9 @@ library LibConstants {
     string internal constant NDF_IDENTIFIER = "NDF";
     string internal constant STM_IDENTIFIER = "Staking Mechanism";
     string internal constant SSF_IDENTIFIER = "SSF";
-    string internal constant MARKET_IDENTIFIER = "Market";
     string internal constant NAYM_TOKEN_IDENTIFIER = "NAYM"; //This is the ID in the system as well as the token ID
     string internal constant DIVIDEND_BANK_IDENTIFIER = "Dividend Bank"; //This will hold all the dividends
     string internal constant NAYMS_LTD_IDENTIFIER = "Nayms Ltd";
-    // These should go directly to the receivers
-    string internal constant FEE_BANK_IDENTIFIER = "Deprecated!!!";
-    string internal constant BROKER_FEE_BANK_IDENTIFIER = "Also Deprecated!!!";
 
     //Roles
     string internal constant ROLE_SYSTEM_ADMIN = "System Admin";
@@ -68,7 +64,6 @@ library LibConstants {
     uint256 internal constant OFFER_STATE_FULFILLED = 3;
 
     uint256 internal constant DUST = 1;
-    uint256 internal constant BP_FACTOR = 1000;
 
     /*///////////////////////////////////////////////////////////////////////////
                         SIMPLE POLICY STATES

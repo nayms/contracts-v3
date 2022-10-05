@@ -18,8 +18,6 @@ struct AppStorage {
     //// NAYMS ERC20 TOKEN ////
     mapping(address => uint256) nonces; //is this used?
     mapping(address => mapping(address => uint256)) allowance;
-    address[] approvedContracts; // Is this used?
-    mapping(address => uint256) approvedContractIndexes; // Is this used?
     uint256 totalSupply;
     mapping(bytes32 => bool) internalToken;
     mapping(address => uint256) balances;
@@ -102,15 +100,10 @@ struct AppStorage {
     mapping(bytes32 => uint256) userStakingCheckpointEpoch; // userID => user_epoch
     mapping(uint256 => int128) stakingSlopeChanges; // timestamp => signed slope change
     uint256 stakingEpoch;
-    // uint256 stakedSupply; // todo READY TO BE REMOVED. use the internal total supply variable instead
     // Keep track of the different tokens owned on chain
     mapping(bytes32 => mapping(bytes32 => uint8)) ownedTokenIndex; // ownerId => tokenId => index
     mapping(bytes32 => mapping(uint8 => bytes32)) ownedTokenAtIndex; // ownerId => index => tokenId
     mapping(bytes32 => uint8) numOwnedTokens; //starts at 1. 0 means no tokens owned
-    // ownedTokenIndex
-    // ownedTokenAtIndex
-    // numOwnedTokens
-
     // issuedDividendsIndex
     // issuedDividendsAtIndex
     // numIssuedDividends

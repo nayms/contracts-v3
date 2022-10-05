@@ -8,7 +8,6 @@ contract Constants {
     string public constant NDF_IDENTIFIER = "NDF";
     string public constant STM_IDENTIFIER = "Staking Mechanism";
     string public constant SSF_IDENTIFIER = "SSF";
-    string public constant MARKET_IDENTIFIER = "Market";
     string public constant NAYM_TOKEN_IDENTIFIER = "NAYM"; //This is the ID in the system as well as the token ID
     string public constant DIVIDEND_BANK_IDENTIFIER = "Dividend Bank"; //This will hold all the dividends
     string public constant NAYMS_LTD_IDENTIFIER = "Nayms Ltd";
@@ -63,6 +62,7 @@ contract Constants {
     uint256 public constant OFFER_STATE_FULFILLED = 3;
 
     uint256 public constant DUST = 1;
+    uint256 public constant BP_FACTOR = 1000;
 
     /*///////////////////////////////////////////////////////////////////////////
                         SIMPLE POLICY STATES
