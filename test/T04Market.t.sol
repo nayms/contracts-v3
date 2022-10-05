@@ -194,9 +194,11 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
         vm.stopPrank();
 
+        assertEq(nayms.internalBalanceOf(entity1, nWETH), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
+
         // assert trading commisions payed
         uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 4) / 1000; // see AppStorage: 4 => s.tradingComissionTotalBP
-        assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Trading commisions should be payed");
+        assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
         uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / 2); // see AppStorage: 2 => s.tradingComissionNaymsLtdBP
         assertEq(
