@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-// should add to 100% (1000)
-struct FeeTotal {
-    uint8 tradingCommissionNaymsLtdBP;
-    uint8 tradingCommissionNDFBP;
-    uint8 tradingCommissionSTMBP;
-    uint8 tradingCommissionMakerBP;
-}
-
 struct MarketInfo {
     bytes32 creator; // entity ID
     bytes32 sellToken;
@@ -58,7 +50,7 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
-    uint256 sponsorCommissionBasisPoints; //underwriter is  parent
+    uint256 sponsorCommissionBasisPoints; //underwriter is parent
 }
 
 struct Stakeholders {

@@ -11,6 +11,7 @@ import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
+import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
 
 /* 
     Terminology:
@@ -54,6 +55,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     uint256 internal constant maxCapital_3000eth = 3_000 ether;
     uint256 internal constant totalLimit_2000eth = 2_000 ether;
 
+    TradingCommissionsFixture internal tradingCommissionsFixture;
+
     TestInfo public dt =
         TestInfo({
             entity1StartingBal: 10_000 ether,
@@ -82,6 +85,16 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(wbtcAddress);
 
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+
+        // setup trading commissions fixture
+        tradingCommissionsFixture = new TradingCommissionsFixture();
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = tradingCommissionsFixture.getCommissionsConfig.selector;
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
     }
 
     function testStartTokenSale() public {
@@ -196,20 +209,24 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.internalBalanceOf(entity1, nWETH), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
 
+        TradingCommissionsConfig memory c = getCommissions();
+
         // assert trading commisions payed
-        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 4) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
+        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * c.tradingCommissionTotalBP) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / 2); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / c.tradingCommissionNaymsLtdBP); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
+        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / c.tradingCommissionNDFBP); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
+        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / c.tradingCommissionSTMBP); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
             naymsBalanceAfterTrade,
             "Nayms should receive half of trading commissions"
         );
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH), naymsBalanceAfterTrade / 2, "NDF should get a trading commission");
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), nWETH), ndfBalanceAfterTrade, "NDF should get a trading commission");
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), nWETH),
-            naymsBalanceAfterTrade / 2,
+            stmBalanceAfterTrade,
             "Staking mechanism should get a trading commission"
         );
 
@@ -524,6 +541,12 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyAmount, buyAmount, "invalid buy amount");
         assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "invalid state");
+    }
+
+    function getCommissions() internal returns (TradingCommissionsConfig memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
+        require(success, "Should get commissions from app storage");
+        return abi.decode(result, (TradingCommissionsConfig));
     }
 
     function testLibFeeRouter() public {
