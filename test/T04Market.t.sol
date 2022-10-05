@@ -197,10 +197,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity1, nWETH), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
 
         // assert trading commisions payed
-        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 4) / 1000; // see AppStorage: 4 => s.tradingComissionTotalBP
+        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 4) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / 2); // see AppStorage: 2 => s.tradingComissionNaymsLtdBP
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / 2); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
             naymsBalanceAfterTrade,
@@ -275,7 +275,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("MultiToken: mint zero tokens");
             nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingComissionTotalBP`
+            uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingCommissionTotalBP`
             nayms.externalDeposit(entity2, wethAddress, e2Balance);
 
             // putting an offer on behalf of entity1 to sell their nENTITY1 for the entity's associated asset
@@ -531,8 +531,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         bytes4[] memory functionSelectors = new bytes4[](2);
-        functionSelectors[0] = libFeeRouterFixture.payPremiumComissions.selector;
-        functionSelectors[1] = libFeeRouterFixture.payTradingComissions.selector;
+        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
+        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
 
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
@@ -541,7 +541,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         bytes32 policyId;
         uint256 premiumPaid;
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumComissions.selector, policyId, premiumPaid));
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId, premiumPaid));
     }
     // executeLimitOffer() with a remaining amount of sell token, buy token
     // todo test order with two platform tokens, two entity tokens, eventually test with staking token (todo should this be allowed?)

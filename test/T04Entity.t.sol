@@ -93,6 +93,18 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
     }
 
+    function testEnableEntityTokenization() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+
+        vm.expectRevert("symbol more than 16 characters");
+        nayms.enableEntityTokenization(entityId1, "1234567890123456");
+
+        nayms.enableEntityTokenization(entityId1, "123456789012345");
+
+        vm.expectRevert("object already tokenized");
+        nayms.enableEntityTokenization(entityId1, "123456789012345");
+    }
+
     function testUpdateEntity() public {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 

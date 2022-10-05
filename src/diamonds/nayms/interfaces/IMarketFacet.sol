@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { MarketInfo } from "./FreeStructs.sol";
+import { MarketInfo, TradingCommissions } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -17,8 +17,8 @@ interface IMarketFacet {
      * @param _buyToken Token to buy.
      * @param _buyAmount Amount to buy.
      * @return offerId_ returns >0 if a limit offer was created on the market because the offer couldn't be totally fulfilled immediately. In this case the return value is the created offer's id.
-     * @return buyTokenComissionsPaid_ The amount of the buy token paid as commissions on this particular order.
-     * @return sellTokenComissionsPaid_ The amount of the sell token paid as commissions on this particular order.
+     * @return buyTokenCommissionsPaid_ The amount of the buy token paid as commissions on this particular order.
+     * @return sellTokenCommissionsPaid_ The amount of the sell token paid as commissions on this particular order.
      */
     function executeLimitOffer(
         bytes32 _sellToken,
@@ -29,8 +29,8 @@ interface IMarketFacet {
         external
         returns (
             uint256 offerId_,
-            uint256 buyTokenComissionsPaid_,
-            uint256 sellTokenComissionsPaid_
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
         );
 
     /**
@@ -86,4 +86,35 @@ interface IMarketFacet {
      * @return active or not
      */
     function isActiveOffer(uint256 _offerId) external view returns (bool);
+
+    /**
+     * @dev Calculate the trading commissions based on a buy amount.
+     * @param buyAmount The amount that the commissions payments are calculated from.
+     * @return tc TradingCommissions struct todo
+     */
+    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms Ltd.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getNaymsLtdBP() external view returns (uint256 bp);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms discretionary Fund.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getNDFBP() external view returns (uint256 bp);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms token stakers.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getSTMBP() external view returns (uint256 bp);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for the market maker.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getMakerBP() external view returns (uint256 bp);
 }

@@ -149,17 +149,17 @@ struct AppStorage {
     address pool;
     address uniswapFactory;
     /// Trading Commissions (all in basis points) ///
-    uint16 tradingComissionTotalBP; // the total amount that is deducted for trading commissions (BP)
-    // The total comission above is further divided as follows:
-    uint16 tradingComissionNaymsLtdBP;
-    uint16 tradingComissionNDFBP;
-    uint16 tradingComissionSTMBP;
-    uint16 tradingComissionMakerBP;
+    uint16 tradingCommissionTotalBP; // the total amount that is deducted for trading commissions (BP)
+    // The total commission above is further divided as follows:
+    uint16 tradingCommissionNaymsLtdBP;
+    uint16 tradingCommissionNDFBP;
+    uint16 tradingCommissionSTMBP;
+    uint16 tradingCommissionMakerBP;
     // Premium Commissions
-    uint16 premiumComissionNaymsLtdBP;
-    uint16 premiumComissionNDFBP;
-    uint16 premiumComissionSTMBP;
-    // A policy can pay out additional comissions on premiums to entities having a variety of roles on the policy
+    uint16 premiumCommissionNaymsLtdBP;
+    uint16 premiumCommissionNDFBP;
+    uint16 premiumCommissionSTMBP;
+    // A policy can pay out additional commissions on premiums to entities having a variety of roles on the policy
 
     mapping(bytes32 => mapping(bytes32 => uint256)) marketLockedBalances; // to keep track of an owner's tokens that are on sale in the marketplace, ownerId => lockedTokenId => amount
 }
@@ -169,10 +169,6 @@ library LibAppStorage {
         assembly {
             ds.slot := 0
         }
-    }
-
-    function abs(int256 x) internal pure returns (uint256) {
-        return uint256(x >= 0 ? x : -x);
     }
 }
 
