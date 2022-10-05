@@ -85,3 +85,12 @@ struct FeeRatio {
     uint256 naymsLtdShareRatio;
     uint256 ndfShareRatio;
 }
+
+struct TradingCommissions {
+    uint256 roughCommissionPaid;
+    uint256 commissionNaymsLtd;
+    uint256 commissionNDF;
+    uint256 commissionSTM;
+    uint256 commissionMaker;
+    uint256 totalCommissions;
+}

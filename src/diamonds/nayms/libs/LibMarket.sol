@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, LibAppStorage, MarketInfo, TokenAmount } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, MarketInfo, TokenAmount, TradingCommissions } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
@@ -246,7 +246,7 @@ library LibMarket {
     function _buy(
         uint256 _offerId,
         bytes32 _makerId,
-        uint256 _requestedBuyAmount // entity token(?)
+        uint256 _requestedBuyAmount
     ) internal returns (uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
