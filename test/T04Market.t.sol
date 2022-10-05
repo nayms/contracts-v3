@@ -215,9 +215,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 totalCommissions = (dt.entity1MintAndSaleAmt * c.tradingCommissionTotalBP) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / c.tradingCommissionNaymsLtdBP); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
-        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / c.tradingCommissionNDFBP); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
-        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + (totalCommissions / c.tradingCommissionSTMBP); // see AppStorage: 2 => s.tradingCommissionNaymsLtdBP
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionNaymsLtdBP) / 1000);
+        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionNDFBP) / 1000);
+        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionSTMBP) / 1000);
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
             naymsBalanceAfterTrade,
