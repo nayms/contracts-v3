@@ -82,4 +82,24 @@ library LibFeeRouter {
         // Work it out again so the math is precise, ignoring remainers
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
     }
+
+    function _getNaymsLtdBP() internal view returns (uint256 bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp = s.tradingCommissionNaymsLtdBP;
+    }
+
+    function _getNDFBP() internal view returns (uint256 bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp = s.tradingCommissionNDFBP;
+    }
+
+    function _getSTMBP() internal view returns (uint256 bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp = s.tradingCommissionSTMBP;
+    }
+
+    function _getMakerBP() internal view returns (uint256 bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp = s.tradingCommissionMakerBP;
+    }
 }

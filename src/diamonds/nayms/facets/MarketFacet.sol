@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { MarketInfo, Modifiers } from "../AppStorage.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { MarketInfo, Modifiers, LibConstants, LibHelpers, LibObject } from "../AppStorage.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
-import { LibObject } from "../libs/LibObject.sol";
+import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
@@ -97,5 +95,21 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      */
     function getOffer(uint256 _offerId) external view returns (MarketInfo memory _offerState) {
         return LibMarket._getOffer(_offerId);
+    }
+
+    function getNaymsLtdBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getNaymsLtdBP();
+    }
+
+    function getNDFBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getNDFBP();
+    }
+
+    function getSTMBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getSTMBP();
+    }
+
+    function getMakerBP() external view returns (uint256 bp) {
+        bp = LibFeeRouter._getMakerBP();
     }
 }

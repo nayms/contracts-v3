@@ -81,4 +81,28 @@ interface IMarketFacet {
      * @return _offerState details of the offer
      */
     function getOffer(uint256 _offerId) external view returns (MarketInfo memory _offerState);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms Ltd.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getNaymsLtdBP() external view returns (uint256 bp);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms discretionary Fund.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getNDFBP() external view returns (uint256 bp);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for Nayms token stakers.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getSTMBP() external view returns (uint256 bp);
+
+    /**
+     * @dev Get the basis points earned from trading commissions for the market maker.
+     * @return bp Nayms Ltd commissions basis points
+     */
+    function getMakerBP() external view returns (uint256 bp);
 }
