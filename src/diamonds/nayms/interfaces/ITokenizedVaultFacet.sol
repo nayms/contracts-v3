@@ -76,21 +76,6 @@ interface ITokenizedVaultFacet {
     function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external;
 
     /**
-     * @notice Pay dividends
-     * @dev Transfer dividends to the receiver
-     * @param guid Globally unique identifier of a dividend distribution.
-     * @param to object ID of the dividend receiver.
-     * @param dividendTokenId the internal token Id of the token to be paid as dividends.
-     * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
-     */
-    function payDividend(
-        uint256 guid,
-        bytes32 to,
-        bytes32 dividendTokenId,
-        uint256 amount
-    ) external;
-
-    /**
      * @notice Pay dividends from sender's entity
      * @dev Transfer dividends from sender's entity to the receiver
      * @param guid Globally unique identifier of a dividend distribution.

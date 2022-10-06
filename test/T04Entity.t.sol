@@ -392,7 +392,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.prank(account9);
         vm.expectRevert("not a system manager");
-        nayms.paySimpleClaim(policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         vm.stopPrank();
 
         // setup insured party account
@@ -401,14 +401,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.setEntity(LibHelpers._getIdForAddress(signer4), DEFAULT_INSURED_PARTY_ENTITY_ID);
 
         vm.expectRevert("exceeds policy limit");
-        nayms.paySimpleClaim(policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10001);
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10001);
 
         uint256 claimAmount = 1000;
         uint256 balanceBeforeClaim = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset);
         simplePolicy = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicy.claimsPaid, 0);
 
-        nayms.paySimpleClaim(policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
 
         simplePolicy = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicy.claimsPaid, 1000);

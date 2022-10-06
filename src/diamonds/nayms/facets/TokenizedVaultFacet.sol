@@ -112,20 +112,8 @@ contract TokenizedVaultFacet is Modifiers {
      * @param dividendTokenId the internal token Id of the token to be paid as dividends.
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
-    function payDividend(
-        uint256 guid,
-        bytes32 to,
-        bytes32 dividendTokenId,
-        uint256 amount
-    ) external {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
-        require(LibTokenizedVault._internalBalanceOf(senderId, dividendTokenId) >= amount, "_payDividend: insufficient balance");
-
-        LibTokenizedVault._payDividend(guid, senderId, to, dividendTokenId, amount);
-    }
-
     function payDividendFromEntity(
-        uint256 guid,
+        bytes32 guid,
         bytes32 to,
         bytes32 dividendTokenId,
         uint256 amount

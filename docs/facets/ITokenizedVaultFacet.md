@@ -116,24 +116,6 @@ Transfer dividends to the entity
   function withdrawAllDividends(
   ) external
 ```
-### payDividend
-```solidity
-  function payDividend(
-    uint256 guid,
-    bytes32 to,
-    bytes32 dividendTokenId,
-    uint256 amount
-  ) external
-```
-Pay dividends
-Transfer dividends to the receiver
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
-|`guid` | uint256 | Globally unique identifier of a dividend distribution.
-|`to` | bytes32 | object ID of the dividend receiver.
-|`dividendTokenId` | bytes32 | the internal token Id of the token to be paid as dividends.
-|`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.
 ### payDividendFromEntity
 ```solidity
   function payDividendFromEntity(
