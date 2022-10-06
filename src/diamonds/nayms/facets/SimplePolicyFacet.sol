@@ -26,16 +26,18 @@ contract SimplePolicyFacet is Modifiers {
 
     /**
      * @dev Pay a claim of `_amount` for simple policy
+     * @param _claimId Id of the simple policy claim
      * @param _policyId Id of the simple policy
      * @param _insuredId Id of the insured party
      * @param _amount Amount of the claim
      */
     function paySimpleClaim(
+        bytes32 _claimId,
         bytes32 _policyId,
         bytes32 _insuredId,
         uint256 _amount
     ) external assertSysMgr {
-        LibSimplePolicy._payClaim(_policyId, _insuredId, _amount);
+        LibSimplePolicy._payClaim(_claimId, _policyId, _insuredId, _amount);
     }
 
     /**

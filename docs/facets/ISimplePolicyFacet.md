@@ -17,7 +17,8 @@ Pay a premium of `_amount` on simple policy
 ### paySimpleClaim
 ```solidity
   function paySimpleClaim(
-    bytes32 _id,
+    bytes32 _claimId,
+    bytes32 _policyId,
     bytes32 _insuredId,
     uint256 _amount
   ) external
@@ -26,7 +27,8 @@ Pay a claim of `_amount` for simple policy
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
-|`_id` | bytes32 | Id of the simple policy
+|`_claimId` | bytes32 | Id of the simple policy claim
+|`_policyId` | bytes32 | Id of the simple policy
 |`_insuredId` | bytes32 | Id of the insured party
 |`_amount` | uint256 | Amount of the claim
 ### getSimplePolicyInfo

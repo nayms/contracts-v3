@@ -12,7 +12,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 library LibSimplePolicy {
     event SimplePolicyStateUpdated(bytes32 id, address indexed caller);
     event SimplePolicyPremiumPaid(bytes32 indexed id, uint256 amount);
-    event SimplePolicyClaimPaid(bytes32 indexed policyId, bytes32 indexed insuredId, uint256 amount);
+    event SimplePolicyClaimPaid(bytes32 indexed _claimId, bytes32 indexed policyId, bytes32 indexed insuredId, uint256 amount);
 
     function _getSimplePolicyInfo(bytes32 _policyId) internal view returns (SimplePolicy memory simplePolicyInfo) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -54,22 +54,26 @@ library LibSimplePolicy {
     }
 
     function _payClaim(
+        bytes32 _claimId,
         bytes32 _policyId,
         bytes32 _insuredEntityId,
         uint256 _amount
     ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
         require(_amount > 0, "invalid claim amount");
         require(LibACL._isInGroup(_insuredEntityId, _policyId, LibHelpers._stringToBytes32(LibConstants.GROUP_INSURED_PARTIES)), "not an insured party");
 
-        AppStorage storage s = LibAppStorage.diamondStorage();
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
 
         uint256 claimsPaid = simplePolicy.claimsPaid;
         require(simplePolicy.limit >= _amount + claimsPaid, "exceeds policy limit");
         simplePolicy.claimsPaid += _amount;
 
+        LibObject._createObject(_claimId);
+
         LibTokenizedVault._internalTransfer(LibObject._getParent(_policyId), _insuredEntityId, simplePolicy.asset, _amount);
 
-        emit SimplePolicyClaimPaid(_policyId, _insuredEntityId, _amount);
+        emit SimplePolicyClaimPaid(_claimId, _policyId, _insuredEntityId, _amount);
     }
 }
