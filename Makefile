@@ -38,8 +38,11 @@ buniswap    :; forge build --root . --contracts lib/v3-core/contracts --remappin
 bscript     :; forge build --root . --contracts script/
 
 # forge test local
-t           :; forge test
 test        :; forge test
+t           :; forge test
+tt          :; forge test -vv
+ttt         :; forge test -vvv
+tttt        :; forge test -vvvv
 
 tlocal      :; @forge t --no-match-contract T03NaymsTokenTest --ffi
 
@@ -48,47 +51,24 @@ tlocalgs    :; forge t --no-match-contract T03NaymsTokenTest \
 				-j \
 				--ffi
 
-# forge test fork
-testfork    :; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				--gas-report
-	
-# unique fork tests
-tCreatePool :; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--mt testWithNaymsTokenCreateLiquidityPool \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w
-tswap		:; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--mt testSwapNayms \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w
-tswapf		:; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--mt testSwapNayms \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w
-tdiscount	:; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--mt testPurchaseDiscountedNAYMFromNDF \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w
-tStaking 	:; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--mt testStaking \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w				
-tWithdrawS  :; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--mt testWithdrawStakedTokens \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w
-tMarket01   :; forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--mt testWithFeesSwapEntityTokenToExternalToken \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				-vvvv -w
+.PHONY: testGoerli
+testGoerli:	# test forking goerli
+						forge test -f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+							--fork-block-number 7602168 \
+							--mt $(MT) \
+							--etherscan-api-key ${ETHERSCAN_API_KEY} \
+							-vvvv
+tg:	testGoerli
+
+.PHONY: testMainnet
+testMainnet:	# test forking mainnet
+							forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+							--fork-block-number 7602168 \
+							--mt $(MT) \
+							--etherscan-api-key ${ETHERSCAN_API_KEY} \
+							-vvvv
+tm:	testMainnet
+
 # gas snapshot
 gas				:; forge snapshot --check
 gasforksnap     :; forge snapshot --snap .gas-snapshot \
@@ -102,14 +82,11 @@ gasforkdiff     :; forge snapshot --diff \
 					-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 					--fork-block-number 15078000 \
 					--via-ir
-# common tests
-tv4 		 :; forge test --mt testStaking -vvvv -w
 
 # coverage
-cov         :; forge coverage -vvv --ffi
-coverage    :; forge coverage -vvv --report lcov --ffi && node ./cli-tools/filter-lcov.js 
-lcov        :; forge coverage --report lcov \
-				--via-ir
+cov         :; forge coverage -vvv
+coverage    :; forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js 
+lcov        :; forge coverage --report lcov --via-ir
 lcovfork    :; forge coverage --report lcov \
 				-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 				--fork-block-number 15078000 \
@@ -119,7 +96,6 @@ lcovfork    :; forge coverage --report lcov \
 swap        :; @forge script Swap \
 				-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 				-vvvv
-
 
 swapc       :; @forge script Swap \
 				-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
@@ -179,9 +155,6 @@ smart-deploy-anvil :; forge script SmartDeploy \
 				--ffi \
 				--broadcast
 
-
-deploy-goerli-fork :;
-deploy-mainnet-fork :;
 
 subgraph-abi :; yarn subgraph:abi
 

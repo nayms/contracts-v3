@@ -127,13 +127,19 @@ make smart-deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum>
 
 Below are several examples on how you would use the smart deploy scripts.
 
-To upgrade the facets that have been changed since the last deployment, run the following:
+For a __fresh new deployment__ of the entire project, execute this command:
+
+```zsh
+make smart-deploy newDiamond=true initNewDiamond=true facetAction=1 facetsToCutIn="[]"
+```
+
+To __upgrade the facets that have been changed__ since the last deployment, run the following:
 
 ```zsh
 make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=1 facetsToCutIn="[]"
 ```
 
-To upgrade specific set of facets, run command like this one:
+To __upgrade specific set of facets__, run command like this one:
 
 ```zsh
 make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
@@ -166,6 +172,23 @@ Make sure the version you need is in this list, or choose the closest one and in
 ```zsh
 svm install "0.7.6"
 ```
+
+### Fork testing
+
+Convenience targets are provided in the Makefile for running a specific test against a forked network.
+
+To run a test against a Goerli fork us the following command passing in the test matching expression i.e. `testStartTokenSale`
+
+```zsh
+make testGoerli MT=testStartTokenSale
+```
+
+Similarly a Mainnet fork test can be executed via:
+
+```zsh
+make testMainnet MT=testStartTokenSale
+```
+
 
 ## Staging for Production Deployment Flow
 
