@@ -244,7 +244,7 @@ library LibMarket {
 
     function _buy(
         uint256 _offerId,
-        bytes32 _makerId,
+        bytes32 _takerId,
         uint256 _requestedBuyAmount
     ) internal returns (uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -262,16 +262,16 @@ library LibMarket {
             // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
             if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
-                buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
+                buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
             } else {
-                sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
+                sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualSellAmount);
             }
         }
 
         s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= actualSellAmount;
 
-        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _makerId, s.offers[_offerId].sellToken, actualSellAmount);
-        LibTokenizedVault._internalTransfer(_makerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount);
+        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualSellAmount);
+        LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount);
 
         // cancel offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
@@ -281,7 +281,7 @@ library LibMarket {
 
         emit OrderExecuted(
             _offerId,
-            _makerId,
+            _takerId,
             s.offers[_offerId].sellToken,
             s.offers[_offerId].sellAmount,
             s.offers[_offerId].buyToken,
