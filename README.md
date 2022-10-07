@@ -130,7 +130,7 @@ Below are several examples on how you would use the smart deploy scripts.
 For a __fresh new deployment__ of the entire project, execute this command:
 
 ```zsh
-make smart-deploy newDiamond=true initNewDiamond=true facetAction=1 facetsToCutIn="[]"
+make smart-deploy-sim newDiamond=true initNewDiamond=true facetAction=1 facetsToCutIn="[]"
 ```
 
 To __upgrade the facets that have been changed__ since the last deployment, run the following:
@@ -144,6 +144,7 @@ To __upgrade specific set of facets__, run command like this one:
 ```zsh
 make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
 ```
+> :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` sufix from the target name
 
 ## Development Flow
 
@@ -188,7 +189,6 @@ Similarly a Mainnet fork test can be executed via:
 ```zsh
 make testMainnet MT=testStartTokenSale
 ```
-
 
 ## Staging for Production Deployment Flow
 
