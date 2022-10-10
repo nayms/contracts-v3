@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Modifiers, LibConstants, LibHelpers, LibObject, MultiToken } from "../AppStorage.sol";
+import { AppStorage, Modifiers, LibConstants, LibHelpers, MultiToken } from "../AppStorage.sol";
 
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
+import { LibObject } from "../libs/LibObject.sol";
+import { LibEntity } from "../libs/LibEntity.sol";
 
 /**
  * @title Token Vault
@@ -113,7 +115,7 @@ contract TokenizedVaultFacet is Modifiers {
     function payDividendFromEntity(bytes32 guid, uint256 amount) external {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         bytes32 entityId = LibObject._getParent(senderId);
-        bytes32 dividendTokenId = s.entities[entityId].assetId;
+        bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 

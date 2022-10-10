@@ -12,6 +12,7 @@ import { IACLFacet } from "./interfaces/IACLFacet.sol";
 import { IUserFacet } from "./interfaces/IUserFacet.sol";
 import { IAdminFacet } from "./interfaces/IAdminFacet.sol";
 import { ISystemFacet } from "./interfaces/ISystemFacet.sol";
+import { INaymsTokenFacet } from "./interfaces/INaymsTokenFacet.sol";
 import { ITokenizedVaultFacet } from "./interfaces/ITokenizedVaultFacet.sol";
 import { ITokenizedVaultIOFacet } from "./interfaces/ITokenizedVaultIOFacet.sol";
 import { IMarketFacet } from "./interfaces/IMarketFacet.sol";
@@ -32,6 +33,7 @@ interface INayms is
     IAdminFacet,
     IUserFacet,
     ISystemFacet,
+    INaymsTokenFacet,
     ITokenizedVaultFacet,
     ITokenizedVaultIOFacet,
     IMarketFacet,

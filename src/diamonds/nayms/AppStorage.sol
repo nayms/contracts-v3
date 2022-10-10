@@ -4,14 +4,10 @@ pragma solidity >=0.8.13;
 /// @notice storage for nayms v3 decentralized insurance platform
 
 import "./interfaces/FreeStructs.sol";
-
 import { LibMeta } from "../shared/libs/LibMeta.sol";
-
 import { LibAdmin } from "./libs/LibAdmin.sol";
 import { LibConstants } from "./libs/LibConstants.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
-import { LibObject } from "./libs/LibObject.sol";
-
 import { LibACL } from "./libs/LibACL.sol";
 
 struct AppStorage {
@@ -173,8 +169,6 @@ library LibAppStorage {
 }
 
 contract Modifiers {
-    AppStorage internal s;
-
     modifier assertSysAdmin() {
         require(
             LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_ADMINS)),

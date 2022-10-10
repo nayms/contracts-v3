@@ -78,4 +78,22 @@ interface IACLFacet {
      * @return roleId objectId's role in the contextId
      */
     function getRoleInContext(bytes32 objectId, bytes32 contextId) external view returns (bytes32);
+
+    /**
+     * @notice Get whether role is in group.
+     * @dev Get whether role is in group.
+     * @param role the role.
+     * @param group the group.
+     * @return true if role is in group, false otherwise.
+     */
+    function isRoleInGroup(string memory role, string memory group) external view returns (bool);
+
+    /**
+     * @notice Get whether given group can assign given role.
+     * @dev Get whether given group can assign given role.
+     * @param role the role.
+     * @param group the group.
+     * @return true if role can be assigned by group, false otherwise.
+     */
+    function canGroupAssignRole(string memory role, string memory group) external view returns (bool);
 }

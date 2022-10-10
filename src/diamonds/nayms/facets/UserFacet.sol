@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Modifiers, LibHelpers, LibObject } from "../AppStorage.sol";
+import { AppStorage, Modifiers, LibHelpers } from "../AppStorage.sol";
+import { LibMarket } from "../libs/LibMarket.sol";
+import { LibObject } from "../libs/LibObject.sol";
 
 /**
  * @title Users
@@ -56,6 +58,6 @@ contract UserFacet is Modifiers {
      * @return amount of tokens that the entity has for sale in the marketplace.
      */
     function getBalanceOfTokensForSale(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount) {
-        amount = s.marketLockedBalances[_entityId][_tokenId];
+        amount = LibMarket._getBalanceOfTokensForSale(_entityId, _tokenId);
     }
 }

@@ -279,12 +279,14 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
         // brokers can't usually assign approved users
         assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertFalse(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
 
         // now change this
         vm.recordLogs();
 
         nayms.updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS);
         assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertTrue(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
@@ -306,12 +308,14 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
         // brokers can't usually assign approved users
         assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertFalse(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
 
         // now change this
         vm.recordLogs();
 
         nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
         assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertTrue(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);

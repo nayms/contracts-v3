@@ -5,6 +5,7 @@ import { AppStorage, Modifiers, LibHelpers } from "../AppStorage.sol";
 
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
+import { LibEntity } from "../libs/LibEntity.sol";
 
 /**
  * @title Token Vault IO
@@ -26,7 +27,7 @@ contract TokenizedVaultIOFacet is Modifiers {
         uint256 _amount
     ) external {
         // a user can only deposit to a valid entity
-        require(s.existingEntities[_receiverId], "extDeposit: invalid receiver");
+        require(LibEntity._isEntity(_receiverId), "extDeposit: invalid receiver");
 
         LibTokenizedVaultIO._externalDeposit(_receiverId, _externalTokenAddress, _amount);
     }

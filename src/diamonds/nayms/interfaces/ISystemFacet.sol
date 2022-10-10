@@ -29,4 +29,27 @@ interface ISystemFacet {
      * @param _strIn a string
      */
     function stringToBytes32(string memory _strIn) external pure returns (bytes32 result);
+
+    /**
+     * @dev Get whether given id is an object in the system.
+     * @param _id object id.
+     * @return true if it is an object, false otherwise
+     */
+    function isObject(bytes32 _id) external view returns (bool);
+
+    /**
+     * @dev Get meta of given object.
+     * @param _id object id.
+     * @return parent object parent
+     * @return dataHash object data hash
+     * @return tokenSymbol object token symbol
+     */
+    function getObjectMeta(bytes32 _id)
+        external
+        view
+        returns (
+            bytes32 parent,
+            bytes32 dataHash,
+            bytes32 tokenSymbol
+        );
 }

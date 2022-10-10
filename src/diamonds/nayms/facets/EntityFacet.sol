@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { Entity, Modifiers, SimplePolicy, Stakeholders, LibObject } from "../AppStorage.sol";
+import { Entity, Modifiers, SimplePolicy, Stakeholders } from "../AppStorage.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
 /**
@@ -12,7 +13,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  */
 contract EntityFacet is Modifiers, ReentrancyGuard {
     modifier assertSimplePolicyEnabled(bytes32 _entityId) {
-        require(s.entities[_entityId].simplePolicyEnabled, "simple policy creation disabled");
+        require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
         _;
     }
 

@@ -15,7 +15,7 @@ const facetNames = glob.sync('*Facet.sol', { cwd: FACETS_SRC_DIR }).map(a => pat
 
 // load interfaces and methods
 const facetData = {}
-const REGEX = /function ([A-Za-z0-9_]+)\(/ig
+const REGEX = /^\s+function ([A-Za-z0-9_]+)\(/igm
 facetNames.forEach(f => {
   try {
     const interfaceName = `I${f}Facet`
