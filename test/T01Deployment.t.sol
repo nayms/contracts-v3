@@ -2,6 +2,7 @@
 pragma solidity >=0.8.13;
 
 import "forge-std/Test.sol";
+import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
@@ -40,7 +41,21 @@ contract T01DeploymentTest is D03ProtocolDefaults {
 
     function testInitDiamond() public {
         InitDiamondFixture fixture = new InitDiamondFixture();
+
+        vm.recordLogs();
+
         fixture.initialize();
+
+        // check logs
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        Vm.Log memory entry = entries[entries.length - 1];
+        assertEq(entry.topics.length, 1);
+        assertEq(entry.topics[0], keccak256("InitializeDiamond(address,bytes32)"));
+        (address a, bytes32 b) = abi.decode(entry.data, (address, bytes32));
+        assertEq(a, account0);
+        assertEq(b, account0Id);
+
+        // check storage
 
         assertEq(fixture.totalSupply(), 1_000_000_000e18);
         assertEq(fixture.balanceOf(account0), 1_000_000_000e18);
