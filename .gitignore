@@ -41,3 +41,5 @@ broadcast/**/31337/*
 
 // subgraph artifact
 NaymsDiamond.json
+
+broadcast/**/dry-run
