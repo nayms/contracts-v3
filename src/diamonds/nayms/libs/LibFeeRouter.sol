@@ -8,14 +8,13 @@ import { LibConstants } from "../libs/LibConstants.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 
 library LibFeeRouter {
-    event DistributeFees(address operator, uint256 totalFeesDistributed);
-    event RecordDividend(bytes32 entityId, bytes32 dividendDenomination, uint256 amount);
+    event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
+    event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
 
     function _payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
-
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
@@ -27,9 +26,12 @@ library LibFeeRouter {
         uint256 commissionNaymsLtd = (_premiumPaid * s.premiumCommissionNaymsLtdBP) / 1000;
         uint256 commissionNDF = (_premiumPaid * s.premiumCommissionNDFBP) / 1000;
         uint256 commissionSTM = (_premiumPaid * s.premiumCommissionSTMBP) / 1000;
+
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), simplePolicy.asset, commissionNaymsLtd);
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), simplePolicy.asset, commissionNDF);
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
+
+        emit PremiumCommissionsPaid(_policyId, policyEntityId, _premiumPaid);
     }
 
     function _payTradingCommissions(
@@ -39,6 +41,7 @@ library LibFeeRouter {
         uint256 _requestedBuyAmount
     ) internal returns (uint256 commissionPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         require(s.tradingCommissionNaymsLtdBP + s.tradingCommissionNDFBP + s.tradingCommissionSTMBP + s.tradingCommissionMakerBP <= 1000, "commissions sum over 1000 bp");
         require(s.tradingCommissionTotalBP <= 1000, "commission total must be<1000bp");
 
@@ -59,6 +62,8 @@ library LibFeeRouter {
 
         // Work it out again so the math is precise, ignoring remainers
         commissionPaid_ = tc.totalCommissions;
+
+        emit TradingCommissionsPaid(_takerId, _tokenId, commissionPaid_);
     }
 
     function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {
