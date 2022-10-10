@@ -49,7 +49,6 @@ buniswap:	## build uniswap
 bscript:	## build forge scripts
 	forge build --root . --contracts script/
 
-
 test:	## forge test local
 	forge test
 t:	## forge test local
@@ -180,5 +179,6 @@ deploy-anvil:	## smart deploy locally to anvil
 subgraph:	## generate diamond ABI for the subgraph
 	yarn subgraph:abi
 
-doc:	## generate docs from natspec comments
+.PHONY: docs
+docs:	## generate docs from natspec comments
 	yarn docgen
