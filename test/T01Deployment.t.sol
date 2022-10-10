@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+import "forge-std/Test.sol";
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 
+import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 
 import { CREATE3 } from "solmate/utils/CREATE3.sol";
 
 contract T01DeploymentTest is D03ProtocolDefaults {
+    using stdStorage for StdStorage;
+
     function setUp() public virtual override {
         super.setUp();
     }
@@ -32,5 +36,39 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         string memory goerliUrl = vm.rpcUrl("goerli");
         uint256 mainnetFork = vm.createSelectFork(mainnetUrl, MAINNET_FORK_BLOCK_NUMBER);
         uint256 goerliFork = vm.createSelectFork(goerliUrl, GOERLI_FORK_BLOCK_NUMBER);
+    }
+
+    function testInitDiamond() public {
+        InitDiamondFixture fixture = new InitDiamondFixture();
+        fixture.initialize();
+
+        assertEq(fixture.totalSupply(), 1_000_000_000e18);
+        assertEq(fixture.balances(account0), 1_000_000_000e18);
+
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_ENTITY_ADMINS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_ENTITY_MANAGERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_BROKERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_UNDERWRITERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_INSURED_PARTIES));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_CAPITAL_PROVIDERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_CLAIMS_ADMINS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_TRADER, LibConstants.GROUP_TRADERS));
+
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS));
     }
 }

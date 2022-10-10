@@ -2,6 +2,7 @@ ACL
 Admin
 Entity
 Market
+NaymsToken
 SimplePolicy
 System
 TokenizedVault

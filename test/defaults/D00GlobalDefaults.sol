@@ -6,6 +6,7 @@ pragma solidity >=0.8.13;
 ///         Setup accounts, signers, labels
 
 import "test/utils/DSTestPlusF.sol";
+import { AppStorage } from "src/diamonds/nayms/AppStorage.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 
 contract D00GlobalDefaults is DSTestPlusF {

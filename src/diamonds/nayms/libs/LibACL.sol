@@ -92,4 +92,14 @@ library LibACL {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.roles[_objectId][_contextId];
     }
+
+    function _isRoleInGroup(string memory role, string memory group) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.groups[LibHelpers._stringToBytes32(role)][LibHelpers._stringToBytes32(group)];
+    }
+
+    function _canGroupAssignRole(string memory role, string memory group) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.canAssign[LibHelpers._stringToBytes32(role)] == LibHelpers._stringToBytes32(group);
+    }
 }

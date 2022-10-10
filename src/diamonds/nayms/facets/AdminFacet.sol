@@ -204,4 +204,30 @@ contract AdminFacet is Modifiers {
     function getSystemId() external pure returns (bytes32) {
         return LibAdmin._getSystemId();
     }
+
+    /**
+     * @dev Get whether id refers to an object in the system.
+     * @param _id object id.
+     */
+    function isObject(bytes32 _id) external view returns (bool) {
+        return s.existingObjects[_id];
+    }
+
+    /**
+     * @dev Get meta of given object.
+     * @param _id object id.
+     */
+    function getObjectMeta(bytes32 _id)
+        external
+        view
+        returns (
+            bytes32 parent,
+            bytes32 dataHash,
+            bytes32 tokenSymbol
+        )
+    {
+        parent = s.objectParent[_id];
+        dataHash = s.objectDataHashes[_id];
+        tokenSymbol = s.objectTokenSymbol[_id];
+    }
 }
