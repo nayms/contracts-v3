@@ -9,10 +9,20 @@ const f = fs.readFileSync(INPUT, { encoding: 'utf-8' }).toString()
 
 const lines = []
 
+const exclude = [
+  'script/.*',
+  'test/.*',
+  'src/utils/.*',
+  'src/diamonds/shared/libs/.*',
+  'src/diamonds/shared/interfaces/.*',
+  'src/diamonds/shared/facets/Diamond.*',
+]
+
 let record = false
 f.split("\n").forEach(l => {
   if (l.startsWith('SF:')) {
-    if (l.includes('src/')) {
+    const excluded = exclude.find(e => !!l.match(e))
+    if (!excluded) {
       lines.push('TN:')
       record = true
     }
