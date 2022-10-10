@@ -11,58 +11,58 @@ help:		## display this help message
 # wip (don't use "all" yet)
 all: clean remove install update build
 
-clean:	## clean the repo
+clean: ## clean the repo
 	forge clean
 
-update:	## update rust, foundry and submodules
+update: ## update rust, foundry and submodules
 	rustup update && foundryup && forge update
 
-install_ozv3:	## install openzepellin v3.4
+install_ozv3: ## install openzepellin v3.4
 	forge remove ozv3 && git submodule add -b release-v3.4 https://github.com/openzeppelin/openzeppelin-contracts lib/ozv3
 
-formatsol:	## run prettier on src, test and scripts
+formatsol: ## run prettier on src, test and scripts
 	yarn run prettier
 
-lintsol:	## run prettier and solhint
+lintsol: ## run prettier and solhint
 	yarn run lint
 
-devnet:	## run development node
+devnet: ## run development node
 	anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 					--fork-block-number 15078000 \
 					-vvvv
 
-gen-i:	## generate solidity interfaces from facet implementations
+gen-i: ## generate solidity interfaces from facet implementations
 	forge script GenerateInterfaces \
 			-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
 			--ffi
 
-prep-build:	## prepare buld, generate LibGeneratedNaymsFacetHelpers
+prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
 	node ./cli-tools/prep-build.js 
 
-build:	## forge build
+build: ## forge build
 	forge build --names --sizes
 b: build
 
-buniswap:	## build uniswap
+buniswap: ## build uniswap
 	forge build --root . --contracts lib/v3-core/contracts --remappings @openzeppelin/=lib/ozv3/ && forge build --root . --contracts lib/v3-periphery/contracts --remappings @openzeppelin/=lib/ozv3/
 
-bscript:	## build forge scripts
+bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
-test:	## forge test local
+test: ## forge test local
 	forge test
-t:	## forge test local
+t: ## forge test local
 	test
 
 tt: ## forge test local -vv
 	forge test -vv
 
-ttt:	## forge test local -vvv
+ttt: ## forge test local -vvv
 	forge test -vvv
-tttt:	## forge test local -vvvv
+tttt: ## forge test local -vvvv
 	forge test -vvvv
 
-test-goerli:	## test forking goerli, pass MT for match test regex
+test-goerli: ## test forking goerli, pass MT for match test regex
 	forge test -f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--fork-block-number 7602168 \
 		--mt $(MT) \
@@ -70,7 +70,7 @@ test-goerli:	## test forking goerli, pass MT for match test regex
 		-vvvv
 tg:	testGoerli
 
-test-mainnet:	## test forking mainnet, pass MT for match test regex
+test-mainnet: ## test forking mainnet, pass MT for match test regex
 	forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--fork-block-number 7602168 \
 		--mt $(MT) \
@@ -78,50 +78,50 @@ test-mainnet:	## test forking mainnet, pass MT for match test regex
 		-vvvv
 tm:	testMainnet
 
-gas:	## gas snapshot
+gas: ## gas snapshot
 	forge snapshot --check
 
-gasforksnap:	## gas snapshot mainnet fork
+gasforksnap: ## gas snapshot mainnet fork
 	forge snapshot --snap .gas-snapshot \
 					-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 					--fork-block-number 15078000
 
-gasforkcheck:	## gas check mainnet fork
+gasforkcheck: ## gas check mainnet fork
 	forge snapshot --check \
 		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		--via-ir
 
-gasforkdiff:	## gas snapshot diff mainnet fork
+gasforkdiff: ## gas snapshot diff mainnet fork
 	forge snapshot --diff \
 		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		--via-ir
 
-cov:	## coverage report -vvv
+cov: ## coverage report -vvv
 	forge coverage -vvv
 
-coverage:	## coverage report (lcov), filtered for CI
+coverage: ## coverage report (lcov), filtered for CI
 	forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js 
 
-lcov:	## coverage report (lcov)
+lcov: ## coverage report (lcov)
 	forge coverage --report lcov --via-ir
 
-lcov-fork:	## coverage report (lcov) for mainnet fork
+lcov-fork: ## coverage report (lcov) for mainnet fork
 	forge coverage --report lcov \
 		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		--via-ir
 
 # solidity scripts
-erc20:	## deploy test ERC20
+erc20: ## deploy test ERC20
 	forge script DeployERC20 \
 		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 		-vvvv
 
 # use the "@" to hide the command from your shell 
-erc20g:	## deploy test ERC20 to Goerli
+erc20g: ## deploy test ERC20 to Goerli
 	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 				${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
@@ -135,7 +135,7 @@ erc20g:	## deploy test ERC20 to Goerli
 
 facetsToCutIn="[]"
 
-deploy:	## smart deploy to goerli
+deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
@@ -149,7 +149,7 @@ deploy:	## smart deploy to goerli
 		--broadcast \
 		--verify --delay 30 --retries 10
 
-deploy-sim:	## simulate smart deploy to goerli
+deploy-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
@@ -161,10 +161,10 @@ deploy-sim:	## simulate smart deploy to goerli
 		-vv \
 		--ffi
 
-anvil-fork:	## fork goerli locally with anvil
+anvil-fork: ## fork goerli locally with anvil
 	anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
 
-deploy-anvil:	## smart deploy locally to anvil
+deploy-anvil: ## smart deploy locally to anvil
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory)" \
 		${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
@@ -176,9 +176,9 @@ deploy-anvil:	## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
-subgraph:	## generate diamond ABI for the subgraph
+subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi
 
 .PHONY: docs
-docs:	## generate docs from natspec comments
+docs: ## generate docs from natspec comments
 	yarn docgen
