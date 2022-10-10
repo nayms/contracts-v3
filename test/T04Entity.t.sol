@@ -395,6 +395,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         vm.stopPrank();
 
+        vm.expectRevert("not an insured party");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, 0, 1000);
+
+        vm.expectRevert("invalid claim amount");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 0);
+
         // setup insured party account
         nayms.assignRole(LibHelpers._getIdForAddress(signer4), DEFAULT_INSURED_PARTY_ENTITY_ID, LibConstants.ROLE_INSURED_PARTY);
         assertTrue(nayms.isInGroup(LibHelpers._getIdForAddress(signer4), DEFAULT_INSURED_PARTY_ENTITY_ID, LibConstants.GROUP_INSURED_PARTIES));
@@ -450,5 +456,19 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(marketInfo.buyToken, entity1.assetId);
         assertEq(marketInfo.buyAmount, sellAtPrice);
         assertEq(marketInfo.state, LibConstants.OFFER_STATE_ACTIVE);
+    }
+
+    function testCheckAndUpdateSimplePolicyState() public {
+        getReadyToCreatePolicies();
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        Entity memory entityBefore = nayms.getEntityInfo(entityId1);
+        uint256 utilizedCapacityBefore = entityBefore.utilizedCapacity;
+
+        vm.warp(simplePolicy.maturationDate + 1);
+        nayms.checkAndUpdateSimplePolicyState(policyId1);
+        Entity memory entityAfter = nayms.getEntityInfo(entityId1);
+
+        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter.utilizedCapacity, "utilized capacity should increase");
     }
 }
