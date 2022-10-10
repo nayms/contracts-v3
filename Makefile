@@ -2,111 +2,128 @@
 # (-include to ignore error if it does not exist)
 -include .env
 
+.DEFAULT_GOAL := help
+.PHONY: help
+help:		## display this help message
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
 # inspiration from Patrick Collins: https://github.com/smartcontractkit/foundry-starter-kit/blob/main/Makefile
 # wip (don't use "all" yet)
 all: clean remove install update build
 
-# Clean the repo
-clean  :; forge clean
+clean:	## clean the repo
+	forge clean
 
-# deps
-update       :; rustup update && foundryup && forge update
-updatey      :; yarn up -R
-install_ozv3 :; forge remove ozv3 && git submodule add -b release-v3.4 https://github.com/openzeppelin/openzeppelin-contracts lib/ozv3
+update:	## update rust, foundry and submodules
+	rustup update && foundryup && forge update
 
-# format, lint
-formatsol   :; yarn run prettier
-lintsol	    :; yarn run lint
+install_ozv3:	## install openzepellin v3.4
+	forge remove ozv3 && git submodule add -b release-v3.4 https://github.com/openzeppelin/openzeppelin-contracts lib/ozv3
 
-# run development node
-devnet      :; anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+formatsol:	## run prettier on src, test and scripts
+	yarn run prettier
+
+lintsol:	## run prettier and solhint
+	yarn run lint
+
+devnet:	## run development node
+	anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 					--fork-block-number 15078000 \
 					-vvvv
 
-# helper scripts
-gen-i :; forge script GenerateInterfaces \
+gen-i:	## generate solidity interfaces from facet implementations
+	forge script GenerateInterfaces \
 			-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
 			--ffi
 
-# prepare buld
-prep-build :; node ./cli-tools/prep-build.js 
+prep-build:	## prepare buld, generate LibGeneratedNaymsFacetHelpers
+	node ./cli-tools/prep-build.js 
 
-# forge build
-b           :; forge build --names --sizes
-build 	    :; forge build --names --sizes
-buniswap    :; forge build --root . --contracts lib/v3-core/contracts --remappings @openzeppelin/=lib/ozv3/ && forge build --root . --contracts lib/v3-periphery/contracts --remappings @openzeppelin/=lib/ozv3/
-bscript     :; forge build --root . --contracts script/
+build:	## forge build
+	forge build --names --sizes
+b: build
 
-# forge test local
-test        :; forge test
-t           :; forge test
-tt          :; forge test -vv
-ttt         :; forge test -vvv
-tttt        :; forge test -vvvv
+buniswap:	## build uniswap
+	forge build --root . --contracts lib/v3-core/contracts --remappings @openzeppelin/=lib/ozv3/ && forge build --root . --contracts lib/v3-periphery/contracts --remappings @openzeppelin/=lib/ozv3/
 
-tlocal      :; @forge t --no-match-contract T03NaymsTokenTest --ffi
+bscript:	## build forge scripts
+	forge build --root . --contracts script/
 
-tlocalgs    :; forge t --no-match-contract T03NaymsTokenTest \
-				--gas-report \
-				-j \
-				--ffi
 
-.PHONY: testGoerli
-testGoerli:	# test forking goerli
-						forge test -f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
-							--fork-block-number 7602168 \
-							--mt $(MT) \
-							--etherscan-api-key ${ETHERSCAN_API_KEY} \
-							-vvvv
+test:	## forge test local
+	forge test
+t:	## forge test local
+	test
+
+tt: ## forge test local -vv
+	forge test -vv
+
+ttt:	## forge test local -vvv
+	forge test -vvv
+tttt:	## forge test local -vvvv
+	forge test -vvvv
+
+test-goerli:	## test forking goerli, pass MT for match test regex
+	forge test -f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--fork-block-number 7602168 \
+		--mt $(MT) \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		-vvvv
 tg:	testGoerli
 
-.PHONY: testMainnet
-testMainnet:	# test forking mainnet
-							forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-							--fork-block-number 7602168 \
-							--mt $(MT) \
-							--etherscan-api-key ${ETHERSCAN_API_KEY} \
-							-vvvv
+test-mainnet:	## test forking mainnet, pass MT for match test regex
+	forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-block-number 7602168 \
+		--mt $(MT) \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		-vvvv
 tm:	testMainnet
 
-# gas snapshot
-gas				:; forge snapshot --check
-gasforksnap     :; forge snapshot --snap .gas-snapshot \
+gas:	## gas snapshot
+	forge snapshot --check
+
+gasforksnap:	## gas snapshot mainnet fork
+	forge snapshot --snap .gas-snapshot \
 					-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 					--fork-block-number 15078000
-gasforkcheck    :; forge snapshot --check \
-					-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-					--fork-block-number 15078000 \
-					--via-ir
-gasforkdiff     :; forge snapshot --diff \
-					-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-					--fork-block-number 15078000 \
-					--via-ir
 
-# coverage
-cov         :; forge coverage -vvv
-coverage    :; forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js 
-lcov        :; forge coverage --report lcov --via-ir
-lcovfork    :; forge coverage --report lcov \
-				-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				--via-ir
+gasforkcheck:	## gas check mainnet fork
+	forge snapshot --check \
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-block-number 15078000 \
+		--via-ir
+
+gasforkdiff:	## gas snapshot diff mainnet fork
+	forge snapshot --diff \
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-block-number 15078000 \
+		--via-ir
+
+cov:	## coverage report -vvv
+	forge coverage -vvv
+
+coverage:	## coverage report (lcov), filtered for CI
+	forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js 
+
+lcov:	## coverage report (lcov)
+	forge coverage --report lcov --via-ir
+
+lcov-fork:	## coverage report (lcov) for mainnet fork
+	forge coverage --report lcov \
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-block-number 15078000 \
+		--via-ir
 
 # solidity scripts
-swap        :; @forge script Swap \
-				-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				-vvvv
+erc20:	## deploy test ERC20
+	forge script DeployERC20 \
+		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
+		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
+		-vvvv
 
-swapc       :; @forge script Swap \
-				-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-				--fork-block-number 15078000 \
-				-vvvv
-erc20       :; forge script DeployERC20 \
-				-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
-				Test TT 18 \
-				-vvvv
 # use the "@" to hide the command from your shell 
-erc20g      :; @forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
+erc20g:	## deploy test ERC20 to Goerli
+	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 				${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 				--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -117,45 +134,51 @@ erc20g      :; @forge script DeployERC20 -s "deploy(string memory _name, string 
 
 # Deployment
 
-smart-deploy :; @forge script SmartDeploy \
-				-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
-				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
-				--chain-id 5 \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
-				--mnemonic-paths ./nayms_mnemonic.txt \
-				--mnemonic-indexes 0 \
-				-vv \
-				--ffi \
-				--broadcast \
-				--verify --delay 30 --retries 10
+facetsToCutIn="[]"
 
-smart-deploy-sim :; forge script SmartDeploy \
-				-s "smartDeploy(bool, bool, uint8, string[] memory)" \
-				${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
-				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
-				--chain-id 5 \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
-				--mnemonic-paths ./nayms_mnemonic.txt \
-				--mnemonic-indexes 0 \
-				-vvvv \
-				--ffi
+deploy:	## smart deploy to goerli
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10
 
-anvil-fork :; anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
+deploy-sim:	## simulate smart deploy to goerli
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi
 
-smart-deploy-anvil :; forge script SmartDeploy \
-				-s "smartDeploy(bool, bool, uint8, string[] memory)" \
-				${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
-				-f http:\\127.0.0.1:8545 \
-				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
-				--mnemonic-paths ./nayms_mnemonic.txt \
-				--mnemonic-indexes 0 \
-				-vv \
-				--ffi \
-				--broadcast
+anvil-fork:	## fork goerli locally with anvil
+	anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
 
+deploy-anvil:	## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" \
+		${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-f http:\\127.0.0.1:8545 \
+		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
 
-subgraph-abi :; yarn subgraph:abi
+subgraph:	## generate diamond ABI for the subgraph
+	yarn subgraph:abi
 
-doc :; yarn docgen
+doc:	## generate docs from natspec comments
+	yarn docgen
