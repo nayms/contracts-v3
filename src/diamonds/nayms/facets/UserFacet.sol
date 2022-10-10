@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Modifiers, LibHelpers, LibObject } from "../AppStorage.sol";
+import { AppStorage, Modifiers, LibHelpers } from "../AppStorage.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
+import { LibObject } from "../libs/LibObject.sol";
 
 /**
  * @title Users

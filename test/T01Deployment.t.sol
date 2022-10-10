@@ -70,5 +70,15 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS));
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS));
+
+        assertTrue(fixture.isObject(0));
+        assertTrue(fixture.isObject(account0Id));
+
+        assertEq(fixture.getDiscountToken(), 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+        assertEq(fixture.getEquilibriumLevel(), 20);
+        assertEq(fixture.getTargetNaymsAllocation(), 20);
+        assertEq(fixture.getMaxDiscount(), 10);
+        assertEq(fixture.getPoolFee(), 3000);
+        assertEq(fixture.getMaxDividendDenominations(), 1);
     }
 }
