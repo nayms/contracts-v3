@@ -15,7 +15,6 @@ const exclude = [
   'src/utils/.*',
   'src/diamonds/shared/libs/.*',
   'src/diamonds/shared/interfaces/.*',
-  'src/diamonds/shared/facets/Diamond.*',
 ]
 
 let record = false
