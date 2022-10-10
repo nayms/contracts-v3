@@ -62,21 +62,21 @@ ttt: ## forge test local -vvv
 tttt: ## forge test local -vvvv
 	forge test -vvvv
 
-test-goerli: ## test forking goerli, pass MT for match test regex
+test-goerli: ## test forking goerli with match test regex, i.e. `make test-goerli MT=testStartTokenSale`
 	forge test -f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--fork-block-number 7602168 \
 		--mt $(MT) \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		-vvvv
-tg:	testGoerli
+tg:	test-goerli
 
-test-mainnet: ## test forking mainnet, pass MT for match test regex
+test-mainnet: ## test forking mainnet with match test regex, i.e. `make test-mainnet MT=testStartTokenSale`
 	forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--fork-block-number 7602168 \
 		--mt $(MT) \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		-vvvv
-tm:	testMainnet
+tm:	test-mainnet
 
 gas: ## gas snapshot
 	forge snapshot --check
