@@ -3,15 +3,20 @@ pragma solidity >=0.8.13;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
 import { INaymsTokenFacet } from "../interfaces/INaymsTokenFacet.sol";
+import { LibNaymsToken } from "../libs/LibNaymsToken.sol";
 
+/**
+ * @title Nayms token facet.
+ * @notice Use it to access and manipulate Nayms token.
+ * @dev Use it to access and manipulate Nayms token.
+ */
 contract NaymsTokenFacet is INaymsTokenFacet {
     /**
      * @dev Get total supply of token.
      * @return total supply.
      */
     function totalSupply() external view returns (uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.totalSupply;
+        return LibNaymsToken._totalSupply();
     }
 
     /**
@@ -19,8 +24,7 @@ contract NaymsTokenFacet is INaymsTokenFacet {
      * @param addr wallet whose balance to get.
      * @return balance of wallet.
      */
-    function balances(address addr) external view returns (uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.balances[addr];
+    function balanceOf(address addr) external view returns (uint256) {
+        return LibNaymsToken._balanceOf(addr);
     }
 }

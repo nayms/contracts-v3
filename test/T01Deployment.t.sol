@@ -43,7 +43,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         fixture.initialize();
 
         assertEq(fixture.totalSupply(), 1_000_000_000e18);
-        assertEq(fixture.balances(account0), 1_000_000_000e18);
+        assertEq(fixture.balanceOf(account0), 1_000_000_000e18);
 
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));

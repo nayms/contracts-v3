@@ -18,5 +18,5 @@ interface INaymsTokenFacet {
      * @param addr wallet whose balance to get.
      * @return balance of wallet.
      */
-    function balances(address addr) external view returns (uint256);
+    function balanceOf(address addr) external view returns (uint256);
 }
