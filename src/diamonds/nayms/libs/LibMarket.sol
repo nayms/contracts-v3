@@ -423,4 +423,9 @@ library LibMarket {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
     }
+
+    function _getBalanceOfTokensForSale(bytes32 _entityId, bytes32 _tokenId) internal view returns (uint256 amount) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.marketLockedBalances[_entityId][_tokenId];
+    }
 }

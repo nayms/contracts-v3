@@ -160,23 +160,4 @@ interface IAdminFacet {
      * @return System Identifier
      */
     function getSystemId() external pure returns (bytes32);
-
-    /**
-     * @dev Get whether id refers to an object in the system.
-     * @param _id object id.
-     */
-    function isObject(bytes32 _id) external view returns (bool);
-
-    /**
-     * @dev Get meta of given object.
-     * @param _id object id.
-     */
-    function getObjectMeta(bytes32 _id)
-        external
-        view
-        returns (
-            bytes32 parent,
-            bytes32 dataHash,
-            bytes32 tokenSymbol
-        );
 }

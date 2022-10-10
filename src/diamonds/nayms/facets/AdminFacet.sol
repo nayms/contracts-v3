@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { Modifiers, LibAdmin } from "../AppStorage.sol";
+import { Modifiers, LibAdmin, AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { LibObject } from "../libs/LibObject.sol";
 
 /**
  * @title Administration
@@ -78,6 +79,7 @@ contract AdminFacet is Modifiers {
      * @return address of the token used for discounts
      */
     function getDiscountToken() external view returns (address) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.discountToken;
     }
 
@@ -87,6 +89,7 @@ contract AdminFacet is Modifiers {
      * @return equilibrium level value
      */
     function getEquilibriumLevel() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.equilibriumLevel;
     }
 
@@ -96,6 +99,7 @@ contract AdminFacet is Modifiers {
      * @return total number of NAYM tokens
      */
     function getActualNaymsAllocation() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.actualNaymsAllocation;
     }
 
@@ -105,6 +109,7 @@ contract AdminFacet is Modifiers {
      * @return desired supply of NAYM tokens
      */
     function getTargetNaymsAllocation() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.targetNaymsAllocation;
     }
 
@@ -114,6 +119,7 @@ contract AdminFacet is Modifiers {
      * @return max discount value
      */
     function getMaxDiscount() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.maxDiscount;
     }
 
@@ -123,6 +129,7 @@ contract AdminFacet is Modifiers {
      * @return current pool fee
      */
     function getPoolFee() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.poolFee;
     }
 
@@ -132,6 +139,7 @@ contract AdminFacet is Modifiers {
      * @return coefficient for rewards
      */
     function getRewardsCoefficient() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.rewardsCoefficient;
     }
 
@@ -141,6 +149,7 @@ contract AdminFacet is Modifiers {
      * @return max dividend denominations
      */
     function getMaxDividendDenominations() external view returns (uint8) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         return s.maxDividendDenominations;
     }
 
@@ -203,31 +212,5 @@ contract AdminFacet is Modifiers {
      */
     function getSystemId() external pure returns (bytes32) {
         return LibAdmin._getSystemId();
-    }
-
-    /**
-     * @dev Get whether id refers to an object in the system.
-     * @param _id object id.
-     */
-    function isObject(bytes32 _id) external view returns (bool) {
-        return s.existingObjects[_id];
-    }
-
-    /**
-     * @dev Get meta of given object.
-     * @param _id object id.
-     */
-    function getObjectMeta(bytes32 _id)
-        external
-        view
-        returns (
-            bytes32 parent,
-            bytes32 dataHash,
-            bytes32 tokenSymbol
-        )
-    {
-        parent = s.objectParent[_id];
-        dataHash = s.objectDataHashes[_id];
-        tokenSymbol = s.objectTokenSymbol[_id];
     }
 }

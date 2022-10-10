@@ -8,11 +8,11 @@ import { IDiamondLoupe } from "../shared/interfaces/IDiamondLoupe.sol";
 import { IERC165 } from "../shared/interfaces/IERC165.sol";
 import { IERC173 } from "../shared/interfaces/IERC173.sol";
 
-import { INaymsTokenFacet } from "./interfaces/INaymsTokenFacet.sol";
 import { IACLFacet } from "./interfaces/IACLFacet.sol";
 import { IUserFacet } from "./interfaces/IUserFacet.sol";
 import { IAdminFacet } from "./interfaces/IAdminFacet.sol";
 import { ISystemFacet } from "./interfaces/ISystemFacet.sol";
+import { INaymsTokenFacet } from "./interfaces/INaymsTokenFacet.sol";
 import { ITokenizedVaultFacet } from "./interfaces/ITokenizedVaultFacet.sol";
 import { ITokenizedVaultIOFacet } from "./interfaces/ITokenizedVaultIOFacet.sol";
 import { IMarketFacet } from "./interfaces/IMarketFacet.sol";
@@ -29,11 +29,11 @@ interface INayms is
     IDiamondLoupe,
     IERC165,
     IERC173,
-    INaymsTokenFacet,
     IACLFacet,
     IAdminFacet,
     IUserFacet,
     ISystemFacet,
+    INaymsTokenFacet,
     ITokenizedVaultFacet,
     ITokenizedVaultIOFacet,
     IMarketFacet,

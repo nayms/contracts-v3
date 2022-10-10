@@ -176,4 +176,9 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         entity = s.entities[_entityId];
     }
+
+    function _isEntity(bytes32 _entityId) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.existingEntities[_entityId];
+    }
 }

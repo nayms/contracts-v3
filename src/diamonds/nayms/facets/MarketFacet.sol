@@ -28,7 +28,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      * @param _offerId offer ID
      */
     function cancelOffer(uint256 _offerId) external nonReentrant {
-        require(s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
+        require(LibMarket._getOffer(_offerId).state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
         require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only creator can cancel");
         LibMarket._cancelOffer(_offerId);

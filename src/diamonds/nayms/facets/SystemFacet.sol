@@ -36,4 +36,32 @@ contract SystemFacet is Modifiers {
     function stringToBytes32(string memory _strIn) external pure returns (bytes32 result) {
         result = LibHelpers._stringToBytes32(_strIn);
     }
+
+    /**
+     * @dev Get whether given id is an object in the system.
+     * @param _id object id.
+     * @return true if it is an object, false otherwise
+     */
+    function isObject(bytes32 _id) external view returns (bool) {
+        return LibObject._isObject(_id);
+    }
+
+    /**
+     * @dev Get meta of given object.
+     * @param _id object id.
+     * @return parent object parent
+     * @return dataHash object data hash
+     * @return tokenSymbol object token symbol
+     */
+    function getObjectMeta(bytes32 _id)
+        external
+        view
+        returns (
+            bytes32 parent,
+            bytes32 dataHash,
+            bytes32 tokenSymbol
+        )
+    {
+        return LibObject._getObjectMeta(_id);
+    }
 }

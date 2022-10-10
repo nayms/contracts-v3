@@ -12,7 +12,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  */
 contract EntityFacet is Modifiers, ReentrancyGuard {
     modifier assertSimplePolicyEnabled(bytes32 _entityId) {
-        require(s.entities[_entityId].simplePolicyEnabled, "simple policy creation disabled");
+        require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
         _;
     }
 

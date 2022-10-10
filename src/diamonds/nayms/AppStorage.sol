@@ -173,8 +173,6 @@ library LibAppStorage {
 }
 
 contract Modifiers {
-    AppStorage internal s;
-
     modifier assertSysAdmin() {
         require(
             LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_ADMINS)),

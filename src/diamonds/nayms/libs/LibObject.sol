@@ -79,4 +79,24 @@ library LibObject {
 
         s.objectTokenSymbol[_objectId] = LibHelpers._stringToBytes32(_symbol);
     }
+
+    function _isObject(bytes32 _id) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.existingObjects[_id];
+    }
+
+    function _getObjectMeta(bytes32 _id)
+        internal
+        view
+        returns (
+            bytes32 parent,
+            bytes32 dataHash,
+            bytes32 tokenSymbol
+        )
+    {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        parent = s.objectParent[_id];
+        dataHash = s.objectDataHashes[_id];
+        tokenSymbol = s.objectTokenSymbol[_id];
+    }
 }
