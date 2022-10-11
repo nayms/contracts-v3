@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/AppStorage.sol";
+import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 contract T03TokenizedVaultTest is D03ProtocolDefaults {
     bytes32 internal nWETH;

@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/AppStorage.sol";
+import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 

@@ -2,9 +2,9 @@
 pragma solidity >=0.8.13;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
-import { LibObject } from "../libs/LibObject.sol";
+import { LibConstants } from "./LibConstants.sol";
+import { LibHelpers } from "./LibHelpers.sol";
+import { LibObject } from "./LibObject.sol";
 
 library LibAdmin {
     event BalanceUpdated(uint256 oldBalance, uint256 newBalance);

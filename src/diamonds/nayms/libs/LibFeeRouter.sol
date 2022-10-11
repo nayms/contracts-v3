@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, LibAppStorage, SimplePolicy, TokenAmount, TradingCommissions } from "../AppStorage.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
-import { LibObject } from "../libs/LibObject.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
-import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
+import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { SimplePolicy, TokenAmount, TradingCommissions } from "../interfaces/FreeStructs.sol";
+import { LibHelpers } from "./LibHelpers.sol";
+import { LibObject } from "./LibObject.sol";
+import { LibConstants } from "./LibConstants.sol";
+import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 
 library LibFeeRouter {
     event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);

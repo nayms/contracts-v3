@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, LibAppStorage, MarketInfo, TokenAmount, TradingCommissions } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { MarketInfo, TokenAmount, TradingCommissions } from "../interfaces/FreeStructs.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";

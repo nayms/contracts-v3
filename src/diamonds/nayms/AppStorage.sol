@@ -3,12 +3,7 @@ pragma solidity >=0.8.13;
 
 /// @notice storage for nayms v3 decentralized insurance platform
 
-import "./interfaces/FreeStructs.sol";
-import { LibMeta } from "../shared/libs/LibMeta.sol";
-import { LibAdmin } from "./libs/LibAdmin.sol";
-import { LibConstants } from "./libs/LibConstants.sol";
-import { LibHelpers } from "./libs/LibHelpers.sol";
-import { LibACL } from "./libs/LibACL.sol";
+import { Entity, SimplePolicy, MarketInfo, LockedBalance, StakingCheckpoint } from "./interfaces/FreeStructs.sol";
 
 struct AppStorage {
     //// NAYMS ERC20 TOKEN ////
@@ -165,40 +160,5 @@ library LibAppStorage {
         assembly {
             ds.slot := 0
         }
-    }
-}
-
-contract Modifiers {
-    modifier assertSysAdmin() {
-        require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_ADMINS)),
-            "not a system admin"
-        );
-        _;
-    }
-
-    modifier assertSysMgr() {
-        require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_MANAGERS)),
-            "not a system manager"
-        );
-        _;
-    }
-
-    modifier assertEntityAdmin(bytes32 _context) {
-        require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)),
-            "not the entity's admin"
-        );
-        _;
-    }
-
-    modifier assertIsInGroup(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        bytes32 _group
-    ) {
-        require(LibACL._isInGroup(_objectId, _contextId, _group), "not in group");
-        _;
     }
 }

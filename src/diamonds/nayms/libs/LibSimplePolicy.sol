@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Entity, LibAppStorage, SimplePolicy } from "../AppStorage.sol";
-import { LibACL } from "../libs/LibACL.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
-import { LibObject } from "../libs/LibObject.sol";
-import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
-import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
+import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { Entity, SimplePolicy } from "../interfaces/FreeStructs.sol";
+import { LibACL } from "./LibACL.sol";
+import { LibConstants } from "./LibConstants.sol";
+import { LibObject } from "./LibObject.sol";
+import { LibTokenizedVault } from "./LibTokenizedVault.sol";
+import { LibFeeRouter } from "./LibFeeRouter.sol";
+import { LibHelpers } from "./LibHelpers.sol";
 
 library LibSimplePolicy {
     event SimplePolicyStateUpdated(bytes32 id, address indexed caller);

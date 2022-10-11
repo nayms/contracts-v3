@@ -4,7 +4,7 @@ pragma solidity >=0.8.13;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/AppStorage.sol";
+import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
 

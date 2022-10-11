@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { TradingCommissions, MarketInfo, Modifiers, LibConstants, LibHelpers } from "../AppStorage.sol";
+import { Modifiers } from "../Modifiers.sol";
+import { TradingCommissions, MarketInfo } from "../interfaces/FreeStructs.sol";
+import { LibConstants } from "../libs/LibConstants.sol";
+import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";

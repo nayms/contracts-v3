@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { LibAppStorage, AppStorage, LibAdmin, LibConstants, LibHelpers, Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
-import { LibObject } from "../libs/LibObject.sol";
-import { LibACL } from "../libs/LibACL.sol";
-import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
-import { LibMarket } from "../libs/LibMarket.sol";
+import { LibAppStorage, AppStorage } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders } from "../interfaces/FreeStructs.sol";
+import { LibConstants } from "./LibConstants.sol";
+import { LibAdmin } from "./LibAdmin.sol";
+import { LibHelpers } from "./LibHelpers.sol";
+import { LibObject } from "./LibObject.sol";
+import { LibACL } from "./LibACL.sol";
+import { LibTokenizedVault } from "./LibTokenizedVault.sol";
+import { LibMarket } from "./LibMarket.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 

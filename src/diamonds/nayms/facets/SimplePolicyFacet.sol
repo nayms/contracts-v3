@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Entity, Modifiers, SimplePolicy } from "../AppStorage.sol";
+import { Modifiers } from "../Modifiers.sol";
+import { Entity, SimplePolicy } from "../interfaces/FreeStructs.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";

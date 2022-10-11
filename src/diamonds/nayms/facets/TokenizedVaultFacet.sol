@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, Modifiers, LibConstants, LibHelpers, MultiToken } from "../AppStorage.sol";
-
+import { MultiToken } from "../interfaces/FreeStructs.sol";
+import { Modifiers } from "../Modifiers.sol";
+import { LibConstants } from "../libs/LibConstants.sol";
+import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
