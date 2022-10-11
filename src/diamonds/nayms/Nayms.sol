@@ -32,8 +32,8 @@ contract Nayms {
         }
         // get facet from function selector
         address facet = address(bytes20(ds.facets[msg.sig]));
+        // require(facet != address(0), "Diamond: Function does not exist"); - don't need to do this since we check for code below
         LibDiamond.enforceHasContractCode(facet, "Diamond: Facet has no code");
-        require(facet != address(0), "Diamond: Function does not exist");
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments
