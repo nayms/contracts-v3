@@ -13,6 +13,7 @@ const exclude = [
   'script/.*',
   'test/.*',
   'src/utils/.*',
+  'src/diamonds/nayms/AppStorage',
   'src/diamonds/shared/libs/.*',
   'src/diamonds/shared/interfaces/.*',
 ]
