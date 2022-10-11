@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity } from "../interfaces/FreeStructs.sol";
+import { Entity } from "../AppStorage.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";

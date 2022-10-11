@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { Entity, SimplePolicy } from "../interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy } from "../AppStorage.sol";
 import { LibACL } from "./LibACL.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibObject } from "./LibObject.sol";

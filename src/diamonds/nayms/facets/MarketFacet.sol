@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { Modifiers } from "../Modifiers.sol";
-import { TradingCommissions, MarketInfo } from "../interfaces/FreeStructs.sol";
+import { TradingCommissions, MarketInfo } from "../AppStorage.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";

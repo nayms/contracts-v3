@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { SimplePolicy, TokenAmount, TradingCommissions } from "../interfaces/FreeStructs.sol";
+import { SimplePolicy, TokenAmount, TradingCommissions } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";

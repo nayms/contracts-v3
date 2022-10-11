@@ -3,7 +3,7 @@ pragma solidity >=0.8.13;
 
 /// @notice storage for nayms v3 decentralized insurance platform
 
-import { Entity, SimplePolicy, MarketInfo, LockedBalance, StakingCheckpoint } from "./interfaces/FreeStructs.sol";
+import "./interfaces/FreeStructs.sol";
 
 struct AppStorage {
     //// NAYMS ERC20 TOKEN ////
