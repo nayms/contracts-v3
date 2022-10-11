@@ -8,6 +8,8 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    container:
+      image: hiddentao:node16-rs-cargo-svm
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,10 +32,10 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - run: cargo install --force svm-rs && svm install "0.7.6" && svm install "0.8.13"
+      # - uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
+      # - run: cargo install --force svm-rs && svm install "0.7.6" && svm install "0.8.13"
 
       - name: Install Foundry
         uses: onbjerg/foundry-toolchain@v1
