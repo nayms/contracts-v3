@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: hiddentao:node16-rs-cargo-svm
+      credentials:
+        username: hiddentao
+        password: dckr_pat_2q2DCwI0Dc58XdJA04eBw-TBN58
     steps:
       - uses: actions/checkout@v3
         with:
