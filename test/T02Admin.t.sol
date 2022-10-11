@@ -73,6 +73,10 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
     }
 
+    function testGetActualNaymsAllocation() public {
+        assertEq(nayms.getActualNaymsAllocation(), 0);
+    }
+
     function testSetTargetNaymsAllocation() public {
         uint256 orig = nayms.getTargetNaymsAllocation();
 
