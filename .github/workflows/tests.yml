@@ -86,7 +86,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: "./lcov-filtered.info"
-        if: always()
         continue-on-error: true
 
       # - name: Static analyser Slither (todo)
