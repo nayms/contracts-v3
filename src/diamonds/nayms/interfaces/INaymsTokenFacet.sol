@@ -3,7 +3,6 @@ pragma solidity >=0.8.13;
 
 /**
  * @title Nayms token facet.
- * @notice Use it to access and manipulate Nayms token.
  * @dev Use it to access and manipulate Nayms token.
  */
 interface INaymsTokenFacet {

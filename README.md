@@ -144,6 +144,7 @@ To __upgrade specific set of facets__, run command like this one:
 ```zsh
 make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
 ```
+
 > :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` sufix from the target name
 
 ## Development Flow

@@ -108,3 +108,39 @@ Get a user's (an objectId's) assigned role in a specific context
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
 |`roleId`| bytes32 | objectId's role in the contextId
+### isRoleInGroup
+```solidity
+  function isRoleInGroup(
+    string role,
+    string group
+  ) external returns (bool)
+```
+Get whether role is in group.
+Get whether role is in group.
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`role` | string | the role.
+|`group` | string | the group.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`true`| string | if role is in group, false otherwise.
+### canGroupAssignRole
+```solidity
+  function canGroupAssignRole(
+    string role,
+    string group
+  ) external returns (bool)
+```
+Get whether given group can assign given role.
+Get whether given group can assign given role.
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`role` | string | the role.
+|`group` | string | the group.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`true`| string | if role can be assigned by group, false otherwise.

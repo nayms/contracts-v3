@@ -6,6 +6,7 @@
   * [IAdminFacet](facets/IAdminFacet.md)
   * [IEntityFacet](facets/IEntityFacet.md)
   * [IMarketFacet](facets/IMarketFacet.md)
+  * [INaymsTokenFacet](facets/INaymsTokenFacet.md)
   * [ISimplePolicyFacet](facets/ISimplePolicyFacet.md)
   * [ISystemFacet](facets/ISystemFacet.md)
   * [ITokenizedVaultFacet](facets/ITokenizedVaultFacet.md)
