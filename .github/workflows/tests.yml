@@ -9,7 +9,7 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     container:
-      image: hiddentao:node16-rs-cargo-svm
+      image: hiddentao/node16-rs-cargo-svm:latest
       credentials:
         username: hiddentao
         password: dckr_pat_2q2DCwI0Dc58XdJA04eBw-TBN58
