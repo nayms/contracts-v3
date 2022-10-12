@@ -4,7 +4,7 @@ coverage.json
 lcov.info
 lcov*.info
 typechain
-sarif*
+results.sarif
 
 # SECURITY
 nayms_mnemonic.txt
