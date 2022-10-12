@@ -15,10 +15,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Update path
+        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
+      
       - name: Install Forge dependencies
-        run: forge install
+        run: svm use 0.8.13 && forge install
 
-      - name: Install node dev dependencies
+      - name: Install Node dependencies
         run: yarn
 
       - name: Prepare build
