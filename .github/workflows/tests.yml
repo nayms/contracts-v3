@@ -91,6 +91,7 @@ jobs:
         with:
           sarif: results.sarif
           target: src/diamonds/nayms
+          slither-args: --exclude solc-version,assembly-usage,naming-convention
 
       - name: Upload Slither SARIF file
         uses: github/codeql-action/upload-sarif@v2
