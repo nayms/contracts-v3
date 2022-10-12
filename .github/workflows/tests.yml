@@ -84,12 +84,13 @@ jobs:
         if: always()
         continue-on-error: true
 
-      # - name: Static analyser Slither (todo)
-      #   uses: crytic/slither-action@v0.1.1
-      #   id: slither
-      #   continue-on-error: true
-      #   with:
-      #     sarif: results.sarif
+      - name: Slither Static Analyser
+        uses: crytic/slither-action@v0.1.1
+        id: slither
+        continue-on-error: true
+        with:
+          sarif: sarif.json
+          target: src/diamonds/nayms
 
       # - name: Upload Slither SARIF file
       #   uses: github/codeql-action/upload-sarif@v2
