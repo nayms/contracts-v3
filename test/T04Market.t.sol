@@ -197,8 +197,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         // init and fund taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
         nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2ExternalDepositAmt);
+        nayms.externalDepositToEntity(entity3, wethAddress, dt.entity3ExternalDepositAmt);
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH);
 
@@ -232,6 +234,21 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // assert Entity1 holds `buyAmount` of nE1
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
+
+        // test commission payed by taker on "secondary market"
+        uint256 e2WethBeforeTrade = nayms.internalBalanceOf(entity2, nWETH);
+        uint256 e3WethBeforeTrade = nayms.internalBalanceOf(entity3, nWETH);
+
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, nWETH, dt.entity1MintAndSaleAmt);
+        vm.stopPrank();
+
+        vm.startPrank(signer3);
+        nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
+        vm.stopPrank();
+
+        assertEq(nayms.internalBalanceOf(entity2, nWETH), e2WethBeforeTrade + dt.entity1MintAndSaleAmt, "Maker pays no commissions, on secondary market");
+        assertEq(nayms.internalBalanceOf(entity3, nWETH), e3WethBeforeTrade - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions, on secondary market");
     }
 
     function testCancelOffer() public {
