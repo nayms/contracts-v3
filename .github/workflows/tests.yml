@@ -13,6 +13,7 @@ jobs:
       id-token: write
       packages: read
       contents: read
+      security-events: write
     timeout-minutes: 15
     container:
       image: ghcr.io/nayms/contracts-builder:latest
@@ -74,7 +75,7 @@ jobs:
         with:
           sarif: results.sarif
           target: src/diamonds/nayms
-          slither-args: --exclude solc-version,assembly-usage,naming-convention
+          slither-args: --exclude solc-version,assembly-usage,naming-convention --ignore-compile
         continue-on-error: true
 
       - name: Upload Slither SARIF file
