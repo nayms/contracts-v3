@@ -1,0 +1,81 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Slither",
+          "informationUri": "https://github.com/crytic/slither",
+          "version": "0.8.3",
+          "rules": [
+            {
+              "id": "3-1-dead-code",
+              "name": "dead-code",
+              "properties": {
+                "precision": "high",
+                "security-severity": "0.0"
+              },
+              "shortDescription": {
+                "text": "Dead-code"
+              },
+              "help": {
+                "text": "Remove unused functions."
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "3-1-dead-code",
+          "message": {
+            "text": "LibAppStorage.diamondStorage() (src/diamonds/nayms/AppStorage.sol#159-163) is never used and should be removed\n",
+            "markdown": "[LibAppStorage.diamondStorage()](src/diamonds/nayms/AppStorage.sol#L159-L163) is never used and should be removed\n"
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/diamonds/nayms/AppStorage.sol"
+                },
+                "region": {
+                  "startLine": 159,
+                  "endLine": 163
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "id": "669ebc364c827c1a3935bcd69832e7520e53a8121910f35146aa2fde6bc86a17"
+          }
+        },
+        {
+          "ruleId": "3-1-dead-code",
+          "message": {
+            "text": "LibAppStorage.diamondStorage() (src/diamonds/nayms/AppStorage.sol#159-163) is never used and should be removed\n",
+            "markdown": "[LibAppStorage.diamondStorage()](src/diamonds/nayms/AppStorage.sol#L159-L163) is never used and should be removed\n"
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/diamonds/nayms/AppStorage.sol"
+                },
+                "region": {
+                  "startLine": 159,
+                  "endLine": 163
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "id": "669ebc364c827c1a3935bcd69832e7520e53a8121910f35146aa2fde6bc86a17"
+          }
+        }
+      ]
+    }
+  ]
+}
