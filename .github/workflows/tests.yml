@@ -84,18 +84,20 @@ jobs:
         if: always()
         continue-on-error: true
 
-      # - name: Static analyser Slither (todo)
-      #   uses: crytic/slither-action@v0.1.1
-      #   id: slither
-      #   continue-on-error: true
-      #   with:
-      #     sarif: results.sarif
+      - name: Slither Static Analyser
+        uses: crytic/slither-action@v0.1.1
+        id: slither
+        continue-on-error: true
+        with:
+          sarif: results.sarif
+          target: src/diamonds/nayms
+          slither-args: --exclude solc-version,assembly-usage,naming-convention
 
-      # - name: Upload Slither SARIF file
-      #   uses: github/codeql-action/upload-sarif@v2
-      #   continue-on-error: true
-      #   with:
-      #     sarif_file: ${{ steps.slither.outputs.sarif }}
+      - name: Upload Slither SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        continue-on-error: true
+        with:
+          sarif_file: ${{ steps.slither.outputs.sarif }}
 
       # - name: Static analyser Mythril (todo)
       #   run: mythril
