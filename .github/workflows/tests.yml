@@ -18,8 +18,11 @@ jobs:
       - name: Update path
         run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
       
+      - name: Install solc
+        run: svm install 0.7.6 && svm install 0.8.13 && svm use 0.8.13
+
       - name: Install Forge dependencies
-        run: svm use 0.8.13 && forge install
+        run:  forge install
 
       - name: Install Node dependencies
         run: yarn
