@@ -22,7 +22,7 @@ jobs:
         run: svm install 0.7.6 && svm install 0.8.13 && svm use 0.8.13
 
       - name: Install Forge dependencies
-        run:  forge install
+        run: forge install
 
       - name: Install Node dependencies
         run: yarn
