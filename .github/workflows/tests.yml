@@ -8,8 +8,14 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
+    permissions:
+      id-token: write
+      packages: read
+      contents: read
+    timeout-minutes: 15
     container:
-      image: ghcr.io/amarinkovic/build-foundry:latest
+      image: ghcr.io/nayms/contracts-builder:latest
     steps:
       - uses: actions/checkout@v3
         with:
