@@ -8,42 +8,23 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/amarinkovic/build-foundry:latest
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-          cache: "yarn"
-          registry-url: "https://registry.npmjs.org"
-          scope: "@nayms"
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - run: cargo install --force svm-rs && svm install "0.7.6" && svm install "0.8.13"
-
-      - name: Install Foundry
-        uses: onbjerg/foundry-toolchain@v1
-        with:
-          version: nightly
+      - name: Update path
+        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
+      
+      - name: Install solc
+        run: svm install 0.7.6 && svm install 0.8.13 && svm use 0.8.13
 
       - name: Install Forge dependencies
         run: forge install
 
-      - name: Install node dev dependencies
+      - name: Install Node dependencies
         run: yarn
 
       - name: Prepare build
@@ -81,7 +62,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: "./lcov-filtered.info"
-        if: always()
         continue-on-error: true
 
       - name: Slither Static Analyser
