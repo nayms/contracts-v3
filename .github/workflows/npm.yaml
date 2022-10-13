@@ -1,9 +1,10 @@
 name: Publish npm package
 
 on:
-    # Trigger manually
-    workflow_dispatch: {}
-    workflow_call:
+  # Trigger manually
+  workflow_dispatch: {}
+  workflow_call:
+  pull_request:
 
 jobs:
   run-tests:
