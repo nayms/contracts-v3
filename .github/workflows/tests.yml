@@ -9,7 +9,7 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/nayms/contracts-builder:latest
+      image: ghcr.io/amarinkovic/build-foundry:latest
     steps:
       - uses: actions/checkout@v3
         with:
