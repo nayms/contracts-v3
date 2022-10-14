@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { SimplePolicy, TokenAmount, TradingCommissions } from "../AppStorage.sol";
+import { SimplePolicy, TokenAmount, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -87,6 +87,14 @@ library LibFeeRouter {
 
         // Work it out again so the math is precise, ignoring remainers
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
+    }
+
+    function _getTradingCommissionsBasisPoints() internal view returns (TradingCommissionsBasisPoints memory bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp.tradingCommissionNaymsLtdBP = s.tradingCommissionNaymsLtdBP;
+        bp.tradingCommissionNDFBP = s.tradingCommissionNDFBP;
+        bp.tradingCommissionSTMBP = s.tradingCommissionSTMBP;
+        bp.tradingCommissionMakerBP = s.tradingCommissionMakerBP;
     }
 
     function _getNaymsLtdBP() internal view returns (uint256 bp) {

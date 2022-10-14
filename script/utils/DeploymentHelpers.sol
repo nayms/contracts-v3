@@ -950,13 +950,17 @@ contract DeploymentHelpers is Test {
                     // compare list of old selectors with list of new selectors, if any are the same, then remove from the list of old selectors (removeSelectors[])
                     if (removeSelectors[k - numSelectorsRemovedFromFacet] == functionSelectors[j]) {
                         console2.log(string.concat("removing selector ", vm.toString(functionSelectors[k])));
+                        console2.log("numSelectorsRemovedFromFacet", numSelectorsRemovedFromFacet);
+                        console2.log("k", k);
+                        console2.log("remove selectors length", removeSelectors.length);
                         removeFromArray(k - numSelectorsRemovedFromFacet);
-
+                        console2.log("numSelectorsRemovedFromFacet", numSelectorsRemovedFromFacet);
                         numSelectorsRemovedFromFacet++;
                         break;
                     }
                 }
             }
+            console2.log("numSelectorsRemovedFromFacet", numSelectorsRemovedFromFacet);
         }
 
         removeCount = removeSelectors.length;

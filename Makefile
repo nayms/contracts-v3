@@ -139,7 +139,7 @@ smart-deploy-sim :; forge script SmartDeploy \
 				--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
 				--mnemonic-paths ./nayms_mnemonic.txt \
 				--mnemonic-indexes 0 \
-				-vv \
+				-vvvv \
 				--ffi
 
 anvil-fork :; anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}

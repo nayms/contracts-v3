@@ -39,7 +39,7 @@ contract TokenizedVaultFacet is Modifiers {
     }
 
     /**
-     * @notice Internal transfer of `amount` tokens
+     * @notice Internal transfer of `amount` tokens from the entity associated with the sender
      * @dev Transfer tokens internally
      * @param to token receiver
      * @param tokenId Internal ID of the token
@@ -71,6 +71,14 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
         LibTokenizedVault._internalTransfer(senderId, to, tokenId, amount);
+    }
+
+    function internalBurn(
+        bytes32 from,
+        bytes32 tokenId,
+        uint256 amount
+    ) external assertSysAdmin {
+        LibTokenizedVault._internalBurn(from, tokenId, amount);
     }
 
     /**

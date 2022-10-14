@@ -86,3 +86,10 @@ struct TradingCommissions {
     uint256 commissionMaker;
     uint256 totalCommissions;
 }
+
+struct TradingCommissionsBasisPoints {
+    uint16 tradingCommissionNaymsLtdBP;
+    uint16 tradingCommissionNDFBP;
+    uint16 tradingCommissionSTMBP;
+    uint16 tradingCommissionMakerBP;
+}

@@ -51,14 +51,25 @@ interface ITokenizedVaultFacet {
         uint256 amount
     ) external;
 
+    function internalBurn(
+        bytes32 from,
+        bytes32 tokenId,
+        uint256 amount
+    ) external;
+
     /**
      * @notice Get withdrawable dividend amount
      * @dev Divident available for an entity to withdraw
      * @param _entityId Unique ID of the entity
      * @param _tokenId Unique ID of token
+     * @param _dividendTokenId Unique ID of dividend token
      * @return _entityPayout accumulated dividend
      */
-    function getWithdrawableDividend(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 _entityPayout);
+    function getWithdrawableDividend(
+        bytes32 _entityId,
+        bytes32 _tokenId,
+        bytes32 _dividendTokenId
+    ) external view returns (uint256 _entityPayout);
 
     /**
      * @notice Withdraw available dividend
@@ -81,5 +92,5 @@ interface ITokenizedVaultFacet {
      * @param guid Globally unique identifier of a dividend distribution.
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
-    function payDividendFromEntity(uint256 guid, uint256 amount) external;
+    function payDividendFromEntity(bytes32 guid, uint256 amount) external;
 }

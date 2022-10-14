@@ -2,7 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { Modifiers } from "../Modifiers.sol";
-import { TradingCommissions, MarketInfo } from "../AppStorage.sol";
+import { TradingCommissions, TradingCommissionsBasisPoints, MarketInfo } from "../AppStorage.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
@@ -114,6 +114,10 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      */
     function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
         tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
+    }
+
+    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp) {
+        bp = LibFeeRouter._getTradingCommissionsBasisPoints();
     }
 
     /**
