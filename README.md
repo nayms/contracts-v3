@@ -105,7 +105,7 @@ Current deployment flow, 2022-09-21:
 Simulate the deployment:
 
 ```zsh
-make smart-deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]>
+make deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]>
 ```
 
 |                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -130,19 +130,19 @@ Below are several examples on how you would use the smart deploy scripts.
 For a __fresh new deployment__ of the entire project, execute this command:
 
 ```zsh
-make smart-deploy-sim newDiamond=true initNewDiamond=true facetAction=1 facetsToCutIn="[]"
+make deploy-sim newDiamond=true initNewDiamond=true facetAction=1
 ```
 
 To __upgrade the facets that have been changed__ since the last deployment, run the following:
 
 ```zsh
-make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=1 facetsToCutIn="[]"
+make deploy-sim newDiamond=false initNewDiamond=false facetAction=1
 ```
 
 To __upgrade specific set of facets__, run command like this one:
 
 ```zsh
-make smart-deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
+make deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
 ```
 
 > :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` sufix from the target name
