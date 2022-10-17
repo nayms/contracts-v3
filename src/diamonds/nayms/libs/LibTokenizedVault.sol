@@ -156,17 +156,18 @@ library LibTokenizedVault {
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
         (uint256 withdrawableDividend, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
-        require(withdrawableDividend > 0, "_withdrawDividend: no dividend");
+        // require(withdrawableDividend > 0, "_withdrawDividend: no dividend");
+        if (withdrawableDividend > 0) {
+            // Bump the withdrawn dividends for the owner
+            s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += dividendDeduction;
 
-        // Bump the withdrawn dividends for the owner
-        s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += dividendDeduction;
+            // Move the dividend
+            s.tokenBalances[_dividendTokenId][dividendBankId] -= withdrawableDividend;
+            s.tokenBalances[_dividendTokenId][_ownerId] += withdrawableDividend;
 
-        // Move the dividend
-        s.tokenBalances[_dividendTokenId][dividendBankId] -= withdrawableDividend;
-        s.tokenBalances[_dividendTokenId][_ownerId] += withdrawableDividend;
-
-        emit InternalTokenBalanceUpdate(dividendBankId, _dividendTokenId, s.tokenBalances[_dividendTokenId][dividendBankId], "_withdrawDividend", msg.sender);
-        emit InternalTokenBalanceUpdate(_ownerId, _dividendTokenId, s.tokenBalances[_dividendTokenId][_ownerId], "_withdrawDividend", msg.sender);
+            emit InternalTokenBalanceUpdate(dividendBankId, _dividendTokenId, s.tokenBalances[_dividendTokenId][dividendBankId], "_withdrawDividend", msg.sender);
+            emit InternalTokenBalanceUpdate(_ownerId, _dividendTokenId, s.tokenBalances[_dividendTokenId][_ownerId], "_withdrawDividend", msg.sender);
+        }
     }
 
     function _getWithdrawableDividend(
@@ -235,11 +236,6 @@ library LibTokenizedVault {
         }
         // Events are emitted from the _internalTransfer()
         emit DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);
-    }
-
-    function _getTokenSymbol(bytes32 _objectId) internal view returns (string memory) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return LibHelpers._bytes32ToString(s.objectTokenSymbol[_objectId]);
     }
 
     function _getWithdrawableDividendAndDeductionMath(

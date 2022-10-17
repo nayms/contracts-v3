@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { SimplePolicy, TokenAmount, TradingCommissions } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, SimplePolicy, TokenAmount, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -33,6 +32,13 @@ library LibFeeRouter {
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
 
         emit PremiumCommissionsPaid(_policyId, policyEntityId, _premiumPaid);
+    }
+
+    function _getPremiumCommissionBasisPoints() internal view returns (PolicyCommissionsBasisPoints memory bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp.premiumCommissionNaymsLtdBP = s.premiumCommissionNaymsLtdBP;
+        bp.premiumCommissionNDFBP = s.premiumCommissionNDFBP;
+        bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
     }
 
     function _payTradingCommissions(
@@ -89,23 +95,11 @@ library LibFeeRouter {
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
     }
 
-    function _getNaymsLtdBP() internal view returns (uint256 bp) {
+    function _getTradingCommissionsBasisPoints() internal view returns (TradingCommissionsBasisPoints memory bp) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bp = s.tradingCommissionNaymsLtdBP;
-    }
-
-    function _getNDFBP() internal view returns (uint256 bp) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        bp = s.tradingCommissionNDFBP;
-    }
-
-    function _getSTMBP() internal view returns (uint256 bp) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        bp = s.tradingCommissionSTMBP;
-    }
-
-    function _getMakerBP() internal view returns (uint256 bp) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        bp = s.tradingCommissionMakerBP;
+        bp.tradingCommissionNaymsLtdBP = s.tradingCommissionNaymsLtdBP;
+        bp.tradingCommissionNDFBP = s.tradingCommissionNDFBP;
+        bp.tradingCommissionSTMBP = s.tradingCommissionSTMBP;
+        bp.tradingCommissionMakerBP = s.tradingCommissionMakerBP;
     }
 }

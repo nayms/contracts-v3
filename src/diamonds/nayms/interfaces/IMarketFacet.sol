@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { MarketInfo, TradingCommissions } from "./FreeStructs.sol";
+import { MarketInfo, TradingCommissions, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -94,27 +94,5 @@ interface IMarketFacet {
      */
     function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
 
-    /**
-     * @dev Get the basis points earned from trading commissions for Nayms Ltd.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getNaymsLtdBP() external view returns (uint256 bp);
-
-    /**
-     * @dev Get the basis points earned from trading commissions for Nayms discretionary Fund.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getNDFBP() external view returns (uint256 bp);
-
-    /**
-     * @dev Get the basis points earned from trading commissions for Nayms token stakers.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getSTMBP() external view returns (uint256 bp);
-
-    /**
-     * @dev Get the basis points earned from trading commissions for the market maker.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getMakerBP() external view returns (uint256 bp);
+    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp);
 }

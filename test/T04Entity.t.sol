@@ -5,8 +5,11 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
+import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
@@ -470,5 +473,40 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory entityAfter = nayms.getEntityInfo(entityId1);
 
         assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter.utilizedCapacity, "utilized capacity should increase");
+    }
+
+    function testPayPremiumCommissions() public {
+        // Deploy the LibFeeRouterFixture
+        LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory functionSelectors = new bytes4[](5);
+        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
+        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
+        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
+        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
+        functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
+
+        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
+
+        getReadyToCreatePolicies();
+
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        uint256 premiumPaid = 10_000;
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
+        (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
+
+        SimplePolicy memory sp = nayms.getSimplePolicyInfo(policyId1);
+
+        uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / 1000;
+        uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / 1000;
+        uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / 1000;
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd);
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF);
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM);
     }
 }

@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, FeeRatio, MarketInfo } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, FeeRatio, MarketInfo, TradingCommissions } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
@@ -570,19 +570,38 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // Deploy the LibFeeRouterFixture
         LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        bytes4[] memory functionSelectors = new bytes4[](2);
+        bytes4[] memory functionSelectors = new bytes4[](4);
         functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
         functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
+        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
+        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
 
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
         nayms.diamondCut(cut, address(0), "");
 
-        bytes32 policyId;
-        uint256 premiumPaid;
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId, premiumPaid));
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.calculateTradingCommissionsFixture.selector, 10_000));
+
+        TradingCommissions memory tc = nayms.calculateTradingCommissions(10_000);
+
+        testStartTokenSale();
+        bytes32 makerId = account0Id;
+        bytes32 takerId = entity1;
+        bytes32 tokenId = nWETH;
+        uint256 requestedBuyAmount = 10_000;
+
+        (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payTradingCommissions.selector, makerId, takerId, tokenId, requestedBuyAmount));
+        assertTrue(success);
+
+        bytes32 naymsLtdId = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
+        bytes32 ndfId = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
+        bytes32 stakingId = LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER);
+
+        // assertEq(nayms.internalBalanceOf(naymsLtdId, nWETH), tc.commissionNaymsLtd, "balance of naymsLtd should have INCREASED (trading commissions)");
+        // assertEq(nayms.internalBalanceOf(ndfId, nWETH), tc.commissionNDF, "balance of ndfId should have INCREASED (trading commissions)");
+        // assertEq(nayms.internalBalanceOf(stakingId, nWETH), tc.commissionSTM, "balance of stakingId should have INCREASED (trading commissions)");
+
+        (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector));
     }
-    // executeLimitOffer() with a remaining amount of sell token, buy token
-    // todo test order with two platform tokens, two entity tokens, eventually test with staking token (todo should this be allowed?)
 }

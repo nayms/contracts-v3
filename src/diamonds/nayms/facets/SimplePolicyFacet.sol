@@ -2,10 +2,11 @@
 pragma solidity >=0.8.13;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity, SimplePolicy } from "../AppStorage.sol";
+import { Entity, SimplePolicy, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
+import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 
 /**
  * @title Simple Policies
@@ -48,6 +49,10 @@ contract SimplePolicyFacet is Modifiers {
      */
     function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicy memory) {
         return LibSimplePolicy._getSimplePolicyInfo(_policyId);
+    }
+
+    function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory bp) {
+        bp = LibFeeRouter._getPremiumCommissionBasisPoints();
     }
 
     /**
