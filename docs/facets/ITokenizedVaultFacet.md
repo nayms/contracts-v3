@@ -119,7 +119,7 @@ Transfer dividends to the entity
 ### payDividendFromEntity
 ```solidity
   function payDividendFromEntity(
-    uint256 guid,
+    bytes32 guid,
     uint256 amount
   ) external
 ```
@@ -128,5 +128,5 @@ Transfer dividends to the entity
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
-|`guid` | uint256 | Globally unique identifier of a dividend distribution.
+|`guid` | bytes32 | Globally unique identifier of a dividend distribution.
 |`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.

@@ -81,5 +81,5 @@ interface ITokenizedVaultFacet {
      * @param guid Globally unique identifier of a dividend distribution.
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
-    function payDividendFromEntity(uint256 guid, uint256 amount) external;
+    function payDividendFromEntity(bytes32 guid, uint256 amount) external;
 }
