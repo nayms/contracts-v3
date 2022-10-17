@@ -3,13 +3,11 @@ pragma solidity >=0.8.13;
 
 import "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
-
 import { LibERC20Fixture } from "./fixtures/LibERC20Fixture.sol";
-import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 
-contract T01DeploymentTest is D03ProtocolDefaults {
+contract T01LibERC20 is D03ProtocolDefaults {
     DummyToken private token;
     address private tokenAddress;
 
