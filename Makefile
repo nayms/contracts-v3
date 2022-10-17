@@ -17,9 +17,6 @@ clean: ## clean the repo
 update: ## update rust, foundry and submodules
 	rustup update && foundryup && forge update
 
-install_ozv3: ## install openzepellin v3.4
-	forge remove ozv3 && git submodule add -b release-v3.4 https://github.com/openzeppelin/openzeppelin-contracts lib/ozv3
-
 formatsol: ## run prettier on src, test and scripts
 	yarn run prettier
 
@@ -42,9 +39,6 @@ prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
 build: ## forge build
 	forge build --names --sizes
 b: build
-
-buniswap: ## build uniswap
-	forge build --root . --contracts lib/v3-core/contracts --remappings @openzeppelin/=lib/ozv3/ && forge build --root . --contracts lib/v3-periphery/contracts --remappings @openzeppelin/=lib/ozv3/
 
 bscript: ## build forge scripts
 	forge build --root . --contracts script/
