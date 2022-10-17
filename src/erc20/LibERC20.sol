@@ -46,7 +46,10 @@ library LibERC20 {
         } else {
             if (_result.length > 0) {
                 // bubble up any reason for revert
-                revert(string(_result));
+                // see https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c239e1af8d1a1296577108dd6989a17b57434f8e/contracts/utils/Address.sol#L201
+                assembly {
+                    revert(add(32, _result), mload(_result))
+                }
             } else {
                 revert("LibERC20: transfer or transferFrom reverted");
             }
