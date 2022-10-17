@@ -53,6 +53,12 @@ struct SimplePolicy {
     uint256 sponsorCommissionBasisPoints; //underwriter is parent
 }
 
+struct PolicyCommissionsBasisPoints {
+    uint16 premiumCommissionNaymsLtdBP;
+    uint16 premiumCommissionNDFBP;
+    uint16 premiumCommissionSTMBP;
+}
+
 struct Stakeholders {
     bytes32[] roles;
     bytes32[] entityIds;

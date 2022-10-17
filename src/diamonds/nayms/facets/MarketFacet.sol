@@ -119,36 +119,4 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
     function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp) {
         bp = LibFeeRouter._getTradingCommissionsBasisPoints();
     }
-
-    /**
-     * @dev Get the basis points earned from trading commissions for Nayms Ltd.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getNaymsLtdBP() external view returns (uint256 bp) {
-        bp = LibFeeRouter._getNaymsLtdBP();
-    }
-
-    /**
-     * @dev Get the basis points earned from trading commissions for Nayms discretionary Fund.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getNDFBP() external view returns (uint256 bp) {
-        bp = LibFeeRouter._getNDFBP();
-    }
-
-    /**
-     * @dev Get the basis points earned from trading commissions for Nayms token stakers.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getSTMBP() external view returns (uint256 bp) {
-        bp = LibFeeRouter._getSTMBP();
-    }
-
-    /**
-     * @dev Get the basis points earned from trading commissions for the market maker.
-     * @return bp Nayms Ltd commissions basis points
-     */
-    function getMakerBP() external view returns (uint256 bp) {
-        bp = LibFeeRouter._getMakerBP();
-    }
 }

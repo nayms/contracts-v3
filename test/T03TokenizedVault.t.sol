@@ -54,10 +54,14 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     function testBasisPoints() public {
         TradingCommissionsBasisPoints memory bp = nayms.getTradingCommissionsBasisPoints();
 
-        assertEq(bp.tradingCommissionNaymsLtdBP, nayms.getNaymsLtdBP());
-        assertEq(bp.tradingCommissionNDFBP, nayms.getNDFBP());
-        assertEq(bp.tradingCommissionSTMBP, nayms.getSTMBP());
-        assertEq(bp.tradingCommissionMakerBP, nayms.getMakerBP());
+        uint16 tradingCommissionNaymsLtdBP = 500;
+        uint16 tradingCommissionNDFBP = 250;
+        uint16 tradingCommissionSTMBP = 250;
+        uint16 tradingCommissionMakerBP; // init 0
+        assertEq(bp.tradingCommissionNaymsLtdBP, tradingCommissionNaymsLtdBP);
+        assertEq(bp.tradingCommissionNDFBP, tradingCommissionNDFBP);
+        assertEq(bp.tradingCommissionSTMBP, tradingCommissionSTMBP);
+        assertEq(bp.tradingCommissionMakerBP, tradingCommissionMakerBP);
     }
 
     function testSingleExternalDeposit() public {

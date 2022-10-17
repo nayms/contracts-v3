@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { SimplePolicy } from "./FreeStructs.sol";
+import { SimplePolicy, PolicyCommissionsBasisPoints } from "./FreeStructs.sol";
 
 /**
  * @title Simple Policies
@@ -36,6 +36,8 @@ interface ISimplePolicyFacet {
      * @return Simple policy metadata
      */
     function getSimplePolicyInfo(bytes32 _id) external view returns (SimplePolicy memory);
+
+    function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory);
 
     /**
      * @dev Check and update simple policy state
