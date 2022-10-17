@@ -25,13 +25,13 @@ lintsol: ## run prettier and solhint
 
 devnet: ## run development node
 	anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-					--fork-block-number 15078000 \
-					-vvvv
+		--fork-block-number 15078000 \
+		-vvvv
 
 gen-i: ## generate solidity interfaces from facet implementations
 	forge script GenerateInterfaces \
-			-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
-			--ffi
+		-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
+		--ffi
 
 prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
 	node ./cli-tools/prep-build.js 
@@ -77,8 +77,8 @@ gas: ## gas snapshot
 
 gasforksnap: ## gas snapshot mainnet fork
 	forge snapshot --snap .gas-snapshot \
-					-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-					--fork-block-number 15078000
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-block-number 15078000
 
 gasforkcheck: ## gas check mainnet fork
 	forge snapshot --check \
@@ -117,13 +117,13 @@ erc20: ## deploy test ERC20
 # use the "@" to hide the command from your shell 
 erc20g: ## deploy test ERC20 to Goerli
 	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
-				${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
-				-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
-				--etherscan-api-key ${ETHERSCAN_API_KEY} \
-				--private-key ${PRIVATE_KEY} \
-				--broadcast \
-				--verify \
-				-vvvv
+		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--private-key ${PRIVATE_KEY} \
+		--broadcast \
+		--verify \
+		-vvvv
 
 # Deployment
 

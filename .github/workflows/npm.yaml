@@ -7,6 +7,15 @@ on:
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: read
+      contents: read
+      security-events: write
+    timeout-minutes: 15
+    container:
+      image: ghcr.io/nayms/contracts-builder:latest
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -14,10 +23,28 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
           always-auth: true
-        
+
+      - name: Update path
+        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
+
+      - name: Install solc
+        run: svm install 0.7.6 && svm install 0.8.13 && svm use 0.8.13
+
+      - name: Install Forge dependencies
+        run: forge install
+
+      - name: Install Node dependencies
+        run: yarn
+
+      - name: Prepare build
+        run: make prep-build
+
+      - name: Build solidity contracts
+        run: make build
+
       - name: Publish to NPM
         run: npm publish
         env:
