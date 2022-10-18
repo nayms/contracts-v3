@@ -73,6 +73,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity3SalePrice: 1_000 ether
         });
 
+    TradingCommissionsConfig internal c;
+
     function setUp() public virtual override {
         super.setUp();
 
@@ -95,6 +97,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
         nayms.diamondCut(cut, address(0), "");
+
+        c = getCommissions();
+    }
+
+    function getCommissions() internal returns (TradingCommissionsConfig memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
+        require(success, "Should get commissions from app storage");
+        return abi.decode(result, (TradingCommissionsConfig));
     }
 
     function testStartTokenSale() public {
@@ -211,8 +221,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.internalBalanceOf(entity1, nWETH), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
 
-        TradingCommissionsConfig memory c = getCommissions();
-
         // assert trading commisions payed
         uint256 totalCommissions = (dt.entity1MintAndSaleAmt * c.tradingCommissionTotalBP) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
@@ -310,8 +318,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
 
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "entity test hash");
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "entity test hash");
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
 
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
@@ -323,7 +331,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("MultiToken: mint zero tokens");
             nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingCommissionTotalBP`
+            uint256 e2Balance = (salePrice * (1000 + c.tradingCommissionTotalBP)) / 1000;
             nayms.externalDeposit(entity2, wethAddress, e2Balance);
 
             // sell x nENTITY1 for y nWETH
@@ -340,12 +348,56 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "state");
 
             vm.prank(signer2);
-            console2.log(" - salePrice: ", salePrice);
-            console2.log(" - saleAmount: ", saleAmount);
             nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount);
             vm.stopPrank();
 
             assertOfferFilled(1, entity1, entity1, saleAmount, nWETH, salePrice);
+        }
+    }
+
+    function testFuzzMatchingSellOffer(uint256 saleAmount, uint256 salePrice) public {
+        // avoid overflow issues
+        vm.assume(saleAmount < 1_000_000_000_000 ether);
+        vm.assume(salePrice < 1_000_000_000_000 ether);
+
+        // avoid dust issues
+        vm.assume(saleAmount > 1_000);
+        vm.assume(salePrice > 1_000);
+
+        // whitelist underlying token
+        nayms.addSupportedExternalToken(wethAddress);
+
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+
+        // init test funds to maxint
+        writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
+
+        if (saleAmount == 0) {
+            vm.expectRevert("mint amount must be > 0");
+            nayms.startTokenSale(entity1, saleAmount, salePrice);
+        } else if (salePrice == 0) {
+            vm.expectRevert("MultiToken: mint zero tokens");
+            nayms.externalDeposit(entity2, wethAddress, salePrice);
+        } else {
+            nayms.externalDeposit(entity2, wethAddress, salePrice);
+            assertEq(nayms.internalBalanceOf(entity2, LibHelpers._getIdForAddress(wethAddress)), salePrice, "Entity2: invalid balance");
+
+            // buy x nENTITY1 for y nWETH
+            vm.prank(signer2);
+            nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount);
+            vm.stopPrank();
+
+            // taker needs balance for trading commissions
+            uint256 e1Balance = ((salePrice * (1000 + c.tradingCommissionTotalBP)) / 1000) - salePrice;
+            nayms.externalDeposit(entity1, wethAddress, e1Balance);
+            assertEq(nayms.internalBalanceOf(entity1, LibHelpers._getIdForAddress(wethAddress)), e1Balance, "Entity1: invalid balance");
+
+            // sell x nENTITY1 for y nWETH
+            nayms.startTokenSale(entity1, saleAmount, salePrice);
+
+            assertOfferFilled(1, entity2, nWETH, salePrice, entity1, saleAmount);
+            assertOfferFilled(2, entity1, entity1, saleAmount, nWETH, salePrice);
         }
     }
 
@@ -543,15 +595,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         bytes32 buyToken,
         uint256 initBuyAmount
     ) private {
-        MarketInfo memory marketInfo1 = nayms.getOffer(offerId);
-        assertEq(marketInfo1.creator, creator, "offer creator invalid");
-        assertEq(marketInfo1.sellToken, sellToken, "invalid sell token");
-        assertEq(marketInfo1.sellAmount, 0, "invalid sell amount");
-        assertEq(marketInfo1.sellAmountInitial, initSellAmount, "invalid initial sell amount");
-        assertEq(marketInfo1.buyToken, buyToken, "invalid buy token");
-        assertEq(marketInfo1.buyAmount, 0, "invalid buy amount");
-        assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
-        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_FULFILLED, "invalid state");
+        MarketInfo memory offer = nayms.getOffer(offerId);
+        assertEq(offer.creator, creator, "offer creator invalid");
+        assertEq(offer.sellToken, sellToken, "invalid sell token");
+        assertEq(offer.sellAmount, 0, "invalid sell amount");
+        assertEq(offer.sellAmountInitial, initSellAmount, "invalid initial sell amount");
+        assertEq(offer.buyToken, buyToken, "invalid buy token");
+        assertEq(offer.buyAmount, 0, "invalid buy amount");
+        assertEq(offer.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
+        assertEq(offer.state, LibConstants.OFFER_STATE_FULFILLED, "invalid state");
     }
 
     function assertOfferPartiallyFilled(
@@ -573,12 +625,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyAmount, buyAmount, "invalid buy amount");
         assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "invalid state");
-    }
-
-    function getCommissions() internal returns (TradingCommissionsConfig memory) {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
-        require(success, "Should get commissions from app storage");
-        return abi.decode(result, (TradingCommissionsConfig));
     }
 
     function testLibFeeRouter() public {
