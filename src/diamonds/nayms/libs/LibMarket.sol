@@ -161,8 +161,8 @@ library LibMarket {
         // If the buyToken is entity   => limit both buy and sell amounts
         // If the buyToken is external => limit only sell amount
 
-        bool buyPlatformToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
-        while (result.remainingSellAmount != 0 && (buyPlatformToken || result.remainingBuyAmount != 0)) {
+        bool buyExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
             if (bestOfferId == 0) {
@@ -201,15 +201,7 @@ library LibMarket {
                 uint256 nextBuyTokenCommissionsPaid;
                 uint256 nextSellTokenCommissionsPaid;
 
-                if (!buyPlatformToken) {
-                    uint256 finalBuyAmount = makerSellAmount < result.remainingBuyAmount ? makerSellAmount : result.remainingBuyAmount;
-                    (nextBuyTokenCommissionsPaid, nextSellTokenCommissionsPaid) = _buy(bestOfferId, _takerId, finalBuyAmount);
-
-                    // calculate how much is left to buy/sell
-                    uint256 buyAmountOld = result.remainingBuyAmount;
-                    result.remainingBuyAmount -= finalBuyAmount;
-                    result.remainingSellAmount = (result.remainingBuyAmount * result.remainingSellAmount) / buyAmountOld;
-                } else {
+                if (buyExternalToken) {
                     uint256 finalSellAmount = makerBuyAmount < result.remainingSellAmount ? makerBuyAmount : result.remainingSellAmount;
                     (nextBuyTokenCommissionsPaid, nextSellTokenCommissionsPaid) = _sell(bestOfferId, _takerId, finalSellAmount);
 
@@ -217,6 +209,14 @@ library LibMarket {
                     uint256 sellAmountOld = result.remainingSellAmount;
                     result.remainingSellAmount -= finalSellAmount;
                     result.remainingBuyAmount = (result.remainingSellAmount * result.remainingBuyAmount) / sellAmountOld;
+                } else {
+                    uint256 finalBuyAmount = makerSellAmount < result.remainingBuyAmount ? makerSellAmount : result.remainingBuyAmount;
+                    (nextBuyTokenCommissionsPaid, nextSellTokenCommissionsPaid) = _buy(bestOfferId, _takerId, finalBuyAmount);
+
+                    // calculate how much is left to buy/sell
+                    uint256 buyAmountOld = result.remainingBuyAmount;
+                    result.remainingBuyAmount -= finalBuyAmount;
+                    result.remainingSellAmount = (result.remainingBuyAmount * result.remainingSellAmount) / buyAmountOld;
                 }
 
                 // Keep track of total commissions
