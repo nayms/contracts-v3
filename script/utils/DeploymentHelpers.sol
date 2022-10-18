@@ -334,6 +334,7 @@ contract DeploymentHelpers is Test {
     }
 
     function removeFromArray(uint256 index) public {
+        console2.log(string.concat("removeFromArray index: ", vm.toString(index), ". removeSelectors.length: ", vm.toString(removeSelectors.length)));
         require(removeSelectors.length > index, "Out of bounds");
         // move all elements to the left, starting from the `index + 1`
         for (uint256 i = index; i < removeSelectors.length - 1; i++) {
@@ -932,7 +933,6 @@ contract DeploymentHelpers is Test {
         if (oldFacetAddress != address(0)) {
             bytes4[] memory oldFacetSelectors = IDiamondLoupe(diamondAddress).facetFunctionSelectors(oldFacetAddress);
             numberOfSelectorsFromOldFacet = oldFacetSelectors.length;
-            console2.log("numberOfSelectorsFromOldFacet", numberOfSelectorsFromOldFacet);
             for (uint256 i; i < numberOfSelectorsFromOldFacet; i++) {
                 address facetAddress = IDiamondLoupe(diamondAddress).facetAddress(oldFacetSelectors[i]);
             }
@@ -945,22 +945,19 @@ contract DeploymentHelpers is Test {
             }
 
             uint256 numSelectorsRemovedFromFacet;
+
             for (uint256 k; k < oldFacetCount; k++) {
                 for (uint256 j; j < numFunctionSelectors; j++) {
                     // compare list of old selectors with list of new selectors, if any are the same, then remove from the list of old selectors (removeSelectors[])
-                    if (removeSelectors[k - numSelectorsRemovedFromFacet] == functionSelectors[j]) {
-                        console2.log(string.concat("removing selector ", vm.toString(functionSelectors[k])));
-                        console2.log("numSelectorsRemovedFromFacet", numSelectorsRemovedFromFacet);
-                        console2.log("k", k);
-                        console2.log("remove selectors length", removeSelectors.length);
+                    if (removeSelectors[k - numSelectorsRemovedFromFacet] == functionSelectors[j] && removeSelectors[k - numSelectorsRemovedFromFacet] != 0) {
+                        console2.log(string.concat("selector from removeSelectors array: ", vm.toString(removeSelectors[k - numSelectorsRemovedFromFacet])));
+                        console2.log(string.concat("selector from functionSelectors array: ", vm.toString(functionSelectors[j])));
                         removeFromArray(k - numSelectorsRemovedFromFacet);
-                        console2.log("numSelectorsRemovedFromFacet", numSelectorsRemovedFromFacet);
                         numSelectorsRemovedFromFacet++;
                         break;
                     }
                 }
             }
-            console2.log("numSelectorsRemovedFromFacet", numSelectorsRemovedFromFacet);
         }
 
         removeCount = removeSelectors.length;
