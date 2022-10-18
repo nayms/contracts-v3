@@ -12,6 +12,10 @@ contract DummyToken is IERC20 {
     mapping(address => mapping(address => uint256)) public allowance;
 
     function transfer(address to, uint256 value) external returns (bool) {
+        if (value == 0) {
+            return false;
+        }
+
         require(balanceOf[msg.sender] >= value, "not enough balance");
         balanceOf[msg.sender] -= value;
         balanceOf[to] += value;
@@ -28,6 +32,10 @@ contract DummyToken is IERC20 {
         address to,
         uint256 value
     ) external returns (bool) {
+        if (value == 0) {
+            revert();
+        }
+
         require(allowance[from][msg.sender] >= value, "not enough allowance");
         require(balanceOf[from] >= value, "not enough balance");
         balanceOf[from] -= value;
