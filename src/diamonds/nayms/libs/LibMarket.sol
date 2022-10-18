@@ -203,7 +203,7 @@ library LibMarket {
 
                 if (buyExternalToken) {
                     uint256 finalSellAmount = makerBuyAmount < result.remainingSellAmount ? makerBuyAmount : result.remainingSellAmount;
-                    (nextBuyTokenCommissionsPaid, nextSellTokenCommissionsPaid) = _sell(bestOfferId, _takerId, finalSellAmount);
+                    nextSellTokenCommissionsPaid = _sell(bestOfferId, _takerId, finalSellAmount);
 
                     // calculate how much is left to buy/sell
                     uint256 sellAmountOld = result.remainingSellAmount;
@@ -211,7 +211,7 @@ library LibMarket {
                     result.remainingBuyAmount = (result.remainingSellAmount * result.remainingBuyAmount) / sellAmountOld;
                 } else {
                     uint256 finalBuyAmount = makerSellAmount < result.remainingBuyAmount ? makerSellAmount : result.remainingBuyAmount;
-                    (nextBuyTokenCommissionsPaid, nextSellTokenCommissionsPaid) = _buy(bestOfferId, _takerId, finalBuyAmount);
+                    nextBuyTokenCommissionsPaid = _buy(bestOfferId, _takerId, finalBuyAmount);
 
                     // calculate how much is left to buy/sell
                     uint256 buyAmountOld = result.remainingBuyAmount;
@@ -269,7 +269,7 @@ library LibMarket {
         uint256 _offerId,
         bytes32 _takerId,
         uint256 _sellAmount
-    ) internal returns (uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
+    ) internal returns (uint256 sellTokenCommissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // (a / b) * c = c * a / b  -> multiply first, to avoid underflow
@@ -278,16 +278,14 @@ library LibMarket {
         // check bounds and update balances
         _checkBoundsAndUpdateBalances(_offerId, actualBuyAmount, _sellAmount);
 
-        // Check before paying commissions
+        // Check fee schedule, before paying commissions
         if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
             // Fees are paid by the taker, maker pays no fees, only in external token
             // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
-            if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
-                buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
-            } else {
-                sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualBuyAmount);
-            }
+
+            // buyToken is always internal here, commissions are paid from _sellAmount in _sellToken
+            sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualBuyAmount);
         }
 
         s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= actualBuyAmount;
@@ -316,7 +314,7 @@ library LibMarket {
         uint256 _offerId,
         bytes32 _takerId,
         uint256 _buyAmount
-    ) internal returns (uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
+    ) internal returns (uint256 buyTokenCommissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // (a / b) * c = c * a / b  -> multiply first, to avoid underflow
@@ -325,16 +323,14 @@ library LibMarket {
         // check bounds and update balances
         _checkBoundsAndUpdateBalances(_offerId, _buyAmount, actualSellAmount);
 
-        // Check before paying commissions
+        // Check fee schedule, before paying commissions
         if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
             // Fees are paid by the taker, maker pays no fees, only in external token
             // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
             // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
-            if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
-                buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, actualSellAmount);
-            } else {
-                sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
-            }
+
+            // buyToken is always external here, commissions are paid from _buyAmount in _buyToken
+            buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, actualSellAmount);
         }
 
         s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
