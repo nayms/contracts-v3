@@ -9,6 +9,8 @@ import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
+import { console2 } from "forge-std/console2.sol";
+
 library LibMarket {
     /// @notice order has been added
     event OrderAdded(
@@ -144,7 +146,7 @@ library LibMarket {
     }
 
     function _matchToExistingOffers(
-        bytes32 _fromEntityId,
+        bytes32 _takerId,
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
@@ -155,17 +157,29 @@ library LibMarket {
         result.remainingBuyAmount = _buyAmount;
         result.remainingSellAmount = _sellAmount;
 
-        // _buyAmount == 0  means it's a market offer
+        // sell: p100 for buy: $100 -->> YES! buy more
+        // sell: $100 for buy: p100 -->> NO!  DON'T buy more
 
-        while (result.remainingSellAmount != 0) {
+        // If the buyToken is entity    (!ext)  => limit both buy and sell amounts
+        // If the buyToken is external  (ext)   => limit only sell amount
+
+        bool ext = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        console2.log("  --  EXT: ", ext);
+        while (result.remainingSellAmount != 0 && (ext || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
             if (bestOfferId == 0) {
+                console2.log("  --  NO liquidity in market");
                 break;
             }
 
             uint256 bestBuyAmount = s.offers[bestOfferId].buyAmount;
             uint256 bestSellAmount = s.offers[bestOfferId].sellAmount;
+
+            console2.log("  --  result.remainingBuyAmount(BEFORE): ", result.remainingBuyAmount);
+            console2.log("  --  result.remainingSellAmount(BEFORE): ", result.remainingSellAmount);
+            console2.log("  --  bestBuyAmount: ", bestBuyAmount);
+            console2.log("  --  bestSellAmount: ", bestSellAmount);
 
             // check if price is better or same as the one taker is willing to pay, within error margin
             // Ugly hack to work around rounding errors. Based on the idea that
@@ -173,14 +187,19 @@ library LibMarket {
             // Ergo the worst case has `sellAmount` and `bestSellAmount` at +1 away from
             // their "correct" values and `bestBuyAmount` and `buyAmount` at -1.
             // Since (c - 1) * (d - 1) > (a + 1) * (b + 1) is equivalent to
-            // c * d > a * b + a + b + c + d, we write...
-            //
+            // c * d > a * b + a + b + c + d
             // (For detailed breakdown see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
-            //
+            // having:
+            // a => result.remainingSellAmount
+            // b => bestSellAmount
+            // c => bestBuyAmount
+            // d => result.remainingBuyAmount
+
             if (
                 bestBuyAmount * result.remainingBuyAmount >
                 result.remainingSellAmount * bestSellAmount + bestBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + bestSellAmount
             ) {
+                console2.log("  --  NO matching price!");
                 break;
             }
 
@@ -200,8 +219,14 @@ library LibMarket {
                 uint256 sellAmountOld = result.remainingSellAmount;
                 result.remainingSellAmount = result.remainingSellAmount - finalSellAmount;
                 result.remainingBuyAmount = (result.remainingSellAmount * result.remainingBuyAmount) / sellAmountOld;
+                console2.log("  --  result.remainingSellAmount(AFTER): ", result.remainingSellAmount);
+                console2.log("  --  result.remainingBuyAmount(AFTER): ", result.remainingBuyAmount);
             }
         }
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
     }
 
     function _createOffer(
@@ -255,6 +280,9 @@ library LibMarket {
 
         // check bounds and update balances
         _checkBoundsAndUpdateBalances(_offerId, actualSellAmount, _requestedBuyAmount);
+        console2.log("   ---- bounds check: OK");
+        console2.log("   ---- buyAmount: ", _requestedBuyAmount);
+        console2.log("   ---- sellAmount: ", actualSellAmount);
 
         // Check before paying commissions
         if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
@@ -273,9 +301,11 @@ library LibMarket {
 
         LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualSellAmount);
         LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount);
+        console2.log("   ---- transfers made");
 
-        // cancel offer if it has become dust
+        // close offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
+            console2.log("   ---- maker offer filled");
             s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
             _cancelOffer(_offerId);
         }
@@ -301,7 +331,8 @@ library LibMarket {
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
 
         _assertAmounts(_sellAmount, _buyAmount);
-
+        console2.log(" -- _buyAmount: ", _buyAmount);
+        console2.log(" -- offerBuy.amount: ", offerBuy.amount);
         require(_buyAmount <= offerBuy.amount, "requested buy amount too large");
         require(_sellAmount <= offerSell.amount, "calculated sell amount too large");
 

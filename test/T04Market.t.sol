@@ -251,6 +251,20 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity3, nWETH), e3WethBeforeTrade - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions, on secondary market");
     }
 
+    function testMatchMakerPriceWithTakerBuyAmount() public {
+        testStartTokenSale();
+
+        // init and fund taker entity
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.externalDepositToEntity(entity2, wethAddress, dt.entity2ExternalDepositAmt);
+
+        vm.startPrank(signer2);
+        nayms.executeLimitOffer(nWETH, 1_000 ether, entity1, 500 ether);
+        vm.stopPrank();
+
+        assertEq(nayms.internalBalanceOf(entity2, entity1), 500 ether, "should match takers buy amount, not sell amount");
+    }
+
     function testCancelOffer() public {
         testStartTokenSale();
 
@@ -312,8 +326,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             uint256 e2Balance = (salePrice * 1004) / 1000; // this should correspond to `AppStorage.tradingCommissionTotalBP`
             nayms.externalDeposit(entity2, wethAddress, e2Balance);
 
-            // putting an offer on behalf of entity1 to sell their nENTITY1 for the entity's associated asset
-            // x nENTITY1 for x nWETH  (1:1 ratio)
+            // sell x nENTITY1 for y nWETH
             nayms.startTokenSale(entity1, saleAmount, salePrice);
 
             MarketInfo memory marketInfo1 = nayms.getOffer(1);
@@ -327,6 +340,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "state");
 
             vm.prank(signer2);
+            console2.log(" - salePrice: ", salePrice);
+            console2.log(" - saleAmount: ", saleAmount);
             nayms.executeLimitOffer(nWETH, salePrice, entity1, saleAmount);
             vm.stopPrank();
 
