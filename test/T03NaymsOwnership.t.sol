@@ -25,4 +25,11 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
         assertFalse(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
+
+    function testTransferOwernshipWithRoleGroupsNotSetPropertly() public {
+        nayms.updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS, false);
+
+        vm.expectRevert("NEW owner NOT in sys admin group");
+        nayms.transferOwnership(signer1);
+    }
 }
