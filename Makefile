@@ -43,16 +43,17 @@ b: build
 bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
-test: ## forge test local
+.PHONY: test
+test: ## forge test local, alias t
 	forge test
-t: ## forge test local
-	test
+t: test
 
 tt: ## forge test local -vv
 	forge test -vv
 
 ttt: ## forge test local -vvv
 	forge test -vvv
+	
 tttt: ## forge test local -vvvv
 	forge test -vvvv
 
