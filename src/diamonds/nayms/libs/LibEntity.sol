@@ -168,18 +168,27 @@ library LibEntity {
     }
 
     function validateEntity(Entity memory _entity) internal view {
-        // External token must be whitelisted by the platform, if any. Only cells need it.
-        require(_entity.assetId == 0 || LibAdmin._isSupportedExternalToken(_entity.assetId), "external token is not supported");
+        if (_entity.assetId != 0) {
+            // entity has an underlying asset, which means it's a cell
 
-        // Collateral ratio must be in acceptable range of 1 to 1000 basis points (0.01% to 100% collateralized).
-        // Cannot ever be completely uncollateralized (0 basis points), if entity is a cell. Other entities dont need it, can be 0.
-        require(0 <= _entity.collateralRatio && _entity.collateralRatio <= 1000, "collateral ratio should be 0 to 1000");
+            // External token must be whitelisted by the platform
+            require(LibAdmin._isSupportedExternalToken(_entity.assetId), "external token is not supported");
 
-        // Max capacity is the capital amount that an entity can write across all of their policies.
-        // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.
-        //       First, we use the bool simplePolicyEnabled to control and dictate whether an entity can or cannot write a policy.
-        //       If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
-        require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
+            // Collateral ratio must be in acceptable range of 1 to 1000 basis points (0.01% to 100% collateralized).
+            // Cannot ever be completely uncollateralized (0 basis points), if entity is a cell.
+            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= 1000, "collateral ratio should be 0 to 1000");
+
+            // Max capacity is the capital amount that an entity can write across all of their policies.
+            // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.
+            //       First, we use the bool simplePolicyEnabled to control and dictate whether an entity can or cannot write a policy.
+            //       If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
+            require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
+        } else {
+            // non-cell entity
+            require(_entity.collateralRatio == 0, "only cell has collateral ratio");
+            require(!_entity.simplePolicyEnabled, "only cell can issue policies");
+            require(_entity.maxCapacity == 0, "only calls have max capacity");
+        }
     }
 
     function _getEntityInfo(bytes32 _entityId) internal view returns (Entity memory entity) {

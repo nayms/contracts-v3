@@ -109,7 +109,33 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateEntity() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity2(0, 0, 0, 0, false), "test");
+        // _assetId,
+        // _collateralRatio,
+        // _maxCapacity,
+        // _utilizedCapacity,
+        // _simplePolicyEnabled
+        vm.expectRevert("only cell has collateral ratio");
+        nayms.updateEntity(entityId1, initEntity2(0, 1000, 0, 0, false));
+
+        vm.expectRevert("only cell can issue policies");
+        nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, true));
+
+        vm.expectRevert("only calls have max capacity");
+        nayms.updateEntity(entityId1, initEntity2(0, 0, 1000, 0, false));
+
+        vm.recordLogs();
+        nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, false));
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
+        bytes32 id = abi.decode(entries[0].data, (bytes32));
+        assertEq(id, entityId1);
+    }
+
+    function testUpdateCell() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, true), "test");
 
         vm.expectRevert("external token is not supported");
         nayms.updateEntity(entityId1, initEntity(wbtc, 0, 1000, 0, false));

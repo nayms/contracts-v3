@@ -86,12 +86,23 @@ contract D03ProtocolDefaults is D02TestSetup {
         uint256 _collateralRatio,
         uint256 _maxCapacity,
         uint256 _utilizedCapacity,
-        bool simplePolicyEnabled
+        bool _simplePolicyEnabled
     ) public pure returns (Entity memory e) {
-        e.assetId = LibHelpers._getIdForAddress(address(_asset));
+        bytes32 assetId = LibHelpers._getIdForAddress(address(_asset));
+        return initEntity2(assetId, _collateralRatio, _maxCapacity, _utilizedCapacity, _simplePolicyEnabled);
+    }
+
+    function initEntity2(
+        bytes32 _assetId,
+        uint256 _collateralRatio,
+        uint256 _maxCapacity,
+        uint256 _utilizedCapacity,
+        bool _simplePolicyEnabled
+    ) public pure returns (Entity memory e) {
+        e.assetId = _assetId;
         e.collateralRatio = _collateralRatio;
         e.maxCapacity = _maxCapacity;
         e.utilizedCapacity = _utilizedCapacity;
-        e.simplePolicyEnabled = simplePolicyEnabled;
+        e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 }
