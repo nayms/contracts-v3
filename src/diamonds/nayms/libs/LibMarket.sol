@@ -183,7 +183,7 @@ library LibMarket {
             // (For detailed breakdown see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
             if (
                 makerBuyAmount * result.remainingBuyAmount >
-                result.remainingSellAmount * makerSellAmount + result.remainingSellAmount + makerSellAmount + makerBuyAmount + result.remainingBuyAmount
+                result.remainingSellAmount * makerSellAmount + makerBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + makerSellAmount
             ) {
                 break; // no matching price, bail out
             }
