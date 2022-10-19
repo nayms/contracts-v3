@@ -114,8 +114,43 @@ Calculate the trading commissions based on a buy amount.
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
 |`tc`| uint256 | TradingCommissions struct todo
-### getTradingCommissionsBasisPoints
+### getNaymsLtdBP
 ```solidity
-  function getTradingCommissionsBasisPoints(
-  ) external returns (struct TradingCommissionsBasisPoints bp)
+  function getNaymsLtdBP(
+  ) external returns (uint256 bp)
 ```
+Get the basis points earned from trading commissions for Nayms Ltd.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
+### getNDFBP
+```solidity
+  function getNDFBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for Nayms discretionary Fund.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
+### getSTMBP
+```solidity
+  function getSTMBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for Nayms token stakers.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points
+### getMakerBP
+```solidity
+  function getMakerBP(
+  ) external returns (uint256 bp)
+```
+Get the basis points earned from trading commissions for the market maker.
+#### Return Values:
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`bp`|  | Nayms Ltd commissions basis points

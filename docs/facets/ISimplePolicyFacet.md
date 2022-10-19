@@ -46,11 +46,6 @@ Get simple policy info
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
 |`Simple`| bytes32 | policy metadata
-### getPremiumCommissionBasisPoints
-```solidity
-  function getPremiumCommissionBasisPoints(
-  ) external returns (struct PolicyCommissionsBasisPoints)
-```
 ### checkAndUpdateSimplePolicyState
 ```solidity
   function checkAndUpdateSimplePolicyState(

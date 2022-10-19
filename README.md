@@ -182,13 +182,13 @@ Convenience targets are provided in the Makefile for running a specific test aga
 To run a test against a Goerli fork us the following command passing in the test matching expression i.e. `testStartTokenSale`
 
 ```zsh
-make test-goerli MT=testStartTokenSale
+make testGoerli MT=testStartTokenSale
 ```
 
 Similarly a Mainnet fork test can be executed via:
 
 ```zsh
-make test-mainnet MT=testStartTokenSale
+make testMainnet MT=testStartTokenSale
 ```
 
 ## Staging for Production Deployment Flow

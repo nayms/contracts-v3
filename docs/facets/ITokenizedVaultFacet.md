@@ -77,17 +77,11 @@ Transfer tokens internally
 | :--- | :--- | :------------------------------------------------------------------- |
 |`to` | bytes32 | token receiver
 |`tokenId` | bytes32 | Internal ID of the token
-### internalBurn
-```solidity
-  function internalBurn(
-  ) external
-```
 ### getWithdrawableDividend
 ```solidity
   function getWithdrawableDividend(
     bytes32 _entityId,
-    bytes32 _tokenId,
-    bytes32 _dividendTokenId
+    bytes32 _tokenId
   ) external returns (uint256 _entityPayout)
 ```
 Get withdrawable dividend amount
@@ -97,7 +91,6 @@ Divident available for an entity to withdraw
 | :--- | :--- | :------------------------------------------------------------------- |
 |`_entityId` | bytes32 | Unique ID of the entity
 |`_tokenId` | bytes32 | Unique ID of token
-|`_dividendTokenId` | bytes32 | Unique ID of dividend token
 #### Return Values:
 | Name                           | Type          | Description                                                                  |
 | :----------------------------- | :------------ | :--------------------------------------------------------------------------- |

@@ -24,7 +24,7 @@ jobs:
 
       - name: Update path
         run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
-
+      
       - name: Install solc
         run: svm install 0.7.6 && svm install 0.8.13 && svm use 0.8.13
 
@@ -70,7 +70,7 @@ jobs:
           path-to-lcov: "./lcov-filtered.info"
 
       - name: Slither Static Analyser
-        uses: crytic/slither-action@v0.2.0
+        uses: crytic/slither-action@v0.1.1
         id: slither
         with:
           sarif: results.sarif
