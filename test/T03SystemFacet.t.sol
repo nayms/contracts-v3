@@ -30,8 +30,8 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
 
     function testZeroCollateralRatioWhenCreatingEntity() public {
         bytes32 objectId1 = "0x1";
-        vm.expectRevert("collateral ratio should be 1 to 1000");
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 0, 1, 0, false), "entity test hash");
+        vm.expectRevert("collateral ratio should be 0 to 1000");
+        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 1001, 1, 0, false), "entity test hash");
     }
 
     function testNonManagerCreateEntity() public {

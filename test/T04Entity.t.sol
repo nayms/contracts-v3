@@ -111,11 +111,11 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testUpdateEntity() public {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
-        vm.expectRevert("collateral ratio should be 1 to 1000");
-        nayms.updateEntity(entityId1, initEntity(weth, 0, 1000, 0, false));
-
         vm.expectRevert("external token is not supported");
-        nayms.updateEntity(entityId1, initEntity(wbtc, 1000, 1000, 0, false));
+        nayms.updateEntity(entityId1, initEntity(wbtc, 0, 1000, 0, false));
+
+        vm.expectRevert("collateral ratio should be 0 to 1000");
+        nayms.updateEntity(entityId1, initEntity(weth, 1001, 1000, 0, false));
 
         vm.expectRevert("max capacity should be greater than 0 for policy creation");
         nayms.updateEntity(entityId1, initEntity(weth, 1000, 0, 0, true));
