@@ -176,3 +176,6 @@ subgraph: ## generate diamond ABI for the subgraph
 .PHONY: docs
 docs: ## generate docs from natspec comments
 	yarn docgen
+
+slither:	## run slither static analysis
+	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention --ignore-compile
