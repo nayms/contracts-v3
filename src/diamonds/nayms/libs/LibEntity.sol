@@ -176,7 +176,7 @@ library LibEntity {
 
             // Collateral ratio must be in acceptable range of 1 to 1000 basis points (0.01% to 100% collateralized).
             // Cannot ever be completely uncollateralized (0 basis points), if entity is a cell.
-            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= 1000, "collateral ratio should be 0 to 1000");
+            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= 1000, "collateral ratio should be 1 to 1000");
 
             // Max capacity is the capital amount that an entity can write across all of their policies.
             // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.
