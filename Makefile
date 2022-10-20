@@ -37,7 +37,7 @@ prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
 	node ./cli-tools/prep-build.js 
 
 build: ## forge build
-	forge build --names --sizes
+	forge build --names --sizes --via-ir
 b: build
 
 bscript: ## build forge scripts
@@ -97,7 +97,7 @@ cov: ## coverage report -vvv
 	forge coverage -vvv
 
 coverage: ## coverage report (lcov), filtered for CI
-	forge coverage -vvv --report lcov && node ./cli-tools/filter-lcov.js 
+	forge coverage -vvv --report lcov --via-ir && node ./cli-tools/filter-lcov.js
 
 lcov: ## coverage report (lcov)
 	forge coverage --report lcov --via-ir
