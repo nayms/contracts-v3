@@ -37,7 +37,7 @@ prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
 	node ./cli-tools/prep-build.js 
 
 build: ## forge build
-	forge build --names --sizes --via-ir
+	forge build --names --sizes
 b: build
 
 bscript: ## build forge scripts
