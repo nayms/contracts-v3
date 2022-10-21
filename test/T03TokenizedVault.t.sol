@@ -28,11 +28,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     bytes32 public immutable davidId = LibHelpers._getIdForAddress(vm.addr(0x11111D));
     bytes32 public immutable emilyId = LibHelpers._getIdForAddress(vm.addr(0x11111E));
     bytes32 public immutable faithId = LibHelpers._getIdForAddress(vm.addr(0x11111F));
-    bytes32 eDavid;
-    bytes32 eEmily;
-    bytes32 eFaith;
 
-    Entity entityWbtc;
+    bytes32 internal eDavid;
+    bytes32 internal eEmily;
+    bytes32 internal eFaith;
+
+    Entity internal entityWbtc;
 
     function setUp() public virtual override {
         super.setUp();
@@ -115,8 +116,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
     function testSingleInternalTransferFromEntity() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
-
-        uint256 balanceAcc0 = nayms.internalBalanceOf(account0Id, nWETH);
 
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should start at 0");
 
@@ -272,8 +271,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         address alice = account0;
         address bob = signer1;
-        bytes32 aliceId = account0Id;
-        bytes32 bobId = signer1Id;
         bytes32 eAlice = nayms.getEntity(account0Id);
         bytes32 eBob = nayms.getEntity(signer1Id);
 
@@ -305,7 +302,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         TradingCommissions memory tc = nayms.calculateTradingCommissions(takerBuyAmount);
 
-        bytes32 signer1EntityId = nayms.getEntity(signer1Id);
         nayms.externalDepositToEntity(eBob, wethAddress, 1 ether + tc.totalCommissions);
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether + tc.totalCommissions, "eBob's nWETH balance should INCREASE");
 
@@ -325,13 +321,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
     function testMultipleDepositDividendWithdraw() public {
         address alice = account0;
-        bytes32 aliceId = account0Id;
         bytes32 eAlice = nayms.getEntity(account0Id);
         address bob = signer1;
-        bytes32 bobId = signer1Id;
         bytes32 eBob = nayms.getEntity(signer1Id);
         address charlie = signer2;
-        bytes32 charlieId = signer2Id;
         bytes32 eCharlie = nayms.getEntity(signer2Id);
 
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
@@ -392,13 +385,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
     function testMultipleDepositDividendWithdrawWithTwoDividendTokens() public {
         address alice = account0;
-        bytes32 aliceId = account0Id;
         bytes32 eAlice = nayms.getEntity(account0Id);
         address bob = signer1;
-        bytes32 bobId = signer1Id;
         bytes32 eBob = nayms.getEntity(signer1Id);
         address charlie = signer2;
-        bytes32 charlieId = signer2Id;
         bytes32 eCharlie = nayms.getEntity(signer2Id);
 
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
@@ -504,13 +494,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
     function testDepositAndBurn() public {
         address alice = account0;
-        bytes32 aliceId = account0Id;
         bytes32 eAlice = nayms.getEntity(account0Id);
         address bob = signer1;
-        bytes32 bobId = signer1Id;
         bytes32 eBob = nayms.getEntity(signer1Id);
         address charlie = signer2;
-        bytes32 charlieId = signer2Id;
         bytes32 eCharlie = nayms.getEntity(signer2Id);
 
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
