@@ -563,6 +563,91 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         // weth.balanceOf(bob);
     }
 
+    function testWithdrawableDividenWhenPurchasedAfterDisrtibution() public {
+        // -- Test Case -----------------------------
+        // 1. start token sale
+        // 2. distribute dividends
+        // 3. purchase participation tokens
+        // 4. taker SHOULD NOT have withdrawable dividend
+        // 5. distribute another round of dividends
+        // 6. SHOULD have withdrawable dividends now!
+        // ------------------------------------------
+
+        // prettier-ignore
+        Entity memory e = Entity({ 
+            assetId: nWETH, 
+            collateralRatio: 1_000, 
+            maxCapacity: 1_000 ether, 
+            utilizedCapacity: 0, 
+            simplePolicyEnabled: true 
+        });
+
+        bytes32 entity0Id = bytes32("0xe1");
+        bytes32 entity1Id = bytes32("0xe2");
+        nayms.createEntity(entity0Id, account0Id, e, "test");
+        nayms.createEntity(entity1Id, signer1Id, e, "test");
+
+        // 1. ---- start token sale ----
+
+        uint256 e1SaleAmount = 1_000 ether;
+        nayms.startTokenSale(entity0Id, e1SaleAmount, e1SaleAmount);
+        assertEq(nayms.internalTokenSupply(entity0Id), e1SaleAmount, "Entity 1 participation tokens should be minted");
+
+        // 2. ---- distribute dividends ----
+
+        // fund entity0 to distribute as dividends
+        uint256 e1Div1 = 100 ether;
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+        assertEq(nayms.internalBalanceOf(entity0Id, nWETH), 0, "entity0 nWETH balance should start at 0");
+        nayms.externalDeposit(entity0Id, wethAddress, e1Div1);
+        assertEq(nayms.internalBalanceOf(entity0Id, nWETH), e1Div1, "entity0 nWETH balance should INCREASE (mint)");
+
+        // distribute dividends to entity0 shareholders
+        bytes32 guid = bytes32("0xc0ffee");
+        nayms.payDividendFromEntity(guid, e1Div1);
+
+        // entity1 has no share, thus no withdrawable dividend at this point
+        vm.startPrank(signer1);
+        uint256 entity1Div = nayms.getWithdrawableDividend(entity1Id, nWETH, nWETH);
+        assertEq(entity1Div, 0, "Entity 1 has no tokens, so should NOT have dividend to claim");
+        vm.stopPrank();
+
+        // 3.  ---- purchase participation tokens  ----
+
+        // fund entity1 to by par-tokens
+        uint256 takeAmount = 10 ether;
+        nayms.externalDeposit(entity1Id, wethAddress, takeAmount + 1 ether); // +1 for trading commissions
+        assertEq(nayms.internalBalanceOf(entity1Id, nWETH), takeAmount + 1 ether, "entity1 nWETH balance should INCREASE (mint)");
+
+        // place order
+        vm.startPrank(signer1);
+        nayms.executeLimitOffer(nWETH, takeAmount, entity0Id, takeAmount);
+        assertEq(nayms.internalBalanceOf(entity1Id, entity0Id), takeAmount, "entity1 SHOULD have entity0-tokens in his balance");
+        vm.stopPrank();
+
+        // 4.  ---- SHOULD NOT have withdrawable dividend  ----
+
+        // withdrawable divident should still be zero!
+        vm.startPrank(signer1);
+        uint256 entity1DivAfterPurchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, nWETH);
+        assertEq(entity1DivAfterPurchase, 0, "Entity 1 should NOT have dividend to claim here!");
+        vm.stopPrank();
+
+        // 5.  ---- distribute another round of dividends  ----
+
+        uint256 e1Div2 = 100 ether;
+        bytes32 guid2 = bytes32("0xbEEf");
+        nayms.payDividendFromEntity(guid2, e1Div2);
+
+        // 6.  ---- SHOULD have more withdrawable dividends now!  ----
+
+        uint256 expectedDividend = (e1Div2 * takeAmount) / e1SaleAmount;
+        vm.startPrank(signer1);
+        uint256 entity1DivAfter2Purchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, nWETH);
+        assertEq(entity1DivAfter2Purchase, expectedDividend, "Entity 1 should have a dividend to claim here!");
+        vm.stopPrank();
+    }
+
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
     // while withdrawDividend() will revert
 }
