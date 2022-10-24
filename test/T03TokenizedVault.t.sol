@@ -563,7 +563,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         // weth.balanceOf(bob);
     }
 
-    function testWithdrawableDividenWhenPurchasedAfterDisrtibution() public {
+    function testWithdrawableDividenWhenPurchasedAfterDistribution() public {
         // -- Test Case -----------------------------
         // 1. start token sale
         // 2. distribute dividends
