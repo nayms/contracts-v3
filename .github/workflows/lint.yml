@@ -7,6 +7,7 @@ on:
 
 jobs:
   run-linter:
+    name: Lint contracts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,12 +18,12 @@ jobs:
         with:
           node-version: "16"
           cache: "yarn"
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           scope: "@nayms"
 
       - name: Install node dev dependencies
         run: yarn
-            
+
       - name: Run prettier check
         run: yarn run prettier:check
 
