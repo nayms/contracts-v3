@@ -26,6 +26,7 @@ contract Constants {
     string public constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string public constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string public constant ROLE_TRADER = "Trader";
+    string public constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
 
     //Groups
     string public constant GROUP_SYSTEM_ADMINS = "System Admins";
@@ -39,6 +40,7 @@ contract Constants {
     string public constant GROUP_CAPITAL_PROVIDERS = "Capital Providers";
     string public constant GROUP_CLAIMS_ADMINS = "Claims Admins";
     string public constant GROUP_TRADERS = "Traders";
+    string public constant GROUP_SEGREGATED_ACCOUNTS = "Segregated Accounts";
 
     /*///////////////////////////////////////////////////////////////////////////
                         Market Fee Schedules
