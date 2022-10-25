@@ -126,9 +126,11 @@ erc20g: ## deploy test ERC20 to Goerli
 		--verify \
 		-vvvv
 
-# Deployment
-
+# Deployment defaults
 facetsToCutIn="[]"
+newDiamond=false
+initNewDiamond=false
+facetAction=1
 
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
