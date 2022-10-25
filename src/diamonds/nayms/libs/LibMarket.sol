@@ -144,7 +144,7 @@ library LibMarket {
     }
 
     function _matchToExistingOffers(
-        bytes32 _fromEntityId,
+        bytes32 _takerId,
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
@@ -155,51 +155,63 @@ library LibMarket {
         result.remainingBuyAmount = _buyAmount;
         result.remainingSellAmount = _sellAmount;
 
-        // _buyAmount == 0  means it's a market offer
+        // sell: p100 buy: $100 => YES! buy more
+        // sell: $100 buy: p100 =>  NO! DON'T buy more
 
-        while (result.remainingSellAmount != 0) {
+        // If the buyToken is entity   => limit both buy and sell amounts
+        // If the buyToken is external => limit only sell amount
+
+        bool buyExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
             if (bestOfferId == 0) {
-                break;
+                break; // no market liquidity, bail out
             }
 
-            uint256 bestBuyAmount = s.offers[bestOfferId].buyAmount;
-            uint256 bestSellAmount = s.offers[bestOfferId].sellAmount;
+            uint256 makerBuyAmount = s.offers[bestOfferId].buyAmount;
+            uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
 
-            // check if price is better or same as the one taker is willing to pay, within error margin
-            // Ugly hack to work around rounding errors. Based on the idea that
+            // Check if best available price on the market is better or same,
+            // as the one taker is willing to pay, within error margin of ±1.
+            // This ugly hack is to work around rounding errors. Based on the idea that
             // the furthest the amounts can stray from their "true" values is 1.
-            // Ergo the worst case has `sellAmount` and `bestSellAmount` at +1 away from
-            // their "correct" values and `bestBuyAmount` and `buyAmount` at -1.
+            // Ergo the worst case has `sellAmount` and `makerSellAmount` at +1 away from
+            // their "correct" values and `makerBuyAmount` and `buyAmount` at -1.
             // Since (c - 1) * (d - 1) > (a + 1) * (b + 1) is equivalent to
-            // c * d > a * b + a + b + c + d, we write...
-            //
+            // c * d > a * b + a + b + c + d
             // (For detailed breakdown see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
-            //
             if (
-                bestBuyAmount * result.remainingBuyAmount >
-                result.remainingSellAmount * bestSellAmount + bestBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + bestSellAmount
+                makerBuyAmount * result.remainingBuyAmount >
+                result.remainingSellAmount * makerSellAmount + makerBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + makerSellAmount
             ) {
-                break;
+                break; // no matching price, bail out
             }
 
             // ^ The `rounding` parameter is a compromise borne of a couple days of discussion.
 
             // avoid stack-too-deep
             {
-                // do the buy
-                uint256 finalSellAmount = bestBuyAmount < result.remainingSellAmount ? bestBuyAmount : result.remainingSellAmount;
-                (uint256 nextBuyTokenCommissionsPaid, uint256 nextSellTokenCommissionsPaid) = _buy(bestOfferId, _fromEntityId, finalSellAmount);
+                // take the offer
+                uint256 currentSellAmount;
+                uint256 currentBuyAmount;
 
-                // Keep track of total commissions
-                result.buyTokenCommissionsPaid += nextBuyTokenCommissionsPaid;
-                result.sellTokenCommissionsPaid += nextSellTokenCommissionsPaid;
+                if (buyExternalToken) {
+                    currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
+                    currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
+                    uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    result.buyTokenCommissionsPaid += commissionsPaid;
+                } else {
+                    currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
+                    currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
+
+                    uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    result.sellTokenCommissionsPaid += commissionsPaid;
+                }
                 // calculate how much is left to buy/sell
-                uint256 sellAmountOld = result.remainingSellAmount;
-                result.remainingSellAmount = result.remainingSellAmount - finalSellAmount;
-                result.remainingBuyAmount = (result.remainingSellAmount * result.remainingBuyAmount) / sellAmountOld;
+                result.remainingSellAmount -= currentSellAmount;
+                result.remainingBuyAmount -= currentBuyAmount;
             }
         }
     }
@@ -243,38 +255,36 @@ library LibMarket {
         return lastOfferId;
     }
 
-    function _buy(
+    function _takeOffer(
         uint256 _offerId,
         bytes32 _takerId,
-        uint256 _requestedBuyAmount
-    ) internal returns (uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
+        uint256 _buyAmount,
+        uint256 _sellAmount,
+        bool _takeExternalToken
+    ) internal returns (uint256 commissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // (a / b) * c = c * a / b  -> multiply first, to avoid underflow
-        uint256 actualSellAmount = (_requestedBuyAmount * s.offers[_offerId].sellAmount) / s.offers[_offerId].buyAmount; // nWETH
-
         // check bounds and update balances
-        _checkBoundsAndUpdateBalances(_offerId, actualSellAmount, _requestedBuyAmount);
+        _checkBoundsAndUpdateBalances(_offerId, _buyAmount, _sellAmount);
 
-        // Check before paying commissions
+        // Check fee schedule, before paying commissions
         if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
-            // Fees are paid by the taker, maker pays no fees
-            // Fees are paid only in external token
-            // If the _buyToken is external, commissions are paid from _buyAmount in _buyToken.
-            // If the _buyToken is internal and the _sellToken is external, commissions are paid from _sellAmount in _sellToken.
-            if (LibAdmin._isSupportedExternalToken(s.offers[_offerId].buyToken)) {
-                buyTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _requestedBuyAmount);
+            // Fees are always paid by the taker, maker pays no fees, also only in external token.
+            if (_takeExternalToken) {
+                // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
+                commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
             } else {
-                sellTokenCommissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualSellAmount);
+                // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
+                commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
             }
         }
 
-        s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= actualSellAmount;
+        s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 
-        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, actualSellAmount);
-        LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _requestedBuyAmount);
+        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+        LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _sellAmount);
 
-        // cancel offer if it has become dust
+        // close offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
             _cancelOffer(_offerId);
