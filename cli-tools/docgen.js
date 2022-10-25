@@ -43,10 +43,6 @@ function fix(pathName) {
 }
 
 fs.writeFileSync (SUMMARY_FILE, "\n# Summary\n\n");
-fs.writeFileSync (".gitbook.yaml", "root: ./\n");
-fs.appendFileSync(".gitbook.yaml", "structure:\n");
-fs.appendFileSync(".gitbook.yaml", "  readme: " + README_FILE + "\n");
-fs.appendFileSync(".gitbook.yaml", "  summary: " + SUMMARY_FILE + "\n");
 
 scan(INPUT_DIR, "");
 
