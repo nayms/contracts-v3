@@ -71,6 +71,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_CAPITAL_PROVIDERS));
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_CLAIMS_ADMINS));
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_TRADER, LibConstants.GROUP_TRADERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SEGREGATED_ACCOUNTS));
 
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
@@ -85,6 +86,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS));
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SYSTEM_MANAGERS));
 
         assertTrue(fixture.isObject(0));
         assertTrue(fixture.isObject(account0Id));

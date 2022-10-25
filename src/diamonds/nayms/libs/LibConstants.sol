@@ -28,6 +28,7 @@ library LibConstants {
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
+    string internal constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
 
     //Groups
     string internal constant GROUP_SYSTEM_ADMINS = "System Admins";
@@ -41,6 +42,7 @@ library LibConstants {
     string internal constant GROUP_CAPITAL_PROVIDERS = "Capital Providers";
     string internal constant GROUP_CLAIMS_ADMINS = "Claims Admins";
     string internal constant GROUP_TRADERS = "Traders";
+    string internal constant GROUP_SEGREGATED_ACCOUNTS = "Segregated Accounts";
 
     /*///////////////////////////////////////////////////////////////////////////
                         Market Fee Schedules
