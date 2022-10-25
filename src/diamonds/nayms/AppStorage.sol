@@ -23,16 +23,12 @@ struct AppStorage {
     mapping(bytes32 => Entity) entities; // objectId => Entity struct
     //// SIMPLE POLICY ////
     mapping(bytes32 => SimplePolicy) simplePolicies; // objectId => SimplePolicy struct
-    // External Tokens
-    // mapping(bytes32 => bool) externalTokens; // bytes32 ID of external token => is external token?
+    //// External Tokens ////
     mapping(address => bool) externalTokenSupported;
     address[] supportedExternalTokens;
     //// TokenizedObject ////
     mapping(bytes32 => mapping(bytes32 => uint256)) tokenBalances; // tokenId => (ownerId => balance)
     mapping(bytes32 => uint256) tokenSupply; // tokenId => Total Token Supply
-    //    mapping(address => uint256) permitExternalDepositNonce; // Is this used?
-    // limit to three when updating???
-
     //// Dividends ////
     uint8 maxDividendDenominations;
     mapping(bytes32 => bytes32[]) dividendDenominations; // object => tokenId of the dividend it allows
@@ -40,18 +36,10 @@ struct AppStorage {
     mapping(bytes32 => mapping(uint8 => bytes32)) dividendDenominationAtIndex; // entity ID => (token ID => index of dividend denomination)
     mapping(bytes32 => mapping(bytes32 => uint256)) totalDividends; // token ID => (denomination ID => total dividend)
     mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => uint256))) withdrawnDividendPerOwner; // entity => (tokenId => (owner => total withdrawn dividend)) NOT per share!!! this is TOTAL
-    // // Keep track of the different dividends issued on chain
-    // mapping(bytes32 => mapping(bytes32 => uint8)) issuedDividendsTokensIndex; // ownerId => dividendTokenId => index
-    // mapping(bytes32 => mapping(uint8 => bytes32)) issuedDividendTokens; // ownerId => index => dividendTokenId
-    // mapping(bytes32 => uint8) numIssuedDividends; //starts at 1. 0 means no dividends issued
     // //// DIVIDEND PAYOUT LOGIC ////
-    // mapping(bytes32 => mapping(bytes32 => uint256)) divPerTokens; // entity ID => token ID => dividend per token ratio
-    // mapping(bytes32 => mapping(bytes32 => EntityDividendInfo)) dividendInfos; // entity ID => token ID => dividend info
-
     // When a dividend is payed, you divide by the total supply and add it to the totalDividendPerToken
-    // Dividends are held by the diamond contract LibHelpers._getIdForAddress(address(this))
-    // When dividends are paid, they are transfered OUT of the diamond contract.
-    //
+    // Dividends are held by the diamond contract at: LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER)
+    // When dividends are paid, they are transfered OUT of that same diamond contract ID.
     //
     // To calculate withdrawableDividiend = ownedTokens * totalDividendPerToken - totalWithdrawnDividendPerOwner
     //
@@ -75,9 +63,6 @@ struct AppStorage {
     string[][] canAssignConfig;
     //// User Data ////
     mapping(bytes32 => mapping(bytes32 => bytes32)) roles; // userId => (contextId => role)
-    //// ACL Non Essential ////
-    //these are only for user viewing. They can be removed.
-
     //// MARKET ////
     uint256 lastOfferId;
     mapping(uint256 => MarketInfo) offers; // offer Id => MarketInfo struct
@@ -95,16 +80,7 @@ struct AppStorage {
     mapping(bytes32 => mapping(bytes32 => uint8)) ownedTokenIndex; // ownerId => tokenId => index
     mapping(bytes32 => mapping(uint8 => bytes32)) ownedTokenAtIndex; // ownerId => index => tokenId
     mapping(bytes32 => uint8) numOwnedTokens; //starts at 1. 0 means no tokens owned
-    // issuedDividendsIndex
-    // issuedDividendsAtIndex
-    // numIssuedDividends
-
-    // mapping(ownerid => tokenid => index =) issuedDividends
-    // mapping() numIssuedDividends //starts at 0
-
     ////
-    //// FROM HERE ON, EVERYTHING IS DEPRECATED. MOVE TO USING THE SAME VARIABLE IN THE "Settings" STRUCTURE
-    //// Use LibAdminFunctions._getSettings() to get the instance of settings you need
     ////
 
     // //// FEE BANK ////
@@ -136,7 +112,6 @@ struct AppStorage {
     //Token addresses for quotes and swaps
     address token0;
     address token1;
-    //address token2;
     address pool;
     address uniswapFactory;
     /// Trading Commissions (all in basis points) ///
