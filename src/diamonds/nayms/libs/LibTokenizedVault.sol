@@ -72,12 +72,15 @@ library LibTokenizedVault {
         uint256 _amount
     ) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         if (s.marketLockedBalances[_from][_tokenId] > 0) {
             require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens for sale in mkt");
         } else {
             require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransferFrom: must own the funds");
         }
+
         _withdrawAllDividends(_from, _tokenId);
+
         s.tokenBalances[_tokenId][_from] -= _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
 
@@ -101,9 +104,6 @@ library LibTokenizedVault {
 
         _normalizeDividends(_to, _tokenId, _amount, true);
 
-        // Now you can bump the token supply and the balance for the user
-        // Cannot overflow because the sum of all user
-        // balances can't exceed the max uint256 value.
         s.tokenSupply[_tokenId] += _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
 
@@ -132,7 +132,7 @@ library LibTokenizedVault {
             // Dividend deduction for newly issued shares
             (, uint256 dividendDeductionIssued) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, 0);
 
-            //Scale total dividends and withdrawn dividend for new owner
+            // Scale total dividends and withdrawn dividend for new owner
             s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeductionIssued;
             if (_updateTotals) {
                 s.totalDividends[_tokenId][dividendDenominationId] += (s.totalDividends[_tokenId][dividendDenominationId] * _amount) / supply;
@@ -146,6 +146,7 @@ library LibTokenizedVault {
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         if (s.marketLockedBalances[_from][_tokenId] > 0) {
             require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens for sale in mkt");
         } else {
@@ -153,6 +154,7 @@ library LibTokenizedVault {
         }
 
         _withdrawAllDividends(_from, _tokenId);
+
         s.tokenSupply[_tokenId] -= _amount;
         s.tokenBalances[_tokenId][_from] -= _amount;
 
