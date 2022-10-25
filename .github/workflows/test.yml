@@ -1,4 +1,4 @@
-name: tests
+name: test
 on:
   push:
     branches:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   run-tests:
+    name: Test contracts
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
     permissions:

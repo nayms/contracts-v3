@@ -40,7 +40,7 @@ bin/
 
 broadcast/**/31337/*
 
-// subgraph artifact
+# subgraph artifact
 NaymsDiamond.json
 
 broadcast/**/dry-run

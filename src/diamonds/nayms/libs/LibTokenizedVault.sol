@@ -72,14 +72,19 @@ library LibTokenizedVault {
         uint256 _amount
     ) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         if (s.marketLockedBalances[_from][_tokenId] > 0) {
             require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens for sale in mkt");
         } else {
             require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransferFrom: must own the funds");
         }
+
         _withdrawAllDividends(_from, _tokenId);
+
         s.tokenBalances[_tokenId][_from] -= _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
+
+        _normalizeDividends(_to, _tokenId, _amount, false);
 
         emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransferFrom", msg.sender);
         emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransferFrom", msg.sender);
@@ -96,6 +101,23 @@ library LibTokenizedVault {
         require(_amount > 0, "MultiToken: mint zero tokens");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        _normalizeDividends(_to, _tokenId, _amount, true);
+
+        s.tokenSupply[_tokenId] += _amount;
+        s.tokenBalances[_tokenId][_to] += _amount;
+
+        emit InternalTokenSupplyUpdate(_tokenId, s.tokenSupply[_tokenId], "_internalMint", msg.sender);
+        emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalMint", msg.sender);
+    }
+
+    function _normalizeDividends(
+        bytes32 _to,
+        bytes32 _tokenId,
+        uint256 _amount,
+        bool _updateTotals
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         uint256 supply = _internalTokenSupply(_tokenId);
 
         // This must be done BEFORE the supply increases!!!
@@ -106,20 +128,16 @@ library LibTokenizedVault {
         for (uint256 i = 0; i < dividendDenominations.length; ++i) {
             bytes32 dividendDenominationId = dividendDenominations[i];
             uint256 totalDividend = s.totalDividends[_tokenId][dividendDenominationId];
-            uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to];
 
-            (, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, withdrawnSoFar);
-            s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeduction;
+            // Dividend deduction for newly issued shares
+            (, uint256 dividendDeductionIssued) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, 0);
+
+            // Scale total dividends and withdrawn dividend for new owner
+            s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeductionIssued;
+            if (_updateTotals) {
+                s.totalDividends[_tokenId][dividendDenominationId] += (s.totalDividends[_tokenId][dividendDenominationId] * _amount) / supply;
+            }
         }
-
-        // Now you can bump the token supply and the balance for the user
-        // Cannot overflow because the sum of all user
-        // balances can't exceed the max uint256 value.
-        s.tokenSupply[_tokenId] += _amount;
-        s.tokenBalances[_tokenId][_to] += _amount;
-
-        emit InternalTokenSupplyUpdate(_tokenId, s.tokenSupply[_tokenId], "_internalMint", msg.sender);
-        emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalMint", msg.sender);
     }
 
     function _internalBurn(
@@ -128,6 +146,7 @@ library LibTokenizedVault {
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         if (s.marketLockedBalances[_from][_tokenId] > 0) {
             require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens for sale in mkt");
         } else {
@@ -135,6 +154,7 @@ library LibTokenizedVault {
         }
 
         _withdrawAllDividends(_from, _tokenId);
+
         s.tokenSupply[_tokenId] -= _amount;
         s.tokenBalances[_tokenId][_from] -= _amount;
 
