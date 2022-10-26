@@ -23,6 +23,7 @@ out
 # Project specific
 .staging
 deployedAddressesTest.json
+facetsdeployed.txt
 
 # VS Code
 .vscode/configurationCache.log
