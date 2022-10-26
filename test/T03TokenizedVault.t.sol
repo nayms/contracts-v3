@@ -5,6 +5,7 @@ import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibO
 import { AppStorage, Entity, FeeRatio, MarketInfo, TradingCommissions, TradingCommissionsBasisPoints } from "src/diamonds/nayms/AppStorage.sol";
 import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
 
 contract T03TokenizedVaultTest is D03ProtocolDefaults {
     bytes32 internal nWETH;
@@ -35,6 +36,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
     Entity internal entityWbtc;
 
+    TradingCommissionsFixture internal tradingCommissionsFixture;
+    TradingCommissionsConfig internal c;
+
     function setUp() public virtual override {
         super.setUp();
         nWETH = LibHelpers._getIdForAddress(wethAddress);
@@ -50,6 +54,24 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         eDavid = nayms.getEntity(davidId);
         eEmily = nayms.getEntity(emilyId);
         eFaith = nayms.getEntity(faithId);
+
+        // setup trading commissions fixture
+        tradingCommissionsFixture = new TradingCommissionsFixture();
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = tradingCommissionsFixture.getCommissionsConfig.selector;
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
+
+        c = getCommissions();
+    }
+
+    function getCommissions() internal returns (TradingCommissionsConfig memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
+        require(success, "Should get commissions from app storage");
+        return abi.decode(result, (TradingCommissionsConfig));
     }
 
     function testBasisPoints() public {
@@ -563,7 +585,24 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         // weth.balanceOf(bob);
     }
 
-    function testWithdrawableDividenWhenPurchasedAfterDistribution() public {
+    function scopeToDefaults(uint256 _input) internal {
+        scopeTo(_input, 1_000, 1_000_000_000_000 ether);
+    }
+
+    function scopeTo(
+        uint256 _input,
+        uint256 _min,
+        uint256 _max
+    ) internal {
+        vm.assume(_input <= _max);
+        vm.assume(_input >= _min);
+    }
+
+    function testFuzzWithdrawableDividends(
+        uint256 _parTokenSupply,
+        uint256 _holdersShare,
+        uint256 _dividendAmount
+    ) public {
         // -- Test Case -----------------------------
         // 1. start token sale
         // 2. distribute dividends
@@ -573,11 +612,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         // 6. SHOULD have withdrawable dividends now!
         // ------------------------------------------
 
+        // scope input values
+        scopeToDefaults(_parTokenSupply);
+        scopeTo(_holdersShare, 1, 100);
+        scopeTo(_dividendAmount, 1, _parTokenSupply);
+
         // prettier-ignore
         Entity memory e = Entity({ 
             assetId: nWETH, 
             collateralRatio: 1_000, 
-            maxCapacity: 1_000 ether, 
+            maxCapacity: _parTokenSupply, 
             utilizedCapacity: 0, 
             simplePolicyEnabled: true 
         });
@@ -589,22 +633,20 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         // 1. ---- start token sale ----
 
-        uint256 e1SaleAmount = 1_000 ether;
-        nayms.startTokenSale(entity0Id, e1SaleAmount, e1SaleAmount);
-        assertEq(nayms.internalTokenSupply(entity0Id), e1SaleAmount, "Entity 1 participation tokens should be minted");
+        nayms.startTokenSale(entity0Id, _parTokenSupply, _parTokenSupply);
+        assertEq(nayms.internalTokenSupply(entity0Id), _parTokenSupply, "Entity 1 participation tokens should be minted");
 
         // 2. ---- distribute dividends ----
 
         // fund entity0 to distribute as dividends
-        uint256 e1Div1 = 100 ether;
-        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(account0, naymsAddress, wethAddress, _dividendAmount * 2);
         assertEq(nayms.internalBalanceOf(entity0Id, nWETH), 0, "entity0 nWETH balance should start at 0");
-        nayms.externalDeposit(entity0Id, wethAddress, e1Div1);
-        assertEq(nayms.internalBalanceOf(entity0Id, nWETH), e1Div1, "entity0 nWETH balance should INCREASE (mint)");
+        nayms.externalDeposit(entity0Id, wethAddress, _dividendAmount);
+        assertEq(nayms.internalBalanceOf(entity0Id, nWETH), _dividendAmount, "entity0 nWETH balance should INCREASE (mint)");
 
         // distribute dividends to entity0 shareholders
         bytes32 guid = bytes32("0xc0ffee");
-        nayms.payDividendFromEntity(guid, e1Div1);
+        nayms.payDividendFromEntity(guid, _dividendAmount);
 
         // entity1 has no share, thus no withdrawable dividend at this point
         vm.startPrank(signer1);
@@ -615,11 +657,14 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         // 3.  ---- purchase participation tokens  ----
 
         // fund entity1 to by par-tokens
-        uint256 takeAmount = 10 ether;
-        nayms.externalDeposit(entity1Id, wethAddress, takeAmount + 1 ether); // +1 for trading commissions
-        assertEq(nayms.internalBalanceOf(entity1Id, nWETH), takeAmount + 1 ether, "entity1 nWETH balance should INCREASE (mint)");
+        uint256 takeAmount = (_parTokenSupply * _holdersShare) / 100;
+        uint256 commissionAmount = (takeAmount * c.tradingCommissionTotalBP) / 1000;
+        writeTokenBalance(account0, naymsAddress, wethAddress, takeAmount + commissionAmount);
+        nayms.externalDeposit(entity1Id, wethAddress, takeAmount + commissionAmount);
+        assertEq(nayms.internalBalanceOf(entity1Id, nWETH), takeAmount + commissionAmount, "entity1 nWETH balance should INCREASE (mint)");
+        console2.log(" -- e1 balance: ", nayms.internalBalanceOf(entity1Id, nWETH));
 
-        // place order
+        // place order, get the tokens
         vm.startPrank(signer1);
         nayms.executeLimitOffer(nWETH, takeAmount, entity0Id, takeAmount);
         assertEq(nayms.internalBalanceOf(entity1Id, entity0Id), takeAmount, "entity1 SHOULD have entity0-tokens in his balance");
@@ -635,17 +680,25 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         // 5.  ---- distribute another round of dividends  ----
 
-        uint256 e1Div2 = 100 ether;
         bytes32 guid2 = bytes32("0xbEEf");
-        nayms.payDividendFromEntity(guid2, e1Div2);
+        nayms.payDividendFromEntity(guid2, _dividendAmount);
 
         // 6.  ---- SHOULD have more withdrawable dividends now!  ----
 
-        uint256 expectedDividend = (e1Div2 * takeAmount) / e1SaleAmount;
+        uint256 expectedDividend = (_dividendAmount * takeAmount) / _parTokenSupply;
         vm.startPrank(signer1);
         uint256 entity1DivAfter2Purchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, nWETH);
-        assertEq(entity1DivAfter2Purchase, expectedDividend, "Entity 1 should have a dividend to claim here!");
+
+        // tolerate rounding errors
+        uint256 absDiff = entity1DivAfter2Purchase > expectedDividend ? entity1DivAfter2Purchase - expectedDividend : expectedDividend - entity1DivAfter2Purchase;
+        assertTrue(absDiff <= 1, "Entity 1 should have a dividend to claim here!");
+
         vm.stopPrank();
+    }
+
+    function testWithdrawableDividenWhenPurchasedAfterDistribution() public {
+        // test specific values
+        testFuzzWithdrawableDividends(1_000 ether, 10, 100 ether);
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
