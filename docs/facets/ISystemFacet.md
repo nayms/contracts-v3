@@ -2,6 +2,7 @@ Use it to perform system level operations
 ## Functions
 ### createEntity
 Create an entity
+An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.
 ```solidity
   function createEntity(
     bytes32 _entityId,
@@ -30,6 +31,7 @@ Convert a string type to a bytes32 type
 |`_strIn` | string | a string
 ### isObject
 No description
+Get whether given id is an object in the system.
 ```solidity
   function isObject(
     bytes32 _id
@@ -45,6 +47,7 @@ No description
 |`true` | if it is an object, false otherwise
 ### getObjectMeta
 No description
+Get meta of given object.
 ```solidity
   function getObjectMeta(
     bytes32 _id

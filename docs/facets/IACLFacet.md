@@ -2,6 +2,7 @@ Use it to authorise various actions on the contracts
 ## Functions
 ### assignRole
 Assign a `_roleId` to the object in given context
+Any object ID can be a context, system is a special context with highest priority
 ```solidity
   function assignRole(
     bytes32 _objectId,
@@ -17,6 +18,7 @@ Assign a `_roleId` to the object in given context
 |`_roleId` | string | ID of a role bein assigned
 ### unassignRole
 Unassign object from a role in given context
+Any object ID can be a context, system is a special context with highest priority
 ```solidity
   function unassignRole(
     bytes32 _objectId,
@@ -30,6 +32,7 @@ Unassign object from a role in given context
 |`_contextId` | bytes32 | ID of the context in which a role membership is being revoked
 ### isInGroup
 Checks if an object belongs to `_group` group in given context
+Assigning a role to the object makes it a member of a corresponding role group
 ```solidity
   function isInGroup(
     bytes32 _objectId,
@@ -49,6 +52,7 @@ Checks if an object belongs to `_group` group in given context
 |`true` | if object with given ID is a member, false otherwise
 ### isParentInGroup
 Check wheter a parent object belongs to the `_group` group in given context
+Objects can have a parent object, i.e. entity is a parent of a user
 ```solidity
   function isParentInGroup(
     bytes32 _objectId,
@@ -68,6 +72,7 @@ Check wheter a parent object belongs to the `_group` group in given context
 |`true` | if object's parent is a member of this role group, false otherwise
 ### canAssign
 Check wheter a user can assign specific object to the `_role` role in given context
+Check permission to assign to a role
 ```solidity
   function canAssign(
     bytes32 _objectId,
@@ -104,6 +109,7 @@ Get a user's (an objectId's) assigned role in a specific context
 |`roleId` | objectId's role in the contextId
 ### isRoleInGroup
 Get whether role is in group.
+Get whether role is in group.
 ```solidity
   function isRoleInGroup(
     string role,
@@ -120,6 +126,7 @@ Get whether role is in group.
 | --- | --- |
 |`true` | if role is in group, false otherwise.
 ### canGroupAssignRole
+Get whether given group can assign given role.
 Get whether given group can assign given role.
 ```solidity
   function canGroupAssignRole(

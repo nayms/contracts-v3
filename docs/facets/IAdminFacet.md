@@ -2,6 +2,7 @@ Exposes methods that require administrative priviledges
 ## Functions
 ### setEquilibriumLevel
 Set the equilibrium level to `_newLevel` in the NDF
+Desired amount of NAYM tokens in NDF
 ```solidity
   function setEquilibriumLevel(
     uint256 _newLevel
@@ -13,6 +14,7 @@ Set the equilibrium level to `_newLevel` in the NDF
 |`_newLevel` | uint256 | new value for the equilibrium level
 ### setMaxDiscount
 Set the maximum discount `_newDiscount` in the NDF
+TODO explain
 ```solidity
   function setMaxDiscount(
     uint256 _newDiscount
@@ -24,6 +26,7 @@ Set the maximum discount `_newDiscount` in the NDF
 |`_newDiscount` | uint256 | new value for the max discount
 ### setTargetNaymsAllocation
 Set the targeted NAYM allocation to `_newTarget` in the NDF
+TODO explain
 ```solidity
   function setTargetNaymsAllocation(
     uint256 _newTarget
@@ -35,6 +38,7 @@ Set the targeted NAYM allocation to `_newTarget` in the NDF
 |`_newTarget` | uint256 | new value for the target allocation
 ### setDiscountToken
 Set the `_newToken` as a token for dicounts
+TODO explain
 ```solidity
   function setDiscountToken(
     address _newToken
@@ -46,6 +50,7 @@ Set the `_newToken` as a token for dicounts
 |`_newToken` | address | token to be used for discounts
 ### setPoolFee
 Set `_newFee` as NDF pool fee
+TODO explain
 ```solidity
   function setPoolFee(
     uint24 _newFee
@@ -57,6 +62,7 @@ Set `_newFee` as NDF pool fee
 |`_newFee` | uint24 | new value to be used as transaction fee in the NDF pool
 ### setCoefficient
 Set `_newCoefficient` as the coefficient
+TODO explain
 ```solidity
   function setCoefficient(
     uint256 _newCoefficient
@@ -68,6 +74,7 @@ Set `_newCoefficient` as the coefficient
 |`_newCoefficient` | uint256 | new value to be used as coefficient
 ### setMaxDividendDenominations
 Set `_newMax` as the max dividend denominations value.
+TODO explain
 ```solidity
   function setMaxDividendDenominations(
     uint8 _newMax
@@ -79,6 +86,7 @@ Set `_newMax` as the max dividend denominations value.
 |`_newMax` | uint8 | new value to be used.
 ### getDiscountToken
 Get the discount token
+TODO explain
 ```solidity
   function getDiscountToken(
   ) external returns (address)
@@ -89,6 +97,7 @@ Get the discount token
 |`address` | of the token used for discounts
 ### getEquilibriumLevel
 Get the equilibrium level
+TODO explain
 ```solidity
   function getEquilibriumLevel(
   ) external returns (uint256)
@@ -99,6 +108,7 @@ Get the equilibrium level
 |`equilibrium` | level value
 ### getActualNaymsAllocation
 Get current NAYM allocation
+TODO explain
 ```solidity
   function getActualNaymsAllocation(
   ) external returns (uint256)
@@ -109,6 +119,7 @@ Get current NAYM allocation
 |`total` | number of NAYM tokens
 ### getTargetNaymsAllocation
 Get the target NAYM allocation
+TODO explain
 ```solidity
   function getTargetNaymsAllocation(
   ) external returns (uint256)
@@ -119,6 +130,7 @@ Get the target NAYM allocation
 |`desired` | supply of NAYM tokens
 ### getMaxDiscount
 Get the maximum discount
+TODO explain
 ```solidity
   function getMaxDiscount(
   ) external returns (uint256)
@@ -129,6 +141,7 @@ Get the maximum discount
 |`max` | discount value
 ### getPoolFee
 Get the pool fee
+TODO explain
 ```solidity
   function getPoolFee(
   ) external returns (uint256)
@@ -139,6 +152,7 @@ Get the pool fee
 |`current` | pool fee
 ### getRewardsCoefficient
 Get the rewards coeficient
+TODO explain
 ```solidity
   function getRewardsCoefficient(
   ) external returns (uint256)
@@ -149,6 +163,7 @@ Get the rewards coeficient
 |`coefficient` | for rewards
 ### getMaxDividendDenominations
 Get the max dividend denominations value
+TODO explain
 ```solidity
   function getMaxDividendDenominations(
   ) external returns (uint8)
@@ -159,6 +174,7 @@ Get the max dividend denominations value
 |`max` | dividend denominations
 ### isSupportedExternalToken
 is the specified token an external ERC20?
+TODO explain
 ```solidity
   function isSupportedExternalToken(
     bytes32 _tokenId
@@ -174,6 +190,7 @@ is the specified token an external ERC20?
 |`whether` | token issupported or not
 ### addSupportedExternalToken
 Add another token to the supported tokens list
+TODO explain
 ```solidity
   function addSupportedExternalToken(
     address _tokenAddress
@@ -185,6 +202,7 @@ Add another token to the supported tokens list
 |`_tokenAddress` | address | address of the token to support
 ### getSupportedExternalTokens
 Get the supported tokens list as an array
+TODO explain
 ```solidity
   function getSupportedExternalTokens(
   ) external returns (address[])
@@ -195,6 +213,7 @@ Get the supported tokens list as an array
 |`array` | containing address of all supported tokens
 ### updateRoleAssigner
 Update who can assign `_role` role
+Update who has permission to assign this role
 ```solidity
   function updateRoleAssigner(
     string _role,
@@ -208,6 +227,7 @@ Update who can assign `_role` role
 |`_assignerGroup` | string | Group who can assign members to this role
 ### updateRoleGroup
 Update role group memebership for `_role` role and `_group` group
+Update role group memebership
 ```solidity
   function updateRoleGroup(
     string _role,

@@ -23,6 +23,7 @@
 {{#ownFunctions}}
 ### {{name}}
 {{#if natspec.userdoc}}{{natspec.userdoc}}{{else}}No description{{/if}}
+{{#if natspec.devdoc}}{{natspec.devdoc}}{{/if}}
 
 ```solidity
   function {{name}}(

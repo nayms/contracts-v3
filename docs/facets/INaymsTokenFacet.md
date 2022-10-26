@@ -1,6 +1,7 @@
 ## Functions
 ### totalSupply
 No description
+Get total supply of token.
 ```solidity
   function totalSupply(
   ) external returns (uint256)
@@ -11,6 +12,7 @@ No description
 |`total` | supply.
 ### balanceOf
 No description
+Get token balance of given wallet.
 ```solidity
   function balanceOf(
     address addr

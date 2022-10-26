@@ -2,6 +2,7 @@ Used to handle policies and token sales
 ## Functions
 ### updateAllowSimplePolicy
 Enable/Disable Simple Policy creation for Entity ID: `_entityId`
+Update simple policy creation allow flag
 ```solidity
   function updateAllowSimplePolicy(
     bytes32 _entityId,
@@ -47,6 +48,7 @@ Enable an entity to be tokenized
 |`_symbol` | string | The symbol assigned to the entity token
 ### startTokenSale
 Start token sale of `_amount` tokens for total price of `_totalPrice`
+Entity tokens are minted when the sale is started
 ```solidity
   function startTokenSale(
     bytes32 _entityId,
@@ -75,6 +77,7 @@ Update entity metadata
 |`_entity` | struct Entity | metadata of the entity
 ### getEntityInfo
 Get the the data for entity with ID: `_entityId`
+Get the Entity data for a given entityId
 ```solidity
   function getEntityInfo(
     bytes32 _entityId

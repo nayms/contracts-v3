@@ -2,6 +2,7 @@ Facet for working with Simple Policies
 ## Functions
 ### paySimplePremium
 No description
+Pay a premium of `_amount` on simple policy
 ```solidity
   function paySimplePremium(
     bytes32 _policyId,
@@ -15,6 +16,7 @@ No description
 |`_amount` | uint256 | Amount of the premium
 ### paySimpleClaim
 No description
+Pay a claim of `_amount` for simple policy
 ```solidity
   function paySimpleClaim(
     bytes32 _claimId,
@@ -32,6 +34,7 @@ No description
 |`_amount` | uint256 | Amount of the claim
 ### getSimplePolicyInfo
 No description
+Get simple policy info
 ```solidity
   function getSimplePolicyInfo(
     bytes32 _id
@@ -53,6 +56,7 @@ No description
 ```
 ### checkAndUpdateSimplePolicyState
 No description
+Check and update simple policy state
 ```solidity
   function checkAndUpdateSimplePolicyState(
     bytes32 _id

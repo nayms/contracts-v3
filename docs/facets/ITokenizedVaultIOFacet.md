@@ -2,6 +2,7 @@ External interface to the Token Vault
 ## Functions
 ### externalDepositToEntity
 Deposit funds into Nayms platform entity
+Deposit from an external account
 ```solidity
   function externalDepositToEntity(
     bytes32 _receiverId,
@@ -17,6 +18,7 @@ Deposit funds into Nayms platform entity
 |`_amount` | uint256 | deposit amount
 ### externalDeposit
 Deposit funds into Nayms platform
+Deposit from an external account
 ```solidity
   function externalDeposit(
     bytes32 _receiverId,
@@ -32,6 +34,7 @@ Deposit funds into Nayms platform
 |`_amount` | uint256 | deposit amount
 ### externalWithdrawFromEntity
 Withdraw funds out of Nayms platform
+Withdraw from entity to an external account
 ```solidity
   function externalWithdrawFromEntity(
     bytes32 _entityId,

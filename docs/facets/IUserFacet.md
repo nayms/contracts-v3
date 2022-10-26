@@ -2,6 +2,7 @@ Manage user entity
 ## Functions
 ### getUserIdFromAddress
 Get the platform ID of `addr` account
+Convert address to platform ID
 ```solidity
   function getUserIdFromAddress(
     address addr
@@ -17,6 +18,7 @@ Get the platform ID of `addr` account
 |`userId` | Unique platform ID
 ### getAddressFromExternalTokenId
 Get the token address from ID of the external token
+Convert the bytes32 external token ID to its respective ERC20 contract address
 ```solidity
   function getAddressFromExternalTokenId(
     bytes32 _externalTokenId
@@ -32,6 +34,7 @@ Get the token address from ID of the external token
 |`tokenAddress` | Contract address
 ### setEntity
 Set the entity for the user
+Assign the user an entity
 ```solidity
   function setEntity(
     bytes32 _userId,
@@ -45,6 +48,7 @@ Set the entity for the user
 |`_entityId` | bytes32 | Unique platform ID of the entity
 ### getEntity
 Get the entity for the user
+Gets the entity related to the user
 ```solidity
   function getEntity(
     bytes32 _userId

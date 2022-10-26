@@ -1,6 +1,7 @@
 ## Functions
 ### internalBalanceOf
 Gets balance of an account within platform
+Internal balance for given account
 ```solidity
   function internalBalanceOf(
     bytes32 tokenId
@@ -16,6 +17,7 @@ Gets balance of an account within platform
 |`current` | balance
 ### balanceOfBatch
 Gets balances of accounts within platform
+Each account should have a corresponding token ID to query for balance
 ```solidity
   function balanceOfBatch(
     bytes32[] accountIds,
@@ -33,6 +35,7 @@ Gets balances of accounts within platform
 |`current` | balance for each account
 ### internalTokenSupply
 Current supply for the asset
+Total supply of platform asset
 ```solidity
   function internalTokenSupply(
     bytes32 tokenId
@@ -48,6 +51,7 @@ Current supply for the asset
 |`current` | balance
 ### internalTransferFromEntity
 Internal transfer of `amount` tokens
+Transfer tokens internally
 ```solidity
   function internalTransferFromEntity(
     bytes32 to,
@@ -61,6 +65,7 @@ Internal transfer of `amount` tokens
 |`tokenId` | bytes32 | Internal ID of the token
 ### internalTransfer
 Internal transfer of `amount` tokens
+Transfer tokens internally
 ```solidity
   function internalTransfer(
     bytes32 to,
@@ -80,6 +85,7 @@ No description
 ```
 ### getWithdrawableDividend
 Get withdrawable dividend amount
+Divident available for an entity to withdraw
 ```solidity
   function getWithdrawableDividend(
     bytes32 _entityId,
@@ -99,6 +105,7 @@ Get withdrawable dividend amount
 |`_entityPayout` | accumulated dividend
 ### withdrawDividend
 Withdraw available dividend
+Transfer dividends to the entity
 ```solidity
   function withdrawDividend(
     bytes32 ownerId,
@@ -120,6 +127,7 @@ No description
 ```
 ### payDividendFromEntity
 Pay `amount` of dividends
+Transfer dividends to the entity
 ```solidity
   function payDividendFromEntity(
     bytes32 guid,
