@@ -97,8 +97,8 @@ library LibTokenizedVault {
         bytes32 _tokenId,
         uint256 _amount
     ) internal {
-        require(_to != "", "MultiToken: mint to zero address");
-        require(_amount > 0, "MultiToken: mint zero tokens");
+        require(_to != "", "_internalMint: mint to zero address");
+        require(_amount > 0, "_internalMint: mint zero tokens");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 

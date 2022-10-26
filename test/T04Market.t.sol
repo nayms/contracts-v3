@@ -328,7 +328,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("mint amount must be > 0");
             nayms.startTokenSale(entity1, saleAmount, salePrice);
         } else if (salePrice == 0) {
-            vm.expectRevert("MultiToken: mint zero tokens");
+            vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
             uint256 e2Balance = (salePrice * (1000 + c.tradingCommissionTotalBP)) / 1000;
@@ -377,7 +377,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("mint amount must be > 0");
             nayms.startTokenSale(entity1, saleAmount, salePrice);
         } else if (salePrice == 0) {
-            vm.expectRevert("MultiToken: mint zero tokens");
+            vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
             nayms.externalDeposit(entity2, wethAddress, salePrice);

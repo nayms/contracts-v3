@@ -9,7 +9,6 @@ struct MarketInfo {
     bytes32 buyToken;
     uint256 buyAmount;
     uint256 buyAmountInitial;
-    // uint256 averagePrice;
     uint256 feeSchedule;
     uint256 state;
     uint256 rankNext;
@@ -19,13 +18,6 @@ struct MarketInfo {
 struct TokenAmount {
     bytes32 token;
     uint256 amount;
-}
-
-struct MultiToken {
-    string tokenUri;
-    // kp NOTE todo: what is this struct for?
-    mapping(uint256 => mapping(bytes32 => uint256)) tokenBalances; // token ID to account balance
-    mapping(bytes32 => mapping(bytes32 => bool)) tokenOpApprovals; // account to operator approvals
 }
 
 /**
