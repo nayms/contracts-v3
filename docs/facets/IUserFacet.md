@@ -1,82 +1,77 @@
 Manage user entity
-Use manage user entity
 ## Functions
 ### getUserIdFromAddress
+Get the platform ID of `addr` account
 ```solidity
   function getUserIdFromAddress(
     address addr
   ) external returns (bytes32 userId)
 ```
-Get the platform ID of `addr` account
-Convert address to platform ID
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`addr` | address | Account address
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`userId`| address | Unique platform ID
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`userId` | Unique platform ID
 ### getAddressFromExternalTokenId
+Get the token address from ID of the external token
 ```solidity
   function getAddressFromExternalTokenId(
     bytes32 _externalTokenId
   ) external returns (address tokenAddress)
 ```
-Get the token address from ID of the external token
-Convert the bytes32 external token ID to its respective ERC20 contract address
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_externalTokenId` | bytes32 | The ID assigned to an external token
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`tokenAddress`| bytes32 | Contract address
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`tokenAddress` | Contract address
 ### setEntity
+Set the entity for the user
 ```solidity
   function setEntity(
     bytes32 _userId,
     bytes32 _entityId
   ) external
 ```
-Set the entity for the user
-Assign the user an entity
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_userId` | bytes32 | Unique platform ID of the user account
 |`_entityId` | bytes32 | Unique platform ID of the entity
 ### getEntity
+Get the entity for the user
 ```solidity
   function getEntity(
     bytes32 _userId
   ) external returns (bytes32 entityId)
 ```
-Get the entity for the user
-Gets the entity related to the user
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_userId` | bytes32 | Unique platform ID of the user account
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`entityId`| bytes32 | Unique platform ID of the entity
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`entityId` | Unique platform ID of the entity
 ### getBalanceOfTokensForSale
+Get the amount of tokens that an entity has for sale in the marketplace.
 ```solidity
   function getBalanceOfTokensForSale(
     bytes32 _entityId,
     bytes32 _tokenId
   ) external returns (uint256 amount)
 ```
-Get the amount of tokens that an entity has for sale in the marketplace.
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_entityId` | bytes32 |  Unique platform ID of the entity.
 |`_tokenId` | bytes32 | The ID assigned to an external token.
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`amount`| bytes32 | of tokens that the entity has for sale in the marketplace.
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`amount` | of tokens that the entity has for sale in the marketplace.

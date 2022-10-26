@@ -1,7 +1,7 @@
 Use it to authorise various actions on the contracts
-Use it to (un)assign or check role membership
 ## Functions
 ### assignRole
+Assign a `_roleId` to the object in given context
 ```solidity
   function assignRole(
     bytes32 _objectId,
@@ -9,29 +9,27 @@ Use it to (un)assign or check role membership
     string _roleId
   ) external
 ```
-Assign a `_roleId` to the object in given context
-Any object ID can be a context, system is a special context with highest priority
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_objectId` | bytes32 | ID of an object that is being assigned a role
 |`_contextId` | bytes32 | ID of the context in which a role is being assigned
 |`_roleId` | string | ID of a role bein assigned
 ### unassignRole
+Unassign object from a role in given context
 ```solidity
   function unassignRole(
     bytes32 _objectId,
     bytes32 _contextId
   ) external
 ```
-Unassign object from a role in given context
-Any object ID can be a context, system is a special context with highest priority
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_objectId` | bytes32 | ID of an object that is being unassigned from a role
 |`_contextId` | bytes32 | ID of the context in which a role membership is being revoked
 ### isInGroup
+Checks if an object belongs to `_group` group in given context
 ```solidity
   function isInGroup(
     bytes32 _objectId,
@@ -39,19 +37,18 @@ Any object ID can be a context, system is a special context with highest priorit
     string _group
   ) external returns (bool)
 ```
-Checks if an object belongs to `_group` group in given context
-Assigning a role to the object makes it a member of a corresponding role group
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_objectId` | bytes32 | ID of an object that is being checked for role group membership
 |`_contextId` | bytes32 | Context in which memebership should be checked
 |`_group` | string | name of the role group
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`true`| bytes32 | if object with given ID is a member, false otherwise
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`true` | if object with given ID is a member, false otherwise
 ### isParentInGroup
+Check wheter a parent object belongs to the `_group` group in given context
 ```solidity
   function isParentInGroup(
     bytes32 _objectId,
@@ -59,19 +56,18 @@ Assigning a role to the object makes it a member of a corresponding role group
     string _group
   ) external returns (bool)
 ```
-Check wheter a parent object belongs to the `_group` group in given context
-Objects can have a parent object, i.e. entity is a parent of a user
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_objectId` | bytes32 | ID of an object who's parent is being checked for role group membership
 |`_contextId` | bytes32 | Context in which the role group membership is being checked
 |`_group` | string | name of the role group
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`true`| bytes32 | if object's parent is a member of this role group, false otherwise
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`true` | if object's parent is a member of this role group, false otherwise
 ### canAssign
+Check wheter a user can assign specific object to the `_role` role in given context
 ```solidity
   function canAssign(
     bytes32 _objectId,
@@ -79,68 +75,64 @@ Objects can have a parent object, i.e. entity is a parent of a user
     bytes32 _role
   ) external returns (bool)
 ```
-Check wheter a user can assign specific object to the `_role` role in given context
-Check permission to assign to a role
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_objectId` | bytes32 | ID of an object that is being checked for assign rights
 |`_contextId` | bytes32 | ID of the context in which permission is checked
 |`_role` | bytes32 | name of the role to check
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`true`| bytes32 | if user the right to assign, false otherwise
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`true` | if user the right to assign, false otherwise
 ### getRoleInContext
+Get a user's (an objectId's) assigned role in a specific context
 ```solidity
   function getRoleInContext(
     bytes32 objectId,
     bytes32 contextId
   ) external returns (bytes32)
 ```
-Get a user's (an objectId's) assigned role in a specific context
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`objectId` | bytes32 | ID of an object that is being checked for its assigned role in a specific context
 |`contextId` | bytes32 | ID of the context in which the objectId's role is being checked
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`roleId`| bytes32 | objectId's role in the contextId
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`roleId` | objectId's role in the contextId
 ### isRoleInGroup
+Get whether role is in group.
 ```solidity
   function isRoleInGroup(
     string role,
     string group
   ) external returns (bool)
 ```
-Get whether role is in group.
-Get whether role is in group.
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`role` | string | the role.
 |`group` | string | the group.
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`true`| string | if role is in group, false otherwise.
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`true` | if role is in group, false otherwise.
 ### canGroupAssignRole
+Get whether given group can assign given role.
 ```solidity
   function canGroupAssignRole(
     string role,
     string group
   ) external returns (bool)
 ```
-Get whether given group can assign given role.
-Get whether given group can assign given role.
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`role` | string | the role.
 |`group` | string | the group.
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`true`| string | if role can be assigned by group, false otherwise.
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`true` | if role can be assigned by group, false otherwise.

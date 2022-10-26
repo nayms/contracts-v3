@@ -1,88 +1,85 @@
 ## Functions
 ### internalBalanceOf
+Gets balance of an account within platform
 ```solidity
   function internalBalanceOf(
     bytes32 tokenId
   ) external returns (uint256)
 ```
-Gets balance of an account within platform
-Internal balance for given account
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`tokenId` | bytes32 | Internal ID of the asset
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`current`| bytes32 | balance
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`current` | balance
 ### balanceOfBatch
+Gets balances of accounts within platform
 ```solidity
   function balanceOfBatch(
     bytes32[] accountIds,
     bytes32[] tokenIds
   ) external returns (uint256[])
 ```
-Gets balances of accounts within platform
-Each account should have a corresponding token ID to query for balance
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`accountIds` | bytes32[] | Internal ID of the accounts
 |`tokenIds` | bytes32[] | Internal ID of the assets
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`current`| bytes32[] | balance for each account
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`current` | balance for each account
 ### internalTokenSupply
+Current supply for the asset
 ```solidity
   function internalTokenSupply(
     bytes32 tokenId
   ) external returns (uint256)
 ```
-Current supply for the asset
-Total supply of platform asset
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`tokenId` | bytes32 | Internal ID of the asset
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`current`| bytes32 | balance
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`current` | balance
 ### internalTransferFromEntity
+Internal transfer of `amount` tokens
 ```solidity
   function internalTransferFromEntity(
     bytes32 to,
     bytes32 tokenId
   ) external
 ```
-Internal transfer of `amount` tokens
-Transfer tokens internally
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`to` | bytes32 | token receiver
 |`tokenId` | bytes32 | Internal ID of the token
 ### internalTransfer
+Internal transfer of `amount` tokens
 ```solidity
   function internalTransfer(
     bytes32 to,
     bytes32 tokenId
   ) external
 ```
-Internal transfer of `amount` tokens
-Transfer tokens internally
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`to` | bytes32 | token receiver
 |`tokenId` | bytes32 | Internal ID of the token
 ### internalBurn
+No description
 ```solidity
   function internalBurn(
   ) external
 ```
 ### getWithdrawableDividend
+Get withdrawable dividend amount
 ```solidity
   function getWithdrawableDividend(
     bytes32 _entityId,
@@ -90,19 +87,18 @@ Transfer tokens internally
     bytes32 _dividendTokenId
   ) external returns (uint256 _entityPayout)
 ```
-Get withdrawable dividend amount
-Divident available for an entity to withdraw
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`_entityId` | bytes32 | Unique ID of the entity
 |`_tokenId` | bytes32 | Unique ID of token
 |`_dividendTokenId` | bytes32 | Unique ID of dividend token
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`_entityPayout`| bytes32 | accumulated dividend
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`_entityPayout` | accumulated dividend
 ### withdrawDividend
+Withdraw available dividend
 ```solidity
   function withdrawDividend(
     bytes32 ownerId,
@@ -110,30 +106,28 @@ Divident available for an entity to withdraw
     bytes32 dividendTokenId
   ) external
 ```
-Withdraw available dividend
-Transfer dividends to the entity
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`ownerId` | bytes32 | Unique ID of the dividend receiver
 |`tokenId` | bytes32 | Unique ID of token
 |`dividendTokenId` | bytes32 | Unique ID of dividend token
 ### withdrawAllDividends
+No description
 ```solidity
   function withdrawAllDividends(
   ) external
 ```
 ### payDividendFromEntity
+Pay `amount` of dividends
 ```solidity
   function payDividendFromEntity(
     bytes32 guid,
     uint256 amount
   ) external
 ```
-Pay `amount` of dividends
-Transfer dividends to the entity
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`guid` | bytes32 | Globally unique identifier of a dividend distribution.
 |`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.

@@ -1,27 +1,26 @@
-Use it to access and manipulate Nayms token.
 ## Functions
 ### totalSupply
+No description
 ```solidity
   function totalSupply(
   ) external returns (uint256)
 ```
-Get total supply of token.
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`total`|  | supply.
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`total` | supply.
 ### balanceOf
+No description
 ```solidity
   function balanceOf(
     address addr
   ) external returns (uint256)
 ```
-Get token balance of given wallet.
-#### Parameters:
-| Name | Type | Description                                                          |
-| :--- | :--- | :------------------------------------------------------------------- |
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
 |`addr` | address | wallet whose balance to get.
-#### Return Values:
-| Name                           | Type          | Description                                                                  |
-| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
-|`balance`| address | of wallet.
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`balance` | of wallet.
