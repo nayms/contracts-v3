@@ -15,7 +15,8 @@ Deposit from an external account
 | --- | --- | --- |
 |`_receiverId` | bytes32 | Internal ID of the account receiving the deposited funds
 |`_externalTokenAddress` | address | Token address
-|`_amount` | uint256 | deposit amount
+|`_amount` | uint256 | deposit amount|
+<br></br>
 ### externalDeposit
 Deposit funds into Nayms platform
 Deposit from an external account
@@ -31,7 +32,8 @@ Deposit from an external account
 | --- | --- | --- |
 |`_receiverId` | bytes32 | Internal ID of the account receiving the deposited funds
 |`_externalTokenAddress` | address | Token address
-|`_amount` | uint256 | deposit amount
+|`_amount` | uint256 | deposit amount|
+<br></br>
 ### externalWithdrawFromEntity
 Withdraw funds out of Nayms platform
 Withdraw from entity to an external account
@@ -49,4 +51,5 @@ Withdraw from entity to an external account
 |`_entityId` | bytes32 | Internal ID of the entity the user is withdrawing from
 |`_receiverId` | address | Internal ID of the account receiving the funds
 |`_externalTokenAddress` | address | Token address
-|`_amount` | uint256 | amount to withdraw
+|`_amount` | uint256 | amount to withdraw|
+<br></br>

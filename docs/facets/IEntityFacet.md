@@ -13,7 +13,8 @@ Update simple policy creation allow flag
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_entityId` | bytes32 | ID of the entity to update
-|`_allow` | bool | Allow or not simple policy creation
+|`_allow` | bool | Allow or not simple policy creation|
+<br></br>
 ### createSimplePolicy
 Create a Simple Policy
 ```solidity
@@ -32,7 +33,8 @@ Create a Simple Policy
 |`_entityId` | bytes32 | id of the entity
 |`_stakeholders` | struct Stakeholders | Struct of roles, entity IDs and signatures for the policy
 |`_simplePolicy` | struct SimplePolicy | policy to create
-|`_dataHash` | bytes32 | hash of the offchain data
+|`_dataHash` | bytes32 | hash of the offchain data|
+<br></br>
 ### enableEntityTokenization
 Enable an entity to be tokenized
 ```solidity
@@ -45,7 +47,8 @@ Enable an entity to be tokenized
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_entityId` | bytes32 | ID of the entity
-|`_symbol` | string | The symbol assigned to the entity token
+|`_symbol` | string | The symbol assigned to the entity token|
+<br></br>
 ### startTokenSale
 Start token sale of `_amount` tokens for total price of `_totalPrice`
 Entity tokens are minted when the sale is started
@@ -61,7 +64,8 @@ Entity tokens are minted when the sale is started
 | --- | --- | --- |
 |`_entityId` | bytes32 | ID of the entity
 |`_amount` | uint256 | amount of entity tokens to put on sale
-|`_totalPrice` | uint256 | total price of the tokens
+|`_totalPrice` | uint256 | total price of the tokens|
+<br></br>
 ### updateEntity
 Update entity metadata
 ```solidity
@@ -74,7 +78,8 @@ Update entity metadata
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_entityId` | bytes32 | ID of the entity
-|`_entity` | struct Entity | metadata of the entity
+|`_entity` | struct Entity | metadata of the entity|
+<br></br>
 ### getEntityInfo
 Get the the data for entity with ID: `_entityId`
 Get the Entity data for a given entityId
@@ -86,4 +91,5 @@ Get the Entity data for a given entityId
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_entityId` | bytes32 | ID of the entity
+|`_entityId` | bytes32 | ID of the entity|
+<br></br>

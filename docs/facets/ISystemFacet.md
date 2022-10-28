@@ -17,7 +17,8 @@ An entity can be created with a zero max capacity! This is in the event where an
 |`_entityId` | bytes32 | Unique ID for the entity
 |`_entityAdmin` | bytes32 | Unique ID of the entity administrator
 |`_entityData` | struct Entity | remaining entity metadata
-|`_dataHash` | bytes32 | hash of the offchain data
+|`_dataHash` | bytes32 | hash of the offchain data|
+<br></br>
 ### stringToBytes32
 Convert a string type to a bytes32 type
 ```solidity
@@ -28,7 +29,8 @@ Convert a string type to a bytes32 type
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_strIn` | string | a string
+|`_strIn` | string | a string|
+<br></br>
 ### isObject
 No description
 Get whether given id is an object in the system.
@@ -41,10 +43,13 @@ Get whether given id is an object in the system.
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_id` | bytes32 | object id.
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`true` | if it is an object, false otherwise
+|`true` | if it is an object, false otherwise|
+<br></br>
 ### getObjectMeta
 No description
 Get meta of given object.
@@ -57,9 +62,12 @@ Get meta of given object.
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_id` | bytes32 | object id.
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
 |`parent` | object parent
 |`dataHash` | object data hash
-|`tokenSymbol` | object token symbol
+|`tokenSymbol` | object token symbol|
+<br></br>

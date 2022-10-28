@@ -11,10 +11,13 @@ Internal balance for given account
 | Argument | Type | Description |
 | --- | --- | --- |
 |`tokenId` | bytes32 | Internal ID of the asset
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`current` | balance
+|`current` | balance|
+<br></br>
 ### balanceOfBatch
 Gets balances of accounts within platform
 Each account should have a corresponding token ID to query for balance
@@ -29,10 +32,13 @@ Each account should have a corresponding token ID to query for balance
 | --- | --- | --- |
 |`accountIds` | bytes32[] | Internal ID of the accounts
 |`tokenIds` | bytes32[] | Internal ID of the assets
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`current` | balance for each account
+|`current` | balance for each account|
+<br></br>
 ### internalTokenSupply
 Current supply for the asset
 Total supply of platform asset
@@ -45,10 +51,13 @@ Total supply of platform asset
 | Argument | Type | Description |
 | --- | --- | --- |
 |`tokenId` | bytes32 | Internal ID of the asset
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`current` | balance
+|`current` | balance|
+<br></br>
 ### internalTransferFromEntity
 Internal transfer of `amount` tokens
 Transfer tokens internally
@@ -62,7 +71,8 @@ Transfer tokens internally
 | Argument | Type | Description |
 | --- | --- | --- |
 |`to` | bytes32 | token receiver
-|`tokenId` | bytes32 | Internal ID of the token
+|`tokenId` | bytes32 | Internal ID of the token|
+<br></br>
 ### internalTransfer
 Internal transfer of `amount` tokens
 Transfer tokens internally
@@ -76,7 +86,8 @@ Transfer tokens internally
 | Argument | Type | Description |
 | --- | --- | --- |
 |`to` | bytes32 | token receiver
-|`tokenId` | bytes32 | Internal ID of the token
+|`tokenId` | bytes32 | Internal ID of the token|
+<br></br>
 ### internalBurn
 No description
 ```solidity
@@ -99,10 +110,13 @@ Divident available for an entity to withdraw
 |`_entityId` | bytes32 | Unique ID of the entity
 |`_tokenId` | bytes32 | Unique ID of token
 |`_dividendTokenId` | bytes32 | Unique ID of dividend token
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`_entityPayout` | accumulated dividend
+|`_entityPayout` | accumulated dividend|
+<br></br>
 ### withdrawDividend
 Withdraw available dividend
 Transfer dividends to the entity
@@ -118,7 +132,8 @@ Transfer dividends to the entity
 | --- | --- | --- |
 |`ownerId` | bytes32 | Unique ID of the dividend receiver
 |`tokenId` | bytes32 | Unique ID of token
-|`dividendTokenId` | bytes32 | Unique ID of dividend token
+|`dividendTokenId` | bytes32 | Unique ID of dividend token|
+<br></br>
 ### withdrawAllDividends
 No description
 ```solidity
@@ -138,4 +153,5 @@ Transfer dividends to the entity
 | Argument | Type | Description |
 | --- | --- | --- |
 |`guid` | bytes32 | Globally unique identifier of a dividend distribution.
-|`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.
+|`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.|
+<br></br>

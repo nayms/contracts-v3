@@ -13,7 +13,8 @@ Pay a premium of `_amount` on simple policy
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_policyId` | bytes32 | Id of the simple policy
-|`_amount` | uint256 | Amount of the premium
+|`_amount` | uint256 | Amount of the premium|
+<br></br>
 ### paySimpleClaim
 No description
 Pay a claim of `_amount` for simple policy
@@ -31,7 +32,8 @@ Pay a claim of `_amount` for simple policy
 |`_claimId` | bytes32 | Id of the simple policy claim
 |`_policyId` | bytes32 | Id of the simple policy
 |`_insuredId` | bytes32 | Id of the insured party
-|`_amount` | uint256 | Amount of the claim
+|`_amount` | uint256 | Amount of the claim|
+<br></br>
 ### getSimplePolicyInfo
 No description
 Get simple policy info
@@ -44,10 +46,13 @@ Get simple policy info
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_id` | bytes32 | Id of the simple policy
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`Simple` | policy metadata
+|`Simple` | policy metadata|
+<br></br>
 ### getPremiumCommissionBasisPoints
 No description
 ```solidity
@@ -65,4 +70,5 @@ Check and update simple policy state
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_id` | bytes32 | Id of the simple policy
+|`_id` | bytes32 | Id of the simple policy|
+<br></br>

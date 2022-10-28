@@ -51,7 +51,7 @@
     "solc": "^0.8.16",
     "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.21",
-    "solidity-docgen": "0.5.16"
+    "solidity-docgen": "^0.5.17"
   },
   "dependencies": {
     "yarn": "^1.22.19"

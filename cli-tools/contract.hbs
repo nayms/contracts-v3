@@ -40,6 +40,8 @@
 {{#natspec.params}}
 |`{{param}}` | {{#lookup ../args.types @index}}{{/lookup}} | {{description}}
 {{~/natspec.params}}
+|
+<br></br>
 {{/if}}
 
 {{#if natspec.returns}}
@@ -49,6 +51,8 @@
 {{#natspec.returns}}
 |`{{param}}` | {{description}} 
 {{~/natspec.returns}}
+|
+<br></br>
 {{/if}}
 
 {{/ownFunctions}}
@@ -71,6 +75,8 @@
 {{#natspec.params}}
 |`{{param}}` | {{lookup ../args.types @index}} | {{#with (lookup ../astNode.parameters.parameters @index)}}{{#if indexed}}:white_check_mark:{{/if}}{{/with}} | {{description}} {{~-~}}
 {{/natspec.params}}
+|
+<br></br>
 {{/if}}
 
 {{/ownEvents}}

@@ -9,7 +9,8 @@ Get total supply of token.
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`total` | supply.
+|`total` | supply.|
+<br></br>
 ### balanceOf
 No description
 Get token balance of given wallet.
@@ -22,7 +23,10 @@ Get token balance of given wallet.
 | Argument | Type | Description |
 | --- | --- | --- |
 |`addr` | address | wallet whose balance to get.
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`balance` | of wallet.
+|`balance` | of wallet.|
+<br></br>

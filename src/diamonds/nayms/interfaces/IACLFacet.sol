@@ -12,7 +12,7 @@ interface IACLFacet {
      * @dev Any object ID can be a context, system is a special context with highest priority
      * @param _objectId ID of an object that is being assigned a role
      * @param _contextId ID of the context in which a role is being assigned
-     * @param _roleId ID of a role bein assigned
+     * @param _roleId ID of a role being assigned
      */
     function assignRole(
         bytes32 _objectId,
@@ -32,7 +32,7 @@ interface IACLFacet {
      * @notice Checks if an object belongs to `_group` group in given context
      * @dev Assigning a role to the object makes it a member of a corresponding role group
      * @param _objectId ID of an object that is being checked for role group membership
-     * @param _contextId Context in which memebership should be checked
+     * @param _contextId Context in which membership should be checked
      * @param _group name of the role group
      * @return true if object with given ID is a member, false otherwise
      */

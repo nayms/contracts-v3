@@ -12,10 +12,13 @@ Convert address to platform ID
 | Argument | Type | Description |
 | --- | --- | --- |
 |`addr` | address | Account address
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`userId` | Unique platform ID
+|`userId` | Unique platform ID|
+<br></br>
 ### getAddressFromExternalTokenId
 Get the token address from ID of the external token
 Convert the bytes32 external token ID to its respective ERC20 contract address
@@ -28,10 +31,13 @@ Convert the bytes32 external token ID to its respective ERC20 contract address
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_externalTokenId` | bytes32 | The ID assigned to an external token
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`tokenAddress` | Contract address
+|`tokenAddress` | Contract address|
+<br></br>
 ### setEntity
 Set the entity for the user
 Assign the user an entity
@@ -45,7 +51,8 @@ Assign the user an entity
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_userId` | bytes32 | Unique platform ID of the user account
-|`_entityId` | bytes32 | Unique platform ID of the entity
+|`_entityId` | bytes32 | Unique platform ID of the entity|
+<br></br>
 ### getEntity
 Get the entity for the user
 Gets the entity related to the user
@@ -58,10 +65,13 @@ Gets the entity related to the user
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_userId` | bytes32 | Unique platform ID of the user account
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`entityId` | Unique platform ID of the entity
+|`entityId` | Unique platform ID of the entity|
+<br></br>
 ### getBalanceOfTokensForSale
 Get the amount of tokens that an entity has for sale in the marketplace.
 ```solidity
@@ -75,7 +85,10 @@ Get the amount of tokens that an entity has for sale in the marketplace.
 | --- | --- | --- |
 |`_entityId` | bytes32 |  Unique platform ID of the entity.
 |`_tokenId` | bytes32 | The ID assigned to an external token.
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`amount` | of tokens that the entity has for sale in the marketplace.
+|`amount` | of tokens that the entity has for sale in the marketplace.|
+<br></br>

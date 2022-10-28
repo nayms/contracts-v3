@@ -11,7 +11,8 @@ Desired amount of NAYM tokens in NDF
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newLevel` | uint256 | new value for the equilibrium level
+|`_newLevel` | uint256 | new value for the equilibrium level|
+<br></br>
 ### setMaxDiscount
 Set the maximum discount `_newDiscount` in the NDF
 TODO explain
@@ -23,7 +24,8 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newDiscount` | uint256 | new value for the max discount
+|`_newDiscount` | uint256 | new value for the max discount|
+<br></br>
 ### setTargetNaymsAllocation
 Set the targeted NAYM allocation to `_newTarget` in the NDF
 TODO explain
@@ -35,7 +37,8 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newTarget` | uint256 | new value for the target allocation
+|`_newTarget` | uint256 | new value for the target allocation|
+<br></br>
 ### setDiscountToken
 Set the `_newToken` as a token for dicounts
 TODO explain
@@ -47,7 +50,8 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newToken` | address | token to be used for discounts
+|`_newToken` | address | token to be used for discounts|
+<br></br>
 ### setPoolFee
 Set `_newFee` as NDF pool fee
 TODO explain
@@ -59,7 +63,8 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newFee` | uint24 | new value to be used as transaction fee in the NDF pool
+|`_newFee` | uint24 | new value to be used as transaction fee in the NDF pool|
+<br></br>
 ### setCoefficient
 Set `_newCoefficient` as the coefficient
 TODO explain
@@ -71,7 +76,8 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newCoefficient` | uint256 | new value to be used as coefficient
+|`_newCoefficient` | uint256 | new value to be used as coefficient|
+<br></br>
 ### setMaxDividendDenominations
 Set `_newMax` as the max dividend denominations value.
 TODO explain
@@ -83,7 +89,8 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_newMax` | uint8 | new value to be used.
+|`_newMax` | uint8 | new value to be used.|
+<br></br>
 ### getDiscountToken
 Get the discount token
 TODO explain
@@ -94,7 +101,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`address` | of the token used for discounts
+|`address` | of the token used for discounts|
+<br></br>
 ### getEquilibriumLevel
 Get the equilibrium level
 TODO explain
@@ -105,7 +113,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`equilibrium` | level value
+|`equilibrium` | level value|
+<br></br>
 ### getActualNaymsAllocation
 Get current NAYM allocation
 TODO explain
@@ -116,7 +125,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`total` | number of NAYM tokens
+|`total` | number of NAYM tokens|
+<br></br>
 ### getTargetNaymsAllocation
 Get the target NAYM allocation
 TODO explain
@@ -127,7 +137,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`desired` | supply of NAYM tokens
+|`desired` | supply of NAYM tokens|
+<br></br>
 ### getMaxDiscount
 Get the maximum discount
 TODO explain
@@ -138,7 +149,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`max` | discount value
+|`max` | discount value|
+<br></br>
 ### getPoolFee
 Get the pool fee
 TODO explain
@@ -149,7 +161,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`current` | pool fee
+|`current` | pool fee|
+<br></br>
 ### getRewardsCoefficient
 Get the rewards coeficient
 TODO explain
@@ -160,7 +173,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`coefficient` | for rewards
+|`coefficient` | for rewards|
+<br></br>
 ### getMaxDividendDenominations
 Get the max dividend denominations value
 TODO explain
@@ -171,7 +185,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`max` | dividend denominations
+|`max` | dividend denominations|
+<br></br>
 ### isSupportedExternalToken
 is the specified token an external ERC20?
 TODO explain
@@ -184,10 +199,13 @@ TODO explain
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_tokenId` | bytes32 | token address converted to bytes32
+|
+<br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`whether` | token issupported or not
+|`whether` | token issupported or not|
+<br></br>
 ### addSupportedExternalToken
 Add another token to the supported tokens list
 TODO explain
@@ -200,6 +218,8 @@ TODO explain
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_tokenAddress` | address | address of the token to support
+|
+<br></br>
 ### getSupportedExternalTokens
 Get the supported tokens list as an array
 TODO explain
@@ -210,7 +230,8 @@ TODO explain
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`array` | containing address of all supported tokens
+|`array` | containing address of all supported tokens|
+<br></br>
 ### updateRoleAssigner
 Update who can assign `_role` role
 Update who has permission to assign this role
@@ -224,7 +245,8 @@ Update who has permission to assign this role
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_role` | string | name of the role
-|`_assignerGroup` | string | Group who can assign members to this role
+|`_assignerGroup` | string | Group who can assign members to this role|
+<br></br>
 ### updateRoleGroup
 Update role group memebership for `_role` role and `_group` group
 Update role group memebership
@@ -240,7 +262,8 @@ Update role group memebership
 | --- | --- | --- |
 |`_role` | string | name of the role
 |`_group` | string | name of the group
-|`_roleInGroup` | bool | is member of
+|`_roleInGroup` | bool | is member of|
+<br></br>
 ### getSystemId
 Gets the System context ID.
 ```solidity
@@ -250,4 +273,5 @@ Gets the System context ID.
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`System` | Identifier
+|`System` | Identifier|
+<br></br>
