@@ -15,7 +15,6 @@ Desired amount of NAYM tokens in NDF
 <br></br>
 ### setMaxDiscount
 Set the maximum discount `_newDiscount` in the NDF
-TODO explain
 ```solidity
   function setMaxDiscount(
     uint256 _newDiscount
@@ -28,7 +27,6 @@ TODO explain
 <br></br>
 ### setTargetNaymsAllocation
 Set the targeted NAYM allocation to `_newTarget` in the NDF
-TODO explain
 ```solidity
   function setTargetNaymsAllocation(
     uint256 _newTarget
@@ -41,7 +39,6 @@ TODO explain
 <br></br>
 ### setDiscountToken
 Set the `_newToken` as a token for dicounts
-TODO explain
 ```solidity
   function setDiscountToken(
     address _newToken
@@ -54,7 +51,6 @@ TODO explain
 <br></br>
 ### setPoolFee
 Set `_newFee` as NDF pool fee
-TODO explain
 ```solidity
   function setPoolFee(
     uint24 _newFee
@@ -67,7 +63,6 @@ TODO explain
 <br></br>
 ### setCoefficient
 Set `_newCoefficient` as the coefficient
-TODO explain
 ```solidity
   function setCoefficient(
     uint256 _newCoefficient
@@ -80,7 +75,6 @@ TODO explain
 <br></br>
 ### setMaxDividendDenominations
 Set `_newMax` as the max dividend denominations value.
-TODO explain
 ```solidity
   function setMaxDividendDenominations(
     uint8 _newMax
@@ -93,7 +87,6 @@ TODO explain
 <br></br>
 ### getDiscountToken
 Get the discount token
-TODO explain
 ```solidity
   function getDiscountToken(
   ) external returns (address)
@@ -105,7 +98,6 @@ TODO explain
 <br></br>
 ### getEquilibriumLevel
 Get the equilibrium level
-TODO explain
 ```solidity
   function getEquilibriumLevel(
   ) external returns (uint256)
@@ -117,7 +109,6 @@ TODO explain
 <br></br>
 ### getActualNaymsAllocation
 Get current NAYM allocation
-TODO explain
 ```solidity
   function getActualNaymsAllocation(
   ) external returns (uint256)
@@ -129,7 +120,6 @@ TODO explain
 <br></br>
 ### getTargetNaymsAllocation
 Get the target NAYM allocation
-TODO explain
 ```solidity
   function getTargetNaymsAllocation(
   ) external returns (uint256)
@@ -141,7 +131,6 @@ TODO explain
 <br></br>
 ### getMaxDiscount
 Get the maximum discount
-TODO explain
 ```solidity
   function getMaxDiscount(
   ) external returns (uint256)
@@ -153,7 +142,6 @@ TODO explain
 <br></br>
 ### getPoolFee
 Get the pool fee
-TODO explain
 ```solidity
   function getPoolFee(
   ) external returns (uint256)
@@ -165,7 +153,6 @@ TODO explain
 <br></br>
 ### getRewardsCoefficient
 Get the rewards coeficient
-TODO explain
 ```solidity
   function getRewardsCoefficient(
   ) external returns (uint256)
@@ -177,7 +164,6 @@ TODO explain
 <br></br>
 ### getMaxDividendDenominations
 Get the max dividend denominations value
-TODO explain
 ```solidity
   function getMaxDividendDenominations(
   ) external returns (uint8)
@@ -189,7 +175,6 @@ TODO explain
 <br></br>
 ### isSupportedExternalToken
 is the specified token an external ERC20?
-TODO explain
 ```solidity
   function isSupportedExternalToken(
     bytes32 _tokenId
@@ -208,7 +193,6 @@ TODO explain
 <br></br>
 ### addSupportedExternalToken
 Add another token to the supported tokens list
-TODO explain
 ```solidity
   function addSupportedExternalToken(
     address _tokenAddress
@@ -217,12 +201,10 @@ TODO explain
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_tokenAddress` | address | address of the token to support
-|
+|`_tokenAddress` | address | address of the token to support|
 <br></br>
 ### getSupportedExternalTokens
 Get the supported tokens list as an array
-TODO explain
 ```solidity
   function getSupportedExternalTokens(
   ) external returns (address[])
