@@ -271,6 +271,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         assertEq(nayms.internalBalanceOf(entity2, entity1), 500 ether, "should match takers buy amount, not sell amount");
+
+        uint256 offerId = nayms.getLastOfferId();
+        MarketInfo memory offer = nayms.getOffer(offerId);
+        assertEq(offer.state, LibConstants.OFFER_STATE_FULFILLED, "offer should be closed");
     }
 
     function testCancelOffer() public {

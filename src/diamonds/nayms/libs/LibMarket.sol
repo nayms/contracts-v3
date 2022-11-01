@@ -240,7 +240,7 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeSchedule;
 
-        if (_sellAmount <= LibConstants.DUST) {
+        if (_buyAmount <= LibConstants.DUST || _sellAmount <= LibConstants.DUST) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
