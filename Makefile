@@ -173,6 +173,18 @@ deploy-anvil: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
+deploy-anvil-erc20:	## deploy dummy erc20 token to local node
+	forge script DeployERC20 \
+		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 \
+		--mnemonics "test test test test test test test test test test test junk" \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
+
 subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi
 
