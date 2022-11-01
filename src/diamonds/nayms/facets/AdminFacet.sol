@@ -167,31 +167,6 @@ contract AdminFacet is Modifiers {
     }
 
     /**
-     * @notice Update who can assign `_role` role
-     * @dev Update who has permission to assign this role
-     * @param _role name of the role
-     * @param _assignerGroup Group who can assign members to this role
-     */
-    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertSysAdmin {
-        LibAdmin._updateRoleAssigner(_role, _assignerGroup);
-    }
-
-    /**
-     * @notice Update role group memebership for `_role` role and `_group` group
-     * @dev Update role group memebership
-     * @param _role name of the role
-     * @param _group name of the group
-     * @param _roleInGroup is member of
-     */
-    function updateRoleGroup(
-        string memory _role,
-        string memory _group,
-        bool _roleInGroup
-    ) external assertSysAdmin {
-        LibAdmin._updateRoleGroup(_role, _group, _roleInGroup);
-    }
-
-    /**
      * @notice Gets the System context ID.
      * @return System Identifier
      */

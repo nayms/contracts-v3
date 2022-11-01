@@ -2,6 +2,7 @@
 pragma solidity >=0.8.13;
 
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";
+import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
 
 /**
@@ -9,7 +10,7 @@ import { IACLFacet } from "../interfaces/IACLFacet.sol";
  * @notice Use it to authorise various actions on the contracts
  * @dev Use it to (un)assign or check role membership
  */
-contract ACLFacet is IACLFacet {
+contract ACLFacet is Modifiers, IACLFacet {
     /**
      * @notice Assign a `_roleId` to the object in given context
      * @dev Any object ID can be a context, system is a special context with highest priority
@@ -119,5 +120,30 @@ contract ACLFacet is IACLFacet {
      */
     function canGroupAssignRole(string memory role, string memory group) external view returns (bool) {
         return LibACL._canGroupAssignRole(role, group);
+    }
+
+    /**
+     * @notice Update who can assign `_role` role
+     * @dev Update who has permission to assign this role
+     * @param _role name of the role
+     * @param _assignerGroup Group who can assign members to this role
+     */
+    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertSysAdmin {
+        LibACL._updateRoleAssigner(_role, _assignerGroup);
+    }
+
+    /**
+     * @notice Update role group memebership for `_role` role and `_group` group
+     * @dev Update role group memebership
+     * @param _role name of the role
+     * @param _group name of the group
+     * @param _roleInGroup is member of
+     */
+    function updateRoleGroup(
+        string memory _role,
+        string memory _group,
+        bool _roleInGroup
+    ) external assertSysAdmin {
+        LibACL._updateRoleGroup(_role, _group, _roleInGroup);
     }
 }

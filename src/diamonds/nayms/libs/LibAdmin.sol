@@ -15,8 +15,6 @@ library LibAdmin {
     event DiscountTokenUpdated(address oldToken, address newToken);
     event PoolFeeUpdated(uint256 oldFee, uint256 newFee);
     event CoefficientUpdated(uint256 oldCoefficient, uint256 newCoefficient);
-    event RoleGroupUpdated(string role, string group, bool roleInGroup);
-    event RoleCanAssignUpdated(string role, string group);
     event SupportedTokenAdded(address tokenAddress);
 
     function _getSystemId() internal pure returns (bytes32) {
@@ -91,22 +89,6 @@ library LibAdmin {
         s.rewardsCoefficient = _newCoefficient;
 
         emit CoefficientUpdated(oldCoefficient, s.rewardsCoefficient);
-    }
-
-    function _updateRoleAssigner(string memory _role, string memory _assignerGroup) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.canAssign[LibHelpers._stringToBytes32(_role)] = LibHelpers._stringToBytes32(_assignerGroup);
-        emit RoleCanAssignUpdated(_role, _assignerGroup);
-    }
-
-    function _updateRoleGroup(
-        string memory _role,
-        string memory _group,
-        bool _roleInGroup
-    ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.groups[LibHelpers._stringToBytes32(_role)][LibHelpers._stringToBytes32(_group)] = _roleInGroup;
-        emit RoleGroupUpdated(_role, _group, _roleInGroup);
     }
 
     function _isSupportedExternalToken(bytes32 _tokenId) internal view returns (bool) {
