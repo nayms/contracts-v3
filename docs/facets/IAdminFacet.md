@@ -214,38 +214,6 @@ Get the supported tokens list as an array
 | --- | --- |
 |`array` | containing address of all supported tokens|
 <br></br>
-### updateRoleAssigner
-Update who can assign `_role` role
-Update who has permission to assign this role
-```solidity
-  function updateRoleAssigner(
-    string _role,
-    string _assignerGroup
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_role` | string | name of the role
-|`_assignerGroup` | string | Group who can assign members to this role|
-<br></br>
-### updateRoleGroup
-Update role group memebership for `_role` role and `_group` group
-Update role group memebership
-```solidity
-  function updateRoleGroup(
-    string _role,
-    string _group,
-    bool _roleInGroup
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_role` | string | name of the role
-|`_group` | string | name of the group
-|`_roleInGroup` | bool | is member of|
-<br></br>
 ### getSystemId
 Gets the System context ID.
 ```solidity
