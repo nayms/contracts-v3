@@ -163,11 +163,11 @@ anvil-fork: ## fork goerli locally with anvil
 
 deploy-anvil: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" \
-		${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 		-f http:\\127.0.0.1:8545 \
-		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
-		--mnemonic-paths ./nayms_mnemonic.txt \
+		--chain-id 31337 \
+		--sender 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 \
+		--mnemonics "test test test test test test test test test test test junk" \
 		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \

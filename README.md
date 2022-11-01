@@ -147,6 +147,16 @@ make deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutI
 
 > :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` sufix from the target name
 
+### Running a Local Node
+
+For development purposes, you can run a node locally using foundry's `anvil`. It's a simple command to bring up a local node exposing a JSON-RPC endpoint at `hhtp://llocalhost:8545`. Make sure to start `anvil` in one of your terminal windows and in another one run a make target to deploy the Nayms' contracts to it.
+
+To do a full deployment run the following command:
+
+```zsh
+make deploy-anvil newDiamond=true initNewDiamond=true facetAction=0
+```
+
 ## Development Flow
 
 ### Output, compare gas snapshots
