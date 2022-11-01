@@ -161,7 +161,7 @@ deploy-sim: ## simulate smart deploy to goerli
 anvil-fork: ## fork goerli locally with anvil
 	anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
 
-deploy-anvil: ## smart deploy locally to anvil
+anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 		-f http:\\127.0.0.1:8545 \
@@ -173,7 +173,7 @@ deploy-anvil: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
-deploy-anvil-erc20:	## deploy dummy erc20 token to local node
+anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \
 		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \
 		-f http:\\127.0.0.1:8545 \

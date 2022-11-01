@@ -154,7 +154,7 @@ For development purposes, you can run a node locally using foundry's `anvil`. It
 To do a full deployment run the following command:
 
 ```zsh
-make deploy-anvil newDiamond=true initNewDiamond=true facetAction=0
+make anvil-deploy newDiamond=true initNewDiamond=true facetAction=0
 ```
 
 ## Development Flow
