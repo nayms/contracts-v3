@@ -393,7 +393,7 @@ contract DeploymentHelpers is Test {
             vm.writeLine(deployFile, d);
 
             if (block.chainid != 31337) {
-                string memory d31337 = string.concat(d, ', "31337": { "address": "0xAe2Df030C2184a369B8a4F6fA4d3CB19Fbe55955" } ');
+                string memory d31337 = string.concat(', "31337": { "address": "0xAe2Df030C2184a369B8a4F6fA4d3CB19Fbe55955" } ');
                 vm.writeLine(deployFile, d31337);
             }
 
