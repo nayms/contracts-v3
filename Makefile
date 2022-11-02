@@ -34,7 +34,7 @@ gen-i: ## generate solidity interfaces from facet implementations
 		--ffi
 
 prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
-	node ./cli-tools/prep-build.js 
+	node ./cli-tools/prep-build.js && node ./cli-tools/update-constants.js
 
 build: ## forge build
 	forge build --names --sizes

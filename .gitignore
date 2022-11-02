@@ -32,12 +32,7 @@ facetsdeployed.txt
 .vscode/launch.json
 
 bin/
-.idea/.gitignore
-.idea/contracts-next.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/runConfigurations.xml
-.idea/vcs.xml
+.idea/
 
 broadcast/**/31337/*
 
@@ -45,3 +40,5 @@ broadcast/**/31337/*
 NaymsDiamond.json
 
 broadcast/**/dry-run
+
+src/diamonds/nayms/Constants.sol
