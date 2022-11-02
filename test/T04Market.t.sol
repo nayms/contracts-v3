@@ -312,8 +312,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     function testFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
         // avoid overflow issues
-        vm.assume(saleAmount < type(uint128).max);
-        vm.assume(salePrice < type(uint128).max);
+        vm.assume(saleAmount <= type(uint128).max);
+        vm.assume(salePrice <= type(uint128).max);
 
         // avoid dust issues
         vm.assume(saleAmount > 1_000);
@@ -361,8 +361,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     function testFuzzMatchingSellOffer(uint256 saleAmount, uint256 salePrice) public {
         // avoid overflow issues
-        vm.assume(saleAmount < type(uint128).max);
-        vm.assume(salePrice < type(uint128).max);
+        vm.assume(saleAmount <= type(uint128).max);
+        vm.assume(salePrice <= type(uint128).max);
 
         // avoid dust issues
         vm.assume(saleAmount > 1_000);
