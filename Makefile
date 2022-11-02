@@ -185,6 +185,18 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 		--ffi \
 		--broadcast
 
+create-entity: ## create an entity on the Nayms platform (using some default values, on anvil)
+	forge script CreateEntity \
+		-s "createAnEntity(address)" \
+		${naymsDiamondAddress} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 \
+		--mnemonics "test test test test test test test test test test test junk" \
+		--mnemonic-indexes 0 \
+		-vv \
+		--broadcast
+
 subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi
 
