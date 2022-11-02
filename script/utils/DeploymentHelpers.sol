@@ -378,13 +378,26 @@ contract DeploymentHelpers is Test {
             vm.label(address(naymsDiamondAddress), "New Nayms Diamond");
 
             // Output diamond address
-            string memory write = LibWriteJson.createObject(
-                LibWriteJson.keyObject(
-                    "NaymsDiamond",
-                    LibWriteJson.keyObject(vm.toString(block.chainid), LibWriteJson.keyValue("address", vm.toString(address(naymsDiamondAddress))))
-                )
-            );
-            vm.writeFile(deployFile, write);
+
+            // string memory write = LibWriteJson.createObject(
+            //     LibWriteJson.keyObject(
+            //         "NaymsDiamond",
+            //         LibWriteJson.keyObject(vm.toString(block.chainid), LibWriteJson.keyValue("address", vm.toString(address(naymsDiamondAddress))))
+            //     )
+            // );
+            // solhint-disable quotes
+            vm.removeFile(deployFile);
+            vm.writeLine(deployFile, '{ "NaymsDiamond": { ');
+
+            string memory d = string.concat('"', vm.toString(block.chainid), '": { "address": "', vm.toString(naymsDiamondAddress), '" } ');
+            vm.writeLine(deployFile, d);
+
+            if (block.chainid != 31337) {
+                string memory d31337 = string.concat(', "31337": { "address": "0xAe2Df030C2184a369B8a4F6fA4d3CB19Fbe55955" } ');
+                vm.writeLine(deployFile, d31337);
+            }
+
+            vm.writeLine(deployFile, "}}");
         } else {
             // Read in current diamond address
             naymsDiamondAddress = getDiamondAddressFromFile();
