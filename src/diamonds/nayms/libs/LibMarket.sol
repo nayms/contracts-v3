@@ -343,8 +343,8 @@ library LibMarket {
     }
 
     function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
-        require(type(uint128).max >= _sellAmount, "sell amount exceeds uint128 limit");
-        require(type(uint128).max >= _buyAmount, "buy amount exceeds uint128 limit");
+        require(type(uint128).max > _sellAmount, "sell amount exceeds uint128 limit");
+        require(type(uint128).max > _buyAmount, "buy amount exceeds uint128 limit");
         require(_sellAmount > 0, "sell amount must be >0");
         require(_buyAmount > 0, "buy amount must be >0");
     }
