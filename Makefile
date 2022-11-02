@@ -131,6 +131,7 @@ facetsToCutIn="[]"
 newDiamond=false
 initNewDiamond=false
 facetAction=1
+senderAddress=0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
 
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
@@ -138,7 +139,7 @@ deploy: ## smart deploy to goerli
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
@@ -152,7 +153,7 @@ deploy-sim: ## simulate smart deploy to goerli
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
@@ -166,8 +167,8 @@ anvil-deploy: ## smart deploy locally to anvil
 		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 \
-		--mnemonics "test test test test test test test test test test test junk" \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
@@ -178,8 +179,8 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 \
-		--mnemonics "test test test test test test test test test test test junk" \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
@@ -187,15 +188,20 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 
 create-entity: ## create an entity on the Nayms platform (using some default values, on anvil)
 	forge script CreateEntity \
-		-s "createAnEntity(address)" \
-		${naymsDiamondAddress} \
+		-s "createAnEntity(address)" ${naymsDiamondAddress} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 \
-		--mnemonics "test test test test test test test test test test test junk" \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
 		--broadcast
+
+anvil-debug:	## run anvil in debug mode with shared wallet
+	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
+
+anvil:	## run anvil with shared wallet
+	anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
 
 subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi
