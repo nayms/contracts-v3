@@ -61,27 +61,27 @@ Check `.env.example` to see some of the environment variables you should have se
 
 ```md
 .
-├── contracts
-│ ├── diamonds
-│ │ ├── nayms
-│ │ │ ├── facets
-│ │ │ ├── interfaces
-│ │ │ └── libs
-│ │ └── shared
-│ │ ├── facets
-│ │ ├── interfaces
-│ │ └── libs
-│ ├── ERC20
-│ └── utils
-├── docs
-│ └── adr
-|── lib
-├── scripts
+├── cli-tools
+├── script
+│   ├── deployment
+│   └── utils
 ├── src
-│ └── test
-│ └── utils
-│ └── users
+│   ├── diamonds
+│   │   ├── nayms
+│   │   │   ├── facets
+│   │   │   ├── interfaces
+│   │   │   └── libs
+│   │   └── shared
+│   │       ├── facets
+│   │       ├── interfaces
+│   │       └── libs
+│   ├── erc20
+│   └── utils
 └── test
+    ├── defaults
+    ├── fixtures
+    └── utils
+        └── users
 ```
 
 ## Solidity Scripting
@@ -130,7 +130,7 @@ Below are several examples on how you would use the smart deploy scripts.
 For a __fresh new deployment__ of the entire project, execute this command:
 
 ```zsh
-make deploy-sim newDiamond=true initNewDiamond=true facetAction=1
+make deploy-sim newDiamond=true initNewDiamond=true facetAction=0
 ```
 
 To __upgrade the facets that have been changed__ since the last deployment, run the following:
