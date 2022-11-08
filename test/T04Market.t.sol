@@ -311,13 +311,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
-        // avoid overflow issues
-        vm.assume(saleAmount < 1_000_000_000_000 ether);
-        vm.assume(salePrice < 1_000_000_000_000 ether);
-
-        // avoid dust issues
-        vm.assume(saleAmount > 1_000);
-        vm.assume(salePrice > 1_000);
+        // avoid over/underflow issues
+        vm.assume(1_000 < saleAmount && saleAmount < type(uint128).max);
+        vm.assume(1_000 < salePrice && salePrice < type(uint128).max);
 
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
@@ -361,8 +357,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     function testFuzzMatchingSellOffer(uint256 saleAmount, uint256 salePrice) public {
         // avoid over/underflow issues
-        vm.assume(1_000 < saleAmount && saleAmount < 1_000_000_000_000 ether);
-        vm.assume(1_000 < salePrice && salePrice < 1_000_000_000_000 ether);
+        vm.assume(1_000 < saleAmount && saleAmount < type(uint128).max);
+        vm.assume(1_000 < salePrice && salePrice < type(uint128).max);
 
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);

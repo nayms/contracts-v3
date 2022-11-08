@@ -592,7 +592,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     }
 
     function scopeToDefaults(uint256 _input) internal {
-        scopeTo(_input, 1_000, 1_000_000_000_000 ether);
+        scopeTo(_input, 1_000, type(uint128).max);
     }
 
     function scopeTo(
@@ -600,8 +600,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         uint256 _min,
         uint256 _max
     ) internal {
-        vm.assume(_input <= _max);
-        vm.assume(_input >= _min);
+        vm.assume(_min <= _input && _input <= _max);
     }
 
     function testFuzzWithdrawableDividends(
