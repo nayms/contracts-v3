@@ -19,8 +19,8 @@ contract CreateEntity is Script {
 
         Entity memory entity = Entity({
             assetId: LibHelpers._getIdForAddress(address(wbtc)),
-            collateralRatio: 1000,
-            maxCapacity: 100e18,
+            collateralRatio: LibConstants.BP_FACTOR,
+            maxCapacity: 100 ether,
             utilizedCapacity: 0,
             simplePolicyEnabled: true
         });

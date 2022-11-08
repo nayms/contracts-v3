@@ -46,7 +46,13 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
 
         nayms.addSupportedExternalToken(wbtcAddress);
-        entityWbtc = Entity({ assetId: LibHelpers._getIdForAddress(wbtcAddress), collateralRatio: 1000, maxCapacity: 100e18, utilizedCapacity: 0, simplePolicyEnabled: true });
+        entityWbtc = Entity({
+            assetId: LibHelpers._getIdForAddress(wbtcAddress),
+            collateralRatio: LibConstants.BP_FACTOR,
+            maxCapacity: 100 ether,
+            utilizedCapacity: 0,
+            simplePolicyEnabled: true
+        });
         nayms.createEntity(bytes32("0x11111"), davidId, entityWbtc, "entity wbtc test hash");
         nayms.createEntity(bytes32("0x22222"), emilyId, entityWbtc, "entity wbtc test hash");
         nayms.createEntity(bytes32("0x33333"), faithId, entityWbtc, "entity wbtc test hash");
@@ -77,9 +83,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     function testBasisPoints() public {
         TradingCommissionsBasisPoints memory bp = nayms.getTradingCommissionsBasisPoints();
 
-        uint16 tradingCommissionNaymsLtdBP = 500;
-        uint16 tradingCommissionNDFBP = 250;
-        uint16 tradingCommissionSTMBP = 250;
+        uint16 tradingCommissionNaymsLtdBP = 5000;
+        uint16 tradingCommissionNDFBP = 2500;
+        uint16 tradingCommissionSTMBP = 2500;
         uint16 tradingCommissionMakerBP; // init 0
         assertEq(bp.tradingCommissionNaymsLtdBP, tradingCommissionNaymsLtdBP);
         assertEq(bp.tradingCommissionNDFBP, tradingCommissionNDFBP);

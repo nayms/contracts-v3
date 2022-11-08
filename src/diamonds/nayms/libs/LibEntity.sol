@@ -52,7 +52,7 @@ library LibEntity {
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // Calculate the entity's required capital for its capacity utilization based on its collateral requirements.
-        uint256 capitalRequirementForUpdatedUtilizedCapacity = (updatedUtilizedCapacity * entity.collateralRatio) / 1000;
+        uint256 capitalRequirementForUpdatedUtilizedCapacity = (updatedUtilizedCapacity * entity.collateralRatio) / LibConstants.BP_FACTOR;
 
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
 
@@ -74,7 +74,7 @@ library LibEntity {
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
-        require(totalBP <= 1000, "bp cannot be > 1000");
+        require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
     }
 
     function _createSimplePolicy(
@@ -174,9 +174,9 @@ library LibEntity {
             // External token must be whitelisted by the platform
             require(LibAdmin._isSupportedExternalToken(_entity.assetId), "external token is not supported");
 
-            // Collateral ratio must be in acceptable range of 1 to 1000 basis points (0.01% to 100% collateralized).
+            // Collateral ratio must be in acceptable range of 1 to 10000 basis points (0.01% to 100% collateralized).
             // Cannot ever be completely uncollateralized (0 basis points), if entity is a cell.
-            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= 1000, "collateral ratio should be 1 to 1000");
+            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= LibConstants.BP_FACTOR, "collateral ratio should be 1 to 10000");
 
             // Max capacity is the capital amount that an entity can write across all of their policies.
             // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.

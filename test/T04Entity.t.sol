@@ -82,7 +82,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function getReadyToCreatePolicies() public {
         // create entity
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 30000, 0, true), "test entity");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 30000, 0, true), "test entity");
 
         // assign entity admin
         nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
@@ -131,19 +131,19 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateCell() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, true), "test");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, true), "test");
 
         vm.expectRevert("external token is not supported");
-        nayms.updateEntity(entityId1, initEntity(wbtc, 0, 1000, 0, false));
+        nayms.updateEntity(entityId1, initEntity(wbtc, 0, LibConstants.BP_FACTOR, 0, false));
 
-        vm.expectRevert("collateral ratio should be 1 to 1000");
-        nayms.updateEntity(entityId1, initEntity(weth, 1001, 1000, 0, false));
+        vm.expectRevert("collateral ratio should be 1 to 10000");
+        nayms.updateEntity(entityId1, initEntity(weth, 10001, LibConstants.BP_FACTOR, 0, false));
 
         vm.expectRevert("max capacity should be greater than 0 for policy creation");
-        nayms.updateEntity(entityId1, initEntity(weth, 1000, 0, 0, true));
+        nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, 0, 0, true));
 
         vm.recordLogs();
-        nayms.updateEntity(entityId1, initEntity(weth, 1000, 1000, 0, false));
+        nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false));
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
@@ -152,7 +152,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateAllowSimplePolicy() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, false), "entity test hash");
 
         // enable simple policy creation
         nayms.updateAllowSimplePolicy(entityId1, true);
@@ -166,12 +166,12 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testCreateSimplePolicyValidation() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, false), "entity test hash");
 
         // enable simple policy creation
         vm.expectRevert("simple policy creation disabled");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
-        nayms.updateEntity(entityId1, initEntity(weth, 1000, 1000, 0, true));
+        nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, true));
 
         // stakeholders entity ids array different length to signatures array
         bytes[] memory sig = stakeholders.signatures;
@@ -192,7 +192,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.limit = 0;
         vm.expectRevert("limit not > 0");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
-        simplePolicy.limit = 10000;
+        simplePolicy.limit = 100000;
 
         // test caller is system manager
         vm.expectRevert("not a system manager");
@@ -205,7 +205,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
         // update max capacity
-        nayms.updateEntity(entityId1, initEntity(weth, 500, 30000, 0, true));
+        nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
 
         // external token not supported
         vm.expectRevert("external token is not supported");
@@ -218,12 +218,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
         // fund the policy sponsor entity
-        nayms.updateEntity(entityId1, initEntity(weth, 500, 30000, 0, true));
+        nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
         weth.approve(naymsAddress, 10000);
-        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
-        assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(entityId1, wethAddress, 10000);
-        assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
+        assertEq(weth.balanceOf(account0), 100000);
+        nayms.externalDeposit(entityId1, wethAddress, 100000);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), 100000);
 
         // start date too early
         vm.warp(1);
@@ -263,12 +263,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
-        // commission basis points total > 1000
-        vm.expectRevert("bp cannot be > 1000");
+        // commission basis points total > 10000
+        vm.expectRevert("bp cannot be > 10000");
         simplePolicy.commissionReceivers = new bytes32[](1);
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionBasisPoints = new uint256[](1);
-        simplePolicy.commissionBasisPoints.push(1001);
+        simplePolicy.commissionBasisPoints.push(10001);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
@@ -387,17 +387,17 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimplePremium(policyId1, 0);
 
         // fund the insured party entity
-        weth.approve(naymsAddress, 10000);
-        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
-        assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(DEFAULT_INSURED_PARTY_ENTITY_ID, wethAddress, 10000);
-        assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), 10000);
+        weth.approve(naymsAddress, 100000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
+        assertEq(weth.balanceOf(account0), 100000);
+        nayms.externalDeposit(DEFAULT_INSURED_PARTY_ENTITY_ID, wethAddress, 100000);
+        assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), 100000);
 
         // test commissions
         {
             assertEq(simplePolicy.premiumsPaid, 0);
 
-            uint256 premiumAmount = 1000;
+            uint256 premiumAmount = 10000;
             uint256 balanceBeforePremium = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId);
 
             vm.startPrank(signer4);
@@ -406,7 +406,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
             uint256 netPremiumAmount = premiumAmount;
             for (uint256 i = 0; i < simplePolicy.commissionReceivers.length; ++i) {
-                uint256 commission = (premiumAmount * simplePolicy.commissionBasisPoints[i]) / 1000;
+                uint256 commission = (premiumAmount * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
                 netPremiumAmount -= commission;
                 assertEq(nayms.internalBalanceOf(simplePolicy.commissionReceivers[i], simplePolicy.asset), commission);
             }
@@ -417,11 +417,11 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.prank(account9);
         vm.expectRevert("not a system manager");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10000);
         vm.stopPrank();
 
         vm.expectRevert("not an insured party");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, 0, 1000);
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, 0, 10000);
 
         vm.expectRevert("invalid claim amount");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 0);
@@ -432,9 +432,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.setEntity(LibHelpers._getIdForAddress(signer4), DEFAULT_INSURED_PARTY_ENTITY_ID);
 
         vm.expectRevert("exceeds policy limit");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10001);
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 100001);
 
-        uint256 claimAmount = 1000;
+        uint256 claimAmount = 10000;
         uint256 balanceBeforeClaim = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset);
         simplePolicy = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicy.claimsPaid, 0);
@@ -442,7 +442,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
 
         simplePolicy = nayms.getSimplePolicyInfo(policyId1);
-        assertEq(simplePolicy.claimsPaid, 1000);
+        assertEq(simplePolicy.claimsPaid, 10000);
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset), balanceBeforeClaim + claimAmount);
     }
 
@@ -450,10 +450,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
 
-        uint256 sellAmount = 100;
-        uint256 sellAtPrice = 100;
+        uint256 sellAmount = 1000;
+        uint256 sellAtPrice = 1000;
 
-        Entity memory entity1 = initEntity(weth, 500, 1000, 0, false);
+        Entity memory entity1 = initEntity(weth, 5000, 10000, 0, false);
         nayms.createEntity(entityId1, account0Id, entity1, "entity test hash");
 
         assertEq(nayms.getLastOfferId(), 0);
@@ -523,9 +523,9 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         SimplePolicy memory sp = nayms.getSimplePolicyInfo(policyId1);
 
-        uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / 1000;
-        uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / 1000;
-        uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / 1000;
+        uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
+        uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
+        uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
 
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF);
