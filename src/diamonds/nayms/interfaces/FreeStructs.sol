@@ -45,6 +45,16 @@ struct SimplePolicy {
     uint256 sponsorCommissionBasisPoints; //underwriter is parent
 }
 
+struct SimplePolicyInfo {
+    uint256 startDate;
+    uint256 maturationDate;
+    bytes32 asset;
+    uint256 limit;
+    bool fundsLocked;
+    uint256 claimsPaid;
+    uint256 premiumsPaid;
+}
+
 struct PolicyCommissionsBasisPoints {
     uint16 premiumCommissionNaymsLtdBP;
     uint16 premiumCommissionNDFBP;
