@@ -4,12 +4,13 @@ pragma solidity >=0.8.13;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
+import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
@@ -18,6 +19,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
+
+    SimplePolicyFixture internal simplePolicyFixture;
 
     Stakeholders internal stakeholders;
     SimplePolicy internal simplePolicy;
@@ -73,6 +76,22 @@ contract T04EntityTest is D03ProtocolDefaults {
         account9Id = LibHelpers._getIdForAddress(account9);
 
         (stakeholders, simplePolicy) = initPolicy(policyId1);
+
+        // setup trading commissions fixture
+        simplePolicyFixture = new SimplePolicyFixture();
+        bytes4[] memory funcSelectors = new bytes4[](1);
+        funcSelectors[0] = simplePolicyFixture.getFullInfo.selector;
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(simplePolicyFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
+    }
+
+    function getSimplePolicy(bytes32 _policyId) internal returns (SimplePolicy memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.getFullInfo.selector, _policyId));
+        require(success, "Should get simple policy from app storage");
+        return abi.decode(result, (SimplePolicy));
     }
 
     function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
@@ -306,7 +325,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
-        SimplePolicy memory p = nayms.getSimplePolicyInfo(policyId1);
+        SimplePolicy memory p = getSimplePolicy(policyId1);
         assertTrue(p.fundsLocked, "funds locked");
     }
 
@@ -410,7 +429,7 @@ contract T04EntityTest is D03ProtocolDefaults {
                 netPremiumAmount -= commission;
                 assertEq(nayms.internalBalanceOf(simplePolicy.commissionReceivers[i], simplePolicy.asset), commission);
             }
-            simplePolicy = nayms.getSimplePolicyInfo(policyId1);
+            simplePolicy = getSimplePolicy(policyId1);
             assertEq(simplePolicy.premiumsPaid, premiumAmount);
             assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), balanceBeforePremium - premiumAmount);
         }
@@ -436,12 +455,12 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         uint256 claimAmount = 1000;
         uint256 balanceBeforeClaim = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset);
-        simplePolicy = nayms.getSimplePolicyInfo(policyId1);
+        simplePolicy = getSimplePolicy(policyId1);
         assertEq(simplePolicy.claimsPaid, 0);
 
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
 
-        simplePolicy = nayms.getSimplePolicyInfo(policyId1);
+        simplePolicy = getSimplePolicy(policyId1);
         assertEq(simplePolicy.claimsPaid, 1000);
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset), balanceBeforeClaim + claimAmount);
     }
@@ -521,7 +540,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
         (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
 
-        SimplePolicy memory sp = nayms.getSimplePolicyInfo(policyId1);
+        SimplePolicy memory sp = getSimplePolicy(policyId1);
 
         uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / 1000;
         uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / 1000;
