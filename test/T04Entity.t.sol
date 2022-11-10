@@ -594,4 +594,23 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM);
     }
+
+    function testCancellSimplePolicy() public {
+        getReadyToCreatePolicies();
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        Entity memory entityBefore = nayms.getEntityInfo(entityId1);
+        uint256 utilizedCapacityBefore = entityBefore.utilizedCapacity;
+
+        nayms.cancelSimplePolicy(policyId1);
+
+        Entity memory entityAfter = nayms.getEntityInfo(entityId1);
+        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter.utilizedCapacity, "utilized capacity should change");
+
+        SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
+        assertEq(simplePolicyInfo.cancelled, true, "Simple policy should be cancelled");
+
+        vm.expectRevert("Policy already cancelled");
+        nayms.cancelSimplePolicy(policyId1);
+    }
 }
