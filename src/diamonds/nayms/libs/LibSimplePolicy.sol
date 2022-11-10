@@ -11,7 +11,8 @@ import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 
 library LibSimplePolicy {
-    event SimplePolicyStateUpdated(bytes32 id, address indexed caller);
+    event SimplePolicyMatured(bytes32 indexed id);
+    event SimplePolicyCancelled(bytes32 indexed id);
     event SimplePolicyPremiumPaid(bytes32 indexed id, uint256 amount);
     event SimplePolicyClaimPaid(bytes32 indexed _claimId, bytes32 indexed policyId, bytes32 indexed insuredId, uint256 amount);
 
@@ -20,18 +21,16 @@ library LibSimplePolicy {
         simplePolicyInfo = s.simplePolicies[_policyId];
     }
 
-    function _checkAndUpdateState(bytes32 _id) internal {
+    function _checkAndUpdateState(bytes32 _policyId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        SimplePolicy storage simplePolicy = s.simplePolicies[_id];
+        SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
 
-        if (block.timestamp >= simplePolicy.maturationDate && simplePolicy.fundsLocked) {
+        if (!simplePolicy.cancelled && block.timestamp >= simplePolicy.maturationDate && simplePolicy.fundsLocked) {
             // When the policy matures, the entity regains their capacity that was being utilized for that policy.
-            Entity storage entity = s.entities[LibObject._getParent(_id)];
-            entity.utilizedCapacity -= simplePolicy.limit;
-            simplePolicy.fundsLocked = false;
+            releaseFunds(_policyId);
 
             // emit event
-            emit SimplePolicyStateUpdated(_id, msg.sender);
+            emit SimplePolicyMatured(_policyId);
         }
     }
 
@@ -45,6 +44,7 @@ library LibSimplePolicy {
         AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 policyEntityId = LibObject._getParent(_policyId);
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
+        require(!simplePolicy.cancelled, "Policy is cancelled");
 
         LibTokenizedVault._internalTransfer(_payerEntityId, policyEntityId, simplePolicy.asset, _amount);
         LibFeeRouter._payPremiumCommissions(_policyId, _amount);
@@ -66,6 +66,7 @@ library LibSimplePolicy {
         require(LibACL._isInGroup(_insuredEntityId, _policyId, LibHelpers._stringToBytes32(LibConstants.GROUP_INSURED_PARTIES)), "not an insured party");
 
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
+        require(!simplePolicy.cancelled, "Policy is cancelled");
 
         uint256 claimsPaid = simplePolicy.claimsPaid;
         require(simplePolicy.limit >= _amount + claimsPaid, "exceeds policy limit");
@@ -76,5 +77,25 @@ library LibSimplePolicy {
         LibTokenizedVault._internalTransfer(LibObject._getParent(_policyId), _insuredEntityId, simplePolicy.asset, _amount);
 
         emit SimplePolicyClaimPaid(_claimId, _policyId, _insuredEntityId, _amount);
+    }
+
+    function _cancel(bytes32 _policyId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
+        require(!simplePolicy.cancelled, "Policy already cancelled");
+
+        releaseFunds(_policyId);
+        simplePolicy.cancelled = true;
+
+        emit SimplePolicyCancelled(_policyId);
+    }
+
+    function releaseFunds(bytes32 _policyId) private {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
+        Entity storage entity = s.entities[LibObject._getParent(_policyId)];
+
+        entity.utilizedCapacity -= simplePolicy.limit;
+        simplePolicy.fundsLocked = false;
     }
 }

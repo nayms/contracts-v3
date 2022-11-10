@@ -38,6 +38,7 @@ struct SimplePolicy {
     bytes32 asset;
     uint256 limit;
     bool fundsLocked;
+    bool cancelled;
     uint256 claimsPaid;
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
@@ -51,6 +52,7 @@ struct SimplePolicyInfo {
     bytes32 asset;
     uint256 limit;
     bool fundsLocked;
+    bool cancelled;
     uint256 claimsPaid;
     uint256 premiumsPaid;
 }
