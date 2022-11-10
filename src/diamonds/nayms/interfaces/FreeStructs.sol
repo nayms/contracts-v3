@@ -38,11 +38,23 @@ struct SimplePolicy {
     bytes32 asset;
     uint256 limit;
     bool fundsLocked;
+    bool cancelled;
     uint256 claimsPaid;
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
     uint256 sponsorCommissionBasisPoints; //underwriter is parent
+}
+
+struct SimplePolicyInfo {
+    uint256 startDate;
+    uint256 maturationDate;
+    bytes32 asset;
+    uint256 limit;
+    bool fundsLocked;
+    bool cancelled;
+    uint256 claimsPaid;
+    uint256 premiumsPaid;
 }
 
 struct PolicyCommissionsBasisPoints {
