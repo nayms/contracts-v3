@@ -300,6 +300,16 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // create it successfully
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
+        assertEq(simplePolicyInfo.startDate, simplePolicy.startDate, "Start dates should match");
+        assertEq(simplePolicyInfo.maturationDate, simplePolicy.maturationDate, "Maturation dates should match");
+        assertEq(simplePolicyInfo.asset, simplePolicy.asset, "Assets should match");
+        assertEq(simplePolicyInfo.limit, simplePolicy.limit, "Limits should match");
+        assertEq(simplePolicyInfo.fundsLocked, true, "Fund should be locked");
+        assertEq(simplePolicyInfo.cancelled, false, "Cancelled flags should be false");
+        assertEq(simplePolicyInfo.claimsPaid, simplePolicy.claimsPaid, "Claims paid amounts should match");
+        assertEq(simplePolicyInfo.premiumsPaid, simplePolicy.premiumsPaid, "Premiums paid amounts should match");
     }
 
     function testCreateSimplePolicyAlreadyExists() public {
