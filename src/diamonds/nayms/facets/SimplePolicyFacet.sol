@@ -56,6 +56,7 @@ contract SimplePolicyFacet is Modifiers {
                 asset: p.asset,
                 limit: p.limit,
                 fundsLocked: p.fundsLocked,
+                cancelled: p.cancelled,
                 claimsPaid: p.claimsPaid,
                 premiumsPaid: p.premiumsPaid
             });
@@ -71,5 +72,13 @@ contract SimplePolicyFacet is Modifiers {
      */
     function checkAndUpdateSimplePolicyState(bytes32 _policyId) external {
         LibSimplePolicy._checkAndUpdateState(_policyId);
+    }
+
+    /**
+     * @dev Cancell a policy
+     * @param _policyId Id of the simple policy
+     */
+    function cancelSimplePolicy(bytes32 _policyId) external assertSysMgr {
+        LibSimplePolicy._cancel(_policyId);
     }
 }

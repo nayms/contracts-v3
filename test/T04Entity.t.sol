@@ -79,8 +79,9 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // setup trading commissions fixture
         simplePolicyFixture = new SimplePolicyFixture();
-        bytes4[] memory funcSelectors = new bytes4[](1);
+        bytes4[] memory funcSelectors = new bytes4[](2);
         funcSelectors[0] = simplePolicyFixture.getFullInfo.selector;
+        funcSelectors[1] = simplePolicyFixture.update.selector;
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(simplePolicyFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
@@ -92,6 +93,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.getFullInfo.selector, _policyId));
         require(success, "Should get simple policy from app storage");
         return abi.decode(result, (SimplePolicy));
+    }
+
+    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory simplePolicy) internal {
+        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, simplePolicy));
+        require(success, "Should update simple policy in app storage");
     }
 
     function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
@@ -402,6 +408,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
+        simplePolicy.cancelled = true;
+        updateSimplePolicy(policyId1, simplePolicy);
+        vm.expectRevert("Policy is cancelled");
+        nayms.paySimplePremium(policyId1, 1000);
+        simplePolicy.cancelled = false;
+        updateSimplePolicy(policyId1, simplePolicy);
+
         vm.expectRevert("invalid premium amount");
         nayms.paySimplePremium(policyId1, 0);
 
@@ -433,6 +446,14 @@ contract T04EntityTest is D03ProtocolDefaults {
             assertEq(simplePolicy.premiumsPaid, premiumAmount);
             assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), balanceBeforePremium - premiumAmount);
         }
+
+        simplePolicy.cancelled = true;
+        updateSimplePolicy(policyId1, simplePolicy);
+        vm.expectRevert("Policy is cancelled");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        simplePolicy.fundsLocked = true;
+        simplePolicy.cancelled = false;
+        updateSimplePolicy(policyId1, simplePolicy);
 
         vm.prank(account9);
         vm.expectRevert("not a system manager");
@@ -510,10 +531,23 @@ contract T04EntityTest is D03ProtocolDefaults {
         uint256 utilizedCapacityBefore = entityBefore.utilizedCapacity;
 
         vm.warp(simplePolicy.maturationDate + 1);
+
+        // utilized capacity doesn't change, on cancelled policy
+        simplePolicy.cancelled = true;
+        updateSimplePolicy(policyId1, simplePolicy);
+
         nayms.checkAndUpdateSimplePolicyState(policyId1);
         Entity memory entityAfter = nayms.getEntityInfo(entityId1);
+        assertEq(utilizedCapacityBefore, entityAfter.utilizedCapacity, "utilized capacity should not change");
 
-        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter.utilizedCapacity, "utilized capacity should increase");
+        // revert changes
+        simplePolicy.cancelled = false;
+        simplePolicy.fundsLocked = true;
+        updateSimplePolicy(policyId1, simplePolicy);
+
+        nayms.checkAndUpdateSimplePolicyState(policyId1);
+        Entity memory entityAfter2 = nayms.getEntityInfo(entityId1);
+        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter2.utilizedCapacity, "utilized capacity should increase");
     }
 
     function testPayPremiumCommissions() public {
