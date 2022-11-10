@@ -75,7 +75,7 @@ contract SimplePolicyFacet is Modifiers {
     }
 
     /**
-     * @dev Cancell a policy
+     * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
     function cancelSimplePolicy(bytes32 _policyId) external assertSysMgr {

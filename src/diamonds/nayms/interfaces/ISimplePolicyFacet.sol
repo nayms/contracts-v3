@@ -44,4 +44,10 @@ interface ISimplePolicyFacet {
      * @param _id Id of the simple policy
      */
     function checkAndUpdateSimplePolicyState(bytes32 _id) external;
+
+    /**
+     * @dev Cancel a simple policy
+     * @param _policyId Id of the simple policy
+     */
+    function cancelSimplePolicy(bytes32 _policyId) external;
 }
