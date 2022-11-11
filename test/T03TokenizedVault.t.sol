@@ -99,6 +99,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         vm.expectRevert("extDeposit: invalid receiver");
         nayms.externalDepositToEntity(dividendBankId, wethAddress, 1);
 
+        vm.expectRevert("extDeposit: invalid ERC20 token");
+        nayms.externalDepositToEntity(dividendBankId, address(0xBADAAAAAAAAA), 1);
+
         // deposit to entity1
         nayms.externalDeposit(entity1, wethAddress, externalDepositAmount);
         assertEq(weth.balanceOf(account0), depositAmount - externalDepositAmount, "account0 WETH balance after externalDeposit should DECREASE (transfer)");
