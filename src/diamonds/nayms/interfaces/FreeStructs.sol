@@ -98,6 +98,7 @@ struct TradingCommissions {
 }
 
 struct TradingCommissionsBasisPoints {
+    uint16 tradingCommissionTotalBP;
     uint16 tradingCommissionNaymsLtdBP;
     uint16 tradingCommissionNDFBP;
     uint16 tradingCommissionSTMBP;

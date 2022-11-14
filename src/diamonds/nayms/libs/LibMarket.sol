@@ -155,11 +155,11 @@ library LibMarket {
         result.remainingBuyAmount = _buyAmount;
         result.remainingSellAmount = _sellAmount;
 
-        // sell: p100 buy: $100 => YES! buy more
+        // sell: p100 buy: $100 =>  YES! buy more
         // sell: $100 buy: p100 =>  NO! DON'T buy more
 
-        // If the buyToken is entity   => limit both buy and sell amounts
-        // If the buyToken is external => limit only sell amount
+        // If the buyToken is entity(p-token)   => limit both buy and sell amounts
+        // If the buyToken is external          => limit only sell amount
 
         bool buyExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {

@@ -34,13 +34,6 @@ library LibFeeRouter {
         emit PremiumCommissionsPaid(_policyId, policyEntityId, _premiumPaid);
     }
 
-    function _getPremiumCommissionBasisPoints() internal view returns (PolicyCommissionsBasisPoints memory bp) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        bp.premiumCommissionNaymsLtdBP = s.premiumCommissionNaymsLtdBP;
-        bp.premiumCommissionNDFBP = s.premiumCommissionNDFBP;
-        bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
-    }
-
     function _payTradingCommissions(
         bytes32 _makerId,
         bytes32 _takerId,
@@ -76,6 +69,28 @@ library LibFeeRouter {
         emit TradingCommissionsPaid(_takerId, _tokenId, commissionPaid_);
     }
 
+    function _updateTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata bp) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(
+            bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == 10000,
+            "trading commission BPs must sum up to 10000"
+        );
+
+        s.tradingCommissionTotalBP = bp.tradingCommissionTotalBP;
+        s.tradingCommissionNaymsLtdBP = bp.tradingCommissionNaymsLtdBP;
+        s.tradingCommissionNDFBP = bp.tradingCommissionNDFBP;
+        s.tradingCommissionSTMBP = bp.tradingCommissionSTMBP;
+        s.tradingCommissionMakerBP = bp.tradingCommissionMakerBP;
+    }
+
+    function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.premiumCommissionNaymsLtdBP = bp.premiumCommissionNaymsLtdBP;
+        s.premiumCommissionNDFBP = bp.premiumCommissionNDFBP;
+        s.premiumCommissionSTMBP = bp.premiumCommissionSTMBP;
+    }
+
     function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -100,9 +115,17 @@ library LibFeeRouter {
 
     function _getTradingCommissionsBasisPoints() internal view returns (TradingCommissionsBasisPoints memory bp) {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        bp.tradingCommissionTotalBP = s.tradingCommissionTotalBP;
         bp.tradingCommissionNaymsLtdBP = s.tradingCommissionNaymsLtdBP;
         bp.tradingCommissionNDFBP = s.tradingCommissionNDFBP;
         bp.tradingCommissionSTMBP = s.tradingCommissionSTMBP;
         bp.tradingCommissionMakerBP = s.tradingCommissionMakerBP;
+    }
+
+    function _getPremiumCommissionBasisPoints() internal view returns (PolicyCommissionsBasisPoints memory bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp.premiumCommissionNaymsLtdBP = s.premiumCommissionNaymsLtdBP;
+        bp.premiumCommissionNDFBP = s.premiumCommissionNDFBP;
+        bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
     }
 }

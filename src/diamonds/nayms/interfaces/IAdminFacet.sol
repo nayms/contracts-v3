@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+
 /**
  * @title Administration
  * @notice Exposes methods that require administrative priviledges
@@ -49,6 +51,18 @@ interface IAdminFacet {
      * @param _newMax new value to be used.
      */
     function setMaxDividendDenominations(uint8 _newMax) external;
+
+    /**
+     * @notice Update policy commission basis points configuration.
+     * @param _policyCommissions policy commissions configuration to set
+     */
+    function setPolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata _policyCommissions) external;
+
+    /**
+     * @notice Update trading commission basis points configuration.
+     * @param _tradingCommissions trading commissions configuration to set
+     */
+    function setTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata _tradingCommissions) external;
 
     /**
      * @notice Get the discount token
