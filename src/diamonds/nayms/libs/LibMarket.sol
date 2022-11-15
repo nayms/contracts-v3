@@ -8,9 +8,6 @@ import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
-import { console2 } from "forge-std/console2.sol";
-
-import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
 library LibMarket {
     /// @notice order has been added
@@ -207,30 +204,15 @@ library LibMarket {
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
                     //
-                    console2.log("_matchToExistingOffers buy external token");
                     uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
-                    console2.log("best offer buy amount", s.offers[bestOfferId].buyAmount);
-                    console2.log("best offer sell amount", s.offers[bestOfferId].sellAmount);
-                    console2.log("result.remainingBuyAmount", result.remainingBuyAmount);
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-                    console2.log("_matchToExistingOffers buy PAR token");
-                    console2.log("currentBuyAmount", currentBuyAmount);
-                    console2.log("currentSellAmount", currentSellAmount);
-                    console2.log("result.remainingSellAmount", result.remainingSellAmount);
-                    console2.log("result.remainingBuyAmount", result.remainingBuyAmount);
-                    // if the calculated sell amount is zero, and the remaining sell amount was non zero, then sell the remaining amount?
-                    // if (currentSellAmount == 0 && s.offers[bestOfferId].sellAmount != 0) {
-                    //     currentSellAmount = result.remainingSellAmount;
-                    // }
                     uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
                 // calculate how much is left to buy/sell
-                console2.log("result.remainingSellAmount", result.remainingSellAmount);
-                console2.log("result.remainingBuyAmount", result.remainingBuyAmount);
                 result.remainingSellAmount -= currentSellAmount;
                 result.remainingBuyAmount -= currentBuyAmount;
             }
@@ -285,10 +267,7 @@ library LibMarket {
     ) internal returns (uint256 commissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        console2.log("_takeOffer buy amount, before calling _checkBoundsAndUpdateBalances", _buyAmount);
-        console2.log("_takeOffer sell amount, before calling _checkBoundsAndUpdateBalances", _sellAmount);
         // check bounds and update balances
-        // _checkBoundsAndUpdateBalances(_offerId, _sellAmount, _buyAmount); // note modified param order from og
         _checkBoundsAndUpdateBalances(_offerId, _buyAmount, _sellAmount);
 
         // Check fee schedule, before paying commissions
@@ -332,13 +311,10 @@ library LibMarket {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        console2.log("start of _checkBoundsAndUpdateBalances, buy amount", _buyAmount);
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
 
-        console2.log("_checkBoundsAndUpdateBalances buy amount", _buyAmount);
         _assertAmounts(_sellAmount, _buyAmount);
 
-        console2.log("_checkBoundsAndUpdateBalances offerBuy.amount", offerBuy.amount);
         require(_buyAmount <= offerBuy.amount, "requested buy amount too large");
         require(_sellAmount <= offerSell.amount, "calculated sell amount too large");
 
@@ -393,7 +369,6 @@ library LibMarket {
         bool buyTokenIsEntity = s.existingEntities[_buyToken];
         bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
 
-        console2.log("_assertValidOffer buy amount", _buyAmount);
         _assertAmounts(_sellAmount, _buyAmount);
 
         require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
@@ -433,7 +408,6 @@ library LibMarket {
             uint256 sellTokenCommissionsPaid_
         )
     {
-        console2.log("_executeLimitOffer buy amount", _buyAmount);
         _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
         MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount);
