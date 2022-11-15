@@ -55,8 +55,8 @@ contract D03ProtocolDefaults is D02TestSetup {
 
         Entity memory entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
-            collateralRatio: 1000,
-            maxCapacity: 100e18,
+            collateralRatio: LibConstants.BP_FACTOR,
+            maxCapacity: 100 ether,
             utilizedCapacity: 0,
             simplePolicyEnabled: true
         });
@@ -77,7 +77,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
         // create entity with signer2 as child
         entityId = "0xe1";
-        Entity memory entity1 = initEntity(weth, 500, 1000, 1000, false);
+        Entity memory entity1 = initEntity(weth, 5000, 10000, 10000, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
     }
 

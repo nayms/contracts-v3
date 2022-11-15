@@ -61,27 +61,27 @@ Check `.env.example` to see some of the environment variables you should have se
 
 ```md
 .
-├── contracts
-│ ├── diamonds
-│ │ ├── nayms
-│ │ │ ├── facets
-│ │ │ ├── interfaces
-│ │ │ └── libs
-│ │ └── shared
-│ │ ├── facets
-│ │ ├── interfaces
-│ │ └── libs
-│ ├── ERC20
-│ └── utils
-├── docs
-│ └── adr
-|── lib
-├── scripts
+├── cli-tools
+├── script
+│   ├── deployment
+│   └── utils
 ├── src
-│ └── test
-│ └── utils
-│ └── users
+│   ├── diamonds
+│   │   ├── nayms
+│   │   │   ├── facets
+│   │   │   ├── interfaces
+│   │   │   └── libs
+│   │   └── shared
+│   │       ├── facets
+│   │       ├── interfaces
+│   │       └── libs
+│   ├── erc20
+│   └── utils
 └── test
+    ├── defaults
+    ├── fixtures
+    └── utils
+        └── users
 ```
 
 ## Solidity Scripting
@@ -130,7 +130,7 @@ Below are several examples on how you would use the smart deploy scripts.
 For a __fresh new deployment__ of the entire project, execute this command:
 
 ```zsh
-make deploy-sim newDiamond=true initNewDiamond=true facetAction=1
+make deploy-sim newDiamond=true initNewDiamond=true facetAction=0
 ```
 
 To __upgrade the facets that have been changed__ since the last deployment, run the following:
@@ -149,13 +149,33 @@ make deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutI
 
 ### Running a Local Node
 
-For development purposes, you can run a node locally using foundry's `anvil`. It's a simple command to bring up a local node exposing a JSON-RPC endpoint at `hhtp://llocalhost:8545`. Make sure to start `anvil` in one of your terminal windows and in another one run a make target to deploy the Nayms' contracts to it.
+For development purposes, you can run a node locally using foundry's `anvil`. It's a simple way to bring up a local node exposing a JSON-RPC endpoint at `http://127.0.0.1:8545`. Make sure to start `anvil` in one of your terminal windows and in another one run a make target to deploy the Nayms' contracts to it.
+
+Run the local node seeding it with Nayms' shared wallet:
+
+```zsh
+make anvil
+```
+
+You can also run it in debug mode to get verbose log output:
+
+```zsh
+make anvil-debug
+```
 
 To do a full deployment run the following command:
 
 ```zsh
 make anvil-deploy newDiamond=true initNewDiamond=true facetAction=0
 ```
+
+You will most likelly need to deploy a dummy ERC20 token for testing purposes. You can do that by running:
+
+```zsh
+make anvil-gtoken
+```
+
+> :warning: Anvil state is not preserved between restarts. Everytime you bring it up, it starts fresh. You need to do the deployment and setup all over again!
 
 ## Development Flow
 

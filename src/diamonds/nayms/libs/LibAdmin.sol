@@ -91,6 +91,11 @@ library LibAdmin {
         emit CoefficientUpdated(oldCoefficient, s.rewardsCoefficient);
     }
 
+    function _isSupportedExternalTokenAddress(address _tokenId) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.externalTokenSupported[_tokenId];
+    }
+
     function _isSupportedExternalToken(bytes32 _tokenId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.externalTokenSupported[LibHelpers._getAddressFromId(_tokenId)];

@@ -4,10 +4,29 @@ pragma solidity >=0.8.13;
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
+import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
+    LibFeeRouterFixture internal libFeeRouterFixture = new LibFeeRouterFixture();
+
     function setUp() public virtual override {
         super.setUp();
+
+        libFeeRouterFixture = new LibFeeRouterFixture();
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory functionSelectors = new bytes4[](5);
+        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
+        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
+        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
+        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
+        functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
+
+        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
     }
 
     function testGetSystemId() public {
@@ -269,5 +288,73 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
+    }
+
+    function testSetTradingCommissionsBasisPoints() public {
+        // must add up to 10000
+        vm.expectRevert("trading commission BPs must sum up to 10000");
+        nayms.setTradingCommissionsBasisPoints(
+            TradingCommissionsBasisPoints({
+                tradingCommissionTotalBP: 41,
+                tradingCommissionNaymsLtdBP: 5001,
+                tradingCommissionNDFBP: 2500,
+                tradingCommissionSTMBP: 2499,
+                tradingCommissionMakerBP: 1
+            })
+        );
+
+        TradingCommissionsBasisPoints memory s = TradingCommissionsBasisPoints({
+            tradingCommissionTotalBP: 41,
+            tradingCommissionNaymsLtdBP: 5001,
+            tradingCommissionNDFBP: 2499,
+            tradingCommissionSTMBP: 2499,
+            tradingCommissionMakerBP: 1
+        });
+
+        // must be sys admin
+        vm.prank(account9);
+        vm.expectRevert("not a system admin");
+        nayms.setTradingCommissionsBasisPoints(s);
+        vm.stopPrank();
+
+        // assert happy path
+        nayms.setTradingCommissionsBasisPoints(s);
+
+        TradingCommissionsBasisPoints memory result = nayms.getTradingCommissionsBasisPoints();
+
+        assertEq(s.tradingCommissionTotalBP, result.tradingCommissionTotalBP, "tradingCommissionTotalBP not matched");
+        assertEq(s.tradingCommissionNaymsLtdBP, result.tradingCommissionNaymsLtdBP, "tradingCommissionNaymsLtdBP not matched");
+        assertEq(s.tradingCommissionNDFBP, result.tradingCommissionNDFBP, "tradingCommissionNDFBP not matched");
+        assertEq(s.tradingCommissionSTMBP, result.tradingCommissionSTMBP, "tradingCommissionSTMBP not matched");
+        assertEq(s.tradingCommissionMakerBP, result.tradingCommissionMakerBP, "tradingCommissionMakerBP not matched");
+    }
+
+    function testSetPremiumCommissionsBasisPoints() public {
+        // prettier-ignore
+        PolicyCommissionsBasisPoints memory s = PolicyCommissionsBasisPoints({ 
+            premiumCommissionNaymsLtdBP: 42, 
+            premiumCommissionNDFBP: 42, 
+            premiumCommissionSTMBP: 42 
+        });
+
+        // must be sys admin
+        vm.prank(account9);
+        vm.expectRevert("not a system admin");
+        nayms.setPolicyCommissionsBasisPoints(s);
+        vm.stopPrank();
+
+        nayms.setPolicyCommissionsBasisPoints(s);
+
+        PolicyCommissionsBasisPoints memory result = getPremiumCommissions();
+
+        assertEq(s.premiumCommissionNaymsLtdBP, result.premiumCommissionNaymsLtdBP, "premiumCommissionNaymsLtdBP not matched");
+        assertEq(s.premiumCommissionNDFBP, result.premiumCommissionNDFBP, "premiumCommissionNDFBP not matched");
+        assertEq(s.premiumCommissionSTMBP, result.premiumCommissionSTMBP, "premiumCommissionSTMBP not matched");
+    }
+
+    function getPremiumCommissions() internal returns (PolicyCommissionsBasisPoints memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
+        require(success, "Should get commissions from app storage");
+        return abi.decode(result, (PolicyCommissionsBasisPoints));
     }
 }

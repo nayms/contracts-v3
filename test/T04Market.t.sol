@@ -50,7 +50,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     uint256 internal constant dividendAmount = 1000;
 
-    uint256 internal constant collateralRatio_500 = 500;
+    uint256 internal constant collateralRatio_500 = 5000;
     uint256 internal constant maxCapital_2000eth = 2_000 ether;
     uint256 internal constant maxCapital_3000eth = 3_000 ether;
     uint256 internal constant totalLimit_2000eth = 2_000 ether;
@@ -222,12 +222,12 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity1, nWETH), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
 
         // assert trading commisions payed
-        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * c.tradingCommissionTotalBP) / 1000; // see AppStorage: 4 => s.tradingCommissionTotalBP
+        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * c.tradingCommissionTotalBP) / LibConstants.BP_FACTOR; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, nWETH), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionNaymsLtdBP) / 1000);
-        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionNDFBP) / 1000);
-        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionSTMBP) / 1000);
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionNaymsLtdBP) / LibConstants.BP_FACTOR);
+        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionNDFBP) / LibConstants.BP_FACTOR);
+        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * c.tradingCommissionSTMBP) / LibConstants.BP_FACTOR);
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), nWETH),
             naymsBalanceAfterTrade,
@@ -311,13 +311,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
-        // avoid overflow issues
-        vm.assume(saleAmount <= type(uint128).max);
-        vm.assume(salePrice <= type(uint128).max);
-
-        // avoid dust issues
-        vm.assume(saleAmount > 1_000);
-        vm.assume(salePrice > 1_000);
+        // avoid over/underflow issues
+        vm.assume(1_000 < saleAmount && saleAmount < type(uint128).max);
+        vm.assume(1_000 < salePrice && salePrice < type(uint128).max);
 
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
@@ -335,7 +331,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(entity2, wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * (1000 + c.tradingCommissionTotalBP)) / 1000;
+            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR;
             nayms.externalDeposit(entity2, wethAddress, e2Balance);
 
             // sell x nENTITY1 for y nWETH
@@ -360,13 +356,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testFuzzMatchingSellOffer(uint256 saleAmount, uint256 salePrice) public {
-        // avoid overflow issues
-        vm.assume(saleAmount <= type(uint128).max);
-        vm.assume(salePrice <= type(uint128).max);
-
-        // avoid dust issues
-        vm.assume(saleAmount > 1_000);
-        vm.assume(salePrice > 1_000);
+        // avoid over/underflow issues
+        vm.assume(1_000 < saleAmount && saleAmount < type(uint128).max);
+        vm.assume(1_000 < salePrice && salePrice < type(uint128).max);
 
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
@@ -393,7 +385,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.stopPrank();
 
             // taker needs balance for trading commissions
-            uint256 e1Balance = ((salePrice * (1000 + c.tradingCommissionTotalBP)) / 1000) - salePrice;
+            uint256 e1Balance = ((salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR) - salePrice;
             nayms.externalDeposit(entity1, wethAddress, e1Balance);
             assertEq(nayms.internalBalanceOf(entity1, LibHelpers._getIdForAddress(wethAddress)), e1Balance, "Entity1: invalid balance");
 

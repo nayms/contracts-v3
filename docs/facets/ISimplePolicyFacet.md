@@ -40,7 +40,7 @@ Get simple policy info
 ```solidity
   function getSimplePolicyInfo(
     bytes32 _id
-  ) external returns (struct SimplePolicy)
+  ) external returns (struct SimplePolicyInfo)
 ```
 #### Arguments:
 | Argument | Type | Description |
@@ -71,4 +71,17 @@ Check and update simple policy state
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_id` | bytes32 | Id of the simple policy|
+<br></br>
+### cancelSimplePolicy
+No description
+Cancel a simple policy
+```solidity
+  function cancelSimplePolicy(
+    bytes32 _policyId
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_policyId` | bytes32 | Id of the simple policy|
 <br></br>
