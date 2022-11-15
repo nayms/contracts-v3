@@ -8,8 +8,10 @@ import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "src
 
 contract UpdateCommissions is Script {
     function tradingAndPremium(address naymsDiamondAddress) public {
+        vm.startBroadcast();
         trading(naymsDiamondAddress);
         premiums(naymsDiamondAddress);
+        vm.stopBroadcast();
     }
 
     function trading(address naymsDiamondAddress) public {
@@ -23,9 +25,7 @@ contract UpdateCommissions is Script {
             tradingCommissionMakerBP: 0
         });
 
-        vm.startPrank(msg.sender);
         nayms.setTradingCommissionsBasisPoints(tc);
-        vm.stopPrank();
 
         console2.log("\n\nTrading commissions updated successfully");
         console2.log(" - tradingCommissionTotalBP: ", tc.tradingCommissionTotalBP);
@@ -45,9 +45,7 @@ contract UpdateCommissions is Script {
           premiumCommissionSTMBP: 40
         });
 
-        vm.startPrank(msg.sender);
         nayms.setPolicyCommissionsBasisPoints(pc);
-        vm.stopPrank();
 
         console2.log("\n\nPremium commissions updated successfully");
         console2.log(" - premiumCommissionNaymsLtdBP: ", pc.premiumCommissionNaymsLtdBP);
