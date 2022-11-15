@@ -131,6 +131,7 @@ facetsToCutIn="[]"
 newDiamond=false
 initNewDiamond=false
 facetAction=1
+senderAddress=0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
 
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
@@ -138,7 +139,7 @@ deploy: ## smart deploy to goerli
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
@@ -152,7 +153,7 @@ deploy-sim: ## simulate smart deploy to goerli
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
@@ -161,17 +162,57 @@ deploy-sim: ## simulate smart deploy to goerli
 anvil-fork: ## fork goerli locally with anvil
 	anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
 
-deploy-anvil: ## smart deploy locally to anvil
+anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" \
-		${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
 		-f http:\\127.0.0.1:8545 \
-		--sender 0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
 		--broadcast
+
+anvil-gtoken:	## deploy dummy erc20 token to local node
+	forge script DeployERC20 \
+		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
+
+create-entity: ## create an entity on the Nayms platform (using some default values, on anvil)
+	forge script CreateEntity \
+		-s "createAnEntity(address)" ${naymsDiamondAddress} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--broadcast
+
+update-commissions: ## update trading and premium commissions
+	forge script UpdateCommissions \
+		-s "tradingAndPremium(address)" ${naymsDiamondAddress} \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--broadcast
+
+anvil-debug:	## run anvil in debug mode with shared wallet
+	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
+
+anvil:	## run anvil with shared wallet
+	anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
 
 subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi

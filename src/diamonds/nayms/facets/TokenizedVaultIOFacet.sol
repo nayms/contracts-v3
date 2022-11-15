@@ -6,6 +6,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 
 /**
  * @title Token Vault IO
@@ -26,6 +27,9 @@ contract TokenizedVaultIOFacet is Modifiers {
         address _externalTokenAddress,
         uint256 _amount
     ) external {
+        // a user can only deposit an approved external ERC20 token
+        require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
+
         // a user can only deposit to a valid entity
         require(LibEntity._isEntity(_receiverId), "extDeposit: invalid receiver");
 
@@ -44,6 +48,9 @@ contract TokenizedVaultIOFacet is Modifiers {
         address _externalTokenAddress,
         uint256 _amount
     ) external {
+        // a user can only deposit an approved external ERC20 token
+        require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
+
         LibTokenizedVaultIO._externalDeposit(_receiverId, _externalTokenAddress, _amount);
     }
 

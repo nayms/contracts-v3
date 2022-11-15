@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+
 /**
  * @title Administration
  * @notice Exposes methods that require administrative priviledges
@@ -49,6 +51,18 @@ interface IAdminFacet {
      * @param _newMax new value to be used.
      */
     function setMaxDividendDenominations(uint8 _newMax) external;
+
+    /**
+     * @notice Update policy commission basis points configuration.
+     * @param _policyCommissions policy commissions configuration to set
+     */
+    function setPolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata _policyCommissions) external;
+
+    /**
+     * @notice Update trading commission basis points configuration.
+     * @param _tradingCommissions trading commissions configuration to set
+     */
+    function setTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata _tradingCommissions) external;
 
     /**
      * @notice Get the discount token
@@ -116,27 +130,6 @@ interface IAdminFacet {
      * @return array containing address of all supported tokens
      */
     function getSupportedExternalTokens() external view returns (address[] memory);
-
-    /**
-     * @notice Update who can assign `_role` role
-     * @dev Update who has permission to assign this role
-     * @param _role name of the role
-     * @param _assignerGroup Group who can assign members to this role
-     */
-    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external;
-
-    /**
-     * @notice Update role group memebership for `_role` role and `_group` group
-     * @dev Update role group memebership
-     * @param _role name of the role
-     * @param _group name of the group
-     * @param _roleInGroup is member of
-     */
-    function updateRoleGroup(
-        string memory _role,
-        string memory _group,
-        bool _roleInGroup
-    ) external;
 
     /**
      * @notice Gets the System context ID.

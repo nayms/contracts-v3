@@ -5,6 +5,8 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
+import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
 
 /**
  * @title Administration
@@ -67,6 +69,22 @@ contract AdminFacet is Modifiers {
      */
     function setMaxDividendDenominations(uint8 _newMax) external assertSysAdmin {
         LibAdmin._updateMaxDividendDenominations(_newMax);
+    }
+
+    /**
+     * @notice Update policy commission basis points configuration.
+     * @param _policyCommissions policy commissions configuration to set
+     */
+    function setPolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata _policyCommissions) external assertSysAdmin {
+        LibFeeRouter._updatePolicyCommissionsBasisPoints(_policyCommissions);
+    }
+
+    /**
+     * @notice Update trading commission basis points configuration.
+     * @param _tradingCommissions trading commissions configuration to set
+     */
+    function setTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata _tradingCommissions) external assertSysAdmin {
+        LibFeeRouter._updateTradingCommissionsBasisPoints(_tradingCommissions);
     }
 
     /**
@@ -164,31 +182,6 @@ contract AdminFacet is Modifiers {
      */
     function getSupportedExternalTokens() external view returns (address[] memory) {
         return LibAdmin._getSupportedExternalTokens();
-    }
-
-    /**
-     * @notice Update who can assign `_role` role
-     * @dev Update who has permission to assign this role
-     * @param _role name of the role
-     * @param _assignerGroup Group who can assign members to this role
-     */
-    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertSysAdmin {
-        LibAdmin._updateRoleAssigner(_role, _assignerGroup);
-    }
-
-    /**
-     * @notice Update role group memebership for `_role` role and `_group` group
-     * @dev Update role group memebership
-     * @param _role name of the role
-     * @param _group name of the group
-     * @param _roleInGroup is member of
-     */
-    function updateRoleGroup(
-        string memory _role,
-        string memory _group,
-        bool _roleInGroup
-    ) external assertSysAdmin {
-        LibAdmin._updateRoleGroup(_role, _group, _roleInGroup);
     }
 
     /**

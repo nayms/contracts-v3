@@ -85,6 +85,30 @@ Set `_newMax` as the max dividend denominations value.
 | --- | --- | --- |
 |`_newMax` | uint8 | new value to be used.|
 <br></br>
+### setPolicyCommissionsBasisPoints
+Update policy commission basis points configuration.
+```solidity
+  function setPolicyCommissionsBasisPoints(
+    struct PolicyCommissionsBasisPoints _policyCommissions
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_policyCommissions` | struct PolicyCommissionsBasisPoints | policy commissions configuration to set|
+<br></br>
+### setTradingCommissionsBasisPoints
+Update trading commission basis points configuration.
+```solidity
+  function setTradingCommissionsBasisPoints(
+    struct TradingCommissionsBasisPoints _tradingCommissions
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_tradingCommissions` | struct TradingCommissionsBasisPoints | trading commissions configuration to set|
+<br></br>
 ### getDiscountToken
 Get the discount token
 ```solidity
@@ -213,38 +237,6 @@ Get the supported tokens list as an array
 | Type | Description |
 | --- | --- |
 |`array` | containing address of all supported tokens|
-<br></br>
-### updateRoleAssigner
-Update who can assign `_role` role
-Update who has permission to assign this role
-```solidity
-  function updateRoleAssigner(
-    string _role,
-    string _assignerGroup
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_role` | string | name of the role
-|`_assignerGroup` | string | Group who can assign members to this role|
-<br></br>
-### updateRoleGroup
-Update role group memebership for `_role` role and `_group` group
-Update role group memebership
-```solidity
-  function updateRoleGroup(
-    string _role,
-    string _group,
-    bool _roleInGroup
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_role` | string | name of the role
-|`_group` | string | name of the group
-|`_roleInGroup` | bool | is member of|
 <br></br>
 ### getSystemId
 Gets the System context ID.

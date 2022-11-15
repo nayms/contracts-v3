@@ -158,11 +158,11 @@ library LibMarket {
         result.remainingBuyAmount = _buyAmount;
         result.remainingSellAmount = _sellAmount;
 
-        // sell: p100 buy: $100 => YES! buy more
+        // sell: p100 buy: $100 =>  YES! buy more
         // sell: $100 buy: p100 =>  NO! DON'T buy more
 
-        // If the buyToken is entity   => limit both buy and sell amounts
-        // If the buyToken is external => limit only sell amount
+        // If the buyToken is entity(p-token)   => limit both buy and sell amounts
+        // If the buyToken is external          => limit only sell amount
 
         bool buyExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
@@ -261,7 +261,7 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeSchedule;
 
-        if (_sellAmount <= LibConstants.DUST) {
+        if (_buyAmount <= LibConstants.DUST || _sellAmount <= LibConstants.DUST) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -369,11 +369,10 @@ library LibMarket {
         }
     }
 
-    function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal view {
+    function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
         require(_sellAmount <= type(uint128).max, "sell amount exceeds uint128 limit");
         require(_buyAmount <= type(uint128).max, "buy amount exceeds uint128 limit");
         require(_sellAmount > 0, "sell amount must be >0");
-        console2.log("_assertAmounts buy amount", _buyAmount);
         require(_buyAmount > 0, "buy amount must be >0");
     }
 

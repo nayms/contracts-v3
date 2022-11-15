@@ -2,13 +2,14 @@
 pragma solidity >=0.8.13;
 
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
 
 /// @dev Testing for Nayms RBAC - Access Control List (ACL)
 
-contract T02ACLTest is D03ProtocolDefaults {
+contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public virtual override {
         super.setUp();
     }
@@ -264,5 +265,78 @@ contract T02ACLTest is D03ProtocolDefaults {
         // test parent
         assertTrue(nayms.isInGroup(entityId1, systemContext, group));
         assertTrue(nayms.isParentInGroup(signer2Id, systemContext, group));
+    }
+
+    function testUpdateRoleAssignerFailIfNotAdmin() public {
+        vm.startPrank(account1);
+        vm.expectRevert("not a system admin");
+        nayms.updateRoleAssigner("role", "group");
+        vm.stopPrank();
+    }
+
+    function testUpdateRoleAssigner() public {
+        // setup signer1 as broker
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
+        // brokers can't usually assign approved users
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertFalse(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
+
+        // now change this
+        vm.recordLogs();
+
+        nayms.updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS);
+        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertTrue(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("RoleCanAssignUpdated(string,string)"));
+        (string memory r, string memory g) = abi.decode(entries[0].data, (string, string));
+        assertEq(r, LibConstants.ROLE_ENTITY_ADMIN);
+        assertEq(g, LibConstants.GROUP_BROKERS);
+    }
+
+    function testUpdateRoleGroupFailIfNotAdmin() public {
+        vm.startPrank(account1);
+        vm.expectRevert("not a system admin");
+        nayms.updateRoleGroup("role", "group", false);
+        vm.stopPrank();
+    }
+
+    function testUpdateRoleGroup() public {
+        // setup signer1 as broker
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
+        // brokers can't usually assign approved users
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertFalse(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+
+        // now change this
+        vm.recordLogs();
+
+        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
+        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        assertTrue(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
+        (string memory r, string memory g, bool v) = abi.decode(entries[0].data, (string, string, bool));
+        assertEq(r, LibConstants.ROLE_BROKER);
+        assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
+        assertTrue(v);
+
+        // now change it back
+        vm.recordLogs();
+
+        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, false);
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+
+        entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
+        (r, g, v) = abi.decode(entries[0].data, (string, string, bool));
+        assertEq(r, LibConstants.ROLE_BROKER);
+        assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
+        assertFalse(v);
     }
 }

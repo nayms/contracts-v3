@@ -4,10 +4,29 @@ pragma solidity >=0.8.13;
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
+import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
+    LibFeeRouterFixture internal libFeeRouterFixture = new LibFeeRouterFixture();
+
     function setUp() public virtual override {
         super.setUp();
+
+        libFeeRouterFixture = new LibFeeRouterFixture();
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory functionSelectors = new bytes4[](5);
+        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
+        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
+        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
+        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
+        functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
+
+        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
     }
 
     function testGetSystemId() public {
@@ -271,76 +290,71 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
     }
 
-    function testUpdateRoleAssignerFailIfNotAdmin() public {
-        vm.startPrank(account1);
+    function testSetTradingCommissionsBasisPoints() public {
+        // must add up to 10000
+        vm.expectRevert("trading commission BPs must sum up to 10000");
+        nayms.setTradingCommissionsBasisPoints(
+            TradingCommissionsBasisPoints({
+                tradingCommissionTotalBP: 41,
+                tradingCommissionNaymsLtdBP: 5001,
+                tradingCommissionNDFBP: 2500,
+                tradingCommissionSTMBP: 2499,
+                tradingCommissionMakerBP: 1
+            })
+        );
+
+        TradingCommissionsBasisPoints memory s = TradingCommissionsBasisPoints({
+            tradingCommissionTotalBP: 41,
+            tradingCommissionNaymsLtdBP: 5001,
+            tradingCommissionNDFBP: 2499,
+            tradingCommissionSTMBP: 2499,
+            tradingCommissionMakerBP: 1
+        });
+
+        // must be sys admin
+        vm.prank(account9);
         vm.expectRevert("not a system admin");
-        nayms.updateRoleAssigner("role", "group");
+        nayms.setTradingCommissionsBasisPoints(s);
         vm.stopPrank();
+
+        // assert happy path
+        nayms.setTradingCommissionsBasisPoints(s);
+
+        TradingCommissionsBasisPoints memory result = nayms.getTradingCommissionsBasisPoints();
+
+        assertEq(s.tradingCommissionTotalBP, result.tradingCommissionTotalBP, "tradingCommissionTotalBP not matched");
+        assertEq(s.tradingCommissionNaymsLtdBP, result.tradingCommissionNaymsLtdBP, "tradingCommissionNaymsLtdBP not matched");
+        assertEq(s.tradingCommissionNDFBP, result.tradingCommissionNDFBP, "tradingCommissionNDFBP not matched");
+        assertEq(s.tradingCommissionSTMBP, result.tradingCommissionSTMBP, "tradingCommissionSTMBP not matched");
+        assertEq(s.tradingCommissionMakerBP, result.tradingCommissionMakerBP, "tradingCommissionMakerBP not matched");
     }
 
-    function testUpdateRoleAssigner() public {
-        // setup signer1 as broker
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
-        // brokers can't usually assign approved users
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertFalse(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
+    function testSetPremiumCommissionsBasisPoints() public {
+        // prettier-ignore
+        PolicyCommissionsBasisPoints memory s = PolicyCommissionsBasisPoints({ 
+            premiumCommissionNaymsLtdBP: 42, 
+            premiumCommissionNDFBP: 42, 
+            premiumCommissionSTMBP: 42 
+        });
 
-        // now change this
-        vm.recordLogs();
-
-        nayms.updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS);
-        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertTrue(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("RoleCanAssignUpdated(string,string)"));
-        (string memory r, string memory g) = abi.decode(entries[0].data, (string, string));
-        assertEq(r, LibConstants.ROLE_ENTITY_ADMIN);
-        assertEq(g, LibConstants.GROUP_BROKERS);
-    }
-
-    function testUpdateRoleGroupFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        // must be sys admin
+        vm.prank(account9);
         vm.expectRevert("not a system admin");
-        nayms.updateRoleGroup("role", "group", false);
+        nayms.setPolicyCommissionsBasisPoints(s);
         vm.stopPrank();
+
+        nayms.setPolicyCommissionsBasisPoints(s);
+
+        PolicyCommissionsBasisPoints memory result = getPremiumCommissions();
+
+        assertEq(s.premiumCommissionNaymsLtdBP, result.premiumCommissionNaymsLtdBP, "premiumCommissionNaymsLtdBP not matched");
+        assertEq(s.premiumCommissionNDFBP, result.premiumCommissionNDFBP, "premiumCommissionNDFBP not matched");
+        assertEq(s.premiumCommissionSTMBP, result.premiumCommissionSTMBP, "premiumCommissionSTMBP not matched");
     }
 
-    function testUpdateRoleGroup() public {
-        // setup signer1 as broker
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
-        // brokers can't usually assign approved users
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertFalse(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
-
-        // now change this
-        vm.recordLogs();
-
-        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
-        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertTrue(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
-        (string memory r, string memory g, bool v) = abi.decode(entries[0].data, (string, string, bool));
-        assertEq(r, LibConstants.ROLE_BROKER);
-        assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
-        assertTrue(v);
-
-        // now change it back
-        vm.recordLogs();
-
-        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, false);
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-
-        entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
-        (r, g, v) = abi.decode(entries[0].data, (string, string, bool));
-        assertEq(r, LibConstants.ROLE_BROKER);
-        assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
-        assertFalse(v);
+    function getPremiumCommissions() internal returns (PolicyCommissionsBasisPoints memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
+        require(success, "Should get commissions from app storage");
+        return abi.decode(result, (PolicyCommissionsBasisPoints));
     }
 }

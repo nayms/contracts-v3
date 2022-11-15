@@ -16,6 +16,19 @@ library LibACL {
      * @param functionName The function performing the action
      */
     event RoleUpdate(bytes32 indexed objectId, bytes32 contextId, bytes32 roleId, string functionName);
+    /**
+     * @dev Emitted when a role group gets updated.
+     * @param role The role name.
+     * @param group the group name.
+     * @param roleInGroup whether the role is now in the group or not.
+     */
+    event RoleGroupUpdated(string role, string group, bool roleInGroup);
+    /**
+     * @dev Emitted when a role assigners gets updated.
+     * @param role The role name.
+     * @param group the name of the group that can now assign this role.
+     */
+    event RoleCanAssignUpdated(string role, string group);
 
     function _assignRole(
         bytes32 _objectId,
@@ -102,5 +115,21 @@ library LibACL {
     function _canGroupAssignRole(string memory role, string memory group) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.canAssign[LibHelpers._stringToBytes32(role)] == LibHelpers._stringToBytes32(group);
+    }
+
+    function _updateRoleAssigner(string memory _role, string memory _assignerGroup) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.canAssign[LibHelpers._stringToBytes32(_role)] = LibHelpers._stringToBytes32(_assignerGroup);
+        emit RoleCanAssignUpdated(_role, _assignerGroup);
+    }
+
+    function _updateRoleGroup(
+        string memory _role,
+        string memory _group,
+        bool _roleInGroup
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.groups[LibHelpers._stringToBytes32(_role)][LibHelpers._stringToBytes32(_group)] = _roleInGroup;
+        emit RoleGroupUpdated(_role, _group, _roleInGroup);
     }
 }
