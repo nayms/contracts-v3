@@ -197,6 +197,17 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		-vv \
 		--broadcast
 
+update-commissions: ## update trading and premium commissions
+	forge script UpdateCommissions \
+		-s "tradingAndPremium(address)" ${naymsDiamondAddress} \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--broadcast
+
 anvil-debug:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
 

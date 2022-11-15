@@ -155,11 +155,11 @@ library LibMarket {
         result.remainingBuyAmount = _buyAmount;
         result.remainingSellAmount = _sellAmount;
 
-        // sell: p100 buy: $100 => YES! buy more
+        // sell: p100 buy: $100 =>  YES! buy more
         // sell: $100 buy: p100 =>  NO! DON'T buy more
 
-        // If the buyToken is entity   => limit both buy and sell amounts
-        // If the buyToken is external => limit only sell amount
+        // If the buyToken is entity(p-token)   => limit both buy and sell amounts
+        // If the buyToken is external          => limit only sell amount
 
         bool buyExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
@@ -343,8 +343,8 @@ library LibMarket {
     }
 
     function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
-        require(uint128(_sellAmount) == _sellAmount, "sell amount exceeds uint128 limit");
-        require(uint128(_buyAmount) == _buyAmount, "buy amount exceeds uint128 limit");
+        require(type(uint128).max > _sellAmount, "sell amount exceeds uint128 limit");
+        require(type(uint128).max > _buyAmount, "buy amount exceeds uint128 limit");
         require(_sellAmount > 0, "sell amount must be >0");
         require(_buyAmount > 0, "buy amount must be >0");
     }

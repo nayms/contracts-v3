@@ -85,6 +85,30 @@ Set `_newMax` as the max dividend denominations value.
 | --- | --- | --- |
 |`_newMax` | uint8 | new value to be used.|
 <br></br>
+### setPolicyCommissionsBasisPoints
+Update policy commission basis points configuration.
+```solidity
+  function setPolicyCommissionsBasisPoints(
+    struct PolicyCommissionsBasisPoints _policyCommissions
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_policyCommissions` | struct PolicyCommissionsBasisPoints | policy commissions configuration to set|
+<br></br>
+### setTradingCommissionsBasisPoints
+Update trading commission basis points configuration.
+```solidity
+  function setTradingCommissionsBasisPoints(
+    struct TradingCommissionsBasisPoints _tradingCommissions
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_tradingCommissions` | struct TradingCommissionsBasisPoints | trading commissions configuration to set|
+<br></br>
 ### getDiscountToken
 Get the discount token
 ```solidity

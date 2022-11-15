@@ -5,6 +5,8 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
+import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
 
 /**
  * @title Administration
@@ -67,6 +69,22 @@ contract AdminFacet is Modifiers {
      */
     function setMaxDividendDenominations(uint8 _newMax) external assertSysAdmin {
         LibAdmin._updateMaxDividendDenominations(_newMax);
+    }
+
+    /**
+     * @notice Update policy commission basis points configuration.
+     * @param _policyCommissions policy commissions configuration to set
+     */
+    function setPolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata _policyCommissions) external assertSysAdmin {
+        LibFeeRouter._updatePolicyCommissionsBasisPoints(_policyCommissions);
+    }
+
+    /**
+     * @notice Update trading commission basis points configuration.
+     * @param _tradingCommissions trading commissions configuration to set
+     */
+    function setTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata _tradingCommissions) external assertSysAdmin {
+        LibFeeRouter._updateTradingCommissionsBasisPoints(_tradingCommissions);
     }
 
     /**

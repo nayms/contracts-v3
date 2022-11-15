@@ -19,26 +19,19 @@ library LibFeeRouter {
 
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
         for (uint256 i = 0; i < commissionsCount; i++) {
-            uint256 commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / 1000;
+            uint256 commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, commission);
         }
 
-        uint256 commissionNaymsLtd = (_premiumPaid * s.premiumCommissionNaymsLtdBP) / 1000;
-        uint256 commissionNDF = (_premiumPaid * s.premiumCommissionNDFBP) / 1000;
-        uint256 commissionSTM = (_premiumPaid * s.premiumCommissionSTMBP) / 1000;
+        uint256 commissionNaymsLtd = (_premiumPaid * s.premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
+        uint256 commissionNDF = (_premiumPaid * s.premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
+        uint256 commissionSTM = (_premiumPaid * s.premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
 
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), simplePolicy.asset, commissionNaymsLtd);
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), simplePolicy.asset, commissionNDF);
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
 
         emit PremiumCommissionsPaid(_policyId, policyEntityId, _premiumPaid);
-    }
-
-    function _getPremiumCommissionBasisPoints() internal view returns (PolicyCommissionsBasisPoints memory bp) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        bp.premiumCommissionNaymsLtdBP = s.premiumCommissionNaymsLtdBP;
-        bp.premiumCommissionNDFBP = s.premiumCommissionNDFBP;
-        bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
     }
 
     function _payTradingCommissions(
@@ -49,8 +42,11 @@ library LibFeeRouter {
     ) internal returns (uint256 commissionPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.tradingCommissionNaymsLtdBP + s.tradingCommissionNDFBP + s.tradingCommissionSTMBP + s.tradingCommissionMakerBP <= 1000, "commissions sum over 1000 bp");
-        require(s.tradingCommissionTotalBP <= 1000, "commission total must be<1000bp");
+        require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<10000bp");
+        require(
+            s.tradingCommissionNaymsLtdBP + s.tradingCommissionNDFBP + s.tradingCommissionSTMBP + s.tradingCommissionMakerBP <= LibConstants.BP_FACTOR,
+            "commissions sum over 10000 bp"
+        );
 
         TradingCommissions memory tc = _calculateTradingCommissions(_requestedBuyAmount);
         // The rough commission deducted. The actual total might be different due to integer division
@@ -73,23 +69,45 @@ library LibFeeRouter {
         emit TradingCommissionsPaid(_takerId, _tokenId, commissionPaid_);
     }
 
+    function _updateTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata bp) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(
+            bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == 10000,
+            "trading commission BPs must sum up to 10000"
+        );
+
+        s.tradingCommissionTotalBP = bp.tradingCommissionTotalBP;
+        s.tradingCommissionNaymsLtdBP = bp.tradingCommissionNaymsLtdBP;
+        s.tradingCommissionNDFBP = bp.tradingCommissionNDFBP;
+        s.tradingCommissionSTMBP = bp.tradingCommissionSTMBP;
+        s.tradingCommissionMakerBP = bp.tradingCommissionMakerBP;
+    }
+
+    function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.premiumCommissionNaymsLtdBP = bp.premiumCommissionNaymsLtdBP;
+        s.premiumCommissionNDFBP = bp.premiumCommissionNDFBP;
+        s.premiumCommissionSTMBP = bp.premiumCommissionSTMBP;
+    }
+
     function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // The rough commission deducted. The actual total might be different due to integer division
-        tc.roughCommissionPaid = (s.tradingCommissionTotalBP * buyAmount) / 1000;
+        tc.roughCommissionPaid = (s.tradingCommissionTotalBP * buyAmount) / LibConstants.BP_FACTOR;
 
         // Pay Nayms, LTD commission
-        tc.commissionNaymsLtd = (s.tradingCommissionNaymsLtdBP * tc.roughCommissionPaid) / 1000;
+        tc.commissionNaymsLtd = (s.tradingCommissionNaymsLtdBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
         // Pay Nayms Discretionsry Fund commission
-        tc.commissionNDF = (s.tradingCommissionNDFBP * tc.roughCommissionPaid) / 1000;
+        tc.commissionNDF = (s.tradingCommissionNDFBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
         // Pay Staking Mechanism commission
-        tc.commissionSTM = (s.tradingCommissionSTMBP * tc.roughCommissionPaid) / 1000;
+        tc.commissionSTM = (s.tradingCommissionSTMBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
         // Pay market maker commission
-        tc.commissionMaker = (s.tradingCommissionMakerBP * tc.roughCommissionPaid) / 1000;
+        tc.commissionMaker = (s.tradingCommissionMakerBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
         // Work it out again so the math is precise, ignoring remainers
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
@@ -97,9 +115,17 @@ library LibFeeRouter {
 
     function _getTradingCommissionsBasisPoints() internal view returns (TradingCommissionsBasisPoints memory bp) {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        bp.tradingCommissionTotalBP = s.tradingCommissionTotalBP;
         bp.tradingCommissionNaymsLtdBP = s.tradingCommissionNaymsLtdBP;
         bp.tradingCommissionNDFBP = s.tradingCommissionNDFBP;
         bp.tradingCommissionSTMBP = s.tradingCommissionSTMBP;
         bp.tradingCommissionMakerBP = s.tradingCommissionMakerBP;
+    }
+
+    function _getPremiumCommissionBasisPoints() internal view returns (PolicyCommissionsBasisPoints memory bp) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bp.premiumCommissionNaymsLtdBP = s.premiumCommissionNaymsLtdBP;
+        bp.premiumCommissionNDFBP = s.premiumCommissionNDFBP;
+        bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
     }
 }
