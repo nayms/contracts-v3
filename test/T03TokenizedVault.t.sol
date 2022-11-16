@@ -6,8 +6,11 @@ import { AppStorage, Entity, FeeRatio, MarketInfo, TradingCommissions, TradingCo
 import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
+import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
 contract T03TokenizedVaultTest is D03ProtocolDefaults {
+    using FixedPointMathLib for uint256;
+
     bytes32 internal nWETH;
     bytes32 internal nWBTC;
     bytes32 internal dividendBankId;
@@ -30,6 +33,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     bytes32 public immutable emilyId = LibHelpers._getIdForAddress(vm.addr(0x11111E));
     bytes32 public immutable faithId = LibHelpers._getIdForAddress(vm.addr(0x11111F));
 
+    address alice;
+    bytes32 aliceId;
+    bytes32 eAlice;
+    address bob;
+    bytes32 bobId;
+    bytes32 eBob;
     bytes32 internal eDavid;
     bytes32 internal eEmily;
     bytes32 internal eFaith;
@@ -57,6 +66,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         nayms.createEntity(bytes32("0x22222"), emilyId, entityWbtc, "entity wbtc test hash");
         nayms.createEntity(bytes32("0x33333"), faithId, entityWbtc, "entity wbtc test hash");
 
+        alice = account0;
+        aliceId = account0Id;
+        eAlice = nayms.getEntity(account0Id);
+        bob = signer1;
+        bobId = signer1Id;
+        eBob = nayms.getEntity(signer1Id);
         eDavid = nayms.getEntity(davidId);
         eEmily = nayms.getEntity(emilyId);
         eFaith = nayms.getEntity(faithId);
@@ -107,6 +122,43 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         vm.expectRevert("extDeposit: invalid ERC20 token");
         nayms.externalDepositToEntity(dividendBankId, address(0xBADAAAAAAAAA), 1);
+
+        // deposit to entity1
+        nayms.externalDeposit(entity1, wethAddress, externalDepositAmount);
+        assertEq(weth.balanceOf(account0), depositAmount - externalDepositAmount, "account0 WETH balance after externalDeposit should DECREASE (transfer)");
+        assertEq(weth.balanceOf(naymsAddress), externalDepositAmount, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
+        assertEq(nayms.internalBalanceOf(entity1, nWETH), externalDepositAmount, "entity1 nWETH balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount, "nWETH total supply should INCREASE (1:1 internal mint)");
+
+        // deposit to entity2
+        nayms.externalDeposit(entity2, wethAddress, externalDepositAmount);
+        assertEq(weth.balanceOf(account0), depositAmount - externalDepositAmount * 2, "account0 WETH balance after externalDeposit should DECREASE (transfer)");
+        assertEq(weth.balanceOf(naymsAddress), externalDepositAmount * 2, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
+        assertEq(nayms.internalBalanceOf(entity2, nWETH), externalDepositAmount, "entity2 nWETH balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount * 2, "nWETH total supply should INCREASE (1:1 internal mint)");
+    }
+
+    function testFuzzSingleExternalDeposit(
+        bytes32 entity1,
+        bytes32 entity2,
+        bytes32 signer1Id,
+        bytes32 signer2Id,
+        uint256 depositAmount
+    ) public {
+        vm.assume(entity1 > 0); // else revert: object already exists
+        vm.assume(entity2 > 0);
+        vm.assume(entity1 != entity2);
+        vm.assume(depositAmount > 5); // else revert: _internalMint: mint zero tokens, note: > 5 to ensure the externalDepositAmount isn't 0, see code below
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+
+        uint256 externalDepositAmount = depositAmount / 5;
+
+        // note: deposits must be an exisiting entity: s.existingEntities[_receiverId]
+        vm.expectRevert("extDeposit: invalid receiver");
+        nayms.externalDepositToEntity(dividendBankId, wethAddress, 1);
 
         // deposit to entity1
         nayms.externalDeposit(entity1, wethAddress, externalDepositAmount);
@@ -412,6 +464,101 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 0);
 
         weth.balanceOf(bob);
+    }
+
+    function testFuzzTwoEntityDepositDividendWithdraw(
+        uint256 bobWethDepositAmount,
+        uint256 eAliceParTokenSaleAmount,
+        uint256 eAliceParTokenPrice,
+        uint256 bobEAliceBuyAmount,
+        uint256 dividendAmount
+    ) public {
+        vm.assume(bobWethDepositAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(bobWethDepositAmount > 10_000);
+        vm.assume(eAliceParTokenSaleAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(eAliceParTokenSaleAmount > 10_000);
+        vm.assume(eAliceParTokenPrice <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(eAliceParTokenPrice > 10_000);
+        vm.assume(bobEAliceBuyAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(bobEAliceBuyAmount > 10_000);
+        vm.assume(dividendAmount > 1);
+        vm.assume(dividendAmount <= type(uint128).max - 1); // not inclusive of 2**128
+
+        uint256 uint128Val = type(uint128).max;
+        bobWethDepositAmount = bound(bobWethDepositAmount, 10_001, uint128Val - 1);
+        eAliceParTokenSaleAmount = bound(eAliceParTokenSaleAmount, 10_001, uint128Val - 1);
+        eAliceParTokenPrice = bound(eAliceParTokenPrice, 10_001, uint128Val - 1);
+        bobEAliceBuyAmount = bound(bobEAliceBuyAmount, 10_001, uint128Val - 1);
+        require(bobEAliceBuyAmount >= 10_000 && bobEAliceBuyAmount <= type(uint128).max);
+
+        // bobWethDepositAmount = 20000;
+        // eAliceParTokenSaleAmount = 80000000000;
+        // eAliceParTokenPrice = 20000;
+        // bobEAliceBuyAmount = 4000000; // minimum buy amount
+        // bobEAliceBuyAmount = 4000000 - 1;
+
+        // 1 token can afford eAliceParTokenSaleAmount / eAliceParTokenPrice == 4000000.0 eAlice
+        // 1 eAlice can afford eAliceParTokenPrice / eAliceParTokenSaleAmount == 0.000_000_25 tokens
+
+        console2.log("bobWethDepositAmount", bobWethDepositAmount);
+        console2.log("eAliceParTokenSaleAmount", eAliceParTokenSaleAmount);
+        console2.log("eAliceParTokenPrice", eAliceParTokenPrice);
+        console2.log("bobEAliceBuyAmount", bobEAliceBuyAmount);
+
+        writeTokenBalance(alice, naymsAddress, wethAddress, type(uint256).max);
+
+        // --- Deposit WETH to eAlice --- //
+        nayms.externalDepositToEntity(eAlice, wethAddress, type(uint256).max);
+
+        // --- Internal transfer nWETH from eAlice to eBob ---/
+        nayms.internalTransferFromEntity(eBob, nWETH, bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
+
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
+
+        // note: starting a token sale which mints participation tokens
+        nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
+
+        // check token supply of participation token (entity token)
+        assertEq(nayms.internalTokenSupply(eAlice), eAliceParTokenSaleAmount, "eAlice participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(eAlice, eAlice), eAliceParTokenSaleAmount, "eAlice's eAlice balance should INCREASE (mint)");
+
+        vm.prank(bob);
+        // note: Purchase an arbitrary amount of eAlice
+        // note: bob is selling bobWethDepositAmount of nWETH for bobEAliceBuyAmount of eAlice
+        // if the buy amount is less than the price of 1, then the buy amount is calculated to be 0 and the transaction will revert
+        uint256 relativePriceOfEAlice = eAliceParTokenSaleAmount / eAliceParTokenPrice;
+        console2.log(string.concat(vm.toString(eAliceParTokenPrice), " relativePriceOfEAlice"), relativePriceOfEAlice);
+
+        uint256 relativePriceOfEAlice18 = (eAliceParTokenPrice * 1e18) / eAliceParTokenSaleAmount;
+        console2.log(string.concat(vm.toString(eAliceParTokenPrice), " relativePriceOfEAlice18"), relativePriceOfEAlice18);
+        console2.log("bobWethDepositAmount", bobWethDepositAmount);
+        console2.log("eAliceParTokenSaleAmount", eAliceParTokenSaleAmount);
+        console2.log("eAliceParTokenPrice", eAliceParTokenPrice);
+        console2.log("bobEAliceBuyAmount", bobEAliceBuyAmount);
+
+        uint256 relativeOfferPrice = bobWethDepositAmount / bobEAliceBuyAmount;
+
+        if (bobEAliceBuyAmount < relativePriceOfEAlice || (bobEAliceBuyAmount < relativePriceOfEAlice && relativeOfferPrice < relativePriceOfEAlice)) {
+            // when bob is trying to buy an amount of eAlice that is valued at less than 1 token, the buy amount is calculated to be 0
+            vm.expectRevert("buy amount must be >0");
+            nayms.executeLimitOffer(nWETH, bobWethDepositAmount, eAlice, bobEAliceBuyAmount);
+
+            assertEq(nayms.internalBalanceOf(eBob, eAlice), 0, "eBob's eAlice balance should STAY THE SAME (executeLimitOffer)");
+        } else {
+            nayms.executeLimitOffer(nWETH, bobWethDepositAmount, eAlice, bobEAliceBuyAmount);
+
+            uint256 balanceOfEbob = nayms.internalBalanceOf(eBob, eAlice);
+
+            bytes32 randomGuid = bytes32("0x1");
+            nayms.payDividendFromEntity(randomGuid, dividendAmount); // eAlice is paying out a dividend
+
+            uint256 calc = (balanceOfEbob * dividendAmount) / eAliceParTokenSaleAmount;
+            assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), calc);
+
+            uint256 bobWethBalance = nayms.internalBalanceOf(eBob, nWETH);
+            nayms.withdrawDividend(eBob, eAlice, nWETH);
+            assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethBalance + calc);
+        }
     }
 
     function testMultipleDepositDividendWithdrawWithTwoDividendTokens() public {

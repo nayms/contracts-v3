@@ -197,15 +197,18 @@ library LibMarket {
                 uint256 currentBuyAmount;
 
                 if (buyExternalToken) {
+                    // the amount to be sold is
+                    // if the amount that wants to be purchased is less than the remaining amount, then the amount to be sold is the amount that is desired to be purchased.
+                    // otherwise, it's the amount that is remaining to be sold
                     currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
+                    //
                     uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-
                     uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
@@ -343,8 +346,8 @@ library LibMarket {
     }
 
     function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
-        require(type(uint128).max > _sellAmount, "sell amount exceeds uint128 limit");
-        require(type(uint128).max > _buyAmount, "buy amount exceeds uint128 limit");
+        require(_sellAmount <= type(uint128).max, "sell amount exceeds uint128 limit");
+        require(_buyAmount <= type(uint128).max, "buy amount exceeds uint128 limit");
         require(_sellAmount > 0, "sell amount must be >0");
         require(_buyAmount > 0, "buy amount must be >0");
     }
