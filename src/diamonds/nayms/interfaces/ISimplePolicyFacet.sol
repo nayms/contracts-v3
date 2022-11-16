@@ -37,6 +37,10 @@ interface ISimplePolicyFacet {
      */
     function getSimplePolicyInfo(bytes32 _id) external view returns (SimplePolicyInfo memory);
 
+    /**
+     * @notice Get the policy premium commissions basis points.
+     * @return PolicyCommissionsBasisPoints struct containing the individual basis points set for each policy commission receiver.
+     */
     function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory);
 
     /**

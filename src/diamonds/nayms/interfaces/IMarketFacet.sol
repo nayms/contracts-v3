@@ -90,9 +90,13 @@ interface IMarketFacet {
     /**
      * @dev Calculate the trading commissions based on a buy amount.
      * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct todo
+     * @return tc TradingCommissions struct with metadata regarding the trade commission payment amounts.
      */
     function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
 
+    /**
+     * @notice Get the marketplace's trading commissions basis points.
+     * @return bp - TradingCommissionsBasisPoints struct containing the individual basis points set for each marketplace commission receiver.
+     */
     function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp);
 }

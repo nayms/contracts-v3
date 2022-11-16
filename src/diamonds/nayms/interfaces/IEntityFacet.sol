@@ -64,6 +64,7 @@ interface IEntityFacet {
      * @notice Get the the data for entity with ID: `_entityId`
      * @dev Get the Entity data for a given entityId
      * @param _entityId ID of the entity
+     * @return Entity struct with metadata of the entity
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory);
 }

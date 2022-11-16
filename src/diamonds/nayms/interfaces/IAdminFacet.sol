@@ -29,7 +29,7 @@ interface IAdminFacet {
     function setTargetNaymsAllocation(uint256 _newTarget) external;
 
     /**
-     * @notice Set the `_newToken` as a token for dicounts
+     * @notice Set the `_newToken` as a token for discounts
      * @param _newToken token to be used for discounts
      */
     function setDiscountToken(address _newToken) external;
