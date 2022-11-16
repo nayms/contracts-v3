@@ -491,49 +491,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         bobEAliceBuyAmount = bound(bobEAliceBuyAmount, 10_001, uint128Val - 1);
         require(bobEAliceBuyAmount >= 10_000 && bobEAliceBuyAmount <= type(uint128).max);
 
-        // bobWethDepositAmount = 20002;
-        // eAliceParTokenSaleAmount = 82049632525;
-        // eAliceParTokenPrice = 20002;
-        // bobEAliceBuyAmount = 20002;
-
         // bobWethDepositAmount = 20000;
         // eAliceParTokenSaleAmount = 80000000000;
         // eAliceParTokenPrice = 20000;
-        // bobEAliceBuyAmount = 20000;
-        // bobEAliceBuyAmount = 4000000;
+        // bobEAliceBuyAmount = 4000000; // minimum buy amount
         // bobEAliceBuyAmount = 4000000 - 1;
 
         // 1 token can afford eAliceParTokenSaleAmount / eAliceParTokenPrice == 4000000.0 eAlice
         // 1 eAlice can afford eAliceParTokenPrice / eAliceParTokenSaleAmount == 0.000_000_25 tokens
 
-        // bobWethDepositAmount = 53580;
-        // eAliceParTokenSaleAmount = 7248889378322598314785;
-        // eAliceParTokenPrice = 13726462;
-        // bobEAliceBuyAmount = 528095978287966;
-
-        // bobWethDepositAmount = 22407;
-        // eAliceParTokenSaleAmount = 4604638;
-        // eAliceParTokenPrice = 22681;
-        // bobEAliceBuyAmount = 27973;
-
-        // buy amount must be >0
-        // bobWethDepositAmount = 20002;
-        // eAliceParTokenSaleAmount = 25707656454829;
-        // eAliceParTokenPrice = 20002;
-        // bobEAliceBuyAmount = 1285254298;
-
-        // 1 token can afford eAliceParTokenSaleAmount / eAliceParTokenPrice == 1285254297 eAlice
-
-        // the following will give eBob's eAlice balance of 0
-        // bobWethDepositAmount = 20002;
-        // eAliceParTokenSaleAmount = 20002;
-        // eAliceParTokenPrice = 20002;
-        // bobEAliceBuyAmount = 20007;
-
-        // bobWethDepositAmount = 1 ether;
-        // eAliceParTokenSaleAmount = 2 ether;
-        // eAliceParTokenPrice = .1 ether;
-        // bobEAliceBuyAmount = .1 ether;
         console2.log("bobWethDepositAmount", bobWethDepositAmount);
         console2.log("eAliceParTokenSaleAmount", eAliceParTokenSaleAmount);
         console2.log("eAliceParTokenPrice", eAliceParTokenPrice);
