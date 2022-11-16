@@ -10,9 +10,6 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 library LibMarket {
-    // used to scale up the nominator when dividing to avoid rounding errors
-    uint256 internal constant WAD = 1e18; // The scalar of ETH and most ERC20s.
-
     /// @notice order has been added
     event OrderAdded(
         uint256 indexed orderId,
@@ -205,20 +202,13 @@ library LibMarket {
                     // otherwise, it's the amount that is remaining to be sold
                     currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-                    if (currentSellAmount * s.offers[bestOfferId].sellAmount <= type(uint128).max) {
-                        // scale up if needed, to avoid rounding loss
-                        currentBuyAmount = ((currentSellAmount * s.offers[bestOfferId].sellAmount * WAD) / s.offers[bestOfferId].buyAmount) / WAD;
-                    }
+
                     //
                     uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-                    if (currentBuyAmount * s.offers[bestOfferId].buyAmount <= type(uint128).max) {
-                        // scale up if needed, to avoid rounding loss
-                        currentSellAmount = ((currentBuyAmount * s.offers[bestOfferId].buyAmount * WAD) / s.offers[bestOfferId].sellAmount) / WAD;
-                    }
                     uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
