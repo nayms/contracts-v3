@@ -418,6 +418,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
 
+        vm.expectRevert("not a policy handler");
+        nayms.paySimplePremium(policyId1, 1000);
+
+        vm.startPrank(signer2);
+
         simplePolicy.cancelled = true;
         updateSimplePolicy(policyId1, simplePolicy);
         vm.expectRevert("Policy is cancelled");
@@ -427,6 +432,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("invalid premium amount");
         nayms.paySimplePremium(policyId1, 0);
+
+        vm.stopPrank();
 
         // fund the insured party entity
         weth.approve(naymsAddress, 100000);

@@ -7,6 +7,7 @@ import { LibMeta } from "../shared/libs/LibMeta.sol";
 import { LibAdmin } from "./libs/LibAdmin.sol";
 import { LibConstants } from "./libs/LibConstants.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
+import { LibObject } from "./libs/LibObject.sol";
 import { LibACL } from "./libs/LibACL.sol";
 
 /**
@@ -41,8 +42,8 @@ contract Modifiers {
 
     modifier assertPolicyHandler(bytes32 _context) {
         require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_POLICY_HANDLERS)),
-            "not the entity's admin"
+            LibACL._isInGroup(LibObject._getParentFromAddress(LibMeta.msgSender()), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_POLICY_HANDLERS)),
+            "not a policy handler"
         );
         _;
     }

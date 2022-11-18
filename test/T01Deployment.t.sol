@@ -73,6 +73,8 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_TRADER, LibConstants.GROUP_TRADERS));
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SEGREGATED_ACCOUNTS));
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SERVICE_PROVIDERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_POLICY_HANDLERS));
+        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_POLICY_HANDLERS));
 
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
         assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
