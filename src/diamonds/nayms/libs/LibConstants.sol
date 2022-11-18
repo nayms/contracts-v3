@@ -45,6 +45,7 @@ library LibConstants {
     string internal constant GROUP_TRADERS = "Traders";
     string internal constant GROUP_SEGREGATED_ACCOUNTS = "Segregated Accounts";
     string internal constant GROUP_SERVICE_PROVIDERS = "Service Providers";
+    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
 
     /*///////////////////////////////////////////////////////////////////////////
                         Market Fee Schedules

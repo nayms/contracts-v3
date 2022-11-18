@@ -19,7 +19,7 @@ contract SimplePolicyFacet is Modifiers {
      * @param _policyId Id of the simple policy
      * @param _amount Amount of the premium
      */
-    function paySimplePremium(bytes32 _policyId, uint256 _amount) external {
+    function paySimplePremium(bytes32 _policyId, uint256 _amount) external assertPolicyHandler {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         bytes32 payerEntityId = LibObject._getParent(senderId);
 

@@ -39,6 +39,14 @@ contract Modifiers {
         _;
     }
 
+    modifier assertPolicyHandler(bytes32 _context) {
+        require(
+            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_POLICY_HANDLERS)),
+            "not the entity's admin"
+        );
+        _;
+    }
+
     modifier assertIsInGroup(
         bytes32 _objectId,
         bytes32 _contextId,
