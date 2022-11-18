@@ -7,6 +7,7 @@ import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibObject } from "../libs/LibObject.sol";
 
 /**
  * @title Token Vault IO
@@ -16,42 +17,20 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
  */
 contract TokenizedVaultIOFacet is Modifiers {
     /**
-     * @notice Deposit funds into Nayms platform entity
-     * @dev Deposit from an external account
-     * @param _receiverId Internal ID of the account receiving the deposited funds
+     * @notice Deposit funds into msg.sender's Nayms platform entity
+     * @dev Deposit from msg.sender to their associated entity
      * @param _externalTokenAddress Token address
      * @param _amount deposit amount
      */
-    function externalDepositToEntity(
-        bytes32 _receiverId,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) external {
+    function externalDeposit(address _externalTokenAddress, uint256 _amount) external {
         // a user can only deposit an approved external ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
+        // a user can only deposit to their valid entity
+        bytes32 userId = LibHelpers._getIdForAddress(msg.sender);
+        bytes32 entityId = LibObject._getParent(userId);
+        require(LibEntity._isEntity(entityId), "extDeposit: invalid receiver");
 
-        // a user can only deposit to a valid entity
-        require(LibEntity._isEntity(_receiverId), "extDeposit: invalid receiver");
-
-        LibTokenizedVaultIO._externalDeposit(_receiverId, _externalTokenAddress, _amount);
-    }
-
-    /**
-     * @notice Deposit funds into Nayms platform
-     * @dev Deposit from an external account
-     * @param _receiverId Internal ID of the account receiving the deposited funds
-     * @param _externalTokenAddress Token address
-     * @param _amount deposit amount
-     */
-    function externalDeposit(
-        bytes32 _receiverId,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) external {
-        // a user can only deposit an approved external ERC20 token
-        require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
-
-        LibTokenizedVaultIO._externalDeposit(_receiverId, _externalTokenAddress, _amount);
+        LibTokenizedVaultIO._externalDeposit(entityId, _externalTokenAddress, _amount);
     }
 
     /**
