@@ -26,8 +26,7 @@ contract TokenizedVaultIOFacet is Modifiers {
         // a user can only deposit an approved external ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
         // a user can only deposit to their valid entity
-        bytes32 userId = LibHelpers._getIdForAddress(msg.sender);
-        bytes32 entityId = LibObject._getParent(userId);
+        bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         require(LibEntity._isEntity(entityId), "extDeposit: invalid receiver");
 
         LibTokenizedVaultIO._externalDeposit(entityId, _externalTokenAddress, _amount);
