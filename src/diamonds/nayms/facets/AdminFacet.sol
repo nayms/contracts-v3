@@ -191,4 +191,8 @@ contract AdminFacet is Modifiers {
     function getSystemId() external pure returns (bytes32) {
         return LibAdmin._getSystemId();
     }
+
+    function isObjectTokenizable(bytes32 _objectId) external view returns (bool) {
+        return LibObject._isObjectTokenizable(_objectId);
+    }
 }
