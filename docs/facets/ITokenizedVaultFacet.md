@@ -58,21 +58,6 @@ Total supply of platform asset
 | --- | --- |
 |`current` | balance|
 <br></br>
-### internalTransferFromEntity
-Internal transfer of `amount` tokens
-Transfer tokens internally
-```solidity
-  function internalTransferFromEntity(
-    bytes32 to,
-    bytes32 tokenId
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`to` | bytes32 | token receiver
-|`tokenId` | bytes32 | Internal ID of the token|
-<br></br>
 ### internalTransfer
 Internal transfer of `amount` tokens
 Transfer tokens internally

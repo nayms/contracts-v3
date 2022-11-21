@@ -38,7 +38,7 @@ Set the targeted NAYM allocation to `_newTarget` in the NDF
 |`_newTarget` | uint256 | new value for the target allocation|
 <br></br>
 ### setDiscountToken
-Set the `_newToken` as a token for dicounts
+Set the `_newToken` as a token for discounts
 ```solidity
   function setDiscountToken(
     address _newToken

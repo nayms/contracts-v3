@@ -131,11 +131,16 @@ Calculate the trading commissions based on a buy amount.
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`tc` | TradingCommissions struct todo|
+|`tc` | TradingCommissions struct with metadata regarding the trade commission payment amounts.|
 <br></br>
 ### getTradingCommissionsBasisPoints
-No description
+Get the marketplace's trading commissions basis points.
 ```solidity
   function getTradingCommissionsBasisPoints(
   ) external returns (struct TradingCommissionsBasisPoints bp)
 ```
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`bp` | - TradingCommissionsBasisPoints struct containing the individual basis points set for each marketplace commission receiver.|
+<br></br>

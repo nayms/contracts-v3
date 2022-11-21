@@ -54,11 +54,16 @@ Get simple policy info
 |`Simple` | policy metadata|
 <br></br>
 ### getPremiumCommissionBasisPoints
-No description
+Get the policy premium commissions basis points.
 ```solidity
   function getPremiumCommissionBasisPoints(
   ) external returns (struct PolicyCommissionsBasisPoints)
 ```
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`PolicyCommissionsBasisPoints` | struct containing the individual basis points set for each policy commission receiver.|
+<br></br>
 ### checkAndUpdateSimplePolicyState
 No description
 Check and update simple policy state

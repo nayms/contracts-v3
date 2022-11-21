@@ -91,5 +91,11 @@ Get the Entity data for a given entityId
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_entityId` | bytes32 | ID of the entity|
+|`_entityId` | bytes32 | ID of the entity
+|
+<br></br>
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`Entity` | struct with metadata of the entity|
 <br></br>
