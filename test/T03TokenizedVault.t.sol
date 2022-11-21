@@ -158,8 +158,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         bytes32 signer1Id = LibHelpers._getIdForAddress(signer1);
         bytes32 signer2Id = LibHelpers._getIdForAddress(signer2);
 
-        vm.assume(signer1 != address(0));
-        vm.assume(signer2 != address(0));
+        vm.assume(signer1 != address(0) && signer1 != address(999999));
+        vm.assume(signer2 != address(0) && signer2 != address(999999));
         vm.assume(signer1 != signer2);
         vm.label(signer1, "bob");
         vm.label(signer2, "charlie");
