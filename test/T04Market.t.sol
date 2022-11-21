@@ -197,7 +197,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
         vm.startPrank(signer1);
         vm.expectRevert("_internalTransferFrom: tokens for sale in mkt");
-        nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
+        nayms.internalTransfer(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
         vm.stopPrank();
 
         assertTrue(nayms.isActiveOffer(1), "Token sale offer should be active");
