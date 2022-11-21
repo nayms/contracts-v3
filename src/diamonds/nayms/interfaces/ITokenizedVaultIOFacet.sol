@@ -9,30 +9,12 @@ pragma solidity >=0.8.13;
  */
 interface ITokenizedVaultIOFacet {
     /**
-     * @notice Deposit funds into Nayms platform entity
-     * @dev Deposit from an external account
-     * @param _receiverId Internal ID of the account receiving the deposited funds
+     * @notice Deposit funds into msg.sender's Nayms platform entity
+     * @dev Deposit from msg.sender to their associated entity
      * @param _externalTokenAddress Token address
      * @param _amount deposit amount
      */
-    function externalDepositToEntity(
-        bytes32 _receiverId,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) external;
-
-    /**
-     * @notice Deposit funds into Nayms platform
-     * @dev Deposit from an external account
-     * @param _receiverId Internal ID of the account receiving the deposited funds
-     * @param _externalTokenAddress Token address
-     * @param _amount deposit amount
-     */
-    function externalDeposit(
-        bytes32 _receiverId,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) external;
+    function externalDeposit(address _externalTokenAddress, uint256 _amount) external;
 
     /**
      * @notice Withdraw funds out of Nayms platform

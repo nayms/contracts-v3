@@ -117,7 +117,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         weth.approve(naymsAddress, 10000);
         writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
         assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(entityId1, wethAddress, 10000);
+        nayms.externalDeposit(wethAddress, 10000);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
     }
 
@@ -247,7 +247,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         weth.approve(naymsAddress, 10000);
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         assertEq(weth.balanceOf(account0), 100000);
-        nayms.externalDeposit(entityId1, wethAddress, 100000);
+        nayms.externalDeposit(wethAddress, 100000);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), 100000);
 
         // start date too early
@@ -436,10 +436,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         // fund the insured party entity
-        weth.approve(naymsAddress, 100000);
-        writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
-        assertEq(weth.balanceOf(account0), 100000);
-        nayms.externalDeposit(DEFAULT_INSURED_PARTY_ENTITY_ID, wethAddress, 100000);
+        vm.startPrank(signer4);
+        writeTokenBalance(signer4, naymsAddress, wethAddress, 100000);
+        nayms.externalDeposit(wethAddress, 100000);
+        vm.stopPrank();
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), 100000);
 
         // test commissions
