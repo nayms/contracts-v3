@@ -6,8 +6,6 @@ import { INayms } from "../diamonds/nayms/INayms.sol";
 import { Modifiers } from "../diamonds/nayms/Modifiers.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
 
-// import { Entity } from "../diamonds/nayms/interfaces/FreeStructs.sol";
-
 contract ERC20Wrapper is IERC20, Modifiers {
     bytes32 internal tokenId;
     INayms internal nayms;
@@ -31,7 +29,7 @@ contract ERC20Wrapper is IERC20, Modifiers {
         return LibHelpers._bytes32ToString(symbolBytes32);
     }
 
-    function decimals() external view returns (uint8) {
+    function decimals() external pure returns (uint8) {
         return 18;
     }
 
@@ -48,7 +46,8 @@ contract ERC20Wrapper is IERC20, Modifiers {
     }
 
     function transfer(address to, uint256 value) external returns (bool) {
-        // TODO implement transfer
+        bytes32 receiverId = LibHelpers._addressToBytes32(to);
+        nayms.internalTransfer(receiverId, tokenId, value);
         return true;
     }
 
@@ -65,15 +64,17 @@ contract ERC20Wrapper is IERC20, Modifiers {
         if (value == 0) {
             revert();
         }
+        uint256 allowed = allowances[from][msg.sender]; // Saves gas for limited approvals.
+        require(allowed >= value, "not enough allowance");
 
-        require(allowances[from][msg.sender] >= value, "not enough allowance");
+        if (allowed != type(uint256).max) allowances[from][msg.sender] = allowed - value;
 
-        // TODO implement transfer
+        bytes32 fromId = LibHelpers._addressToBytes32(from);
+        bytes32 toId = LibHelpers._addressToBytes32(to);
+        nayms.internalTransferFrom(fromId, toId, tokenId, value);
 
-        // require(balanceOf[from] >= value, "not enough balance");
-        // balanceOf[from] -= value;
-        // balanceOf[to] += value;
-        // return true;
+        emit Transfer(from, to, value);
+        return true;
     }
 
     function permit(

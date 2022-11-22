@@ -47,8 +47,7 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external assertEntityAdmin(LibObject._getParent(LibHelpers._getSenderId())) {
-        // require(LibTokenizedVault._internalBalanceOf(senderId, tokenId) >= amount, "internalTransfer: insufficient balance");
+    ) external assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         bytes32 senderEntityId = LibObject._getParent(senderId);
         require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
@@ -65,11 +64,27 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external assertEntityAdmin(LibObject._getParent(LibHelpers._getSenderId())) {
-        // require(LibTokenizedVault._internalBalanceOf(senderId, tokenId) >= amount, "internalTransfer: insufficient balance");
+    ) external assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
         LibTokenizedVault._internalTransfer(senderId, to, tokenId, amount);
+    }
+
+    /**
+     * @notice Internal transfer of `amount` tokens `from` -> `to`
+     * @dev Transfer tokens internally between two IDs
+     * @param from token sender
+     * @param to token receiver
+     * @param tokenId Internal ID of the token
+     */
+    function internalTransferFrom(
+        bytes32 from,
+        bytes32 to,
+        bytes32 tokenId,
+        uint256 amount
+    ) external assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
+        require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
+        LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
     function internalBurn(
