@@ -237,6 +237,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         // note internalTransfer() transfers from the msg.sender's Id to the bytes32 Id given
 
+        vm.expectRevert("internalTransfer: can't transfer internal veNAYM");
+        nayms.internalTransfer(entity1, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), amount);
+
         nayms.internalTransfer(entity1, nWETH, amount);
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should DECREASE (transfer to entityId)");
         assertEq(nayms.internalBalanceOf(entity1, nWETH), amount, "entity1Id nWETH balance should INCREASE (transfer from account0Id)");
@@ -254,6 +257,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, 1 ether);
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "account0's entityId (account0's parent) nWETH balance should INCREASE (1:1 internal mint)");
         assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should INCREASE (1:1 internal mint)");
+
+        vm.expectRevert("internalTransfer: can't transfer internal veNAYM");
+        nayms.internalTransferFromEntity(account0Id, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), 1 ether);
 
         // from parent of sender (address(this)) to
         nayms.internalTransferFromEntity(account0Id, nWETH, 1 ether);
@@ -298,7 +304,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalTokenSupply(acc0EntityId), 0, "Testing when the participation token supply is 0, but par token supply is NOT 0");
 
         bytes32 randomGuid = bytes32("0x1");
+
+        vm.expectRevert("payDividendFromEntity: insufficient balance");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+
         nayms.payDividendFromEntity(randomGuid, 1 ether);
+
         // note: When the participation token supply is 0, payDividend() should transfer the payout directly to the payee
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (transfer)");
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether - 1 ether, "account0Id nWETH balance should DECREASE (transfer)");
