@@ -516,6 +516,11 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         assertEq(nayms.getLastOfferId(), 0);
 
+        vm.expectRevert("must be tokenizable");
+        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
+
+        nayms.enableEntityTokenization(entityId1, "e1token");
+
         vm.prank(account9);
         vm.expectRevert("not a system manager");
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);

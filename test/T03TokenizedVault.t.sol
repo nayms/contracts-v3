@@ -6,8 +6,10 @@ import { AppStorage, Entity, FeeRatio, MarketInfo, TradingCommissions, TradingCo
 import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
+import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
+// solhint-disable max-states-count
 contract T03TokenizedVaultTest is D03ProtocolDefaults {
     using FixedPointMathLib for uint256;
 
@@ -33,18 +35,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
     bytes32 public immutable emilyId = LibHelpers._getIdForAddress(vm.addr(0x11111E));
     bytes32 public immutable faithId = LibHelpers._getIdForAddress(vm.addr(0x11111F));
 
-    address alice;
-    bytes32 aliceId;
-    bytes32 eAlice;
-    address bob;
-    bytes32 bobId;
-    bytes32 eBob;
+    address internal alice;
+    bytes32 internal aliceId;
+    bytes32 internal eAlice;
+    address internal bob;
+    bytes32 internal bobId;
+    bytes32 internal eBob;
     bytes32 internal eDavid;
     bytes32 internal eEmily;
     bytes32 internal eFaith;
 
     Entity internal entityWbtc;
 
+    TokenizedVaultFixture internal tokenizedVaultFixture;
     TradingCommissionsFixture internal tradingCommissionsFixture;
     TradingCommissionsConfig internal c;
 
@@ -78,11 +81,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         // setup trading commissions fixture
         tradingCommissionsFixture = new TradingCommissionsFixture();
-        bytes4[] memory functionSelectors = new bytes4[](1);
-        functionSelectors[0] = tradingCommissionsFixture.getCommissionsConfig.selector;
+        bytes4[] memory tcSelectors = new bytes4[](1);
+        tcSelectors[0] = tradingCommissionsFixture.getCommissionsConfig.selector;
 
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+        tokenizedVaultFixture = new TokenizedVaultFixture();
+        bytes4[] memory tvSelectors = new bytes4[](1);
+        tvSelectors[0] = tokenizedVaultFixture.externalDepositDirect.selector;
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](2);
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: tcSelectors });
+        cut[1] = IDiamondCut.FacetCut({ facetAddress: address(tokenizedVaultFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: tvSelectors });
 
         nayms.diamondCut(cut, address(0), "");
 
@@ -93,6 +101,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
         require(success, "Should get commissions from app storage");
         return abi.decode(result, (TradingCommissionsConfig));
+    }
+
+    function externalDepositDirect(
+        bytes32 to,
+        address token,
+        uint256 amount
+    ) internal {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tokenizedVaultFixture.externalDepositDirect.selector, to, token, amount));
+        require(success, "Should get commissions from app storage");
     }
 
     function testBasisPoints() public {
@@ -210,16 +227,20 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
-        nayms.externalDeposit(wethAddress, 1 ether);
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should INCREASE (1:1 internal mint)");
+        uint256 amount = 1 ether;
+
+        // nayms.externalDeposit(wethAddress, 1 ether);
+        externalDepositDirect(account0Id, wethAddress, amount);
+
+        assertEq(nayms.internalBalanceOf(account0Id, nWETH), amount, "acc0EntityId nWETH balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(nWETH), amount, "nWETH total supply should INCREASE (1:1 internal mint)");
 
         // note internalTransfer() transfers from the msg.sender's Id to the bytes32 Id given
 
-        nayms.internalTransfer(entity1, nWETH, 1 ether);
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether - 1 ether, "account0Id nWETH balance should DECREASE (transfer to entityId)");
-        assertEq(nayms.internalBalanceOf(entity1, nWETH), 1 ether, "entity1Id nWETH balance should INCREASE (transfer from account0Id)");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME (transfer)");
+        nayms.internalTransfer(entity1, nWETH, amount);
+        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should DECREASE (transfer to entityId)");
+        assertEq(nayms.internalBalanceOf(entity1, nWETH), amount, "entity1Id nWETH balance should INCREASE (transfer from account0Id)");
+        assertEq(nayms.internalTokenSupply(nWETH), amount, "nWETH total supply should STAY THE SAME (transfer)");
     }
 
     function testSingleInternalTransferFromEntity() public {
@@ -301,6 +322,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(withdrawableDiv, 0);
 
         // note: starting a token sale which mints participation tokens
+        nayms.enableEntityTokenization(eAlice, "eAlice");
         nayms.startTokenSale(acc0EntityId, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -381,6 +403,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
 
         // note: starting a token sale which mints participation tokens
+        nayms.enableEntityTokenization(eAlice, "eAlice");
         nayms.startTokenSale(eAlice, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -450,6 +473,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         // note: starting a token sale which mints participation tokens
+        nayms.enableEntityTokenization(eAlice, "eAlice");
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
@@ -504,16 +528,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         uint256 bobEAliceBuyAmount,
         uint256 dividendAmount
     ) public {
-        vm.assume(bobWethDepositAmount <= type(uint128).max - 1); // not inclusive of 2**128
-        vm.assume(bobWethDepositAmount > 10_000);
-        vm.assume(eAliceParTokenSaleAmount <= type(uint128).max - 1); // not inclusive of 2**128
-        vm.assume(eAliceParTokenSaleAmount > 10_000);
-        vm.assume(eAliceParTokenPrice <= type(uint128).max - 1); // not inclusive of 2**128
-        vm.assume(eAliceParTokenPrice > 10_000);
-        vm.assume(bobEAliceBuyAmount <= type(uint128).max - 1); // not inclusive of 2**128
-        vm.assume(bobEAliceBuyAmount > 10_000);
-        vm.assume(dividendAmount > 1);
-        vm.assume(dividendAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(10_000 < bobWethDepositAmount && bobWethDepositAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(10_000 < eAliceParTokenSaleAmount && eAliceParTokenSaleAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(10_000 < eAliceParTokenPrice && eAliceParTokenPrice <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(10_000 < bobEAliceBuyAmount && bobEAliceBuyAmount <= type(uint128).max - 1); // not inclusive of 2**128
+        vm.assume(1 < dividendAmount && dividendAmount <= type(uint128).max - 1); // not inclusive of 2**128
 
         uint256 uint128Val = type(uint128).max;
         bobWethDepositAmount = bound(bobWethDepositAmount, 10_001, uint128Val - 1);
@@ -547,6 +566,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
 
         // note: starting a token sale which mints participation tokens
+        nayms.enableEntityTokenization(eAlice, "eAlice");
         nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
 
         // check token supply of participation token (entity token)
@@ -634,6 +654,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eEmily, nWBTC), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
 
         // note: starting a token sale which mints participation tokens
+        nayms.enableEntityTokenization(eAlice, "eAlice");
+        nayms.enableEntityTokenization(eDavid, "eDavid");
+
         nayms.startTokenSale(eAlice, 20_000, 20_000);
         nayms.startTokenSale(eDavid, 20_000, 20_000);
 
@@ -744,6 +767,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
         // note: starting a token sale which mints participation tokens
+        nayms.enableEntityTokenization(eAlice, "eAlice");
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
@@ -842,6 +866,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         bytes32 entity1Id = bytes32("0xe2");
         nayms.createEntity(entity0Id, account0Id, e, "test");
         nayms.createEntity(entity1Id, signer1Id, e, "test");
+
+        nayms.enableEntityTokenization(entity0Id, "e0token");
 
         // 1. ---- start token sale ----
 
