@@ -202,6 +202,26 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount * 2, "nWETH total supply should INCREASE (1:1 internal mint)");
     }
 
+    function testSingleInternalTransfer() public {
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        console2.logBytes32(acc0EntityId);
+
+        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 0, "acc0EntityId nWETH balance should start at 0");
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+
+        nayms.externalDeposit(wethAddress, 1 ether);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should INCREASE (1:1 internal mint)");
+
+        // note internalTransfer() transfers from the msg.sender's Id to the bytes32 Id given
+
+        nayms.internalTransfer(entity1, nWETH, 1 ether);
+        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether - 1 ether, "account0Id nWETH balance should DECREASE (transfer to entityId)");
+        assertEq(nayms.internalBalanceOf(entity1, nWETH), 1 ether, "entity1Id nWETH balance should INCREASE (transfer from account0Id)");
+        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME (transfer)");
+    }
+
     function testSingleInternalTransferFromEntity() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
 
@@ -214,8 +234,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "account0's entityId (account0's parent) nWETH balance should INCREASE (1:1 internal mint)");
         assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should INCREASE (1:1 internal mint)");
 
-        // from parent of sender address(this)
-        nayms.internalTransfer(account0Id, nWETH, 1 ether);
+        // from parent of sender (address(this)) to
+        nayms.internalTransferFromEntity(account0Id, nWETH, 1 ether);
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether - 1 ether, "account0's entityId (account0's parent) nWETH balance should DECREASE (transfer to account0Id)");
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether, "account0Id nWETH balance should INCREASE (transfer from acc0EntityId)");
 
@@ -522,8 +542,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, type(uint256).max);
 
         // --- Internal transfer nWETH from eAlice to eBob ---/
-        vm.prank(bob);
-        nayms.internalTransfer(eBob, nWETH, bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
+        nayms.internalTransferFromEntity(eBob, nWETH, bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
 
