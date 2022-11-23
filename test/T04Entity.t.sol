@@ -129,7 +129,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         nayms.enableEntityTokenization(entityId1, "123456789012345");
 
-        vm.expectRevert("object already tokenized");
+        vm.expectRevert("tokenization enabled already");
         nayms.enableEntityTokenization(entityId1, "123456789012345");
     }
 

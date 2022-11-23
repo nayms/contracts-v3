@@ -17,6 +17,8 @@ struct AppStorage {
     mapping(bytes32 => bytes32) objectParent; // objectId => parentId
     mapping(bytes32 => bytes32) objectDataHashes;
     mapping(bytes32 => bytes32) objectTokenSymbol;
+    mapping(bytes32 => bytes32) objectTokenName;
+    mapping(bytes32 => address) objectTokenWrapper;
     mapping(bytes32 => bool) existingEntities; // entityId => is an entity?
     mapping(bytes32 => bool) existingSimplePolicies; // simplePolicyId => is a simple policy?
     //// ENTITY ////

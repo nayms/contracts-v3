@@ -37,8 +37,13 @@ interface IEntityFacet {
      * @notice Enable an entity to be tokenized
      * @param _entityId ID of the entity
      * @param _symbol The symbol assigned to the entity token
+     * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(bytes32 _entityId, string memory _symbol) external;
+    function enableEntityTokenization(
+        bytes32 _entityId,
+        string memory _symbol,
+        string memory _name
+    ) external;
 
     /**
      * @notice Start token sale of `_amount` tokens for total price of `_totalPrice`
@@ -52,6 +57,12 @@ interface IEntityFacet {
         uint256 _amount,
         uint256 _totalPrice
     ) external;
+
+    /**
+     * @notice Wrap an entity token as ERC20
+     * @param _entityId ID of the entity
+     */
+    function _wrapToken(bytes32 _entityId) external;
 
     /**
      * @notice Update entity metadata

@@ -10,6 +10,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
+import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
@@ -24,7 +25,7 @@ library LibEntity {
     event EntityCreated(bytes32 entityId, bytes32 entityAdmin);
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
-    event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, bytes32 tokenSymbol);
+    event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, bytes32 tokenSymbol, bytes32 tokenName);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
@@ -132,7 +133,18 @@ library LibEntity {
 
         (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
 
-        emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId]);
+        emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
+    }
+
+    function _wrapToken(bytes32 _entityId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
+        require(!LibObject._isObjectTokenized(_entityId), "must not be tokenized already");
+
+        ERC20Wrapper erc20Wrapper = new ERC20Wrapper(_entityId, address(this));
+
+        s.objectTokenWrapper[_entityId] = address(erc20Wrapper);
     }
 
     function _createEntity(

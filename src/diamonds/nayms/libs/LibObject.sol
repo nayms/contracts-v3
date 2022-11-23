@@ -72,12 +72,22 @@ library LibObject {
         return (s.objectTokenSymbol[_objectId] != LibAdmin._getEmptyId());
     }
 
-    function _enableObjectTokenization(bytes32 _objectId, string memory _symbol) internal {
+    function _isObjectTokenized(bytes32 _objectId) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return (s.objectTokenWrapper[_objectId] != address(0));
+    }
+
+    function _enableObjectTokenization(
+        bytes32 _objectId,
+        string memory _symbol,
+        string memory _name
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(bytes(_symbol).length < 16, "symbol more than 16 characters");
-        require(s.objectTokenSymbol[_objectId] == LibAdmin._getEmptyId(), "object already tokenized");
+        require(s.objectTokenSymbol[_objectId] == LibAdmin._getEmptyId(), "tokenization enabled already");
 
         s.objectTokenSymbol[_objectId] = LibHelpers._stringToBytes32(_symbol);
+        s.objectTokenName[_objectId] = LibHelpers._stringToBytes32(_name);
     }
 
     function _isObject(bytes32 _id) internal view returns (bool) {
@@ -91,12 +101,16 @@ library LibObject {
         returns (
             bytes32 parent,
             bytes32 dataHash,
-            bytes32 tokenSymbol
+            bytes32 tokenSymbol,
+            bytes32 tokenName,
+            address tokenWrapper
         )
     {
         AppStorage storage s = LibAppStorage.diamondStorage();
         parent = s.objectParent[_id];
         dataHash = s.objectDataHashes[_id];
         tokenSymbol = s.objectTokenSymbol[_id];
+        tokenName = s.objectTokenName[_id];
+        tokenWrapper = s.objectTokenWrapper[_id];
     }
 }
