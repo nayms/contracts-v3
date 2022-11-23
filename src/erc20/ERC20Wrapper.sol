@@ -3,17 +3,26 @@ pragma solidity >=0.8.13;
 
 import { IERC20 } from "./IERC20.sol";
 import { INayms } from "../diamonds/nayms/INayms.sol";
-import { Modifiers } from "../diamonds/nayms/Modifiers.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
+import { LibAdmin } from "../diamonds/nayms/libs/LibAdmin.sol";
+import { LibConstants } from "../diamonds/nayms/libs/LibConstants.sol";
 
-contract ERC20Wrapper is IERC20, Modifiers {
+import { console2 } from "forge-std/console2.sol";
+
+contract ERC20Wrapper is IERC20 {
     bytes32 internal tokenId;
     INayms internal nayms;
     mapping(address => mapping(address => uint256)) public allowances;
 
-    constructor(bytes32 _tokenId, address _diamondAddress) assertSysAdmin {
+    constructor(bytes32 _tokenId, address _diamondAddress) {
         nayms = INayms(_diamondAddress);
 
+        bytes32 senderId = LibHelpers._addressToBytes32(msg.sender);
+        console2.log(" >> senderID");
+        console2.logBytes32(senderId);
+        console2.log(msg.sender);
+
+        require(nayms.isInGroup(senderId, LibAdmin._getSystemId(), LibConstants.GROUP_SYSTEM_MANAGERS), "not a system manager");
         require(nayms.isObjectTokenizable(_tokenId), "must be tokenizable");
 
         tokenId = _tokenId;
