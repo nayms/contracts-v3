@@ -56,6 +56,8 @@ contract SystemFacet is Modifiers {
      * @return parent object parent
      * @return dataHash object data hash
      * @return tokenSymbol object token symbol
+     * @return tokenName object token name
+     * @return tokenWrapper object token ERC20 wrapper address
      */
     function getObjectMeta(bytes32 _id)
         external
@@ -63,7 +65,9 @@ contract SystemFacet is Modifiers {
         returns (
             bytes32 parent,
             bytes32 dataHash,
-            bytes32 tokenSymbol
+            bytes32 tokenSymbol,
+            bytes32 tokenName,
+            address tokenWrapper
         )
     {
         return LibObject._getObjectMeta(_id);

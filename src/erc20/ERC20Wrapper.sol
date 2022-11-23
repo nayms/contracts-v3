@@ -20,12 +20,12 @@ contract ERC20Wrapper is IERC20, Modifiers {
     }
 
     function name() external view returns (string memory) {
-        (, , bytes32 symbolBytes32) = nayms.getObjectMeta(tokenId);
-        return LibHelpers._bytes32ToString(symbolBytes32);
+        (, , , bytes32 nameBytes32, ) = nayms.getObjectMeta(tokenId);
+        return LibHelpers._bytes32ToString(nameBytes32);
     }
 
     function symbol() external view returns (string memory) {
-        (, , bytes32 symbolBytes32) = nayms.getObjectMeta(tokenId);
+        (, , bytes32 symbolBytes32, , ) = nayms.getObjectMeta(tokenId);
         return LibHelpers._bytes32ToString(symbolBytes32);
     }
 
@@ -47,7 +47,7 @@ contract ERC20Wrapper is IERC20, Modifiers {
 
     function transfer(address to, uint256 value) external returns (bool) {
         bytes32 receiverId = LibHelpers._addressToBytes32(to);
-        nayms.internalTransfer(receiverId, tokenId, value);
+        nayms.wrapperInternalTransfer(receiverId, tokenId, value);
         return true;
     }
 
@@ -71,7 +71,7 @@ contract ERC20Wrapper is IERC20, Modifiers {
 
         bytes32 fromId = LibHelpers._addressToBytes32(from);
         bytes32 toId = LibHelpers._addressToBytes32(to);
-        nayms.internalTransferFrom(fromId, toId, tokenId, value);
+        nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
 
         emit Transfer(from, to, value);
         return true;

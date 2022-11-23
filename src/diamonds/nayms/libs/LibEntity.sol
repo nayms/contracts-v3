@@ -26,6 +26,7 @@ library LibEntity {
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, bytes32 tokenSymbol, bytes32 tokenName);
+    event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
@@ -143,8 +144,11 @@ library LibEntity {
         require(!LibObject._isObjectTokenized(_entityId), "must not be tokenized already");
 
         ERC20Wrapper erc20Wrapper = new ERC20Wrapper(_entityId, address(this));
+        address wrapperAddress = address(erc20Wrapper);
 
-        s.objectTokenWrapper[_entityId] = address(erc20Wrapper);
+        s.objectTokenWrapper[_entityId] = wrapperAddress;
+
+        emit TokenWrapped(_entityId, wrapperAddress);
     }
 
     function _createEntity(

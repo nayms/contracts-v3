@@ -45,7 +45,7 @@ interface ITokenizedVaultFacet {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransfer(
+    function wrapperInternalTransfer(
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
@@ -58,7 +58,7 @@ interface ITokenizedVaultFacet {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransferFrom(
+    function wrapperInternalTransferFrom(
         bytes32 from,
         bytes32 to,
         bytes32 tokenId,

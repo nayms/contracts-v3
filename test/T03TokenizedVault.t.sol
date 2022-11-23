@@ -219,33 +219,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount * 2, "nWETH total supply should INCREASE (1:1 internal mint)");
     }
 
-    function testSingleInternalTransfer() public {
-        bytes32 acc0EntityId = nayms.getEntity(account0Id);
-        console2.logBytes32(acc0EntityId);
-
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 0, "acc0EntityId nWETH balance should start at 0");
-
-        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
-
-        uint256 amount = 1 ether;
-
-        // nayms.externalDeposit(wethAddress, 1 ether);
-        externalDepositDirect(account0Id, wethAddress, amount);
-
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), amount, "acc0EntityId nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), amount, "nWETH total supply should INCREASE (1:1 internal mint)");
-
-        // note internalTransfer() transfers from the msg.sender's Id to the bytes32 Id given
-
-        vm.expectRevert("internalTransfer: can't transfer internal veNAYM");
-        nayms.internalTransfer(entity1, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), amount);
-
-        nayms.internalTransfer(entity1, nWETH, amount);
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should DECREASE (transfer to entityId)");
-        assertEq(nayms.internalBalanceOf(entity1, nWETH), amount, "entity1Id nWETH balance should INCREASE (transfer from account0Id)");
-        assertEq(nayms.internalTokenSupply(nWETH), amount, "nWETH total supply should STAY THE SAME (transfer)");
-    }
-
     function testSingleInternalTransferFromEntity() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
 
@@ -333,7 +306,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(withdrawableDiv, 0);
 
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
         nayms.startTokenSale(acc0EntityId, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -414,7 +387,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
 
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
         nayms.startTokenSale(eAlice, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -484,7 +457,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
@@ -577,7 +550,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
 
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
         nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
 
         // check token supply of participation token (entity token)
@@ -665,8 +638,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eEmily, nWBTC), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
 
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice");
-        nayms.enableEntityTokenization(eDavid, "eDavid");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eDavid, "eDavid", "eDavid");
 
         nayms.startTokenSale(eAlice, 20_000, 20_000);
         nayms.startTokenSale(eDavid, 20_000, 20_000);
@@ -778,7 +751,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
@@ -878,7 +851,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         nayms.createEntity(entity0Id, account0Id, e, "test");
         nayms.createEntity(entity1Id, signer1Id, e, "test");
 
-        nayms.enableEntityTokenization(entity0Id, "e0token");
+        nayms.enableEntityTokenization(entity0Id, "e0token", "e0token");
 
         // 1. ---- start token sale ----
 

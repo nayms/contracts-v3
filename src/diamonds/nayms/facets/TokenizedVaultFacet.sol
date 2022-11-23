@@ -60,11 +60,11 @@ contract TokenizedVaultFacet is Modifiers {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransfer(
+    function wrapperInternalTransfer(
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
+    ) external assertERC20Wrapper(tokenId) {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
         LibTokenizedVault._internalTransfer(senderId, to, tokenId, amount);
@@ -77,14 +77,12 @@ contract TokenizedVaultFacet is Modifiers {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransferFrom(
-        // TODO fromWrapper
+    function wrapperInternalTransferFrom(
         bytes32 from,
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external {
-        // TODO assertERC20Wrapper
+    ) external assertERC20Wrapper(tokenId) {
         LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
