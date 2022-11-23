@@ -12,6 +12,9 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     bytes32 internal wethId;
     bytes32 internal entityId1 = "0xe1";
 
+    string internal testSymbol = "E1";
+    string internal testName = "Entity 1 Token";
+
     function setUp() public virtual override {
         super.setUp();
 
@@ -25,7 +28,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     function testWrapEntityToken() public {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 30000, 0, true), "test");
-        nayms.enableEntityTokenization(entityId1, "E1", "Entity 1 Token");
+        nayms.enableEntityTokenization(entityId1, testSymbol, testName);
 
         uint256 saleAmount = 1_000 ether;
         uint256 salePrice = 1_000 ether;
@@ -42,8 +45,9 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         address loggedWrapperAddress = abi.decode(entries[0].data, (address));
 
         (, , bytes32 tokenSymbol, bytes32 tokenName, address tokenWrapper) = nayms.getObjectMeta(entityId1);
-        assertEq(LibHelpers._bytes32ToString(tokenSymbol), "E1", "token symbols should match");
-        assertEq(LibHelpers._bytes32ToString(tokenName), "Entity 1 Token", "token name should match");
+
+        assertEq(tokenSymbol, LibHelpers._stringToBytes32(testSymbol), "token symbols should match");
+        assertEq(tokenName, LibHelpers._stringToBytes32(testName), "token name should match");
         assertEq(tokenWrapper, loggedWrapperAddress, "token wrapper addresses should match");
     }
 }
