@@ -14,15 +14,9 @@ contract ERC20Wrapper is IERC20 {
     INayms internal nayms;
     mapping(address => mapping(address => uint256)) public allowances;
 
-    constructor(bytes32 _tokenId, address _diamondAddress) {
-        nayms = INayms(_diamondAddress);
+    constructor(bytes32 _tokenId) {
+        nayms = INayms(msg.sender);
 
-        bytes32 senderId = LibHelpers._addressToBytes32(msg.sender);
-        console2.log(" >> senderID");
-        console2.logBytes32(senderId);
-        console2.log(msg.sender);
-
-        require(nayms.isInGroup(senderId, LibAdmin._getSystemId(), LibConstants.GROUP_SYSTEM_MANAGERS), "not a system manager");
         require(nayms.isObjectTokenizable(_tokenId), "must be tokenizable");
 
         tokenId = _tokenId;

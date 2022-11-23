@@ -143,12 +143,12 @@ library LibEntity {
         require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
         require(!LibObject._isObjectTokenized(_entityId), "must not be tokenized already");
 
-        ERC20Wrapper erc20Wrapper = new ERC20Wrapper(_entityId, address(this));
-        address wrapperAddress = address(erc20Wrapper);
+        ERC20Wrapper erc20Wrapper = new ERC20Wrapper(_entityId);
+        address wrapper = address(erc20Wrapper);
 
-        s.objectTokenWrapper[_entityId] = wrapperAddress;
+        s.objectTokenWrapper[_entityId] = wrapper;
 
-        emit TokenWrapped(_entityId, wrapperAddress);
+        emit TokenWrapped(_entityId, wrapper);
     }
 
     function _createEntity(
