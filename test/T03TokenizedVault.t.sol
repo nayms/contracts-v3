@@ -168,24 +168,24 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         address signer2,
         uint256 depositAmount
     ) public {
-        vm.assume(entity1 > 0); // else revert: object already exists
-        vm.assume(entity2 > 0);
-        vm.assume(entity1 != entity2);
+        vm.assume(entity1 > 0 && entity2 > 0 && entity1 != entity2); // else revert: object already exists
         vm.assume(depositAmount > 5); // else revert: _internalMint: mint zero tokens, note: > 5 to ensure the externalDepositAmount isn't 0, see code below
-        bytes32 signer1Id = LibHelpers._getIdForAddress(signer1);
-        bytes32 signer2Id = LibHelpers._getIdForAddress(signer2);
 
-        vm.assume(signer1 != address(0));
-        vm.assume(signer2 != address(0));
+        vm.assume(signer1 != address(0) && signer1 != address(999999));
+        vm.assume(signer2 != address(0) && signer2 != address(999999));
         vm.assume(signer1 != signer2);
+
         vm.label(signer1, "bob");
         vm.label(signer2, "charlie");
 
         // force entity creation
         require(!nayms.isObject(entity1), "entity1 is already an object, pick a different ID");
         require(!nayms.isObject(entity2), "entity2 is already an object, pick a different ID");
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
 
+        bytes32 signer1Id = LibHelpers._getIdForAddress(signer1);
+        bytes32 signer2Id = LibHelpers._getIdForAddress(signer2);
+
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
         nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
 
         uint256 externalDepositAmount = depositAmount / 5;
