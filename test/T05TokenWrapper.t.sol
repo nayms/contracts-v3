@@ -27,7 +27,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     }
 
     function testWrapEntityToken() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 30000, 0, true), "test");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test");
         nayms.enableEntityTokenization(entityId1, testSymbol, testName);
 
         uint256 saleAmount = 1_000 ether;
@@ -44,17 +44,19 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(entries[0].topics[1], entityId1, "TokenWrapped: incorrect tokenID"); // assert entity token
         address loggedWrapperAddress = abi.decode(entries[0].data, (address));
 
-        (, , bytes32 tokenSymbol, bytes32 tokenName, address tokenWrapper) = nayms.getObjectMeta(entityId1);
+        (, , bytes32 storedSymbol, bytes32 storedName, address storedAddress) = nayms.getObjectMeta(entityId1);
 
-        assertEq(tokenSymbol, LibHelpers._stringToBytes32(testSymbol), "token symbols should match");
-        assertEq(tokenName, LibHelpers._stringToBytes32(testName), "token name should match");
-        assertEq(tokenWrapper, loggedWrapperAddress, "token wrapper addresses should match");
+        assertEq(storedSymbol, LibHelpers._stringToBytes32(testSymbol), "token symbols should match");
+        assertEq(storedName, LibHelpers._stringToBytes32(testName), "token name should match");
+        assertEq(storedAddress, loggedWrapperAddress, "token wrapper addresses should match");
 
-        ERC20Wrapper token = ERC20Wrapper(tokenWrapper);
+        ERC20Wrapper wrapper = ERC20Wrapper(storedAddress);
 
-        assertEq(tokenSymbol, LibHelpers._stringToBytes32(token.symbol()), "token symbol should match");
-        assertEq(tokenName, LibHelpers._stringToBytes32(token.name()), "token name  should match");
-        assertEq(token.decimals(), 18, "token decimals should match");
-        assertEq(token.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
+        assertEq(storedSymbol, LibHelpers._stringToBytes32(wrapper.symbol()), "token symbol should match");
+        assertEq(storedName, LibHelpers._stringToBytes32(wrapper.name()), "token name  should match");
+        assertEq(wrapper.decimals(), 18, "token decimals should match");
+        assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
+        assertEq(wrapper.totalSupply(), saleAmount, "token supply should match sale amount");
+        assertEq(wrapper.balanceOf(LibHelpers._getAddressFromId(entityId1)), nayms.internalBalanceOf(entityId1, entityId1), "wrapper balance should match diamond");
     }
 }
