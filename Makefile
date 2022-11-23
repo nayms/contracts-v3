@@ -45,7 +45,7 @@ bscript: ## build forge scripts
 
 .PHONY: test
 test: ## forge test local, alias t
-	forge test
+	forge test -vvv
 t: test
 
 tt: ## forge test local -vv
