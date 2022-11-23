@@ -15,6 +15,7 @@ contract ERC20Wrapper is IERC20 {
     mapping(address => mapping(address => uint256)) public allowances;
 
     constructor(bytes32 _tokenId) {
+        // ensure only diamond can instantiate this
         nayms = INayms(msg.sender);
 
         require(nayms.isObjectTokenizable(_tokenId), "must be tokenizable");
