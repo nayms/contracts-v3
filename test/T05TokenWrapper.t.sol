@@ -49,5 +49,12 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(tokenSymbol, LibHelpers._stringToBytes32(testSymbol), "token symbols should match");
         assertEq(tokenName, LibHelpers._stringToBytes32(testName), "token name should match");
         assertEq(tokenWrapper, loggedWrapperAddress, "token wrapper addresses should match");
+
+        ERC20Wrapper token = ERC20Wrapper(tokenWrapper);
+
+        assertEq(tokenSymbol, LibHelpers._stringToBytes32(token.symbol()), "token symbol should match");
+        assertEq(tokenName, LibHelpers._stringToBytes32(token.name()), "token name  should match");
+        assertEq(token.decimals(), 18, "token decimals should match");
+        assertEq(token.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
     }
 }
