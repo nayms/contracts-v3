@@ -17,6 +17,8 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     uint256 internal tokenAmount = 1_000 ether;
 
+    bytes32 internal constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
     function setUp() public virtual override {
         super.setUp();
 
@@ -96,5 +98,24 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.balanceOf(account0), tokenAmount, "account0 balance should increase");
 
         assertEq(wrapper.allowance(signer1, account0), 0, "allowance should have decreased");
+    }
+
+    function testPermit() public {
+        testWrapEntityToken();
+        (, , , , address wrapperAddress) = nayms.getObjectMeta(entityId1);
+        ERC20Wrapper token = ERC20Wrapper(wrapperAddress);
+
+        uint256 privateKey = 0xBEEF;
+        address owner = vm.addr(privateKey);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            privateKey,
+            keccak256(abi.encodePacked("\x19\x01", token.DOMAIN_SEPARATOR(), keccak256(abi.encode(PERMIT_TYPEHASH, owner, address(0xCAFE), 1e18, 0, block.timestamp))))
+        );
+
+        token.permit(owner, address(0xCAFE), 1e18, block.timestamp, v, r, s);
+
+        assertEq(token.allowance(owner, address(0xCAFE)), 1e18);
+        assertEq(token.nonces(owner), 1);
     }
 }
