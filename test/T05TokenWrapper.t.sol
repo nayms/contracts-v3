@@ -30,6 +30,10 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     function testWrapEntityToken() public {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test");
+
+        vm.expectRevert("must be tokenizable");
+        nayms.wrapToken(entityId1);
+
         nayms.enableEntityTokenization(entityId1, testSymbol, testName);
 
         nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
@@ -49,6 +53,9 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(storedSymbol, LibHelpers._stringToBytes32(testSymbol), "token symbols should match");
         assertEq(storedName, LibHelpers._stringToBytes32(testName), "token name should match");
         assertEq(storedAddress, loggedWrapperAddress, "token wrapper addresses should match");
+
+        vm.expectRevert("must not be tokenized already");
+        nayms.wrapToken(entityId1);
 
         ERC20Wrapper wrapper = ERC20Wrapper(storedAddress);
 
