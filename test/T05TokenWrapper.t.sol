@@ -79,7 +79,15 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
         assertEq(wrapper.allowance(signer1, account0), tokenAmount, "allowance should have increased");
 
+        vm.expectRevert();
+        wrapper.transferFrom(signer1, account0, 0);
+
+        vm.expectRevert("not enough allowance");
+        wrapper.transferFrom(signer1, account0, tokenAmount * 2);
+
         wrapper.transferFrom(signer1, account0, tokenAmount);
         assertEq(wrapper.balanceOf(account0), tokenAmount, "account0 balance should increase");
+
+        assertEq(wrapper.allowance(signer1, account0), 0, "allowance should have decreased");
     }
 }
