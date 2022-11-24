@@ -38,7 +38,7 @@ Set the targeted NAYM allocation to `_newTarget` in the NDF
 |`_newTarget` | uint256 | new value for the target allocation|
 <br></br>
 ### setDiscountToken
-Set the `_newToken` as a token for dicounts
+Set the `_newToken` as a token for discounts
 ```solidity
   function setDiscountToken(
     address _newToken
@@ -248,4 +248,16 @@ Gets the System context ID.
 | Type | Description |
 | --- | --- |
 |`System` | Identifier|
+<br></br>
+### isObjectTokenizable
+Check if object can be tokenized
+```solidity
+  function isObjectTokenizable(
+    bytes32 _objectId
+  ) external returns (bool)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_objectId` | bytes32 | ID of the object|
 <br></br>

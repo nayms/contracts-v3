@@ -1,4 +1,4 @@
-Use it to authorise various actions on the contracts
+Use it to authorize various actions on the contracts
 ## Functions
 ### assignRole
 Assign a `_roleId` to the object in given context
@@ -56,7 +56,7 @@ Assigning a role to the object makes it a member of a corresponding role group
 |`true` | if object with given ID is a member, false otherwise|
 <br></br>
 ### isParentInGroup
-Check wheter a parent object belongs to the `_group` group in given context
+Check whether a parent object belongs to the `_group` group in given context
 Objects can have a parent object, i.e. entity is a parent of a user
 ```solidity
   function isParentInGroup(
@@ -68,7 +68,7 @@ Objects can have a parent object, i.e. entity is a parent of a user
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_objectId` | bytes32 | ID of an object who's parent is being checked for role group membership
+|`_objectId` | bytes32 | ID of an object whose parent is being checked for role group membership
 |`_contextId` | bytes32 | Context in which the role group membership is being checked
 |`_group` | string | name of the role group
 |
@@ -79,7 +79,7 @@ Objects can have a parent object, i.e. entity is a parent of a user
 |`true` | if object's parent is a member of this role group, false otherwise|
 <br></br>
 ### canAssign
-Check wheter a user can assign specific object to the `_role` role in given context
+Check whether a user can assign specific object to the `_role` role in given context
 Check permission to assign to a role
 ```solidity
   function canAssign(
@@ -91,7 +91,7 @@ Check permission to assign to a role
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_objectId` | bytes32 | ID of an object that is being checked for assign rights
+|`_objectId` | bytes32 | ID of an object that is being checked for assigning rights
 |`_contextId` | bytes32 | ID of the context in which permission is checked
 |`_role` | bytes32 | name of the role to check
 |

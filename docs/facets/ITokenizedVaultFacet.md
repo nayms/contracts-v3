@@ -73,11 +73,12 @@ Transfer tokens internally
 |`to` | bytes32 | token receiver
 |`tokenId` | bytes32 | Internal ID of the token|
 <br></br>
-### internalTransfer
-Internal transfer of `amount` tokens
-Transfer tokens internally
+### wrapperInternalTransferFrom
+Internal transfer of `amount` tokens `from` -> `to`
+Transfer tokens internally between two IDs
 ```solidity
-  function internalTransfer(
+  function wrapperInternalTransferFrom(
+    bytes32 from,
     bytes32 to,
     bytes32 tokenId
   ) external
@@ -85,6 +86,7 @@ Transfer tokens internally
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
+|`from` | bytes32 | token sender
 |`to` | bytes32 | token receiver
 |`tokenId` | bytes32 | Internal ID of the token|
 <br></br>
