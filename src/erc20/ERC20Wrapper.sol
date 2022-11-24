@@ -42,7 +42,7 @@ contract ERC20Wrapper is IERC20 {
     }
 
     function balanceOf(address who) external view returns (uint256) {
-        return nayms.internalBalanceOf(LibHelpers._addressToBytes32(who), tokenId);
+        return nayms.internalBalanceOf(LibHelpers._getIdForAddress(who), tokenId);
     }
 
     function allowance(address owner, address spender) external view returns (uint256) {
@@ -50,7 +50,7 @@ contract ERC20Wrapper is IERC20 {
     }
 
     function transfer(address to, uint256 value) external returns (bool) {
-        bytes32 receiverId = LibHelpers._addressToBytes32(to);
+        bytes32 receiverId = LibHelpers._getIdForAddress(to);
         nayms.wrapperInternalTransfer(receiverId, tokenId, value);
         return true;
     }

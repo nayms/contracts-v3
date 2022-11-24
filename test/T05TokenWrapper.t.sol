@@ -57,6 +57,9 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.decimals(), 18, "token decimals should match");
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
         assertEq(wrapper.totalSupply(), saleAmount, "token supply should match sale amount");
-        assertEq(wrapper.balanceOf(LibHelpers._getAddressFromId(entityId1)), nayms.internalBalanceOf(entityId1, entityId1), "wrapper balance should match diamond");
+
+        nayms.cancelOffer(1); // unlock tokens from market, to enable transfer
+        nayms.internalTransferFromEntity(account0Id, entityId1, 1_000 ether);
+        assertEq(wrapper.balanceOf(account0), nayms.internalBalanceOf(account0Id, entityId1), "wrapper balance should match diamond");
     }
 }

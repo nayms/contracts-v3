@@ -48,8 +48,7 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 tokenId,
         uint256 amount
     ) external assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
-        bytes32 senderEntityId = LibObject._getParent(senderId);
+        bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
