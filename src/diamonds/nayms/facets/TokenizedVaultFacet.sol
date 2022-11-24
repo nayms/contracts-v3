@@ -54,22 +54,6 @@ contract TokenizedVaultFacet is Modifiers {
     }
 
     /**
-     * @notice Internal transfer of `amount` tokens
-     * @dev Transfer tokens internally
-     * @param to token receiver
-     * @param tokenId Internal ID of the token
-     */
-    function wrapperInternalTransfer(
-        bytes32 to,
-        bytes32 tokenId,
-        uint256 amount
-    ) external assertERC20Wrapper(tokenId) {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
-        require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
-        LibTokenizedVault._internalTransfer(senderId, to, tokenId, amount);
-    }
-
-    /**
      * @notice Internal transfer of `amount` tokens `from` -> `to`
      * @dev Transfer tokens internally between two IDs
      * @param from token sender

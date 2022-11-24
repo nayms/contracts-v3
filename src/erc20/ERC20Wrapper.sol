@@ -50,8 +50,10 @@ contract ERC20Wrapper is IERC20 {
     }
 
     function transfer(address to, uint256 value) external returns (bool) {
-        bytes32 receiverId = LibHelpers._getIdForAddress(to);
-        nayms.wrapperInternalTransfer(receiverId, tokenId, value);
+        bytes32 fromId = LibHelpers._getIdForAddress(msg.sender);
+        bytes32 toId = LibHelpers._getIdForAddress(to);
+        nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
+        emit Transfer(msg.sender, to, value);
         return true;
     }
 
@@ -73,8 +75,8 @@ contract ERC20Wrapper is IERC20 {
 
         if (allowed != type(uint256).max) allowances[from][msg.sender] = allowed - value;
 
-        bytes32 fromId = LibHelpers._addressToBytes32(from);
-        bytes32 toId = LibHelpers._addressToBytes32(to);
+        bytes32 fromId = LibHelpers._getIdForAddress(from);
+        bytes32 toId = LibHelpers._getIdForAddress(to);
         nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
 
         emit Transfer(from, to, value);

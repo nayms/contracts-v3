@@ -15,6 +15,8 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";
 
+    uint256 internal tokenAmount = 1_000 ether;
+
     function setUp() public virtual override {
         super.setUp();
 
@@ -30,9 +32,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test");
         nayms.enableEntityTokenization(entityId1, testSymbol, testName);
 
-        uint256 saleAmount = 1_000 ether;
-        uint256 salePrice = 1_000 ether;
-        nayms.startTokenSale(entityId1, saleAmount, salePrice);
+        nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
 
         vm.recordLogs();
 
@@ -56,10 +56,30 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(storedName, LibHelpers._stringToBytes32(wrapper.name()), "token name  should match");
         assertEq(wrapper.decimals(), 18, "token decimals should match");
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
-        assertEq(wrapper.totalSupply(), saleAmount, "token supply should match sale amount");
+        assertEq(wrapper.totalSupply(), tokenAmount, "token supply should match sale amount");
 
         nayms.cancelOffer(1); // unlock tokens from market, to enable transfer
-        nayms.internalTransferFromEntity(account0Id, entityId1, 1_000 ether);
+        nayms.internalTransferFromEntity(account0Id, entityId1, tokenAmount);
         assertEq(wrapper.balanceOf(account0), nayms.internalBalanceOf(account0Id, entityId1), "wrapper balance should match diamond");
+    }
+
+    function testWrapperTransfersAndAllowance() public {
+        testWrapEntityToken();
+        (, , , , address wrapperAddress) = nayms.getObjectMeta(entityId1);
+        ERC20Wrapper wrapper = ERC20Wrapper(wrapperAddress);
+
+        wrapper.transfer(signer1, tokenAmount);
+
+        assertEq(wrapper.balanceOf(signer1), tokenAmount, "signer1 balance should increase");
+        assertEq(wrapper.allowance(signer1, account0), 0, "allowance should be 0");
+
+        vm.startPrank(signer1);
+        wrapper.approve(account0, tokenAmount);
+        vm.stopPrank();
+
+        assertEq(wrapper.allowance(signer1, account0), tokenAmount, "allowance should have increased");
+
+        wrapper.transferFrom(signer1, account0, tokenAmount);
+        assertEq(wrapper.balanceOf(account0), tokenAmount, "account0 balance should increase");
     }
 }
