@@ -36,13 +36,13 @@ contract ERC20Wrapper is IERC20 {
     }
 
     function name() external view returns (string memory) {
-        (, , , bytes32 nameBytes32, ) = nayms.getObjectMeta(tokenId);
-        return LibHelpers._bytes32ToString(nameBytes32);
+        (, , , string memory tokenName, ) = nayms.getObjectMeta(tokenId);
+        return tokenName;
     }
 
     function symbol() external view returns (string memory) {
-        (, , bytes32 symbolBytes32, , ) = nayms.getObjectMeta(tokenId);
-        return LibHelpers._bytes32ToString(symbolBytes32);
+        (, , string memory tokenSymbol, , ) = nayms.getObjectMeta(tokenId);
+        return tokenSymbol;
     }
 
     function decimals() external pure returns (uint8) {

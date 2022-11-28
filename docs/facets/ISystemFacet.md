@@ -56,7 +56,7 @@ Get meta of given object.
 ```solidity
   function getObjectMeta(
     bytes32 _id
-  ) external returns (bytes32 parent, bytes32 dataHash, bytes32 tokenSymbol, bytes32 tokenName, address tokenWrapper)
+  ) external returns (bytes32 parent, bytes32 dataHash, string tokenSymbol, string tokenName, address tokenWrapper)
 ```
 #### Arguments:
 | Argument | Type | Description |

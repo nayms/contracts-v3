@@ -50,10 +50,10 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(entries[0].topics[1], entityId1, "TokenWrapped: incorrect tokenID"); // assert entity token
         address loggedWrapperAddress = abi.decode(entries[0].data, (address));
 
-        (, , bytes32 storedSymbol, bytes32 storedName, address storedAddress) = nayms.getObjectMeta(entityId1);
+        (, , string memory storedSymbol, string memory storedName, address storedAddress) = nayms.getObjectMeta(entityId1);
 
-        assertEq(storedSymbol, LibHelpers._stringToBytes32(testSymbol), "token symbols should match");
-        assertEq(storedName, LibHelpers._stringToBytes32(testName), "token name should match");
+        assertEq(storedSymbol, testSymbol, "token symbols should match");
+        assertEq(storedName, testName, "token name should match");
         assertEq(storedAddress, loggedWrapperAddress, "token wrapper addresses should match");
 
         vm.expectRevert("must not be tokenized already");
@@ -61,8 +61,8 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
         ERC20Wrapper wrapper = ERC20Wrapper(storedAddress);
 
-        assertEq(storedSymbol, LibHelpers._stringToBytes32(wrapper.symbol()), "token symbol should match");
-        assertEq(storedName, LibHelpers._stringToBytes32(wrapper.name()), "token name  should match");
+        assertEq(storedSymbol, wrapper.symbol(), "token symbol should match");
+        assertEq(storedName, wrapper.name(), "token name  should match");
         assertEq(wrapper.decimals(), 18, "token decimals should match");
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
         assertEq(wrapper.totalSupply(), tokenAmount, "token supply should match sale amount");
@@ -110,10 +110,10 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             privateKey,
-            keccak256(abi.encodePacked("\x19\x01", token.DOMAIN_SEPARATOR(), keccak256(abi.encode(PERMIT_TYPEHASH, owner, address(0xCAFE), 1e18, 0, block.timestamp))))
+            keccak256(abi.encodePacked("\x19\x01", token.DOMAIN_SEPARATOR(), keccak256(abi.encode(PERMIT_TYPEHASH, owner, address(0xCAFE), 1 ether, 0, block.timestamp))))
         );
 
-        token.permit(owner, address(0xCAFE), 1e18, block.timestamp, v, r, s);
+        token.permit(owner, address(0xCAFE), 1 ether, block.timestamp, v, r, s);
 
         assertEq(token.allowance(owner, address(0xCAFE)), 1e18);
         assertEq(token.nonces(owner), 1);

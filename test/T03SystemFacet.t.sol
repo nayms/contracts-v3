@@ -78,7 +78,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     function testGetObjectMeta() public {
         bytes32 objectId2 = "0x2";
         nayms.createEntity(objectId2, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
-        (bytes32 parent, bytes32 dataHash, bytes32 tokenSymbol, bytes32 tokenName, address wrapperAddress) = nayms.getObjectMeta(objectId2);
+        (bytes32 parent, bytes32 dataHash, string memory tokenSymbol, string memory tokenName, address wrapperAddress) = nayms.getObjectMeta(objectId2);
         assertEq(dataHash, "entity test hash");
         assertEq(parent, "");
         assertEq(tokenSymbol, "");

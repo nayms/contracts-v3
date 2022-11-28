@@ -65,8 +65,8 @@ contract SystemFacet is Modifiers {
         returns (
             bytes32 parent,
             bytes32 dataHash,
-            bytes32 tokenSymbol,
-            bytes32 tokenName,
+            string memory tokenSymbol,
+            string memory tokenName,
             address tokenWrapper
         )
     {

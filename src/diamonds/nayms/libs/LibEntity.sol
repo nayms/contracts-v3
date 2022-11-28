@@ -25,7 +25,7 @@ library LibEntity {
     event EntityCreated(bytes32 entityId, bytes32 entityAdmin);
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
-    event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, bytes32 tokenSymbol, bytes32 tokenName);
+    event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
     event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
 
     /**
