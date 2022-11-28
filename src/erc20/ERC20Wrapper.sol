@@ -8,8 +8,6 @@ import { INayms } from "../diamonds/nayms/INayms.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
 import { LibConstants } from "../diamonds/nayms/libs/LibConstants.sol";
 
-import { console2 } from "forge-std/console2.sol";
-
 contract ERC20Wrapper is IERC20 {
     /*//////////////////////////////////////////////////////////////
                               ERC20 STORAGE
