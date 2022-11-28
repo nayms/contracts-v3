@@ -3,7 +3,9 @@
 -include .env
 
 .DEFAULT_GOAL := help
-.PHONY: help
+
+.PHONY: help docs test
+
 help:		## display this help message
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
@@ -43,7 +45,6 @@ b: build
 bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
-.PHONY: test
 test: ## forge test local, alias t
 	forge test
 t: test
@@ -217,7 +218,6 @@ anvil:	## run anvil with shared wallet
 subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi
 
-.PHONY: docs
 docs: ## generate docs from natspec comments
 	yarn docgen
 
