@@ -68,18 +68,6 @@ Entity tokens are minted when the sale is started
 |`_amount` | uint256 | amount of entity tokens to put on sale
 |`_totalPrice` | uint256 | total price of the tokens|
 <br></br>
-### wrapToken
-Wrap an entity token as ERC20
-```solidity
-  function wrapToken(
-    bytes32 _entityId
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_entityId` | bytes32 | ID of the entity|
-<br></br>
 ### isTokenWrapped
 Check if an entity token is wrapped as ERC20
 ```solidity

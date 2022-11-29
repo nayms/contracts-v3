@@ -5,8 +5,12 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 
+import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
+
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
+    event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
+
     function _createObject(
         bytes32 _objectId,
         bytes32 _parentId,
@@ -72,11 +76,6 @@ library LibObject {
         return (bytes(s.objectTokenSymbol[_objectId]).length != 0);
     }
 
-    function _isObjectTokenWrapped(bytes32 _objectId) internal view returns (bool) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return (s.objectTokenWrapper[_objectId] != address(0));
-    }
-
     function _enableObjectTokenization(
         bytes32 _objectId,
         string memory _symbol,
@@ -88,6 +87,25 @@ library LibObject {
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
+    }
+
+    function _isObjectTokenWrapped(bytes32 _objectId) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return (s.objectTokenWrapper[_objectId] != address(0));
+    }
+
+    function _wrapToken(bytes32 _entityId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(_isObjectTokenizable(_entityId), "must be tokenizable");
+        require(!_isObjectTokenWrapped(_entityId), "must not be wrapped already");
+
+        ERC20Wrapper tokenWrapper = new ERC20Wrapper(_entityId);
+        address wrapperAddress = address(tokenWrapper);
+
+        s.objectTokenWrapper[_entityId] = wrapperAddress;
+
+        emit TokenWrapped(_entityId, wrapperAddress);
     }
 
     function _isObject(bytes32 _id) internal view returns (bool) {

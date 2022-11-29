@@ -59,12 +59,6 @@ interface IEntityFacet {
     ) external;
 
     /**
-     * @notice Wrap an entity token as ERC20
-     * @param _entityId ID of the entity
-     */
-    function wrapToken(bytes32 _entityId) external;
-
-    /**
      * @notice Check if an entity token is wrapped as ERC20
      * @param _entityId ID of the entity
      */

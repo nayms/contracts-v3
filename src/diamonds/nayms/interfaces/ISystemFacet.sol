@@ -56,4 +56,10 @@ interface ISystemFacet {
             string memory tokenName,
             address tokenWrapper
         );
+
+    /**
+     * @notice Wrap an object token as ERC20
+     * @param _objectId ID of the tokenized object
+     */
+    function wrapToken(bytes32 _objectId) external;
 }

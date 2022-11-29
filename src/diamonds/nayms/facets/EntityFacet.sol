@@ -76,14 +76,6 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @notice Wrap an entity token as ERC20
-     * @param _entityId ID of the entity
-     */
-    function wrapToken(bytes32 _entityId) external nonReentrant assertSysMgr {
-        LibEntity._wrapToken(_entityId);
-    }
-
-    /**
      * @notice Check if an entity token is wrapped as ERC20
      * @param _entityId ID of the entity
      */

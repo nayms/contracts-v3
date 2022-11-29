@@ -73,3 +73,15 @@ Get meta of given object.
 |`tokenName` | object token name
 |`tokenWrapper` | object token ERC20 wrapper address|
 <br></br>
+### wrapToken
+Wrap an object token as ERC20
+```solidity
+  function wrapToken(
+    bytes32 _objectId
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_objectId` | bytes32 | ID of the tokenized object|
+<br></br>
