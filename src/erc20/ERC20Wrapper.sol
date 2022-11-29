@@ -28,6 +28,7 @@ contract ERC20Wrapper is IERC20 {
         nayms = INayms(msg.sender);
 
         require(nayms.isObjectTokenizable(_tokenId), "must be tokenizable");
+        require(!nayms.isTokenWrapped(_tokenId), "must not be wrapped already");
 
         tokenId = _tokenId;
 

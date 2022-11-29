@@ -80,6 +80,18 @@ Wrap an entity token as ERC20
 | --- | --- | --- |
 |`_entityId` | bytes32 | ID of the entity|
 <br></br>
+### isTokenWrapped
+Check if an entity token is wrapped as ERC20
+```solidity
+  function isTokenWrapped(
+    bytes32 _entityId
+  ) external returns (bool)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_entityId` | bytes32 | ID of the entity|
+<br></br>
 ### updateEntity
 Update entity metadata
 ```solidity
