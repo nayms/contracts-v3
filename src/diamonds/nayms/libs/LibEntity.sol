@@ -141,7 +141,7 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
-        require(!LibObject._isObjectTokenized(_entityId), "must not be tokenized already");
+        require(!LibObject._isObjectTokenWrapped(_entityId), "must not be wrapped already");
 
         ERC20Wrapper erc20Wrapper = new ERC20Wrapper(_entityId);
         address wrapper = address(erc20Wrapper);

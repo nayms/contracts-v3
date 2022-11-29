@@ -56,7 +56,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(storedName, testName, "token name should match");
         assertEq(storedAddress, loggedWrapperAddress, "token wrapper addresses should match");
 
-        vm.expectRevert("must not be tokenized already");
+        vm.expectRevert("must not be wrapped already");
         nayms.wrapToken(entityId1);
 
         ERC20Wrapper wrapper = ERC20Wrapper(storedAddress);
