@@ -378,7 +378,7 @@ library LibMarket {
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
-        require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "tokens locked in market");
+        require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "tokens locked");
 
         // must have a valid fee schedule
         require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");

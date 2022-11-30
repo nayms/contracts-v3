@@ -196,7 +196,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
         vm.startPrank(signer1);
-        vm.expectRevert("_internalTransferFrom: tokens for sale in mkt");
+        vm.expectRevert("_internalTransferFrom: tokens locked");
         nayms.internalTransfer(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
         vm.stopPrank();
 
@@ -427,7 +427,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("_internalBurn: tokens for sale in mkt");
+        vm.expectRevert("_internalBurn: tokens locked");
         nayms.externalWithdrawFromEntity(entity2, signer2, wethAddress, 500 ether);
 
         uint256 lastOfferId = nayms.getLastOfferId();
@@ -527,7 +527,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt - 10 ether, entity1, dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("tokens locked in market");
+        vm.expectRevert("tokens locked");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         uint256 lastOfferId = nayms.getLastOfferId();
