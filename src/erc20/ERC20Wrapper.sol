@@ -7,8 +7,9 @@ import { IERC20 } from "./IERC20.sol";
 import { INayms } from "../diamonds/nayms/INayms.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
 import { LibConstants } from "../diamonds/nayms/libs/LibConstants.sol";
+import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 
-contract ERC20Wrapper is IERC20 {
+contract ERC20Wrapper is IERC20, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                               ERC20 STORAGE
     //////////////////////////////////////////////////////////////*/
@@ -62,7 +63,7 @@ contract ERC20Wrapper is IERC20 {
         return allowances[owner][spender];
     }
 
-    function transfer(address to, uint256 value) external returns (bool) {
+    function transfer(address to, uint256 value) external nonReentrant returns (bool) {
         bytes32 fromId = LibHelpers._getIdForAddress(msg.sender);
         bytes32 toId = LibHelpers._getIdForAddress(to);
         nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
@@ -79,7 +80,7 @@ contract ERC20Wrapper is IERC20 {
         address from,
         address to,
         uint256 value
-    ) external returns (bool) {
+    ) external nonReentrant returns (bool) {
         if (value == 0) {
             revert();
         }

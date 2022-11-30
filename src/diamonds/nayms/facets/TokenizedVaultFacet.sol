@@ -7,6 +7,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
 /**
  * @title Token Vault
@@ -15,7 +16,7 @@ import { LibEntity } from "../libs/LibEntity.sol";
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
-contract TokenizedVaultFacet is Modifiers {
+contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     /**
      * @notice Gets balance of an account within platform
      * @dev Internal balance for given account
@@ -47,7 +48,7 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
+    ) external nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
@@ -65,7 +66,7 @@ contract TokenizedVaultFacet is Modifiers {
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external assertERC20Wrapper(tokenId) {
+    ) external nonReentrant assertERC20Wrapper(tokenId) {
         LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
