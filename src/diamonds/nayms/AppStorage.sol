@@ -127,7 +127,7 @@ struct AppStorage {
     uint16 premiumCommissionSTMBP;
     // A policy can pay out additional commissions on premiums to entities having a variety of roles on the policy
 
-    mapping(bytes32 => mapping(bytes32 => uint256)) marketLockedBalances; // to keep track of an owner's tokens that are on sale in the marketplace, ownerId => lockedTokenId => amount
+    mapping(bytes32 => mapping(bytes32 => uint256)) lockedBalances; // keep track of token balance that is locked, ownerId => tokenId => lockedAmount
 }
 
 library LibAppStorage {

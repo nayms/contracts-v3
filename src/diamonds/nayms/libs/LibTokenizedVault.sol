@@ -73,8 +73,8 @@ library LibTokenizedVault {
     ) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.marketLockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens for sale in mkt");
+        if (s.lockedBalances[_from][_tokenId] > 0) {
+            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens for sale in mkt");
         } else {
             require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransferFrom: must own the funds");
         }
@@ -147,8 +147,8 @@ library LibTokenizedVault {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.marketLockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens for sale in mkt");
+        if (s.lockedBalances[_from][_tokenId] > 0) {
+            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens for sale in mkt");
         } else {
             require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalBurn: must own the funds");
         }
