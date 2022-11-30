@@ -92,10 +92,14 @@ library LibSimplePolicy {
 
     function releaseFunds(bytes32 _policyId) private {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        bytes32 entityId = LibObject._getParent(_policyId);
+
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
-        Entity storage entity = s.entities[LibObject._getParent(_policyId)];
+        Entity storage entity = s.entities[entityId];
 
         entity.utilizedCapacity -= simplePolicy.limit;
+        s.lockedBalances[entityId][entity.assetId] -= simplePolicy.limit;
+
         simplePolicy.fundsLocked = false;
     }
 }

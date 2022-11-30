@@ -114,11 +114,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
         // fund the entity balance
-        weth.approve(naymsAddress, 10000);
-        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
-        assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(wethAddress, 10000);
-        assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
+        uint256 amount = 11000;
+        weth.approve(naymsAddress, amount);
+        writeTokenBalance(account0, naymsAddress, wethAddress, amount);
+        assertEq(weth.balanceOf(account0), amount);
+        nayms.externalDeposit(wethAddress, amount);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), amount);
     }
 
     function testEnableEntityTokenization() public {
@@ -571,7 +572,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testPayPremiumCommissions() public {
         // Deploy the LibFeeRouterFixture
         LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+
         bytes4[] memory functionSelectors = new bytes4[](5);
         functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
         functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
@@ -580,6 +581,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
 
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
         nayms.diamondCut(cut, address(0), "");
@@ -592,12 +594,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
         (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
 
-        SimplePolicy memory sp = getSimplePolicy(policyId1);
-
         uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
         uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
         uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
 
+        SimplePolicy memory sp = getSimplePolicy(policyId1);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM);

@@ -29,7 +29,7 @@ library LibEntity {
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
-    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy calldata simplePolicy) internal view returns (uint256 updatedUtilizedCapacity) {
+    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy calldata simplePolicy) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
 
@@ -45,7 +45,7 @@ library LibEntity {
         // require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
 
         // Calculate the entity's utilized capacity after it writes this policy.
-        updatedUtilizedCapacity = entity.utilizedCapacity + simplePolicy.limit;
+        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + simplePolicy.limit;
 
         // The entity must have enough capacity available to write this policy.
         // An entity is not able to write an additional policy that will utilize its capacity beyond its assigned max capacity.
@@ -88,9 +88,11 @@ library LibEntity {
 
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
-        // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
-        // Update state with the entity's updated utilized capacity.
-        s.entities[_entityId].utilizedCapacity = _validateSimplePolicyCreation(_entityId, _simplePolicy);
+        _validateSimplePolicyCreation(_entityId, _simplePolicy);
+
+        Entity storage entity = s.entities[_entityId];
+        entity.utilizedCapacity += _simplePolicy.limit;
+        s.lockedBalances[_entityId][entity.assetId] += _simplePolicy.limit;
 
         LibObject._createObject(_policyId, _entityId, _dataHash);
         s.simplePolicies[_policyId] = _simplePolicy;
