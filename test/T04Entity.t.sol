@@ -12,11 +12,7 @@ import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-
 contract T04EntityTest is D03ProtocolDefaults {
-    bytes32 internal wethId;
-
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
 
@@ -28,49 +24,8 @@ contract T04EntityTest is D03ProtocolDefaults {
     address internal account9;
     bytes32 internal account9Id;
 
-    function initPolicy(bytes32 policyId) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        bytes32[] memory roles = new bytes32[](4);
-        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
-        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
-        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
-        roles[3] = LibHelpers._stringToBytes32(LibConstants.ROLE_INSURED_PARTY);
-
-        bytes32[] memory entityIds = new bytes32[](4);
-        entityIds[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
-        entityIds[1] = DEFAULT_BROKER_ENTITY_ID;
-        entityIds[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
-        entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
-
-        bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initSig(0xACC1, policyId);
-        signatures[1] = initSig(0xACC2, policyId);
-        signatures[2] = initSig(0xACC3, policyId);
-        signatures[3] = initSig(0xACC4, policyId);
-
-        policyStakeholders = Stakeholders(roles, entityIds, signatures);
-
-        bytes32[] memory commissionReceivers = new bytes32[](3);
-        commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
-        commissionReceivers[1] = DEFAULT_BROKER_ENTITY_ID;
-        commissionReceivers[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
-
-        uint256[] memory commissions = new uint256[](3);
-        commissions[0] = 10;
-        commissions[1] = 10;
-        commissions[2] = 10;
-
-        policy.startDate = 1000;
-        policy.maturationDate = 10000;
-        policy.asset = wethId;
-        policy.commissionReceivers = commissionReceivers;
-        policy.commissionBasisPoints = commissions;
-        policy.limit = 10000;
-    }
-
     function setUp() public virtual override {
         super.setUp();
-
-        wethId = LibHelpers._getIdForAddress(wethAddress);
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
@@ -98,11 +53,6 @@ contract T04EntityTest is D03ProtocolDefaults {
     function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory simplePolicy) internal {
         (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, simplePolicy));
         require(success, "Should update simple policy in app storage");
-    }
-
-    function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(account, ECDSA.toEthSignedMessageHash(policyId));
-        sig_ = abi.encodePacked(r, s, v);
     }
 
     function getReadyToCreatePolicies() public {

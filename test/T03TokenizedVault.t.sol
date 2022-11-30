@@ -95,6 +95,17 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         return abi.decode(result, (TradingCommissionsConfig));
     }
 
+    function testGetLockedBalance() public {
+        bytes32 entityId = createTestEntity(account0Id);
+
+        // nothing at first
+        assertEq(nayms.getLockedBalance(entityId, entityId), 0);
+
+        // now start token sale to create an offer
+        nayms.startTokenSale(entityId, 100, 100);
+        assertEq(nayms.getLockedBalance(entityId, entityId), 100);
+    }
+
     function testBasisPoints() public {
         TradingCommissionsBasisPoints memory bp = nayms.getTradingCommissionsBasisPoints();
 
@@ -382,7 +393,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         );
 
         uint256 takerBuyAmount = 1e18;
-        console2.log(nayms.getBalanceOfTokensForSale(eAlice, eAlice));
+        console2.log(nayms.getLockedBalance(eAlice, eAlice));
 
         TradingCommissions memory tc = nayms.calculateTradingCommissions(takerBuyAmount);
 

@@ -30,15 +30,4 @@ contract T02UserTest is D03ProtocolDefaults, MockAccounts {
         nayms.setEntity(signer1Id, entityId);
         assertEq(nayms.getEntity(signer1Id), entityId);
     }
-
-    function testGetBalanceOfTokensForSale() public {
-        bytes32 entityId = createTestEntity(account0Id);
-
-        // nothing at first
-        assertEq(nayms.getBalanceOfTokensForSale(entityId, entityId), 0);
-
-        // now start token sale to create an offer
-        nayms.startTokenSale(entityId, 100, 100);
-        assertEq(nayms.getBalanceOfTokensForSale(entityId, entityId), 100);
-    }
 }
