@@ -291,6 +291,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         bytes32 randomGuid = bytes32("0x1");
 
+        address nonAdminAddress = vm.addr(0xACC9);
+        bytes32 nonAdminId = LibHelpers._getIdForAddress(nonAdminAddress);
+        nayms.setEntity(nonAdminId, acc0EntityId);
+
+        vm.startPrank(nonAdminAddress);
+        vm.expectRevert("payDividendFromEntity: not the entity's admin");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+        vm.stopPrank();
+
         vm.expectRevert("payDividendFromEntity: insufficient balance");
         nayms.payDividendFromEntity(randomGuid, 10 ether);
 

@@ -5,6 +5,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
+import { LibACL } from "../libs/LibACL.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
@@ -124,6 +125,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         bytes32 entityId = LibObject._getParent(senderId);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 
+        require(LibACL._isInGroup(senderId, entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "payDividendFromEntity: not the entity's admin");
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 
         LibTokenizedVault._payDividend(guid, entityId, entityId, dividendTokenId, amount);
