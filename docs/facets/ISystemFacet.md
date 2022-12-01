@@ -56,7 +56,7 @@ Get meta of given object.
 ```solidity
   function getObjectMeta(
     bytes32 _id
-  ) external returns (bytes32 parent, bytes32 dataHash, bytes32 tokenSymbol)
+  ) external returns (bytes32 parent, bytes32 dataHash, string tokenSymbol, string tokenName, address tokenWrapper)
 ```
 #### Arguments:
 | Argument | Type | Description |
@@ -69,5 +69,19 @@ Get meta of given object.
 | --- | --- |
 |`parent` | object parent
 |`dataHash` | object data hash
-|`tokenSymbol` | object token symbol|
+|`tokenSymbol` | object token symbol
+|`tokenName` | object token name
+|`tokenWrapper` | object token ERC20 wrapper address|
+<br></br>
+### wrapToken
+Wrap an object token as ERC20
+```solidity
+  function wrapToken(
+    bytes32 _objectId
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_objectId` | bytes32 | ID of the tokenized object|
 <br></br>

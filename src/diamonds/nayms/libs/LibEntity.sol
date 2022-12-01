@@ -24,7 +24,7 @@ library LibEntity {
     event EntityCreated(bytes32 entityId, bytes32 entityAdmin);
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
-    event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId);
+    event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
@@ -123,6 +123,7 @@ library LibEntity {
     ) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
+        require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
@@ -131,7 +132,7 @@ library LibEntity {
 
         (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
 
-        emit TokenSaleStarted(_entityId, offerId);
+        emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
     function _createEntity(

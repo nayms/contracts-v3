@@ -8,6 +8,7 @@ import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
+import { LibEntity } from "./LibEntity.sol";
 
 library LibMarket {
     /// @notice order has been added
@@ -362,11 +363,11 @@ library LibMarket {
     ) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(_entityId != 0 && s.existingEntities[_entityId], "must belong to entity to make an offer");
+        require(_entityId != 0 && LibEntity._isEntity(_entityId), "must belong to entity to make an offer");
 
-        bool sellTokenIsEntity = s.existingEntities[_sellToken];
+        bool sellTokenIsEntity = LibEntity._isEntity(_sellToken);
         bool sellTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
-        bool buyTokenIsEntity = s.existingEntities[_buyToken];
+        bool buyTokenIsEntity = LibEntity._isEntity(_buyToken);
         bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
 
         _assertAmounts(_sellAmount, _buyAmount);

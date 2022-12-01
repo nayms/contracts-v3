@@ -249,3 +249,15 @@ Gets the System context ID.
 | --- | --- |
 |`System` | Identifier|
 <br></br>
+### isObjectTokenizable
+Check if object can be tokenized
+```solidity
+  function isObjectTokenizable(
+    bytes32 _objectId
+  ) external returns (bool)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_objectId` | bytes32 | ID of the object|
+<br></br>
