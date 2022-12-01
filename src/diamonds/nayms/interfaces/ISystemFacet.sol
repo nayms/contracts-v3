@@ -43,6 +43,8 @@ interface ISystemFacet {
      * @return parent object parent
      * @return dataHash object data hash
      * @return tokenSymbol object token symbol
+     * @return tokenName object token name
+     * @return tokenWrapper object token ERC20 wrapper address
      */
     function getObjectMeta(bytes32 _id)
         external
@@ -50,6 +52,14 @@ interface ISystemFacet {
         returns (
             bytes32 parent,
             bytes32 dataHash,
-            bytes32 tokenSymbol
+            string memory tokenSymbol,
+            string memory tokenName,
+            address tokenWrapper
         );
+
+    /**
+     * @notice Wrap an object token as ERC20
+     * @param _objectId ID of the tokenized object
+     */
+    function wrapToken(bytes32 _objectId) external;
 }

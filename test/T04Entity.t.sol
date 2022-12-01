@@ -76,12 +76,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("symbol more than 16 characters");
-        nayms.enableEntityTokenization(entityId1, "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
 
-        nayms.enableEntityTokenization(entityId1, "123456789012345");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
-        vm.expectRevert("object already tokenized");
-        nayms.enableEntityTokenization(entityId1, "123456789012345");
+        vm.expectRevert("tokenization enabled already");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
     }
 
     function testUpdateEntity() public {
@@ -466,6 +466,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createEntity(entityId1, account0Id, entity1, "entity test hash");
 
         assertEq(nayms.getLastOfferId(), 0);
+
+        vm.expectRevert("must be tokenizable");
+        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
+
+        nayms.enableEntityTokenization(entityId1, "e1token", "e1token");
 
         vm.prank(account9);
         vm.expectRevert("not a system manager");

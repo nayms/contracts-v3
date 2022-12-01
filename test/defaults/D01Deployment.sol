@@ -31,15 +31,6 @@ contract D01Deployment is
     function setUp() public virtual override {
         super.setUp();
 
-        console2.log("\n -- D01 Deployment  \n");
-        // string[] memory facetsToCutIn;
-
-        // deployFile = "deployedAddressesTest.json";
-        // vm.startPrank(msg.sender);
-        // (naymsAddress, ) = smartDeployment(true, true, FacetDeploymentAction.DeployAllFacets, facetsToCutIn);
-        // vm.stopPrank();
-        // nayms = INayms(naymsAddress);
-
         // deploy the init contract
         initDiamond = new InitDiamond();
 

@@ -40,14 +40,16 @@ Enable an entity to be tokenized
 ```solidity
   function enableEntityTokenization(
     bytes32 _entityId,
-    string _symbol
+    string _symbol,
+    string _name
   ) external
 ```
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_entityId` | bytes32 | ID of the entity
-|`_symbol` | string | The symbol assigned to the entity token|
+|`_symbol` | string | The symbol assigned to the entity token
+|`_name` | string | The name assigned to the entity token|
 <br></br>
 ### startTokenSale
 Start token sale of `_amount` tokens for total price of `_totalPrice`
@@ -65,6 +67,18 @@ Entity tokens are minted when the sale is started
 |`_entityId` | bytes32 | ID of the entity
 |`_amount` | uint256 | amount of entity tokens to put on sale
 |`_totalPrice` | uint256 | total price of the tokens|
+<br></br>
+### isTokenWrapped
+Check if an entity token is wrapped as ERC20
+```solidity
+  function isTokenWrapped(
+    bytes32 _entityId
+  ) external returns (bool)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_entityId` | bytes32 | ID of the entity|
 <br></br>
 ### updateEntity
 Update entity metadata
