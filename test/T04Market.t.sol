@@ -707,4 +707,51 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector));
     }
+
+    function testNotAbleToTradeWithLockedFunds() public {
+        uint256 salePrice = 100 ether;
+        uint256 saleAmount = 100 ether;
+
+        nayms.addSupportedExternalToken(wethAddress);
+
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+
+        // init test funds to maxint
+        writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
+
+        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR;
+
+        vm.startPrank(signer2);
+        writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
+        nayms.externalDeposit(wethAddress, e2Balance);
+        vm.stopPrank();
+
+        // sell x nENTITY1 for y WETH
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
+        nayms.startTokenSale(entity1, saleAmount, salePrice);
+
+        vm.prank(signer2);
+        nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
+
+        assertOfferFilled(1, entity1, entity1, saleAmount, wethId, salePrice);
+        assertEq(nayms.internalBalanceOf(entity1, wethId), saleAmount, "balance should have INCREASED"); // has 100 weth
+
+        // assign entity admin
+        nayms.assignRole(account0Id, entity1, LibConstants.ROLE_ENTITY_ADMIN);
+        assertTrue(nayms.isInGroup(account0Id, entity1, LibConstants.GROUP_ENTITY_ADMINS));
+
+        assertEq(nayms.getLockedBalance(entity1, wethId), 0, "locked balance should be 0");
+
+        bytes32 policyId1 = "policy1";
+        uint256 policyLimit = 85 ether;
+
+        (Stakeholders memory stakeholders, SimplePolicy memory policy) = initPolicyWithLimit(policyId1, policyLimit);
+        nayms.createSimplePolicy(policyId1, entity1, stakeholders, policy, "test");
+
+        assertEq(nayms.getLockedBalance(entity1, wethId), policyLimit, "locked balance should increase");
+
+        vm.expectRevert("tokens locked");
+        nayms.executeLimitOffer(entity1, salePrice, wethId, saleAmount);
+    }
 }
