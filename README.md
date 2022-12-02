@@ -151,31 +151,17 @@ make deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutI
 
 For development purposes, you can run a node locally using foundry's `anvil`. It's a simple way to bring up a local node exposing a JSON-RPC endpoint at `http://127.0.0.1:8545`. Make sure to start `anvil` in one of your terminal windows and in another one run a make target to deploy the Nayms' contracts to it.
 
-Run the local node seeding it with Nayms' shared wallet:
+Following commands are provided for working with `anvil`, to make it more convenient:
 
-```zsh
-make anvil
-```
+| Command | Description |
+| ----------- | ----------- |
+| `make anvil` | Run the local node seeding it with Nayms' shared wallet |
+| `make anvil-debug` | Run Anvil in debug mode to get verbose log output |
+| `make anvil-deploy` | Do a full deployment of Nayms' contracts to local node |
+| `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
+| `make anvil-gtoken` | Deploy `GToken` to local node |
 
-You can also run it in debug mode to get verbose log output:
-
-```zsh
-make anvil-debug
-```
-
-To do a full deployment run the following command:
-
-```zsh
-make anvil-deploy newDiamond=true initNewDiamond=true facetAction=0
-```
-
-You will most likelly need to deploy a dummy ERC20 token for testing purposes. You can do that by running:
-
-```zsh
-make anvil-gtoken
-```
-
-> :warning: Anvil state is not preserved between restarts. Everytime you bring it up, it starts fresh. You need to do the deployment and setup all over again!
+> :warning: Anvil state is kept in `anvil.json` file in project root. If this file is not present, node starts fresh and creates this file. In wich case you need to do the deployment and setup.
 
 ## Development Flow
 
