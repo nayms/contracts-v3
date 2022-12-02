@@ -33,6 +33,8 @@ make update
 
 ### Generate Interfaces
 
+This step is optional, it updates the interfaces to match the facet implementations. Normally you will not need to run it. It is more to be used during development to ensure the interfaces and their respective implementations are aligned. Be aware that when running this target, natspec documentation in the interfaces gets wiped, and it is needed there for the generated markdown files. After running this task take care and ensure the docs are up to date.
+
 ```zsh
 make gen-i
 ```
@@ -161,7 +163,7 @@ Following commands are provided for working with `anvil`, to make it more conven
 | `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
 | `make anvil-gtoken` | Deploy `GToken` to local node |
 
-> :warning: Anvil state is kept in `anvil.json` file in project root. If this file is not present, node starts fresh and creates this file. In wich case you need to do the deployment and setup.
+> :warning: Anvil state is kept in `anvil.json` file in project root. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
 
 ## Development Flow
 
