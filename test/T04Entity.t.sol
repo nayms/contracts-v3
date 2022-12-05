@@ -134,6 +134,21 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         uint256 expectedLockedBalance = (simplePolicy.limit * 5000) / LibConstants.BP_FACTOR;
         assertEq(nayms.getLockedBalance(entityId1, wethId), expectedLockedBalance, "funds SHOULD BE locked");
+
+        Entity memory entity1 = nayms.getEntityInfo(entityId1);
+        assertEq(entity1.utilizedCapacity, (simplePolicy.limit * 5000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+
+        entity1.collateralRatio = 7_000;
+        nayms.updateEntity(entityId1, entity1);
+        assertEq(nayms.getLockedBalance(entityId1, wethId), (simplePolicy.limit * 7000) / LibConstants.BP_FACTOR, "locked balance SHOULD increase");
+
+        Entity memory entity1AfterUpdate = nayms.getEntityInfo(entityId1);
+        assertEq(entity1AfterUpdate.utilizedCapacity, (simplePolicy.limit * 7000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+
+        nayms.cancelSimplePolicy(policyId1);
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "locked balance SHOULD ne released");
+        Entity memory entity1After2ndUpdate = nayms.getEntityInfo(entityId1);
+        assertEq(entity1After2ndUpdate.utilizedCapacity, 0, "utilized capacity should increase");
     }
 
     function testUpdateAllowSimplePolicy() public {
