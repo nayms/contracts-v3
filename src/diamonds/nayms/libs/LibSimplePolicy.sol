@@ -97,8 +97,9 @@ library LibSimplePolicy {
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         Entity storage entity = s.entities[entityId];
 
-        entity.utilizedCapacity -= simplePolicy.limit;
-        s.lockedBalances[entityId][entity.assetId] -= simplePolicy.limit;
+        uint256 policyLockedAmount = (simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        entity.utilizedCapacity -= policyLockedAmount;
+        s.lockedBalances[entityId][entity.assetId] -= policyLockedAmount;
 
         simplePolicy.fundsLocked = false;
     }

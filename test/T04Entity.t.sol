@@ -57,14 +57,14 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function getReadyToCreatePolicies() public {
         // create entity
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 30000, 0, true), "test entity");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test entity");
 
         // assign entity admin
         nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
         // fund the entity balance
-        uint256 amount = 11000;
+        uint256 amount = 21000;
         weth.approve(naymsAddress, amount);
         writeTokenBalance(account0, naymsAddress, wethAddress, amount);
         assertEq(weth.balanceOf(account0), amount);
@@ -73,7 +73,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testEnableEntityTokenization() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("symbol more than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
@@ -127,6 +127,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(id, entityId1);
     }
 
+    function testUpdateCellCollateralRatio() public {
+        getReadyToCreatePolicies();
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS shoud be locked");
+
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        uint256 expectedLockedBalance = (simplePolicy.limit * 5000) / LibConstants.BP_FACTOR;
+        assertEq(nayms.getLockedBalance(entityId1, wethId), expectedLockedBalance, "funds SHOULD BE locked");
+    }
+
     function testUpdateAllowSimplePolicy() public {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, false), "entity test hash");
 
@@ -142,7 +151,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testCreateSimplePolicyValidation() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false), "entity test hash");
 
         // enable simple policy creation
         vm.expectRevert("simple policy creation disabled");
@@ -278,14 +287,14 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // check utilized capacity of entity
         Entity memory e = nayms.getEntityInfo(entityId1);
-        assertEq(e.utilizedCapacity, 10000, "utilized capacity");
+        assertEq(e.utilizedCapacity, (10_000 * e.collateralRatio) / LibConstants.BP_FACTOR, "utilized capacity");
 
         bytes32 policyId2 = "0xC0FFEF";
         (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(policyId2);
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, "policy2");
 
         e = nayms.getEntityInfo(entityId1);
-        assertEq(e.utilizedCapacity, 20000, "utilized capacity");
+        assertEq(e.utilizedCapacity, (20_000 * e.collateralRatio) / LibConstants.BP_FACTOR, "utilized capacity");
     }
 
     function testCreateSimplePolicyFundsAreLockedInitially() public {
@@ -521,7 +530,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         nayms.checkAndUpdateSimplePolicyState(policyId1);
         Entity memory entityAfter2 = nayms.getEntityInfo(entityId1);
-        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter2.utilizedCapacity, "utilized capacity should increase");
+        uint256 expectedutilizedCapacity = utilizedCapacityBefore - (simplePolicy.limit * entityAfter2.collateralRatio) / LibConstants.BP_FACTOR;
+        assertEq(expectedutilizedCapacity, entityAfter2.utilizedCapacity, "utilized capacity should increase");
     }
 
     function testPayPremiumCommissions() public {
@@ -569,7 +579,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.cancelSimplePolicy(policyId1);
 
         Entity memory entityAfter = nayms.getEntityInfo(entityId1);
-        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter.utilizedCapacity, "utilized capacity should change");
+        assertEq(
+            utilizedCapacityBefore - ((simplePolicy.limit * entityAfter.collateralRatio) / LibConstants.BP_FACTOR),
+            entityAfter.utilizedCapacity,
+            "utilized capacity should change"
+        );
 
         SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.cancelled, true, "Simple policy should be cancelled");

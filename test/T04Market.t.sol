@@ -749,7 +749,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         (Stakeholders memory stakeholders, SimplePolicy memory policy) = initPolicyWithLimit(policyId1, policyLimit);
         nayms.createSimplePolicy(policyId1, entity1, stakeholders, policy, "test");
 
-        assertEq(nayms.getLockedBalance(entity1, wethId), policyLimit, "locked balance should increase");
+        assertEq(nayms.getLockedBalance(entity1, wethId), (policyLimit * collateralRatio_500) / LibConstants.BP_FACTOR, "locked balance should increase");
 
         vm.expectRevert("tokens locked");
         nayms.executeLimitOffer(entity1, salePrice, wethId, saleAmount);
