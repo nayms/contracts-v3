@@ -25,6 +25,7 @@ library LibEntity {
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
+    event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
@@ -176,6 +177,8 @@ library LibEntity {
             s.entities[_entityId].utilizedCapacity = (oldUtilizedCapacity * _entity.collateralRatio) / oldCollateralRatio;
             // lock updated utilized capacity
             s.lockedBalances[_entityId][_entity.assetId] += s.entities[_entityId].utilizedCapacity;
+
+            emit CollateralRatioUpdated(_entityId, _entity.collateralRatio, s.entities[_entityId].utilizedCapacity);
         }
 
         emit EntityUpdated(_entityId);

@@ -138,9 +138,20 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory entity1 = nayms.getEntityInfo(entityId1);
         assertEq(entity1.utilizedCapacity, (simplePolicy.limit * 5000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
 
+        vm.recordLogs();
+
         entity1.collateralRatio = 7_000;
         nayms.updateEntity(entityId1, entity1);
-        assertEq(nayms.getLockedBalance(entityId1, wethId), (simplePolicy.limit * 7000) / LibConstants.BP_FACTOR, "locked balance SHOULD increase");
+        assertEq(nayms.getLockedBalance(entityId1, wethId), (simplePolicy.limit * 7_000) / LibConstants.BP_FACTOR, "locked balance SHOULD increase");
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2, "CollateralRatioUpdated: topics length incorrect");
+        assertEq(entries[0].topics[0], keccak256("CollateralRatioUpdated(bytes32,uint256,uint256)"), "CollateralRatioUpdated: Invalid event signature");
+        assertEq(entries[0].topics[1], entityId1, "CollateralRatioUpdated: incorrect entityID");
+        (uint256 newCollateralRatio, uint256 newUtilisedCapacity) = abi.decode(entries[0].data, (uint256, uint256));
+        assertEq(newCollateralRatio, 7_000, "CollateralRatioUpdated: invalid collateral ratio");
+        assertEq(newUtilisedCapacity, (simplePolicy.limit * 7_000) / LibConstants.BP_FACTOR, "CollateralRatioUpdated: invalid utilised capacity");
 
         Entity memory entity1AfterUpdate = nayms.getEntityInfo(entityId1);
         assertEq(entity1AfterUpdate.utilizedCapacity, (simplePolicy.limit * 7000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
