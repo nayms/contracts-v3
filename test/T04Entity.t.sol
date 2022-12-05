@@ -121,9 +121,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.recordLogs();
         nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false));
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
-        bytes32 id = abi.decode(entries[0].data, (bytes32));
+        assertEq(entries[1].topics.length, 1);
+        assertEq(entries[1].topics[0], keccak256("EntityUpdated(bytes32)"));
+        bytes32 id = abi.decode(entries[1].data, (bytes32));
         assertEq(id, entityId1);
     }
 
