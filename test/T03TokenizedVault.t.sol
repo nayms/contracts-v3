@@ -108,8 +108,21 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         address token,
         uint256 amount
     ) internal {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tokenizedVaultFixture.externalDepositDirect.selector, to, token, amount));
+        (bool success, ) = address(nayms).call(abi.encodeWithSelector(tokenizedVaultFixture.externalDepositDirect.selector, to, token, amount));
         require(success, "Should get commissions from app storage");
+    }
+
+    function testGetLockedBalance() public {
+        bytes32 entityId = createTestEntity(account0Id);
+
+        // nothing at first
+        assertEq(nayms.getLockedBalance(entityId, entityId), 0);
+
+        // now start token sale to create an offer
+        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token");
+        nayms.startTokenSale(entityId, 100, 100);
+
+        assertEq(nayms.getLockedBalance(entityId, entityId), 100);
     }
 
     function testBasisPoints() public {
@@ -278,6 +291,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         bytes32 randomGuid = bytes32("0x1");
 
+        address nonAdminAddress = vm.addr(0xACC9);
+        bytes32 nonAdminId = LibHelpers._getIdForAddress(nonAdminAddress);
+        nayms.setEntity(nonAdminId, acc0EntityId);
+
+        vm.startPrank(nonAdminAddress);
+        vm.expectRevert("payDividendFromEntity: not the entity's admin");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+        vm.stopPrank();
+
         vm.expectRevert("payDividendFromEntity: insufficient balance");
         nayms.payDividendFromEntity(randomGuid, 10 ether);
 
@@ -409,7 +431,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         );
 
         uint256 takerBuyAmount = 1e18;
-        console2.log(nayms.getBalanceOfTokensForSale(eAlice, eAlice));
+        console2.log(nayms.getLockedBalance(eAlice, eAlice));
 
         TradingCommissions memory tc = nayms.calculateTradingCommissions(takerBuyAmount);
 

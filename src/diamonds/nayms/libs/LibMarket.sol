@@ -250,7 +250,7 @@ library LibMarket {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
 
             // lock tokens!
-            s.marketLockedBalances[_creator][_sellToken] += _sellAmount;
+            s.lockedBalances[_creator][_sellToken] += _sellAmount;
         }
 
         s.offers[lastOfferId] = marketInfo;
@@ -283,7 +283,7 @@ library LibMarket {
             }
         }
 
-        s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
+        s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 
         LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
         LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _sellAmount);
@@ -336,7 +336,7 @@ library LibMarket {
         // unlock the remaining sell amount back to creator
         if (marketInfo.sellAmount > 0) {
             // note nothing is transferred since tokens for sale are UN-escrowed. Just unlock!
-            s.marketLockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
+            s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
         }
 
         // don't emit event stating market order is canceled if the market order was executed and fulfilled
@@ -379,7 +379,7 @@ library LibMarket {
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
-        require(s.tokenBalances[_sellToken][_entityId] - s.marketLockedBalances[_entityId][_sellToken] >= _sellAmount, "tokens locked in market");
+        require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "tokens locked");
 
         // must have a valid fee schedule
         require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
@@ -437,10 +437,5 @@ library LibMarket {
     function _isActiveOffer(uint256 _offerId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
-    }
-
-    function _getBalanceOfTokensForSale(bytes32 _entityId, bytes32 _tokenId) internal view returns (uint256 amount) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.marketLockedBalances[_entityId][_tokenId];
     }
 }

@@ -12,11 +12,7 @@ import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-
 contract T04EntityTest is D03ProtocolDefaults {
-    bytes32 internal wethId;
-
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
 
@@ -28,49 +24,8 @@ contract T04EntityTest is D03ProtocolDefaults {
     address internal account9;
     bytes32 internal account9Id;
 
-    function initPolicy(bytes32 policyId) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        bytes32[] memory roles = new bytes32[](4);
-        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
-        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
-        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
-        roles[3] = LibHelpers._stringToBytes32(LibConstants.ROLE_INSURED_PARTY);
-
-        bytes32[] memory entityIds = new bytes32[](4);
-        entityIds[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
-        entityIds[1] = DEFAULT_BROKER_ENTITY_ID;
-        entityIds[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
-        entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
-
-        bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initSig(0xACC1, policyId);
-        signatures[1] = initSig(0xACC2, policyId);
-        signatures[2] = initSig(0xACC3, policyId);
-        signatures[3] = initSig(0xACC4, policyId);
-
-        policyStakeholders = Stakeholders(roles, entityIds, signatures);
-
-        bytes32[] memory commissionReceivers = new bytes32[](3);
-        commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
-        commissionReceivers[1] = DEFAULT_BROKER_ENTITY_ID;
-        commissionReceivers[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
-
-        uint256[] memory commissions = new uint256[](3);
-        commissions[0] = 10;
-        commissions[1] = 10;
-        commissions[2] = 10;
-
-        policy.startDate = 1000;
-        policy.maturationDate = 10000;
-        policy.asset = wethId;
-        policy.commissionReceivers = commissionReceivers;
-        policy.commissionBasisPoints = commissions;
-        policy.limit = 10000;
-    }
-
     function setUp() public virtual override {
         super.setUp();
-
-        wethId = LibHelpers._getIdForAddress(wethAddress);
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
@@ -100,29 +55,25 @@ contract T04EntityTest is D03ProtocolDefaults {
         require(success, "Should update simple policy in app storage");
     }
 
-    function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(account, ECDSA.toEthSignedMessageHash(policyId));
-        sig_ = abi.encodePacked(r, s, v);
-    }
-
     function getReadyToCreatePolicies() public {
         // create entity
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 30000, 0, true), "test entity");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test entity");
 
         // assign entity admin
         nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
         // fund the entity balance
-        weth.approve(naymsAddress, 10000);
-        writeTokenBalance(account0, naymsAddress, wethAddress, 10000);
-        assertEq(weth.balanceOf(account0), 10000);
-        nayms.externalDeposit(wethAddress, 10000);
-        assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
+        uint256 amount = 21000;
+        weth.approve(naymsAddress, amount);
+        writeTokenBalance(account0, naymsAddress, wethAddress, amount);
+        assertEq(weth.balanceOf(account0), amount);
+        nayms.externalDeposit(wethAddress, amount);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), amount);
     }
 
     function testEnableEntityTokenization() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, false), "entity test hash");
 
         vm.expectRevert("symbol more than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
@@ -170,10 +121,58 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.recordLogs();
         nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false));
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
-        bytes32 id = abi.decode(entries[0].data, (bytes32));
+        assertEq(entries[1].topics.length, 1);
+        assertEq(entries[1].topics[0], keccak256("EntityUpdated(bytes32)"));
+        bytes32 id = abi.decode(entries[1].data, (bytes32));
         assertEq(id, entityId1);
+    }
+
+    function testUpdateCellCollateralRatio() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test entity");
+        nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        // fund the entity balance
+        uint256 amount = 5_000;
+        weth.approve(naymsAddress, amount);
+        writeTokenBalance(account0, naymsAddress, wethAddress, amount);
+        nayms.externalDeposit(wethAddress, amount);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), amount);
+
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS shoud be locked");
+
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        uint256 expectedLockedBalance = (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR;
+        assertEq(nayms.getLockedBalance(entityId1, wethId), expectedLockedBalance, "funds SHOULD BE locked");
+
+        Entity memory entity1 = nayms.getEntityInfo(entityId1);
+        assertEq(entity1.utilizedCapacity, (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+
+        entity1.collateralRatio = 7_000;
+        vm.expectRevert("collateral ratio invalid, not enough balance");
+        nayms.updateEntity(entityId1, entity1);
+
+        vm.recordLogs();
+
+        entity1.collateralRatio = 4_000;
+        nayms.updateEntity(entityId1, entity1);
+        assertEq(nayms.getLockedBalance(entityId1, wethId), (simplePolicy.limit * 4_000) / LibConstants.BP_FACTOR, "locked balance SHOULD decrease");
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2, "CollateralRatioUpdated: topics length incorrect");
+        assertEq(entries[0].topics[0], keccak256("CollateralRatioUpdated(bytes32,uint256,uint256)"), "CollateralRatioUpdated: Invalid event signature");
+        assertEq(entries[0].topics[1], entityId1, "CollateralRatioUpdated: incorrect entityID");
+        (uint256 newCollateralRatio, uint256 newUtilisedCapacity) = abi.decode(entries[0].data, (uint256, uint256));
+        assertEq(newCollateralRatio, 4_000, "CollateralRatioUpdated: invalid collateral ratio");
+        assertEq(newUtilisedCapacity, (simplePolicy.limit * 4_000) / LibConstants.BP_FACTOR, "CollateralRatioUpdated: invalid utilised capacity");
+
+        Entity memory entity1AfterUpdate = nayms.getEntityInfo(entityId1);
+        assertEq(entity1AfterUpdate.utilizedCapacity, (simplePolicy.limit * 4_000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+
+        nayms.cancelSimplePolicy(policyId1);
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "locked balance SHOULD be released");
+        Entity memory entity1After2ndUpdate = nayms.getEntityInfo(entityId1);
+        assertEq(entity1After2ndUpdate.utilizedCapacity, 0, "utilized capacity should increase");
     }
 
     function testUpdateAllowSimplePolicy() public {
@@ -191,7 +190,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testCreateSimplePolicyValidation() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false), "entity test hash");
 
         // enable simple policy creation
         vm.expectRevert("simple policy creation disabled");
@@ -327,14 +326,14 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // check utilized capacity of entity
         Entity memory e = nayms.getEntityInfo(entityId1);
-        assertEq(e.utilizedCapacity, 10000, "utilized capacity");
+        assertEq(e.utilizedCapacity, (10_000 * e.collateralRatio) / LibConstants.BP_FACTOR, "utilized capacity");
 
         bytes32 policyId2 = "0xC0FFEF";
         (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(policyId2);
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, "policy2");
 
         e = nayms.getEntityInfo(entityId1);
-        assertEq(e.utilizedCapacity, 20000, "utilized capacity");
+        assertEq(e.utilizedCapacity, (20_000 * e.collateralRatio) / LibConstants.BP_FACTOR, "utilized capacity");
     }
 
     function testCreateSimplePolicyFundsAreLockedInitially() public {
@@ -570,13 +569,14 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         nayms.checkAndUpdateSimplePolicyState(policyId1);
         Entity memory entityAfter2 = nayms.getEntityInfo(entityId1);
-        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter2.utilizedCapacity, "utilized capacity should increase");
+        uint256 expectedutilizedCapacity = utilizedCapacityBefore - (simplePolicy.limit * entityAfter2.collateralRatio) / LibConstants.BP_FACTOR;
+        assertEq(expectedutilizedCapacity, entityAfter2.utilizedCapacity, "utilized capacity should increase");
     }
 
     function testPayPremiumCommissions() public {
         // Deploy the LibFeeRouterFixture
         LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+
         bytes4[] memory functionSelectors = new bytes4[](5);
         functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
         functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
@@ -585,6 +585,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
 
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
         nayms.diamondCut(cut, address(0), "");
@@ -597,12 +598,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
         (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
 
-        SimplePolicy memory sp = getSimplePolicy(policyId1);
-
         uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
         uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
         uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
 
+        SimplePolicy memory sp = getSimplePolicy(policyId1);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF);
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM);
@@ -618,7 +618,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.cancelSimplePolicy(policyId1);
 
         Entity memory entityAfter = nayms.getEntityInfo(entityId1);
-        assertEq(utilizedCapacityBefore - simplePolicy.limit, entityAfter.utilizedCapacity, "utilized capacity should change");
+        assertEq(
+            utilizedCapacityBefore - ((simplePolicy.limit * entityAfter.collateralRatio) / LibConstants.BP_FACTOR),
+            entityAfter.utilizedCapacity,
+            "utilized capacity should change"
+        );
 
         SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.cancelled, true, "Simple policy should be cancelled");

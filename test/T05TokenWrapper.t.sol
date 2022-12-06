@@ -9,7 +9,6 @@ import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
-    bytes32 internal wethId;
     bytes32 internal entityId1 = "0xe1";
 
     string internal testSymbol = "E1";
@@ -21,8 +20,6 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     function setUp() public virtual override {
         super.setUp();
-
-        wethId = LibHelpers._getIdForAddress(wethAddress);
     }
 
     function testOnlyDiamondCanWrapTokens() public {

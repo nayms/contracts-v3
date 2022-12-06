@@ -3,12 +3,13 @@ pragma solidity >=0.8.13;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
-
 contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(address(this));
     bytes32 public naymsTokenId;
@@ -104,5 +105,53 @@ contract D03ProtocolDefaults is D02TestSetup {
         e.maxCapacity = _maxCapacity;
         e.utilizedCapacity = _utilizedCapacity;
         e.simplePolicyEnabled = _simplePolicyEnabled;
+    }
+
+    function initPolicy(bytes32 policyId) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        return initPolicyWithLimit(policyId, 10_000);
+    }
+
+    function initPolicyWithLimit(bytes32 policyId, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        bytes32[] memory roles = new bytes32[](4);
+        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
+        roles[3] = LibHelpers._stringToBytes32(LibConstants.ROLE_INSURED_PARTY);
+
+        bytes32[] memory entityIds = new bytes32[](4);
+        entityIds[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
+        entityIds[1] = DEFAULT_BROKER_ENTITY_ID;
+        entityIds[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
+        entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
+
+        bytes[] memory signatures = new bytes[](4);
+        signatures[0] = initSig(0xACC1, policyId);
+        signatures[1] = initSig(0xACC2, policyId);
+        signatures[2] = initSig(0xACC3, policyId);
+        signatures[3] = initSig(0xACC4, policyId);
+
+        policyStakeholders = Stakeholders(roles, entityIds, signatures);
+
+        bytes32[] memory commissionReceivers = new bytes32[](3);
+        commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
+        commissionReceivers[1] = DEFAULT_BROKER_ENTITY_ID;
+        commissionReceivers[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
+
+        uint256[] memory commissions = new uint256[](3);
+        commissions[0] = 10;
+        commissions[1] = 10;
+        commissions[2] = 10;
+
+        policy.startDate = 1000;
+        policy.maturationDate = 10000;
+        policy.asset = wethId;
+        policy.commissionReceivers = commissionReceivers;
+        policy.commissionBasisPoints = commissions;
+        policy.limit = limitAmount;
+    }
+
+    function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(account, ECDSA.toEthSignedMessageHash(policyId));
+        sig_ = abi.encodePacked(r, s, v);
     }
 }
