@@ -5,6 +5,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
+import { LibACL } from "../libs/LibACL.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
@@ -106,9 +107,22 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 
-        require(LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "not the entity's admin");
+        require(
+            LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)),
+            "payDividendFromEntity: not the entity's admin"
+        );
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 
         LibTokenizedVault._payDividend(guid, entityId, entityId, dividendTokenId, amount);
+    }
+
+    /**
+     * @notice Get the amount of tokens that an entity has for sale in the marketplace.
+     * @param _entityId  Unique platform ID of the entity.
+     * @param _tokenId The ID assigned to an external token.
+     * @return amount of tokens that the entity has for sale in the marketplace.
+     */
+    function getLockedBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount) {
+        amount = LibTokenizedVault._getLockedBalance(_entityId, _tokenId);
     }
 }

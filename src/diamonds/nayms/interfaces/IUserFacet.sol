@@ -38,12 +38,4 @@ interface IUserFacet {
      * @return entityId Unique platform ID of the entity
      */
     function getEntity(bytes32 _userId) external view returns (bytes32 entityId);
-
-    /**
-     * @notice Get the amount of tokens that an entity has for sale in the marketplace.
-     * @param _entityId  Unique platform ID of the entity.
-     * @param _tokenId The ID assigned to an external token.
-     * @return amount of tokens that the entity has for sale in the marketplace.
-     */
-    function getBalanceOfTokensForSale(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount);
 }

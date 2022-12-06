@@ -72,4 +72,12 @@ interface ITokenizedVaultFacet {
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
     function payDividendFromEntity(bytes32 guid, uint256 amount) external;
+
+    /**
+     * @notice Get the amount of tokens that an entity has for sale in the marketplace.
+     * @param _entityId  Unique platform ID of the entity.
+     * @param _tokenId The ID assigned to an external token.
+     * @return amount of tokens that the entity has for sale in the marketplace.
+     */
+    function getLockedBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount);
 }

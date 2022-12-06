@@ -96,6 +96,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         return abi.decode(result, (TradingCommissionsConfig));
     }
 
+    function testGetLockedBalance() public {
+        bytes32 entityId = createTestEntity(account0Id);
+
+        // nothing at first
+        assertEq(nayms.getLockedBalance(entityId, entityId), 0);
+
+        // now start token sale to create an offer
+        nayms.enableEntityTokenization(entityId, "Entity1");
+        nayms.startTokenSale(entityId, 100, 100);
+
+        assertEq(nayms.getLockedBalance(entityId, entityId), 100);
+    }
+
     function testBasisPoints() public {
         TradingCommissionsBasisPoints memory bp = nayms.getTradingCommissionsBasisPoints();
 
@@ -252,7 +265,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 1 ether);
         vm.prank(account9);
-        vm.expectRevert("not the entity's admin");
+        vm.expectRevert("payDividendFromEntity: not the entity's admin");
         nayms.payDividendFromEntity(bytes32("0x1"), 1 ether);
     }
 
@@ -274,6 +287,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalTokenSupply(acc0EntityId), 0, "Testing when the participation token supply is 0, but par token supply is NOT 0");
 
         bytes32 randomGuid = bytes32("0x1");
+
+        address nonAdminAddress = vm.addr(0xACC9);
+        bytes32 nonAdminId = LibHelpers._getIdForAddress(nonAdminAddress);
+        nayms.setEntity(nonAdminId, acc0EntityId);
+
+        vm.startPrank(nonAdminAddress);
+        vm.expectRevert("payDividendFromEntity: not the entity's admin");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+        vm.stopPrank();
+
+        vm.expectRevert("payDividendFromEntity: insufficient balance");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+
         nayms.payDividendFromEntity(randomGuid, 1 ether);
         // note: When the participation token supply is 0, payDividend() should transfer the payout directly to the payee
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (transfer)");
@@ -401,7 +427,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         );
 
         uint256 takerBuyAmount = 1e18;
-        console2.log(nayms.getBalanceOfTokensForSale(eAlice, eAlice));
+        console2.log(nayms.getLockedBalance(eAlice, eAlice));
 
         TradingCommissions memory tc = nayms.calculateTradingCommissions(takerBuyAmount);
 
