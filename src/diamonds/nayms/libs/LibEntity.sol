@@ -162,6 +162,7 @@ library LibEntity {
 
     function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         validateEntity(_entity);
 
         uint256 oldCollateralRatio = s.entities[_entityId].collateralRatio;
@@ -171,12 +172,13 @@ library LibEntity {
 
         // if it's a cell, and collateral ratio changed
         if (_entity.assetId != 0 && _entity.collateralRatio != oldCollateralRatio) {
-            // unlock current utilized capacity
-            s.lockedBalances[_entityId][_entity.assetId] -= oldUtilizedCapacity;
-            // recalculate utilized capacity
-            s.entities[_entityId].utilizedCapacity = (oldUtilizedCapacity * _entity.collateralRatio) / oldCollateralRatio;
-            // lock updated utilized capacity
-            s.lockedBalances[_entityId][_entity.assetId] += s.entities[_entityId].utilizedCapacity;
+            uint256 newUtilizedCapacity = (oldUtilizedCapacity * _entity.collateralRatio) / oldCollateralRatio;
+            uint256 newLockedBalance = s.lockedBalances[_entityId][_entity.assetId] - oldUtilizedCapacity + newUtilizedCapacity;
+
+            require(LibTokenizedVault._internalBalanceOf(_entityId, _entity.assetId) >= newLockedBalance, "collateral ratio invalid, not enough balance");
+
+            s.entities[_entityId].utilizedCapacity = newUtilizedCapacity;
+            s.lockedBalances[_entityId][_entity.assetId] = newLockedBalance;
 
             emit CollateralRatioUpdated(_entityId, _entity.collateralRatio, s.entities[_entityId].utilizedCapacity);
         }

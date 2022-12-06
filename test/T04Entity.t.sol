@@ -128,21 +128,34 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateCellCollateralRatio() public {
-        getReadyToCreatePolicies();
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test entity");
+        nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        // fund the entity balance
+        uint256 amount = 5_000;
+        weth.approve(naymsAddress, amount);
+        writeTokenBalance(account0, naymsAddress, wethAddress, amount);
+        nayms.externalDeposit(wethAddress, amount);
+        assertEq(nayms.internalBalanceOf(entityId1, wethId), amount);
+
         assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS shoud be locked");
 
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
-        uint256 expectedLockedBalance = (simplePolicy.limit * 5000) / LibConstants.BP_FACTOR;
+        uint256 expectedLockedBalance = (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR;
         assertEq(nayms.getLockedBalance(entityId1, wethId), expectedLockedBalance, "funds SHOULD BE locked");
 
         Entity memory entity1 = nayms.getEntityInfo(entityId1);
-        assertEq(entity1.utilizedCapacity, (simplePolicy.limit * 5000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+        assertEq(entity1.utilizedCapacity, (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+
+        entity1.collateralRatio = 7_000;
+        vm.expectRevert("collateral ratio invalid, not enough balance");
+        nayms.updateEntity(entityId1, entity1);
 
         vm.recordLogs();
 
-        entity1.collateralRatio = 7_000;
+        entity1.collateralRatio = 4_000;
         nayms.updateEntity(entityId1, entity1);
-        assertEq(nayms.getLockedBalance(entityId1, wethId), (simplePolicy.limit * 7_000) / LibConstants.BP_FACTOR, "locked balance SHOULD increase");
+        assertEq(nayms.getLockedBalance(entityId1, wethId), (simplePolicy.limit * 4_000) / LibConstants.BP_FACTOR, "locked balance SHOULD decrease");
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
@@ -150,14 +163,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(entries[0].topics[0], keccak256("CollateralRatioUpdated(bytes32,uint256,uint256)"), "CollateralRatioUpdated: Invalid event signature");
         assertEq(entries[0].topics[1], entityId1, "CollateralRatioUpdated: incorrect entityID");
         (uint256 newCollateralRatio, uint256 newUtilisedCapacity) = abi.decode(entries[0].data, (uint256, uint256));
-        assertEq(newCollateralRatio, 7_000, "CollateralRatioUpdated: invalid collateral ratio");
-        assertEq(newUtilisedCapacity, (simplePolicy.limit * 7_000) / LibConstants.BP_FACTOR, "CollateralRatioUpdated: invalid utilised capacity");
+        assertEq(newCollateralRatio, 4_000, "CollateralRatioUpdated: invalid collateral ratio");
+        assertEq(newUtilisedCapacity, (simplePolicy.limit * 4_000) / LibConstants.BP_FACTOR, "CollateralRatioUpdated: invalid utilised capacity");
 
         Entity memory entity1AfterUpdate = nayms.getEntityInfo(entityId1);
-        assertEq(entity1AfterUpdate.utilizedCapacity, (simplePolicy.limit * 7000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
+        assertEq(entity1AfterUpdate.utilizedCapacity, (simplePolicy.limit * 4_000) / LibConstants.BP_FACTOR, "utilized capacity should increase");
 
         nayms.cancelSimplePolicy(policyId1);
-        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "locked balance SHOULD ne released");
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "locked balance SHOULD be released");
         Entity memory entity1After2ndUpdate = nayms.getEntityInfo(entityId1);
         assertEq(entity1After2ndUpdate.utilizedCapacity, 0, "utilized capacity should increase");
     }
