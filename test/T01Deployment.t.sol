@@ -7,7 +7,7 @@ import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defau
 
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
-
+import { DiamondAlreadyInitialized } from "src/diamonds/nayms/InitDiamond.sol";
 import { CREATE3 } from "solmate/utils/CREATE3.sol";
 
 contract T01DeploymentTest is D03ProtocolDefaults {
@@ -101,5 +101,13 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertEq(fixture.getMaxDiscount(), 10);
         assertEq(fixture.getPoolFee(), 3000);
         assertEq(fixture.getMaxDividendDenominations(), 1);
+    }
+
+    function testCallInitDiamondTwice() public {
+        // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
+        INayms.FacetCut[] memory cut;
+
+        vm.expectRevert(abi.encodePacked(DiamondAlreadyInitialized.selector));
+        nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
     }
 }

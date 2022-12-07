@@ -6,6 +6,8 @@ pragma solidity >=0.8.13;
 import "./interfaces/FreeStructs.sol";
 
 struct AppStorage {
+    // Has this diamond been initialized?
+    bool diamondInitialized;
     //// NAYMS ERC20 TOKEN ////
     mapping(address => uint256) nonces; //is this used?
     mapping(address => mapping(address => uint256)) allowance;

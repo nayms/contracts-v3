@@ -1,19 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage } from "./AppStorage.sol";
+import { AppStorage, LibAppStorage } from "./AppStorage.sol";
 import { LibObject } from "./libs/LibObject.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
 import { LibConstants } from "./libs/LibConstants.sol";
 import { LibAdmin } from "./libs/LibAdmin.sol";
 import { LibACL } from "./libs/LibACL.sol";
 
-contract InitDiamond {
-    AppStorage internal s;
+error DiamondAlreadyInitialized();
 
+contract InitDiamond {
     event InitializeDiamond(address sender, bytes32 systemManager);
 
     function initialize() external {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (s.diamondInitialized == true) {
+            revert DiamondAlreadyInitialized();
+        }
+
         // Initial total supply of NAYM
         s.totalSupply = 1_000_000_000e18;
         s.balances[msg.sender] = s.totalSupply;
@@ -79,6 +84,8 @@ contract InitDiamond {
         s.discountToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2; //wETH
         s.poolFee = 3000;
         s.lpAddress = 0x7a25c38594D8EA261B6C5f76b0024249e95Efe1C;
+
+        s.diamondInitialized = true;
         emit InitializeDiamond(msg.sender, userId);
     }
 }
