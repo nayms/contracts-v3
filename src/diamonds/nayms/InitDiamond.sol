@@ -8,12 +8,20 @@ import { LibConstants } from "./libs/LibConstants.sol";
 import { LibAdmin } from "./libs/LibAdmin.sol";
 import { LibACL } from "./libs/LibACL.sol";
 
+error DiamondAlreadyInitialized();
+
 contract InitDiamond {
     AppStorage internal s;
+
+    bool private diamondInitialized;
 
     event InitializeDiamond(address sender, bytes32 systemManager);
 
     function initialize() external {
+        if (diamondInitialized == true) {
+            revert DiamondAlreadyInitialized();
+        }
+
         // Initial total supply of NAYM
         s.totalSupply = 1_000_000_000e18;
         s.balances[msg.sender] = s.totalSupply;
@@ -79,6 +87,8 @@ contract InitDiamond {
         s.discountToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2; //wETH
         s.poolFee = 3000;
         s.lpAddress = 0x7a25c38594D8EA261B6C5f76b0024249e95Efe1C;
+
+        diamondInitialized = true;
         emit InitializeDiamond(msg.sender, userId);
     }
 }
