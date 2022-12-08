@@ -280,6 +280,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         // No withdrawable dividends.
         assertEq(withdrawableDiv, 0);
 
+        nayms.enableEntityTokenization(acc0EntityId, "ENTITYSYMBOL");
         // note: starting a token sale which mints participation tokens
         nayms.startTokenSale(acc0EntityId, 1e18, 1e18);
 
@@ -360,6 +361,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
 
+        nayms.enableEntityTokenization(eAlice, "ENTITYSYMBOL");
         // note: starting a token sale which mints participation tokens
         nayms.startTokenSale(eAlice, 1e18, 1e18);
 
@@ -429,6 +431,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, 17_000 + nayms.calculateTradingCommissions(17_000).totalCommissions);
         vm.stopPrank();
 
+        nayms.enableEntityTokenization(eAlice, "ENTITYSYMBOL");
         // note: starting a token sale which mints participation tokens
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
@@ -527,6 +530,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethDepositAmount + nayms.calculateTradingCommissions(bobWethDepositAmount).totalCommissions);
 
+        nayms.enableEntityTokenization(eAlice, "ENTITYSYMBOL");
         // note: starting a token sale which mints participation tokens
         nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
 
@@ -613,6 +617,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
         assertEq(nayms.internalBalanceOf(eEmily, nWBTC), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
+
+        nayms.enableEntityTokenization(eAlice, "ENTITYSYMBOL");
+        nayms.enableEntityTokenization(eDavid, "ENTITYSYMBOL");
 
         // note: starting a token sale which mints participation tokens
         nayms.startTokenSale(eAlice, 20_000, 20_000);
@@ -724,6 +731,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + nayms.calculateTradingCommissions(3_000).totalCommissions);
+
+        nayms.enableEntityTokenization(eAlice, "ENTITYSYMBOL");
         // note: starting a token sale which mints participation tokens
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
@@ -825,6 +834,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         nayms.createEntity(entity1Id, signer1Id, e, "test");
 
         // 1. ---- start token sale ----
+        nayms.enableEntityTokenization(entity0Id, "ENTITYSYMBOL");
 
         nayms.startTokenSale(entity0Id, _parTokenSupply, _parTokenSupply);
         assertEq(nayms.internalTokenSupply(entity0Id), _parTokenSupply, "Entity 1 participation tokens should be minted");

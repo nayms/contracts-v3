@@ -6,6 +6,7 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibERC20 } from "../../../erc20/LibERC20.sol";
+import { ExternalDepositAmountCannotBeZero, ExternalWithdrawAmountCannotBeZero } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 /**
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
@@ -21,6 +22,9 @@ library LibTokenizedVaultIO {
         address _externalTokenAddress,
         uint256 _amount
     ) internal {
+        if (_amount == 0) {
+            revert ExternalDepositAmountCannotBeZero();
+        }
         LibERC20.transferFrom(_externalTokenAddress, msg.sender, address(this), _amount);
 
         bytes32 internalTokenId = LibHelpers._getIdForAddress(_externalTokenAddress);
@@ -35,6 +39,10 @@ library LibTokenizedVaultIO {
         address _externalTokenAddress,
         uint256 _amount
     ) internal {
+        if (_amount == 0) {
+            revert ExternalWithdrawAmountCannotBeZero();
+        }
+
         // withdraw from the user's entity
         bytes32 internalTokenId = LibHelpers._getIdForAddress(_externalTokenAddress);
 

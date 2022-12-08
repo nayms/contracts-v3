@@ -6,6 +6,7 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
+import { PolicyCommissionsBasisPointsCannotBeGreaterThan10000 } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
     event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
@@ -73,7 +74,7 @@ library LibFeeRouter {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(
-            bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == 10000,
+            bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == LibConstants.BP_FACTOR,
             "trading commission BPs must sum up to 10000"
         );
 
@@ -86,6 +87,10 @@ library LibFeeRouter {
 
     function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 totalBp = bp.premiumCommissionNaymsLtdBP + bp.premiumCommissionNDFBP + bp.premiumCommissionSTMBP;
+        if (totalBp > LibConstants.BP_FACTOR) {
+            revert PolicyCommissionsBasisPointsCannotBeGreaterThan10000(totalBp);
+        }
         s.premiumCommissionNaymsLtdBP = bp.premiumCommissionNaymsLtdBP;
         s.premiumCommissionNDFBP = bp.premiumCommissionNDFBP;
         s.premiumCommissionSTMBP = bp.premiumCommissionSTMBP;

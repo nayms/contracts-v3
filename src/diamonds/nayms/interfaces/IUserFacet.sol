@@ -25,7 +25,7 @@ interface IUserFacet {
 
     /**
      * @notice Set the entity for the user
-     * @dev Assign the user an entity
+     * @dev Assign the user an entity. The entity must exist in order to associate it with a user.
      * @param _userId Unique platform ID of the user account
      * @param _entityId Unique platform ID of the entity
      */

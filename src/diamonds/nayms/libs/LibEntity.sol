@@ -12,6 +12,7 @@ import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { EntityDoesNotExist, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -36,6 +37,15 @@ library LibEntity {
         bool isEntityAdmin = LibACL._isInGroup(LibHelpers._getSenderId(), _entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS));
         require(isEntityAdmin, "must be entity admin");
 
+        if (simplePolicy.claimsPaid != 0) {
+            revert SimplePolicyClaimsPaidShouldStartAtZero();
+        }
+        if (simplePolicy.premiumsPaid != 0) {
+            revert SimplePolicyPremiumsPaidShouldStartAtZero();
+        }
+        if (simplePolicy.cancelled == true) {
+            revert CancelCannotBeTrueWhenCreatingSimplePolicy();
+        }
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
 
@@ -85,8 +95,14 @@ library LibEntity {
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (_policyId == 0) {
+            revert PolicyIdCannotBeZero();
+        }
 
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (s.existingEntities[_entityId] == false) {
+            revert EntityDoesNotExist(_entityId);
+        }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
@@ -106,12 +122,16 @@ library LibEntity {
             require(LibACL._isInGroup(signerId, _stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
-
+        s.existingSimplePolicies[_policyId] = true;
         emit SimplePolicyCreated(_policyId, _entityId);
     }
 
     function _updateAllowSimplePolicy(bytes32 _entityId, bool _allow) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        if (s.existingEntities[_entityId] == false) {
+            revert EntityDoesNotExist(_entityId);
+        }
+
         s.entities[_entityId].simplePolicyEnabled = _allow;
     }
 
@@ -126,6 +146,15 @@ library LibEntity {
         require(_totalPrice > 0, "total price must be > 0");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.existingEntities[_entityId] == false) {
+            revert EntityDoesNotExist(_entityId);
+        }
+
+        if (LibObject._isObjectTokenizable(_entityId) == false) {
+            revert ObjectCannotBeTokenized(_entityId);
+        }
+
         Entity memory entity = s.entities[_entityId];
 
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
@@ -143,6 +172,9 @@ library LibEntity {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        if (s.existingEntities[_entityId] == true) {
+            revert CreatingEntityThatAlreadyExists(_entityId);
+        }
         validateEntity(_entity);
 
         LibObject._createObject(_entityId, _dataHash);
@@ -161,6 +193,10 @@ library LibEntity {
 
     function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        // Cannot update a non-existing entity's metadata.
+        if (s.existingEntities[_entityId] == false) {
+            revert EntityDoesNotExist(_entityId);
+        }
         validateEntity(_entity);
 
         // assetId change not allowed
@@ -187,6 +223,10 @@ library LibEntity {
             //       First, we use the bool simplePolicyEnabled to control and dictate whether an entity can or cannot write a policy.
             //       If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
             require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
+
+            if (_entity.utilizedCapacity > _entity.maxCapacity) {
+                revert UtilizedCapacityGreaterThanMaxCapacity(_entity.utilizedCapacity, _entity.maxCapacity);
+            }
         } else {
             // non-cell entity
             require(_entity.collateralRatio == 0, "only cell has collateral ratio");

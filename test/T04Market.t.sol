@@ -125,6 +125,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, dt.entity1ExternalDepositAmt);
         vm.stopPrank();
 
+        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
         // start a token sale: sell entity tokens for nWETH
         // when a token sale starts: entity tokens are minted to the entity,
         // 2nd param is the sell amount, 3rd param is the buy amount
@@ -333,6 +334,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
+        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
+
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
             nayms.startTokenSale(entity1, saleAmount, salePrice);
@@ -379,7 +382,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
 
         // init test funds to maxint
-        writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
+        writeTokenBalance(signer1, naymsAddress, wethAddress, ~uint256(0));
+
+        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
 
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
@@ -535,6 +540,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.stopPrank();
 
+        nayms.enableEntityTokenization(entity2, "ENTITYSYMBOL");
         nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
 
         vm.startPrank(signer3);
@@ -550,6 +556,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
 
+        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
         // start nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
@@ -725,6 +732,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // OFFER 1: 2000 pTokens -> 2000 WETH
         writeTokenBalance(account0, naymsAddress, wethAddress, e1balance);
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
+
         nayms.startTokenSale(entity1, offer1sell, offer1buy);
 
         // OFFER 2 (x2) counter offer: 4000 WETH -> 4000 pTokens

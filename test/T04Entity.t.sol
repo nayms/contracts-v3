@@ -13,6 +13,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
@@ -126,6 +127,11 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testEnableEntityTokenization() public {
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 500, 10000, 0, false), "entity test hash");
 
+        // Attempt to tokenize an entity when the entity does not exist. Should throw an error.
+        bytes32 nonExistentEntity = bytes32("ffffaaa");
+        vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (nonExistentEntity)));
+        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345");
+
         vm.expectRevert("symbol more than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456");
 
@@ -136,6 +142,9 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateEntity() public {
+        vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
+        nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, false));
+
         nayms.createEntity(entityId1, account0Id, initEntity2(0, 0, 0, 0, false), "test");
 
         vm.expectRevert("only cell has collateral ratio");
@@ -179,6 +188,8 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateAllowSimplePolicy() public {
+        vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
+        nayms.updateAllowSimplePolicy(entityId1, true);
         nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, false), "entity test hash");
 
         // enable simple policy creation
@@ -533,6 +544,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("total price must be > 0");
         nayms.startTokenSale(entityId1, sellAmount, 0);
+
+        nayms.enableEntityTokenization(entityId1, "ENTITYSYMBOL");
 
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
