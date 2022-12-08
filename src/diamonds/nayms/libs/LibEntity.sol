@@ -39,6 +39,9 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
 
+        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
+        require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
+
         // todo: ensure that the capital raised is >= max capacity. Probably want to do this check when the trade is made.
 
         // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity, so no need to check this here.
@@ -53,8 +56,6 @@ library LibEntity {
 
         // Calculate the entity's required capital for its capacity utilization based on its collateral requirements.
         uint256 capitalRequirementForUpdatedUtilizedCapacity = (updatedUtilizedCapacity * entity.collateralRatio) / LibConstants.BP_FACTOR;
-
-        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
 
         // The entity's balance must be >= to the updated capacity requirement
         // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
@@ -162,7 +163,10 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         validateEntity(_entity);
 
+        // assetId change not allowed
+        bytes32 originalAssetId = s.entities[_entityId].assetId;
         s.entities[_entityId] = _entity;
+        s.entities[_entityId].assetId = originalAssetId;
 
         emit EntityUpdated(_entityId);
     }
