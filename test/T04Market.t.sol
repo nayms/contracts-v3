@@ -705,4 +705,46 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector));
     }
+
+    function testQSP2() public {
+        // maker:   sell 2 WETH    buy 2 pToken   => price = 1    ETH/pToken
+        // taker:   sell 2 pToken  buy 1 WETH     => price = 0.5  ETH/pToken
+
+        uint256 e1balance = 5000;
+        uint256 e2balance = 5000;
+
+        uint256 offer1sell = 2000;
+        uint256 offer1buy = 2000;
+        uint256 offer2sell = 4000;
+        uint256 offer2buy = 4000;
+        uint256 offer3sell = 2000;
+        uint256 offer3buy = 1000;
+
+        nayms.addSupportedExternalToken(wethAddress);
+
+        // OFFER 1: 2000 pTokens -> 2000 WETH
+        writeTokenBalance(account0, naymsAddress, wethAddress, e1balance);
+        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.startTokenSale(entity1, offer1sell, offer1buy);
+
+        // OFFER 2 (x2) counter offer: 4000 WETH -> 4000 pTokens
+        // we have to do this as the protocol does not allow us to create an offer to buy pTokens before they are minted!
+        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        vm.startPrank(signer2);
+        writeTokenBalance(signer2, naymsAddress, wethAddress, e2balance);
+        nayms.externalDeposit(wethAddress, e2balance);
+        nayms.executeLimitOffer(nWETH, offer2sell, entity1, offer2buy);
+        vm.stopPrank();
+
+        // half should match so we should be left with offer 2 partially matched
+        // 2000 WETH -> 2000 pTokens
+        assertOfferPartiallyFilled(2, entity2, nWETH, offer1buy, offer2sell, entity1, offer1sell, offer2buy);
+
+        // OFFER 3: 2000 pTokens -> 1000 WETH
+        nayms.startTokenSale(entity1, offer3sell, offer3buy);
+
+        assertOfferFilled(1, entity1, entity1, offer1sell, nWETH, offer1buy);
+        assertOfferFilled(2, entity2, nWETH, offer2sell, entity1, offer2buy);
+        assertOfferFilled(3, entity1, entity1, offer3sell, nWETH, offer3buy);
+    }
 }
