@@ -214,7 +214,7 @@ library LibMarket {
                 }
                 // calculate how much is left to buy/sell
                 result.remainingSellAmount -= currentSellAmount;
-                result.remainingBuyAmount -= currentBuyAmount;
+                result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
             }
         }
     }
