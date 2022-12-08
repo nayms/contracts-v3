@@ -6,6 +6,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
+import { RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibACL {
     /**
@@ -36,6 +37,10 @@ library LibACL {
         bytes32 _roleId
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_objectId != "", "invalid object ID");
+        require(_contextId != "", "invalid context ID");
+        require(_roleId != "", "invalid role ID");
+
         s.roles[_objectId][_contextId] = _roleId;
         emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
     }
@@ -118,6 +123,12 @@ library LibACL {
     }
 
     function _updateRoleAssigner(string memory _role, string memory _assignerGroup) internal {
+        if (bytes32(bytes(_role)) == "") {
+            revert RoleIsMissing();
+        }
+        if (bytes32(bytes(_assignerGroup)) == "") {
+            revert AssignerGroupIsMissing();
+        }
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.canAssign[LibHelpers._stringToBytes32(_role)] = LibHelpers._stringToBytes32(_assignerGroup);
         emit RoleCanAssignUpdated(_role, _assignerGroup);
@@ -129,6 +140,13 @@ library LibACL {
         bool _roleInGroup
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        if (bytes32(bytes(_role)) == "") {
+            revert RoleIsMissing();
+        }
+        if (bytes32(bytes(_group)) == "") {
+            revert AssignerGroupIsMissing();
+        }
+
         s.groups[LibHelpers._stringToBytes32(_role)][LibHelpers._stringToBytes32(_group)] = _roleInGroup;
         emit RoleGroupUpdated(_role, _group, _roleInGroup);
     }

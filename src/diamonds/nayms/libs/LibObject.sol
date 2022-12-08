@@ -4,6 +4,7 @@ pragma solidity >=0.8.13;
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
+import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
@@ -74,9 +75,16 @@ library LibObject {
 
     function _enableObjectTokenization(bytes32 _objectId, string memory _symbol) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        if (bytes(_symbol).length == 0) {
+            revert MissingSymbolWhenEnablingTokenization(_objectId);
+        }
         require(bytes(_symbol).length < 16, "symbol more than 16 characters");
         require(s.objectTokenSymbol[_objectId] == LibAdmin._getEmptyId(), "object already tokenized");
 
+        // Ensure the entity exists before tokenizing the entity, otherwise revert.
+        if (s.existingEntities[_objectId] == false) {
+            revert EntityDoesNotExist(_objectId);
+        }
         s.objectTokenSymbol[_objectId] = LibHelpers._stringToBytes32(_symbol);
     }
 

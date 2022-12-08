@@ -5,6 +5,7 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
+import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibAdmin {
     event BalanceUpdated(uint256 oldBalance, uint256 newBalance);
@@ -64,6 +65,9 @@ library LibAdmin {
     }
 
     function _setDiscountToken(address _newToken) internal {
+        if (_newToken == address(0)) {
+            revert CannotAddNullDiscountToken();
+        }
         AppStorage storage s = LibAppStorage.diamondStorage();
         address oldToken = s.discountToken;
         s.discountToken = _newToken;
@@ -102,6 +106,9 @@ library LibAdmin {
     }
 
     function _addSupportedExternalToken(address _tokenAddress) internal {
+        if (_tokenAddress == address(0)) {
+            revert CannotAddNullSupportedExternalToken();
+        }
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bool alreadyAdded;

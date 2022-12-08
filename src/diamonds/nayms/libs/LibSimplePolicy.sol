@@ -9,6 +9,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibHelpers } from "./LibHelpers.sol";
+import { EntityDoesNotExist, PolicyDoesNotExist } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibSimplePolicy {
     event SimplePolicyMatured(bytes32 indexed id);
@@ -42,6 +43,12 @@ library LibSimplePolicy {
         require(_amount > 0, "invalid premium amount");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
+        if (s.existingEntities[_payerEntityId] == false) {
+            revert EntityDoesNotExist(_payerEntityId);
+        }
+        if (s.existingSimplePolicies[_policyId] == false) {
+            revert PolicyDoesNotExist(_policyId);
+        }
         bytes32 policyEntityId = LibObject._getParent(_policyId);
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         require(!simplePolicy.cancelled, "Policy is cancelled");

@@ -37,6 +37,8 @@ contract T02UserTest is D03ProtocolDefaults, MockAccounts {
         // nothing at first
         assertEq(nayms.getBalanceOfTokensForSale(entityId, entityId), 0);
 
+        nayms.enableEntityTokenization(entityId, "ENTITYSYMBOL");
+
         // now start token sale to create an offer
         nayms.startTokenSale(entityId, 100, 100);
         assertEq(nayms.getBalanceOfTokensForSale(entityId, entityId), 100);

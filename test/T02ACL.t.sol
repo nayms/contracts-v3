@@ -6,6 +6,7 @@ import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 /// @dev Testing for Nayms RBAC - Access Control List (ACL)
 
@@ -309,6 +310,12 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // brokers can't usually assign approved users
         assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
         assertFalse(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+
+        vm.expectRevert(abi.encodePacked(RoleIsMissing.selector));
+        nayms.updateRoleGroup("", LibConstants.GROUP_SYSTEM_MANAGERS, false);
+
+        vm.expectRevert(abi.encodePacked(AssignerGroupIsMissing.selector));
+        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, "", false);
 
         // now change this
         vm.recordLogs();
