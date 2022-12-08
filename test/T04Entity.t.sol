@@ -16,6 +16,7 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal wethId;
+    bytes32 internal wbtcId;
 
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
@@ -71,6 +72,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         super.setUp();
 
         wethId = LibHelpers._getIdForAddress(wethAddress);
+        wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
@@ -219,6 +221,17 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         simplePolicy.limit = 100000;
 
+        // external token not supported
+        vm.expectRevert("external token is not supported");
+        simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+
+        nayms.addSupportedExternalToken(wbtcAddress);
+        simplePolicy.asset = wbtcId;
+        vm.expectRevert("asset not matching with entity");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        simplePolicy.asset = wethId;
+
         // test caller is system manager
         vm.expectRevert("not a system manager");
         vm.prank(account9);
@@ -231,12 +244,6 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // update max capacity
         nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
-
-        // external token not supported
-        vm.expectRevert("external token is not supported");
-        simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
-        simplePolicy.asset = wethId;
 
         // test collateral ratio constraint
         vm.expectRevert("not enough capital");
