@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
 import { AppStorage, Entity, FeeRatio, MarketInfo, TradingCommissions, TradingCommissionsBasisPoints } from "src/diamonds/nayms/AppStorage.sol";
 import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
@@ -8,7 +9,7 @@ import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
-contract T03TokenizedVaultTest is D03ProtocolDefaults {
+contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     using FixedPointMathLib for uint256;
 
     bytes32 internal nWETH;
@@ -238,6 +239,21 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(weth.balanceOf(naymsAddress), naymsWethBalancePre - 100, "nayms lost WETH");
         assertEq(nayms.internalBalanceOf(entity1, nWETH), entity1WethInternalBalance - 100, "entity1 lost internal WETH");
         assertEq(nayms.internalTokenSupply(nWETH), naymsWethInternalTokenSupply - 100, "nayms burned internal WETH");
+    }
+
+    function testOnlyEntityAdminCanPayDividend() public {
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        nayms.enableEntityTokenization(acc0EntityId, "E1");
+        nayms.startTokenSale(acc0EntityId, 1 ether, 1 ether);
+
+        bytes32 acc9Id = LibHelpers._addressToBytes32(account9);
+        nayms.setEntity(acc9Id, acc0EntityId);
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+        nayms.externalDeposit(wethAddress, 1 ether);
+        vm.prank(account9);
+        vm.expectRevert("not the entity's admin");
+        nayms.payDividendFromEntity(bytes32("0x1"), 1 ether);
     }
 
     function testPayDividendsWithZeroParticipationTokenSupply() public {

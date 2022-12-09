@@ -103,10 +103,10 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
     function payDividendFromEntity(bytes32 guid, uint256 amount) external {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
-        bytes32 entityId = LibObject._getParent(senderId);
+        bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 
+        require(LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "not the entity's admin");
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 
         LibTokenizedVault._payDividend(guid, entityId, entityId, dividendTokenId, amount);
