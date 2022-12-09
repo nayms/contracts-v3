@@ -7,6 +7,8 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
 import { RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { LibConstants } from "./LibConstants.sol";
+import { LibDiamond } from "../../shared/libs/LibDiamond.sol";
 
 library LibACL {
     /**
@@ -47,6 +49,11 @@ library LibACL {
 
     function _unassignRole(bytes32 _objectId, bytes32 _contextId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bool sysCtx = _contextId == LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        bool owner = LibHelpers._getIdForAddress(LibDiamond.contractOwner()) == _objectId;
+        require(!sysCtx || !owner, "cannot unassign owner in system context");
+
         emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
         delete s.roles[_objectId][_contextId];
     }

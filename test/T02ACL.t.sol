@@ -19,6 +19,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
+    function testDeployerUnassignInSystemContext() public {
+        vm.expectRevert("cannot unassign owner in system context");
+        nayms.unassignRole(account0Id, systemContext);
+    }
+
     // the deployer, as a system admin, should be able to assign roles that system admins can assign
     function testDeployerAssignRoleToThemself() public {
         string memory role = LibConstants.ROLE_ENTITY_ADMIN;
@@ -52,13 +57,6 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // the group that the signer1 is in is now the approved users group
         assertTrue(nayms.isInGroup(signer1Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
-    }
-
-    // currently, the system admin can unassign their role even if there are no other system admins assigned.
-    // todo: is that desired behavior?
-    function testDeployerUnassignRoleOnThemself() public {
-        nayms.unassignRole(account0Id, systemContext);
-        assertFalse(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
     function testDeployerUnassignRoleOnAnotherObject() public {
