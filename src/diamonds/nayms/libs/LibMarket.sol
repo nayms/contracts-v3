@@ -243,7 +243,7 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeSchedule;
 
-        if (_buyAmount <= LibConstants.DUST || _sellAmount <= LibConstants.DUST) {
+        if (_buyAmount < LibConstants.DUST || _sellAmount < LibConstants.DUST) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -417,7 +417,8 @@ library LibMarket {
         offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
 
         // if still some left
-        if (result.remainingBuyAmount > 0 && result.remainingSellAmount > 0 && result.remainingSellAmount >= LibConstants.DUST) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (s.offers[offerId_].state == LibConstants.OFFER_STATE_ACTIVE) {
             // ensure it's in the right position in the list
             _insertOfferIntoSortedList(offerId_);
         }
