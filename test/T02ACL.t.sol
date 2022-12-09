@@ -20,16 +20,23 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
+    function testDeployerUnassignInSystemContext() public {
+        vm.expectRevert("cannot unassign owner in system context");
+        nayms.unassignRole(account0Id, systemContext);
+    }
+
+    function testDeployerReassignInSystemContext() public {
+        vm.expectRevert("cannot reassign role to owner in system context");
+        nayms.assignRole(account0Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN);
+    }
+
     // the deployer, as a system admin, should be able to assign roles that system admins can assign
-    function testDeployerAssignRoleToThemself() public {
+    function testDeployerCannotAssignRoleToThemself() public {
         string memory role = LibConstants.ROLE_ENTITY_ADMIN;
 
         // assign the role entity admin to deployer / account0 within the system context
-        assertTrue(nayms.canAssign(account0Id, account0Id, systemContext, role));
+        vm.expectRevert("cannot reassign role to owner in system context");
         nayms.assignRole(account0Id, systemContext, role);
-
-        // the group that the deployer / account0 within the system context is in is now the entity admins group
-        assertTrue(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_ENTITY_ADMINS));
     }
 
     function testDeployerAssignRoleToAnotherObject() public {
@@ -53,13 +60,6 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // the group that the signer1 is in is now the approved users group
         assertTrue(nayms.isInGroup(signer1Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
-    }
-
-    // currently, the system admin can unassign their role even if there are no other system admins assigned.
-    // todo: is that desired behavior?
-    function testDeployerUnassignRoleOnThemself() public {
-        nayms.unassignRole(account0Id, systemContext);
-        assertFalse(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
     function testDeployerUnassignRoleOnAnotherObject() public {

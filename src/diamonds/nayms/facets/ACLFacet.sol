@@ -2,6 +2,8 @@
 pragma solidity >=0.8.13;
 
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";
+import { LibConstants } from "../libs/LibConstants.sol";
+import { LibDiamond } from "../../shared/libs/LibDiamond.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
 
@@ -23,6 +25,10 @@ contract ACLFacet is Modifiers, IACLFacet {
         bytes32 _contextId,
         string memory _roleId
     ) external {
+        bool sysCtx = _contextId == LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        bool owner = LibHelpers._getIdForAddress(LibDiamond.contractOwner()) == _objectId;
+        require(!sysCtx || !owner, "cannot reassign role to owner in system context");
+
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
         require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_roleId)), "not in assigners group");
         LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_roleId));
@@ -35,9 +41,14 @@ contract ACLFacet is Modifiers, IACLFacet {
      * @param _contextId ID of the context in which a role membership is being revoked
      */
     function unassignRole(bytes32 _objectId, bytes32 _contextId) external {
+        bool sysCtx = _contextId == LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        bool owner = LibHelpers._getIdForAddress(LibDiamond.contractOwner()) == _objectId;
+        require(!sysCtx || !owner, "cannot unassign owner in system context");
+
         bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
         require(LibACL._canAssign(assignerId, _objectId, _contextId, roleId), "not in assigners group");
+
         LibACL._unassignRole(_objectId, _contextId);
     }
 
@@ -144,6 +155,11 @@ contract ACLFacet is Modifiers, IACLFacet {
         string memory _group,
         bool _roleInGroup
     ) external assertSysAdmin {
+        require(!strEquals(_group, LibConstants.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
+    }
+
+    function strEquals(string memory s1, string memory s2) private pure returns (bool) {
+        return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
     }
 }
