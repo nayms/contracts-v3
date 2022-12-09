@@ -130,7 +130,7 @@ library LibTokenizedVault {
             uint256 totalDividend = s.totalDividends[_tokenId][dividendDenominationId];
 
             // Dividend deduction for newly issued shares
-            (, uint256 dividendDeductionIssued) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, 0);
+            uint256 dividendDeductionIssued = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, 0);
 
             // Scale total dividends and withdrawn dividend for new owner
             s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeductionIssued;
@@ -175,11 +175,11 @@ library LibTokenizedVault {
         uint256 totalDividend = s.totalDividends[_tokenId][_dividendTokenId];
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
-        (uint256 withdrawableDividend, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
+        uint256 withdrawableDividend = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
         // require(withdrawableDividend > 0, "_withdrawDividend: no dividend");
         if (withdrawableDividend > 0) {
             // Bump the withdrawn dividends for the owner
-            s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += dividendDeduction;
+            s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += withdrawableDividend;
 
             // Move the dividend
             s.tokenBalances[_dividendTokenId][dividendBankId] -= withdrawableDividend;
@@ -202,7 +202,7 @@ library LibTokenizedVault {
         uint256 totalDividend = s.totalDividends[_tokenId][_dividendTokenId];
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
-        (withdrawableDividend_, ) = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend, withdrawnSoFar);
+        withdrawableDividend_ = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend, withdrawnSoFar);
     }
 
     function _withdrawAllDividends(bytes32 _ownerId, bytes32 _tokenId) internal {
@@ -263,18 +263,12 @@ library LibTokenizedVault {
         uint256 _supply,
         uint256 _totalDividend,
         uint256 _withdrawnSoFar
-    ) internal pure returns (uint256 _withdrawableDividend, uint256 _dividendDeduction) {
+    ) internal pure returns (uint256 _withdrawableDividend) {
         // The holder dividend is: holderDividend = (totalDividend/tokenSupply) * _amount. The remainer (dust) is lost.
         // To get a smaller remainder we re-arrange to: holderDividend = (totalDividend * _amount) / _supply
         uint256 totalDividendTimesAmount = _totalDividend * _amount;
         uint256 holderDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
 
         _withdrawableDividend = (_withdrawnSoFar >= holderDividend) ? 0 : holderDividend - _withdrawnSoFar;
-        _dividendDeduction = _withdrawableDividend;
-
-        // If there is a remainder, add 1 to the _dividendDeduction
-        if (totalDividendTimesAmount > _withdrawableDividend * _supply) {
-            _dividendDeduction += 1;
-        }
     }
 }
