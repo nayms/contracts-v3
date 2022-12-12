@@ -8,13 +8,14 @@ import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "src/diamonds/nayms/libs/LibEntity.sol";
 import { EntityDoesNotExist } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { IUserFacet } from "../interfaces/IUserFacet.sol";
 
 /**
  * @title Users
  * @notice Manage user entity
  * @dev Use manage user entity
  */
-contract UserFacet is Modifiers {
+contract UserFacet is IUserFacet, Modifiers {
     /**
      * @notice Get the platform ID of `addr` account
      * @dev Convert address to platform ID

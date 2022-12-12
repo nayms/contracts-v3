@@ -7,6 +7,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
 
 /**
  * @title Token Vault
@@ -15,7 +16,7 @@ import { LibEntity } from "../libs/LibEntity.sol";
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
-contract TokenizedVaultFacet is Modifiers {
+contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
     /**
      * @notice Gets balance of an account within platform
      * @dev Internal balance for given account

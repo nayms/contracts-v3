@@ -6,13 +6,14 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
+import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
 
 /**
  * @title Entities
  * @notice Used to handle policies and token sales
  * @dev Mainly used for token sale and policies
  */
-contract EntityFacet is Modifiers, ReentrancyGuard {
+contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     modifier assertSimplePolicyEnabled(bytes32 _entityId) {
         require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
         _;

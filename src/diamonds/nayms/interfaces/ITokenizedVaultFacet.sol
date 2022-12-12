@@ -11,15 +11,6 @@ interface ITokenizedVaultFacet {
     function internalBalanceOf(bytes32 accountId, bytes32 tokenId) external view returns (uint256);
 
     /**
-     * @notice Gets balances of accounts within platform
-     * @dev Each account should have a corresponding token ID to query for balance
-     * @param accountIds Internal ID of the accounts
-     * @param tokenIds Internal ID of the assets
-     * @return current balance for each account
-     */
-    function balanceOfBatch(bytes32[] calldata accountIds, bytes32[] calldata tokenIds) external view returns (uint256[] memory);
-
-    /**
      * @notice Current supply for the asset
      * @dev Total supply of platform asset
      * @param tokenId Internal ID of the asset

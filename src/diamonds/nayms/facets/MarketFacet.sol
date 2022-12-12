@@ -8,6 +8,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
+import { IMarketFacet } from "../interfaces/IMarketFacet.sol";
 
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
@@ -16,7 +17,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  * @notice Trade entity tokens
  * @dev This should only be called through an entity, never directly by an EOA
  */
-contract MarketFacet is Modifiers, ReentrancyGuard {
+contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Cancel offer #`_offerId`. This will cancel the offer so that it's no longer active.
      *
