@@ -32,7 +32,9 @@ library LibFeeRouter {
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), simplePolicy.asset, commissionNDF);
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
 
-        emit PremiumCommissionsPaid(_policyId, policyEntityId, _premiumPaid);
+        uint256 premiumCommissionPaid = commissionNaymsLtd + commissionNDF + commissionSTM;
+
+        emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
     }
 
     function _payTradingCommissions(
