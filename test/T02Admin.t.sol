@@ -7,6 +7,7 @@ import { Vm } from "forge-std/Vm.sol";
 import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     LibFeeRouterFixture internal libFeeRouterFixture = new LibFeeRouterFixture();
@@ -140,6 +141,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testFuzzSetDiscountToken(address _newToken) public {
+        if (_newToken == address(0)) {
+            vm.expectRevert(abi.encodePacked(CannotAddNullDiscountToken.selector));
+        }
         nayms.setDiscountToken(_newToken);
     }
 
