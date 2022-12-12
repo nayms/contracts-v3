@@ -44,10 +44,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
 
         bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initSig(0xACC1, policyId);
-        signatures[1] = initSig(0xACC2, policyId);
+        signatures[0] = initSig(0xACC2, policyId);
+        signatures[1] = initSig(0xACC1, policyId);
         signatures[2] = initSig(0xACC3, policyId);
         signatures[3] = initSig(0xACC4, policyId);
+
+        console2.log(vm.addr(0xACC1));
+        console2.log(vm.addr(0xACC2));
+        console2.log(vm.addr(0xACC3));
+        console2.log(vm.addr(0xACC4));
 
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -201,6 +206,49 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.updateAllowSimplePolicy(entityId1, false);
         e = nayms.getEntityInfo(entityId1);
         assertFalse(e.simplePolicyEnabled, "disabled");
+    }
+
+    function testDuplicateSignerWhenCreatingSimplePolicy() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, true), "entity test hash");
+
+        address alice = vm.addr(0xACC1);
+        address bob = vm.addr(0xACC2);
+        bytes32 bobId = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+        bytes32 aliceId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
+
+        Entity memory entity = Entity({
+            assetId: LibHelpers._getIdForAddress(wethAddress),
+            collateralRatio: LibConstants.BP_FACTOR,
+            maxCapacity: 100 ether,
+            utilizedCapacity: 0,
+            simplePolicyEnabled: true
+        });
+
+        bytes32 eAlice = "ealice";
+        bytes32 eBob = "ebob";
+        nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
+        nayms.createEntity(eBob, bobId, entity, "entity test hash");
+
+        weth.approve(naymsAddress, 10000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
+        nayms.externalDeposit(wethAddress, 100000);
+
+        bytes[] memory signatures = new bytes[](2);
+        signatures[0] = initSig(0xACC1, policyId1); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
+        signatures[1] = initSig(0xACC2, policyId1); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+
+        bytes32[] memory roles = new bytes32[](2);
+        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+
+        bytes32[] memory entityIds = new bytes32[](2);
+        entityIds[0] = eAlice;
+        entityIds[1] = eBob;
+
+        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+
+        vm.expectRevert(abi.encodeWithSelector(DuplicateSignerCreatingSimplePolicy.selector, alice, bob));
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
     }
 
     function testCreateSimplePolicyValidation() public {

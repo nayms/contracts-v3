@@ -22,13 +22,13 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public constant DEFAULT_INSURED_PARTY_ENTITY_ID = bytes32("e4");
 
     // deriving public keys from private keys
-    address public immutable signer1 = vm.addr(0xACC1);
-    address public immutable signer2 = vm.addr(0xACC2);
+    address public immutable signer1 = vm.addr(0xACC2);
+    address public immutable signer2 = vm.addr(0xACC1);
     address public immutable signer3 = vm.addr(0xACC3);
     address public immutable signer4 = vm.addr(0xACC4);
 
-    bytes32 public immutable signer1Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
-    bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+    bytes32 public immutable signer1Id = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+    bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
     bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
 
