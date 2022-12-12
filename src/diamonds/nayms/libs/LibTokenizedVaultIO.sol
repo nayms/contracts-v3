@@ -25,12 +25,13 @@ library LibTokenizedVaultIO {
         if (_amount == 0) {
             revert ExternalDepositAmountCannotBeZero();
         }
-        LibERC20.transferFrom(_externalTokenAddress, msg.sender, address(this), _amount);
 
         bytes32 internalTokenId = LibHelpers._getIdForAddress(_externalTokenAddress);
 
         // Funds are transferred to entity
         LibTokenizedVault._internalMint(_receiverId, internalTokenId, _amount);
+
+        LibERC20.transferFrom(_externalTokenAddress, msg.sender, address(this), _amount);
     }
 
     function _externalWithdraw(
