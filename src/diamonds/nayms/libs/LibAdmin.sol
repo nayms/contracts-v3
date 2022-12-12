@@ -9,13 +9,7 @@ import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken } from 
 
 library LibAdmin {
     event BalanceUpdated(uint256 oldBalance, uint256 newBalance);
-    event EquilibriumLevelUpdated(uint256 oldLevel, uint256 newLevel);
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
-    event MaxDiscountUpdated(uint256 oldDiscount, uint256 newDiscount);
-    event TargetNaymsAllocationUpdated(uint256 oldTarget, uint256 newTarget);
-    event DiscountTokenUpdated(address oldToken, address newToken);
-    event PoolFeeUpdated(uint256 oldFee, uint256 newFee);
-    event CoefficientUpdated(uint256 oldCoefficient, uint256 newCoefficient);
     event SupportedTokenAdded(address tokenAddress);
 
     function _getSystemId() internal pure returns (bytes32) {
@@ -38,61 +32,6 @@ library LibAdmin {
     function _getMaxDividendDenominations() internal view returns (uint8) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.maxDividendDenominations;
-    }
-
-    function _setEquilibriumLevel(uint256 _newLevel) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 oldLevel = s.equilibriumLevel;
-        s.equilibriumLevel = _newLevel;
-
-        emit EquilibriumLevelUpdated(oldLevel, _newLevel);
-    }
-
-    function _setMaxDiscount(uint256 _newDiscount) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 oldDiscount = s.maxDiscount;
-        s.maxDiscount = _newDiscount;
-
-        emit MaxDiscountUpdated(oldDiscount, _newDiscount);
-    }
-
-    function _setTargetNaymsAllocation(uint256 _newTarget) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 oldTarget = s.targetNaymsAllocation;
-        s.targetNaymsAllocation = _newTarget;
-
-        emit TargetNaymsAllocationUpdated(oldTarget, _newTarget);
-    }
-
-    function _setDiscountToken(address _newToken) internal {
-        if (_newToken == address(0)) {
-            revert CannotAddNullDiscountToken();
-        }
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        address oldToken = s.discountToken;
-        s.discountToken = _newToken;
-
-        emit DiscountTokenUpdated(oldToken, _newToken);
-    }
-
-    function _setPoolFee(uint24 _newFee) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 oldFee = s.poolFee;
-        s.poolFee = _newFee;
-
-        emit PoolFeeUpdated(oldFee, _newFee);
-    }
-
-    function _setCoefficient(uint256 _newCoefficient) internal {
-        require(_newCoefficient <= 1000, "Coefficient too high");
-
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        uint256 oldCoefficient = s.rewardsCoefficient;
-
-        s.rewardsCoefficient = _newCoefficient;
-
-        emit CoefficientUpdated(oldCoefficient, s.rewardsCoefficient);
     }
 
     function _isSupportedExternalTokenAddress(address _tokenId) internal view returns (bool) {
