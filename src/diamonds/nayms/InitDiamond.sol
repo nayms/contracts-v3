@@ -78,12 +78,6 @@ contract InitDiamond {
         s.naymsTokenId = LibHelpers._getIdForAddress(address(this));
         s.naymsToken = address(this);
         s.maxDividendDenominations = 1;
-        s.targetNaymsAllocation = 20;
-        s.equilibriumLevel = 20;
-        s.maxDiscount = 10;
-        s.discountToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2; //wETH
-        s.poolFee = 3000;
-        s.lpAddress = 0x7a25c38594D8EA261B6C5f76b0024249e95Efe1C;
 
         s.diamondInitialized = true;
         emit InitializeDiamond(msg.sender, userId);

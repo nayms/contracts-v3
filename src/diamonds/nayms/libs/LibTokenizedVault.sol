@@ -162,6 +162,27 @@ library LibTokenizedVault {
         emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalBurn", msg.sender);
     }
 
+    //
+    //   DIVIDEND PAYOUT LOGIC
+    //
+    // When a dividend is payed, you divide by the total supply and add it to the totalDividendPerToken
+    // Dividends are held by the diamond contract at: LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER)
+    // When dividends are paid, they are transfered OUT of that same diamond contract ID.
+    //
+    // To calculate withdrawableDividiend = ownedTokens * totalDividendPerToken - totalWithdrawnDividendPerOwner
+    //
+    // When a dividend is collected you set the totalWithdrawnDividendPerOwner to the total amount the owner withdrew
+    //
+    // When you trasnsfer, you pay out all dividends to previous owner first, then transfer ownership
+    // !!!YOU ALSO TRANSFER totalWithdrawnDividendPerOwner for those shares!!!
+    // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesTransfered * totalDividendPerToken
+    // totalWithdrawnDividendPerOwner(for previous owner) -= numberOfSharesTransfered * totalDividendPerToken (can be optimized)
+    //
+    // When minting
+    // Add the token balance to the new owner
+    // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesMinted * totalDividendPerToken
+    //
+    // When doing the division theser will be dust. Leave the dust in the diamond!!!
     function _withdrawDividend(
         bytes32 _ownerId,
         bytes32 _tokenId,
