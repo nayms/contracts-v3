@@ -9,6 +9,7 @@ import { LibEntity } from "../libs/LibEntity.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
+import { ITokenizedVaultIOFacet } from "../interfaces/ITokenizedVaultIOFacet.sol";
 
 /**
  * @title Token Vault IO
@@ -16,7 +17,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  * @dev Used for external transfers. Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  *      https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
-contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
+contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Deposit funds into msg.sender's Nayms platform entity
      * @dev Deposit from msg.sender to their associated entity

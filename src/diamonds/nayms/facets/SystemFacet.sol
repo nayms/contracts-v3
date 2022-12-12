@@ -9,13 +9,14 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { ISystemFacet } from "../interfaces/ISystemFacet.sol";
 
 /**
  * @title System
  * @notice Use it to perform system level operations
  * @dev Use it to perform system level operations
  */
-contract SystemFacet is Modifiers {
+contract SystemFacet is ISystemFacet, Modifiers {
     /**
      * @notice Create an entity
      * @dev An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.

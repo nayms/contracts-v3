@@ -7,13 +7,14 @@ import { LibObject } from "../libs/LibObject.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
+import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
 
 /**
  * @title Administration
  * @notice Exposes methods that require administrative priviledges
  * @dev Use it to configure various core parameters
  */
-contract AdminFacet is Modifiers {
+contract AdminFacet is IAdminFacet, Modifiers {
     /**
      * @notice Set `_newMax` as the max dividend denominations value.
      * @param _newMax new value to be used.
