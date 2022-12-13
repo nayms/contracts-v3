@@ -173,7 +173,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("only cell can issue policies");
         nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, true));
 
-        vm.expectRevert("only calls have max capacity");
+        vm.expectRevert("only cells have max capacity");
         nayms.updateEntity(entityId1, initEntity2(0, 0, 1000, 0, false));
 
         vm.recordLogs();
