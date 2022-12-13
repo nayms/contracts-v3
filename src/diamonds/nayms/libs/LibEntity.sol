@@ -141,15 +141,6 @@ library LibEntity {
         emit SimplePolicyCreated(_policyId, _entityId);
     }
 
-    function _updateAllowSimplePolicy(bytes32 _entityId, bool _allow) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        if (s.existingEntities[_entityId] == false) {
-            revert EntityDoesNotExist(_entityId);
-        }
-
-        s.entities[_entityId].simplePolicyEnabled = _allow;
-    }
-
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
     function _startTokenSale(
@@ -235,8 +226,8 @@ library LibEntity {
 
             // Max capacity is the capital amount that an entity can write across all of their policies.
             // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.
-            //       First, we use the bool simplePolicyEnabled to control and dictate whether an entity can or cannot write a policy.
-            //       If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
+            //       First, we use the bool simplePolicyEnabled to toggle (enable / disable) whether an entity can or cannot write a policy.
+            //       If an entity has this set to true, then we check if an entity has enough capacity to write a policy.
             require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
 
             if (_entity.utilizedCapacity > _entity.maxCapacity) {
@@ -246,7 +237,7 @@ library LibEntity {
             // non-cell entity
             require(_entity.collateralRatio == 0, "only cell has collateral ratio");
             require(!_entity.simplePolicyEnabled, "only cell can issue policies");
-            require(_entity.maxCapacity == 0, "only calls have max capacity");
+            require(_entity.maxCapacity == 0, "only cells have max capacity");
         }
     }
 

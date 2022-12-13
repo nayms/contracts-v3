@@ -47,16 +47,6 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @notice Enable/Disable Simple Policy creation for Entity ID: `_entityId`
-     * @dev Update simple policy creation allow flag
-     * @param _entityId ID of the entity to update
-     * @param _allow Allow or not simple policy creation
-     */
-    function updateAllowSimplePolicy(bytes32 _entityId, bool _allow) external assertSysMgr {
-        LibEntity._updateAllowSimplePolicy(_entityId, _allow);
-    }
-
-    /**
      * @notice Enable an entity to be tokenized
      * @param _objectId ID of the entity
      * @param _symbol The symbol assigned to the entity token

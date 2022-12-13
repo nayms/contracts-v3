@@ -173,7 +173,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("only cell can issue policies");
         nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, true));
 
-        vm.expectRevert("only calls have max capacity");
+        vm.expectRevert("only cells have max capacity");
         nayms.updateEntity(entityId1, initEntity2(0, 0, 1000, 0, false));
 
         vm.recordLogs();
@@ -205,22 +205,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
         bytes32 id = abi.decode(entries[0].data, (bytes32));
         assertEq(id, entityId1);
-    }
-
-    function testUpdateAllowSimplePolicy() public {
-        vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
-        nayms.updateAllowSimplePolicy(entityId1, true);
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, false), "entity test hash");
-
-        // enable simple policy creation
-        nayms.updateAllowSimplePolicy(entityId1, true);
-        Entity memory e = nayms.getEntityInfo(entityId1);
-        assertTrue(e.simplePolicyEnabled, "enabled");
-
-        // disable it
-        nayms.updateAllowSimplePolicy(entityId1, false);
-        e = nayms.getEntityInfo(entityId1);
-        assertFalse(e.simplePolicyEnabled, "disabled");
     }
 
     function testDuplicateSignerWhenCreatingSimplePolicy() public {

@@ -32,14 +32,6 @@ interface IEntityFacet {
     function hashTypedDataV4(bytes32 structHash) external view returns (bytes32);
 
     /**
-     * @notice Enable/Disable Simple Policy creation for Entity ID: `_entityId`
-     * @dev Update simple policy creation allow flag
-     * @param _entityId ID of the entity to update
-     * @param _allow Allow or not simple policy creation
-     */
-    function updateAllowSimplePolicy(bytes32 _entityId, bool _allow) external;
-
-    /**
      * @notice Create a Simple Policy
      * @param _policyId id of the policy
      * @param _entityId id of the entity
