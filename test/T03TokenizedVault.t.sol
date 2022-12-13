@@ -151,7 +151,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         address signer2,
         uint256 depositAmount
     ) public {
-        vm.assume(entity1 > 0); // else revert: object already exists
+        vm.assume(entity1 > 0); // else revert: objectId is already being used by another object
         vm.assume(entity2 > 0);
         vm.assume(entity1 != entity2);
         vm.assume(depositAmount > 5); // else revert: _internalMint: mint zero tokens, note: > 5 to ensure the externalDepositAmount isn't 0, see code below

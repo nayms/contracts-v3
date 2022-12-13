@@ -15,8 +15,8 @@ library LibObject {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // check if the id has been used (has a parent account associated with it) and revert if it has
-        require(!s.existingObjects[_objectId], "object already exists");
+        // Check if the objectId is already being used by another object
+        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
         s.objectParent[_objectId] = _parentId;
@@ -26,7 +26,7 @@ library LibObject {
     function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(!s.existingObjects[_objectId], "object already exists");
+        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
         s.objectDataHashes[_objectId] = _dataHash;
@@ -35,7 +35,7 @@ library LibObject {
     function _createObject(bytes32 _objectId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(!s.existingObjects[_objectId], "object already exists");
+        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
     }
