@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage } from "./AppStorage.sol";
+import { AppStorage, LibAppStorage } from "./AppStorage.sol";
 import { LibObject } from "./libs/LibObject.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
 import { LibConstants } from "./libs/LibConstants.sol";
@@ -28,8 +28,6 @@ import { IUserFacet } from "../nayms/interfaces/IUserFacet.sol";
 error DiamondAlreadyInitialized();
 
 contract InitDiamond {
-    AppStorage internal s;
-
     bool private diamondInitialized;
 
     event InitializeDiamond(address sender, bytes32 systemManager);
@@ -38,6 +36,7 @@ contract InitDiamond {
         if (diamondInitialized == true) {
             revert DiamondAlreadyInitialized();
         }
+        AppStorage storage s = LibAppStorage.diamondStorage();
 
         // ERC20
         s.name = "Nayms";
