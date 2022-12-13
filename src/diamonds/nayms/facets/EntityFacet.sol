@@ -7,6 +7,7 @@ import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
+import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 /**
  * @title Entities
@@ -17,6 +18,14 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     modifier assertSimplePolicyEnabled(bytes32 _entityId) {
         require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
         _;
+    }
+
+    function domainSeparatorV4() external view returns (bytes32) {
+        return LibEIP712._domainSeparatorV4();
+    }
+
+    function hashTypedDataV4(bytes32 structHash) external view returns (bytes32) {
+        return LibEIP712._hashTypedDataV4(structHash);
     }
 
     /**
