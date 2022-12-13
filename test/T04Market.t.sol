@@ -494,7 +494,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         vm.startPrank(account9);
-        vm.expectRevert("must belong to entity to make an offer");
+        vm.expectRevert("offer must be made by an existing entity");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
@@ -524,7 +524,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("buy token must be valid");
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, "", dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("must be one platform token"); // 2 non-platform tokens
+        vm.expectRevert("must be one participation token and one external token"); // 2 non-platform tokens
         nayms.executeLimitOffer(nWETH, dt.entity1MintAndSaleAmt, nWBTC, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("cannot sell and buy same token");
@@ -544,7 +544,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
 
         vm.startPrank(signer3);
-        vm.expectRevert("must be one platform token"); // 2 platform tokens
+        vm.expectRevert("must be one participation token and one external token"); // 2 platform tokens
         nayms.executeLimitOffer(entity2, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         vm.stopPrank();

@@ -362,19 +362,29 @@ library LibMarket {
     ) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(_entityId != 0 && s.existingEntities[_entityId], "must belong to entity to make an offer");
+        // A valid offer can only be made by an existing entity.
+        require(_entityId != 0 && s.existingEntities[_entityId], "offer must be made by an existing entity");
 
-        bool sellTokenIsEntity = s.existingEntities[_sellToken];
-        bool sellTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
-        bool buyTokenIsEntity = s.existingEntities[_buyToken];
-        bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        // note: Clarification on terminology:
+        // A participation token is also called an entity token. A par token is an entity tokenized.
+        // An external token is an ERC20 token. An external token can be approved to be used on the Nayms platform.
+        // There can only be one participation token and one external token involved in a trade. In other words, a par token cannot be traded for another par token.
+        // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
+
+        bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
+        bool isSellTokenASupportedExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
+        bool isBuyTokenASupportedExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
 
         _assertAmounts(_sellAmount, _buyAmount);
 
-        require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
-        require(buyTokenIsEntity || buyTokenIsSupported, "buy token must be valid");
+        require(isSellTokenAParticipationToken || isSellTokenASupportedExternalToken, "sell token must be valid");
+        require(isBuyTokenAParticipationToken || isBuyTokenASupportedExternalToken, "buy token must be valid");
         require(_sellToken != _buyToken, "cannot sell and buy same token");
-        require((sellTokenIsEntity && buyTokenIsSupported) || (sellTokenIsSupported && buyTokenIsEntity), "must be one platform token");
+        require(
+            (isSellTokenAParticipationToken && isBuyTokenASupportedExternalToken) || (isSellTokenASupportedExternalToken && isBuyTokenAParticipationToken),
+            "must be one participation token and one external token"
+        );
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
