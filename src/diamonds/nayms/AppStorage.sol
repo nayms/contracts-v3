@@ -11,6 +11,8 @@ struct AppStorage {
     //// EIP712 domain separator ////
     uint256 initialChainId;
     bytes32 initialDomainSeparator;
+    //// Reentrancy guard ////
+    uint256 reentrancyStatus;
     //// NAYMS ERC20 TOKEN ////
     string name;
     mapping(address => mapping(address => uint256)) allowance;
@@ -70,9 +72,12 @@ struct AppStorage {
 }
 
 library LibAppStorage {
+    bytes32 constant NAYMS_DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.nayms.storage");
+
     function diamondStorage() internal pure returns (AppStorage storage ds) {
+        bytes32 position = NAYMS_DIAMOND_STORAGE_POSITION;
         assembly {
-            ds.slot := 0
+            ds.slot := position
         }
     }
 }
