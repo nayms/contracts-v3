@@ -8,6 +8,7 @@ import { LibConstants } from "./libs/LibConstants.sol";
 import { LibAdmin } from "./libs/LibAdmin.sol";
 import { LibACL } from "./libs/LibACL.sol";
 import { LibDiamond } from "../shared/libs/LibDiamond.sol";
+import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 import { IERC165 } from "../shared/interfaces/IERC165.sol";
 import { IDiamondCut } from "../shared/interfaces/IDiamondCut.sol";
 import { IDiamondLoupe } from "../shared/interfaces/IDiamondLoupe.sol";
@@ -35,9 +36,14 @@ contract InitDiamond {
             revert DiamondAlreadyInitialized();
         }
 
-        // Initial total supply of NAYM
+        // ERC20
+        s.name = "Nayms";
         s.totalSupply = 1_000_000_000e18;
         s.balances[msg.sender] = s.totalSupply;
+
+        // EIP712 domain separator
+        s.initialChainId = block.chainid;
+        s.initialDomainSeparator = LibEIP712._computeDomainSeparator();
 
         LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS, true);
         LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS, true);

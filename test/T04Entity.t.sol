@@ -21,6 +21,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
+    bytes32 public testPolicyDataHash = "test";
+    bytes32 public policyHashedTypedData;
 
     SimplePolicyFixture internal simplePolicyFixture;
 
@@ -30,7 +32,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     address internal account9;
     bytes32 internal account9Id;
 
-    function initPolicy(bytes32 policyId) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicy(bytes32 policyDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -44,15 +46,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
 
         bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initSig(0xACC2, policyId);
-        signatures[1] = initSig(0xACC1, policyId);
-        signatures[2] = initSig(0xACC3, policyId);
-        signatures[3] = initSig(0xACC4, policyId);
-
-        console2.log(vm.addr(0xACC1));
-        console2.log(vm.addr(0xACC2));
-        console2.log(vm.addr(0xACC3));
-        console2.log(vm.addr(0xACC4));
+        signatures[0] = initPolicySig(0xACC2, DEFAULT_UNDERWRITER_ENTITY_ID, policyDataHash);
+        signatures[1] = initPolicySig(0xACC1, DEFAULT_BROKER_ENTITY_ID, policyDataHash);
+        signatures[2] = initPolicySig(0xACC3, DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, policyDataHash);
+        signatures[3] = initPolicySig(0xACC4, DEFAULT_INSURED_PARTY_ENTITY_ID, policyDataHash);
 
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -82,8 +79,11 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
+        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), testPolicyDataHash));
 
-        (stakeholders, simplePolicy) = initPolicy(policyId1);
+        // policyHashedTypedData = nayms.hashTypedDataV4(structHash);
+
+        (stakeholders, simplePolicy) = initPolicy(testPolicyDataHash);
 
         // setup trading commissions fixture
         simplePolicyFixture = new SimplePolicyFixture();
@@ -108,8 +108,16 @@ contract T04EntityTest is D03ProtocolDefaults {
         require(success, "Should update simple policy in app storage");
     }
 
-    function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(account, ECDSA.toEthSignedMessageHash(policyId));
+    function initPolicySig(
+        uint256 privateKey,
+        bytes32 userEntityId,
+        bytes32 policyDataHash
+    ) internal returns (bytes memory sig_) {
+        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), policyDataHash));
+        // bytes32 entityId =
+        bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), userEntityId, policyDataHash));
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toTypedDataHash(nayms.domainSeparatorV4(), structHash));
         sig_ = abi.encodePacked(r, s, v);
     }
 
@@ -127,6 +135,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(weth.balanceOf(account0), 10000);
         nayms.externalDeposit(wethAddress, 10000);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), 10000);
+    }
+
+    function testDomainSeparator() public {
+        bytes32 domainSeparator = nayms.domainSeparatorV4();
+
+        bytes32 expected = bytes32(0x2558bfb28c101059c8344fa723b1d53b41339016ca92a7b1cf0d1b9d8b75c01c);
+        assertEq(domainSeparator, expected);
     }
 
     function testEnableEntityTokenization() public {
@@ -150,7 +165,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
         nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, false));
 
-        nayms.createEntity(entityId1, account0Id, initEntity2(0, 0, 0, 0, false), "test");
+        nayms.createEntity(entityId1, account0Id, initEntity2(0, 0, 0, 0, false), testPolicyDataHash);
 
         vm.expectRevert("only cell has collateral ratio");
         nayms.updateEntity(entityId1, initEntity2(0, 1000, 0, 0, false));
@@ -172,7 +187,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testUpdateCell() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, true), "test");
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, true), testPolicyDataHash);
 
         vm.expectRevert("external token is not supported");
         nayms.updateEntity(entityId1, initEntity(wbtc, 0, LibConstants.BP_FACTOR, 0, false));
@@ -234,8 +249,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, 100000);
 
         bytes[] memory signatures = new bytes[](2);
-        signatures[0] = initSig(0xACC1, policyId1); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
-        signatures[1] = initSig(0xACC2, policyId1); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[0] = initPolicySig(0xACC1, eAlice, testPolicyDataHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
+        signatures[1] = initPolicySig(0xACC2, eBob, testPolicyDataHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
         bytes32[] memory roles = new bytes32[](2);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
@@ -248,7 +263,49 @@ contract T04EntityTest is D03ProtocolDefaults {
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
 
         vm.expectRevert(abi.encodeWithSelector(DuplicateSignerCreatingSimplePolicy.selector, alice, bob));
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+    }
+
+    function testSignatureWhenCreatingSimplePolicy() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, true), "entity test hash");
+
+        address alice = vm.addr(0xACC2);
+        address bob = vm.addr(0xACC1);
+        bytes32 bobId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
+        bytes32 aliceId = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+
+        Entity memory entity = Entity({
+            assetId: LibHelpers._getIdForAddress(wethAddress),
+            collateralRatio: LibConstants.BP_FACTOR,
+            maxCapacity: 100 ether,
+            utilizedCapacity: 0,
+            simplePolicyEnabled: true
+        });
+
+        bytes32 eAlice = "ealice";
+        bytes32 eBob = "ebob";
+        nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
+        nayms.createEntity(eBob, bobId, entity, "entity test hash");
+
+        weth.approve(naymsAddress, 10000);
+        writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
+        nayms.externalDeposit(wethAddress, 100000);
+
+        bytes[] memory signatures = new bytes[](2);
+        signatures[0] = initPolicySig(0xACC2, eAlice, testPolicyDataHash);
+        signatures[1] = initPolicySig(0xACC1, eBob, testPolicyDataHash);
+
+        bytes32[] memory roles = new bytes32[](2);
+        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+
+        bytes32[] memory entityIds = new bytes32[](2);
+        entityIds[0] = eAlice;
+        entityIds[1] = eBob;
+
+        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
     function testCreateSimplePolicyValidation() public {
@@ -256,57 +313,57 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // enable simple policy creation
         vm.expectRevert("simple policy creation disabled");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, true));
 
         // stakeholders entity ids array different length to signatures array
         bytes[] memory sig = stakeholders.signatures;
         stakeholders.signatures = new bytes[](0);
         vm.expectRevert("incorrect number of signatures");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         stakeholders.signatures = sig;
 
         // test caller is entity admin
         nayms.unassignRole(account0Id, entityId1);
         assertFalse(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
         vm.expectRevert("must be entity admin");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
         // test limit
         simplePolicy.limit = 0;
         vm.expectRevert("limit not > 0");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.limit = 100000;
 
         // external token not supported
         vm.expectRevert("external token is not supported");
         simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         nayms.addSupportedExternalToken(wbtcAddress);
         simplePolicy.asset = wbtcId;
         vm.expectRevert("asset not matching with entity");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.asset = wethId;
 
         // test caller is system manager
         vm.expectRevert("not a system manager");
         vm.prank(account9);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         vm.stopPrank();
 
         // test capacity
         vm.expectRevert("not enough available capacity");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // update max capacity
         nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
 
         // test collateral ratio constraint
         vm.expectRevert("not enough capital");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // fund the policy sponsor entity
         nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
@@ -320,27 +377,27 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.warp(1);
         simplePolicy.startDate = block.timestamp - 1;
         vm.expectRevert("start date < block.timestamp");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.startDate = 1000;
 
         // start date after maturation date
         simplePolicy.startDate = simplePolicy.maturationDate;
         vm.expectRevert("start date > maturation date");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.startDate = 1000;
 
         // commission receivers
         vm.expectRevert("must have commission receivers");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
         simplePolicy.commissionReceivers = new bytes32[](0);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
         // commission basis points
         vm.expectRevert("must have commission basis points");
         uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;
         simplePolicy.commissionBasisPoints = new uint256[](0);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
 
         // commission basis points array and commission receivers array must have same length
@@ -350,7 +407,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionReceivers = new bytes32[](2);
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionReceivers.push(keccak256("b"));
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
@@ -360,12 +417,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionBasisPoints = new uint256[](1);
         simplePolicy.commissionBasisPoints.push(10001);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
         // create it successfully
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.startDate, simplePolicy.startDate, "Start dates should match");
@@ -380,24 +437,24 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCreateSimplePolicyAlreadyExists() public {
         getReadyToCreatePolicies();
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // todo: improve this error message when a premium is being created with the same premium ID
         vm.expectRevert("object already exists");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
     function testCreateSimplePolicyUpdatesEntityUtilizedCapacity() public {
         getReadyToCreatePolicies();
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // check utilized capacity of entity
         Entity memory e = nayms.getEntityInfo(entityId1);
         assertEq(e.utilizedCapacity, 10000, "utilized capacity");
 
         bytes32 policyId2 = "0xC0FFEF";
-        (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(policyId2);
-        nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, "policy2");
+        (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(testPolicyDataHash);
+        nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, testPolicyDataHash);
 
         e = nayms.getEntityInfo(entityId1);
         assertEq(e.utilizedCapacity, 20000, "utilized capacity");
@@ -405,7 +462,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCreateSimplePolicyFundsAreLockedInitially() public {
         getReadyToCreatePolicies();
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         SimplePolicy memory p = getSimplePolicy(policyId1);
         assertTrue(p.fundsLocked, "funds locked");
@@ -436,7 +493,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
             // try creating
             vm.expectRevert("invalid stakeholder");
-            nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+            nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
             // restore role
             nayms.assignRole(signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN);
@@ -457,7 +514,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             assertFalse(nayms.isInGroup(stakeholders.entityIds[i], policyId1, groups[i]), "not in group yet");
         }
 
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         for (uint256 i = 0; i < rolesCount; i++) {
             assertTrue(nayms.isInGroup(stakeholders.entityIds[i], policyId1, groups[i]), "in group");
@@ -469,7 +526,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.recordLogs();
 
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         // events: 4 role assignments + 1 policy creation => we want event at index 4
@@ -482,7 +539,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testSimplePolicyPremiumsCommissionsClaims() public {
         getReadyToCreatePolicies();
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         vm.expectRevert("not a policy handler");
         nayms.paySimplePremium(policyId1, 1000);
@@ -611,7 +668,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCheckAndUpdateSimplePolicyState() public {
         getReadyToCreatePolicies();
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         Entity memory entityBefore = nayms.getEntityInfo(entityId1);
         uint256 utilizedCapacityBefore = entityBefore.utilizedCapacity;
@@ -654,7 +711,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         getReadyToCreatePolicies();
 
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         uint256 premiumPaid = 10_000;
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
@@ -673,7 +730,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCancellSimplePolicy() public {
         getReadyToCreatePolicies();
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         Entity memory entityBefore = nayms.getEntityInfo(entityId1);
         uint256 utilizedCapacityBefore = entityBefore.utilizedCapacity;

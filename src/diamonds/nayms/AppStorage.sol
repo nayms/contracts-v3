@@ -8,7 +8,11 @@ import "./interfaces/FreeStructs.sol";
 struct AppStorage {
     // Has this diamond been initialized?
     bool diamondInitialized;
+    //// EIP712 domain separator ////
+    uint256 initialChainId;
+    bytes32 initialDomainSeparator;
     //// NAYMS ERC20 TOKEN ////
+    string name;
     mapping(address => mapping(address => uint256)) allowance;
     uint256 totalSupply;
     mapping(bytes32 => bool) internalToken;
