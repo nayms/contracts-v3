@@ -49,10 +49,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
         bytes32 tokenId,
         uint256 amount
     ) external assertEntityAdmin(LibObject._getParent(LibHelpers._getSenderId())) {
-        // require(LibTokenizedVault._internalBalanceOf(senderId, tokenId) >= amount, "internalTransfer: insufficient balance");
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
-        bytes32 senderEntityId = LibObject._getParent(senderId);
-        require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
+        bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
 
