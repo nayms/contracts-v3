@@ -82,7 +82,14 @@ library LibACL {
         return _isInGroup(parentId, _contextId, _groupId);
     }
 
-    /// Can a user (or object) assign a role in a given context
+    /**
+     * @notice Checks if assigner has the authority to assign object to a role in given context
+     * @dev Any object ID can be a context, system is a special context with highest priority
+     * @param _assignerId ID of an account wanting to assign a role to an object
+     * @param _objectId ID of an object that is being assigned a role
+     * @param _contextId ID of the context in which a role is being assigned
+     * @param _roleId ID of a role being assigned
+     */
     function _canAssign(
         bytes32 _assignerId,
         bytes32 _objectId,
@@ -95,11 +102,13 @@ library LibACL {
         AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 assignerGroup = s.canAssign[_roleId];
 
-        // Check for group membership in the given context
+        // Check for assigner's group membership in given context
         if (_isInGroup(_assignerId, _contextId, assignerGroup)) {
             ret = true;
         } else {
-            // A role in the context of the system covers all objects
+            // Otherwise, check his parent's membership in system context
+            // if account itself does not have the membership in given context, then having his parent
+            // in the system context grants him the privilege needed
             if (_isParentInGroup(_assignerId, LibAdmin._getSystemId(), assignerGroup)) {
                 ret = true;
             }

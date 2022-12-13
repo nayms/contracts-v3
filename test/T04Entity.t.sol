@@ -424,7 +424,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // todo: improve this error message when a premium is being created with the same premium ID
-        vm.expectRevert("object already exists");
+        vm.expectRevert("objectId is already being used by another object");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
