@@ -449,20 +449,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eBob, eAlice), 3_000);
         assertEq(nayms.internalBalanceOf(eCharlie, eAlice), 17_000);
 
-        bytes32 randomGuid = bytes32("0x1");
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 100_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
-        nayms.payDividendFromEntity(randomGuid, 40_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
 
-        nayms.payDividendFromEntity(randomGuid, 60_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x2"), 60_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
 
@@ -649,20 +648,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eEmily, eDavid), 3_000);
         assertEq(nayms.internalBalanceOf(eFaith, eDavid), 17_000);
 
-        bytes32 randomGuid = bytes32("0x1");
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 100_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
-        nayms.payDividendFromEntity(randomGuid, 40_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
 
-        nayms.payDividendFromEntity(randomGuid, 60_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x2"), 60_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
 
@@ -675,7 +673,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
 
         assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 100_000);
         vm.prank(david);
-        nayms.payDividendFromEntity(randomGuid, 40_000); // eDavid is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x3"), 40_000); // eDavid is paying out a dividend
         assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 40_000);
 
@@ -683,7 +681,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.getWithdrawableDividend(eFaith, eDavid, nWBTC), 34_000);
 
         vm.prank(david);
-        nayms.payDividendFromEntity(randomGuid, 60_000); // eDavid is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x4"), 60_000); // eDavid is paying out a dividend
         assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 100_000);
 
@@ -750,20 +748,22 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(eBob, eAlice), 3_000);
         assertEq(nayms.internalBalanceOf(eCharlie, eAlice), 17_000);
 
-        bytes32 randomGuid = bytes32("0x1");
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 100_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
-        nayms.payDividendFromEntity(randomGuid, 40_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
 
-        nayms.payDividendFromEntity(randomGuid, 60_000); // eAlice is paying out a dividend
+        vm.expectRevert("nonunique dividend distribution identifier");
+        nayms.payDividendFromEntity(bytes32("0x1"), 60_000); // eAlice is paying out a dividend
+
+        nayms.payDividendFromEntity(bytes32("0x2"), 60_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
 

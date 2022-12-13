@@ -5,6 +5,7 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
+import { LibObject } from "./LibObject.sol";
 
 library LibTokenizedVault {
     /**
@@ -247,6 +248,7 @@ library LibTokenizedVault {
     ) internal {
         require(_amount > 0, "dividend amount must be > 0");
         require(LibAdmin._isSupportedExternalToken(_dividendTokenId), "must be supported dividend token");
+        require(!LibObject._isObject(_guid), "nonunique dividend distribution identifier");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
@@ -275,6 +277,10 @@ library LibTokenizedVault {
                 s.dividendDenominations[_to].push(_dividendTokenId);
             }
         }
+
+        // prevent guid reuse/collision
+        LibObject._createObject(_guid);
+
         // Events are emitted from the _internalTransfer()
         emit DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);
     }
