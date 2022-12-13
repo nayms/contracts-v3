@@ -10,6 +10,9 @@ error AssignerGroupIsMissing();
 /// @dev Passing in a missing address when trying to add a token address to the supported external token list.
 error CannotAddNullSupportedExternalToken();
 
+/// @dev Cannot add a ERC20 token to the supported external token list that has more than 18 decimal places.
+error CannotSupportExternalTokenWithMoreThan18Decimals();
+
 /// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
 error CannotAddNullDiscountToken();
 

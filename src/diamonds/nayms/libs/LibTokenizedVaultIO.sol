@@ -28,10 +28,16 @@ library LibTokenizedVaultIO {
 
         bytes32 internalTokenId = LibHelpers._getIdForAddress(_externalTokenAddress);
 
+        uint256 balanceBeforeTransfer = LibERC20.balanceOf(_externalTokenAddress, msg.sender);
         // Funds are transferred to entity
-        LibTokenizedVault._internalMint(_receiverId, internalTokenId, _amount);
-
         LibERC20.transferFrom(_externalTokenAddress, msg.sender, address(this), _amount);
+
+        uint256 balanceAfterTransfer = LibERC20.balanceOf(_externalTokenAddress, msg.sender);
+
+        uint256 mintAmount = balanceBeforeTransfer - balanceAfterTransfer;
+
+        // note: Only mint what has been collected.
+        LibTokenizedVault._internalMint(_receiverId, internalTokenId, mintAmount);
     }
 
     function _externalWithdraw(
