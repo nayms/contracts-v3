@@ -73,8 +73,13 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
         vm.startPrank(account1);
         vm.expectRevert("not a system admin");
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wethAddress);
         vm.stopPrank();
+    }
+
+    function testAddSupportedExternalTokenFailIfTokenAddressHasNoCode() public {
+        vm.expectRevert("LibERC20: ERC20 token address has no code");
+        nayms.addSupportedExternalToken(address(0xdddddaaaaa));
     }
 
     function testAddSupportedExternalToken() public {
@@ -82,24 +87,24 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wbtcAddress);
         address[] memory v = nayms.getSupportedExternalTokens();
         assertEq(v.length, orig.length + 1);
-        assertEq(v[v.length - 1], LibConstants.DAI_CONSTANT);
+        assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
         address tok = abi.decode(entries[0].data, (address));
-        assertEq(tok, LibConstants.DAI_CONSTANT);
+        assertEq(tok, wbtcAddress);
     }
 
     function testIsSupportedToken() public {
-        bytes32 id = LibHelpers._getIdForAddress(LibConstants.DAI_CONSTANT);
+        bytes32 id = LibHelpers._getIdForAddress(wbtcAddress);
 
         assertFalse(nayms.isSupportedExternalToken(id));
 
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wbtcAddress);
 
         assertTrue(nayms.isSupportedExternalToken(id));
     }
@@ -109,12 +114,12 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress);
 
         address[] memory v = nayms.getSupportedExternalTokens();
         assertEq(v.length, orig.length + 1);
-        assertEq(v[v.length - 1], LibConstants.DAI_CONSTANT);
+        assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);

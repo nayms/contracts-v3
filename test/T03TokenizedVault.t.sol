@@ -165,6 +165,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         vm.label(signer2, "charlie");
 
         // force entity creation
+        vm.assume(!nayms.isObject(entity1));
         require(!nayms.isObject(entity1), "entity1 is already an object, pick a different ID");
         require(!nayms.isObject(entity2), "entity2 is already an object, pick a different ID");
         nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");

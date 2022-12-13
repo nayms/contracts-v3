@@ -5,7 +5,9 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
-import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { LibERC20 } from "src/erc20/LibERC20.sol";
+
+import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibAdmin {
     event BalanceUpdated(uint256 oldBalance, uint256 newBalance);
@@ -45,8 +47,8 @@ library LibAdmin {
     }
 
     function _addSupportedExternalToken(address _tokenAddress) internal {
-        if (_tokenAddress == address(0)) {
-            revert CannotAddNullSupportedExternalToken();
+        if (LibERC20.decimals(_tokenAddress) > 18) {
+            revert CannotSupportExternalTokenWithMoreThan18Decimals();
         }
         AppStorage storage s = LibAppStorage.diamondStorage();
 

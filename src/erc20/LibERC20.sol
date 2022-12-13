@@ -9,6 +9,26 @@ pragma solidity >=0.8.13;
 import { IERC20 } from "./IERC20.sol";
 
 library LibERC20 {
+    function decimals(address _token) internal returns (uint8) {
+        uint256 size;
+        assembly {
+            size := extcodesize(_token)
+        }
+        require(size > 0, "LibERC20: ERC20 token address has no code");
+        (, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.decimals.selector));
+        return abi.decode(result, (uint8));
+    }
+
+    function balanceOf(address _token, address _who) internal returns (uint256) {
+        uint256 size;
+        assembly {
+            size := extcodesize(_token)
+        }
+        require(size > 0, "LibERC20: ERC20 token address has no code");
+        (, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.balanceOf.selector, _who));
+        return abi.decode(result, (uint256));
+    }
+
     function transferFrom(
         address _token,
         address _from,
