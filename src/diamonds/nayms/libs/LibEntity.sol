@@ -53,11 +53,6 @@ library LibEntity {
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
-        // todo: ensure that the capital raised is >= max capacity. Probably want to do this check when the trade is made.
-
-        // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity, so no need to check this here.
-        // require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
-
         // Calculate the entity's utilized capacity after it writes this policy.
         updatedUtilizedCapacity = entity.utilizedCapacity + simplePolicy.limit;
 

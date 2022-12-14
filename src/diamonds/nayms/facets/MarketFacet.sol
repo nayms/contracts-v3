@@ -111,7 +111,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     /**
      * @dev Calculate the trading commissions based on a buy amount.
      * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct todo
+     * @return tc TradingCommissions struct
      */
     function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
         tc = LibFeeRouter._calculateTradingCommissions(buyAmount);

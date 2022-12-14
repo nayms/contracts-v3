@@ -68,7 +68,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity1MintAndSaleAmt: 1_000 ether,
             entity2MintAndSaleAmt: 1_000 ether,
             entity3MintAndSaleAmt: 1_500 ether,
-            entity1SalePrice: 1_000 ether, // 1:1 ratio, todo 0:1, 1:0
+            entity1SalePrice: 1_000 ether,
             entity2SalePrice: 1_000 ether,
             entity3SalePrice: 1_000 ether
         });
@@ -113,7 +113,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // mint weth for account0
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
-        // NOTE and maybe todo: when using writeTokenBalance, this does not update the total supply!
+        // note: when using writeTokenBalance, this does not update the total supply!
         // assertEq(weth.totalSupply(), naymsAddress, 10_000, "weth total supply after mint should INCREASE (mint)");
 
         nayms.externalDeposit(wethAddress, dt.entity1ExternalDepositAmt);

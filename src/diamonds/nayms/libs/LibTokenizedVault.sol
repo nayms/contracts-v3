@@ -163,7 +163,6 @@ library LibTokenizedVault {
         emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalBurn", msg.sender);
     }
 
-    //
     //   DIVIDEND PAYOUT LOGIC
     //
     // When a dividend is payed, you divide by the total supply and add it to the totalDividendPerToken
@@ -198,7 +197,6 @@ library LibTokenizedVault {
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
         uint256 withdrawableDividend = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
-        // require(withdrawableDividend > 0, "_withdrawDividend: no dividend");
         if (withdrawableDividend > 0) {
             // Bump the withdrawn dividends for the owner
             s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += withdrawableDividend;

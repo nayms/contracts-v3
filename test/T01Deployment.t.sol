@@ -36,7 +36,6 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertEq(nayms.owner(), account0);
     }
 
-    // todo test against artifact data generated for deployment
     function testDiamondLoupeFunctionality() public view {
         IDiamondLoupe.Facet[] memory facets = nayms.facets();
 
