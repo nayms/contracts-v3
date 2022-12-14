@@ -74,8 +74,8 @@ library LibTokenizedVault {
     ) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.marketLockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens for sale in mkt");
+        if (s.lockedBalances[_from][_tokenId] > 0) {
+            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens locked");
         } else {
             require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransferFrom: must own the funds");
         }
@@ -148,8 +148,8 @@ library LibTokenizedVault {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.marketLockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.marketLockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens for sale in mkt");
+        if (s.lockedBalances[_from][_tokenId] > 0) {
+            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens locked");
         } else {
             require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalBurn: must own the funds");
         }
@@ -295,5 +295,10 @@ library LibTokenizedVault {
         uint256 holderDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
 
         _withdrawableDividend = (_withdrawnSoFar >= holderDividend) ? 0 : holderDividend - _withdrawnSoFar;
+    }
+
+    function _getLockedBalance(bytes32 _accountId, bytes32 _tokenId) internal view returns (uint256 amount) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.lockedBalances[_accountId][_tokenId];
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
+import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
 import { AppStorage, Entity, FeeRatio, MarketInfo, TradingCommissions, TradingCommissionsBasisPoints } from "src/diamonds/nayms/AppStorage.sol";
 import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
@@ -8,7 +9,7 @@ import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
-contract T03TokenizedVaultTest is D03ProtocolDefaults {
+contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     using FixedPointMathLib for uint256;
 
     bytes32 internal nWETH;
@@ -93,6 +94,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
         require(success, "Should get commissions from app storage");
         return abi.decode(result, (TradingCommissionsConfig));
+    }
+
+    function testGetLockedBalance() public {
+        bytes32 entityId = createTestEntity(account0Id);
+
+        // nothing at first
+        assertEq(nayms.getLockedBalance(entityId, entityId), 0);
+
+        // now start token sale to create an offer
+        nayms.enableEntityTokenization(entityId, "Entity1");
+        nayms.startTokenSale(entityId, 100, 100);
+
+        assertEq(nayms.getLockedBalance(entityId, entityId), 100);
     }
 
     function testBasisPoints() public {
@@ -240,6 +254,21 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalTokenSupply(nWETH), naymsWethInternalTokenSupply - 100, "nayms burned internal WETH");
     }
 
+    function testOnlyEntityAdminCanPayDividend() public {
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        nayms.enableEntityTokenization(acc0EntityId, "E1");
+        nayms.startTokenSale(acc0EntityId, 1 ether, 1 ether);
+
+        bytes32 acc9Id = LibHelpers._addressToBytes32(account9);
+        nayms.setEntity(acc9Id, acc0EntityId);
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+        nayms.externalDeposit(wethAddress, 1 ether);
+        vm.prank(account9);
+        vm.expectRevert("payDividendFromEntity: not the entity's admin");
+        nayms.payDividendFromEntity(bytes32("0x1"), 1 ether);
+    }
+
     function testPayDividendsWithZeroParticipationTokenSupply() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
 
@@ -258,6 +287,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         assertEq(nayms.internalTokenSupply(acc0EntityId), 0, "Testing when the participation token supply is 0, but par token supply is NOT 0");
 
         bytes32 randomGuid = bytes32("0x1");
+
+        address nonAdminAddress = vm.addr(0xACC9);
+        bytes32 nonAdminId = LibHelpers._getIdForAddress(nonAdminAddress);
+        nayms.setEntity(nonAdminId, acc0EntityId);
+
+        vm.startPrank(nonAdminAddress);
+        vm.expectRevert("payDividendFromEntity: not the entity's admin");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+        vm.stopPrank();
+
+        vm.expectRevert("payDividendFromEntity: insufficient balance");
+        nayms.payDividendFromEntity(randomGuid, 10 ether);
+
         nayms.payDividendFromEntity(randomGuid, 1 ether);
         // note: When the participation token supply is 0, payDividend() should transfer the payout directly to the payee
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (transfer)");
@@ -385,7 +427,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults {
         );
 
         uint256 takerBuyAmount = 1e18;
-        console2.log(nayms.getBalanceOfTokensForSale(eAlice, eAlice));
+        console2.log(nayms.getLockedBalance(eAlice, eAlice));
 
         TradingCommissions memory tc = nayms.calculateTradingCommissions(takerBuyAmount);
 

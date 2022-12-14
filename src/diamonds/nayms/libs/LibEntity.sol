@@ -27,13 +27,15 @@ library LibEntity {
     event EntityUpdated(bytes32 entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId);
+    event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
-    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy calldata simplePolicy) internal view returns (uint256 updatedUtilizedCapacity) {
+    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy calldata simplePolicy) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
+        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
 
         bool isEntityAdmin = LibACL._isInGroup(LibHelpers._getSenderId(), _entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS));
         require(isEntityAdmin, "must be entity admin");
@@ -54,18 +56,15 @@ library LibEntity {
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
-        updatedUtilizedCapacity = entity.utilizedCapacity + simplePolicy.limit;
+        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + ((simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR);
 
         // The entity must have enough capacity available to write this policy.
         // An entity is not able to write an additional policy that will utilize its capacity beyond its assigned max capacity.
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
-        // Calculate the entity's required capital for its capacity utilization based on its collateral requirements.
-        uint256 capitalRequirementForUpdatedUtilizedCapacity = (updatedUtilizedCapacity * entity.collateralRatio) / LibConstants.BP_FACTOR;
-
         // The entity's balance must be >= to the updated capacity requirement
         // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
-        require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= capitalRequirementForUpdatedUtilizedCapacity, "not enough capital");
+        require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
@@ -101,9 +100,13 @@ library LibEntity {
         }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
-        // note: An entity's updated utilized capacity <= max capitalization check is done in _validateSimplePolicyCreation().
-        // Update state with the entity's updated utilized capacity.
-        s.entities[_entityId].utilizedCapacity = _validateSimplePolicyCreation(_entityId, _simplePolicy);
+        _validateSimplePolicyCreation(_entityId, _simplePolicy);
+
+        Entity storage entity = s.entities[_entityId];
+        uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
+
+        entity.utilizedCapacity += factoredLimit;
+        s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
 
         LibObject._createObject(_policyId, _entityId, _dataHash);
         s.simplePolicies[_policyId] = _simplePolicy;
@@ -194,16 +197,33 @@ library LibEntity {
 
     function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
         // Cannot update a non-existing entity's metadata.
         if (s.existingEntities[_entityId] == false) {
             revert EntityDoesNotExist(_entityId);
         }
+
         validateEntity(_entity);
 
-        // assetId change not allowed
+        uint256 oldCollateralRatio = s.entities[_entityId].collateralRatio;
+        uint256 oldUtilizedCapacity = s.entities[_entityId].utilizedCapacity;
         bytes32 originalAssetId = s.entities[_entityId].assetId;
+
         s.entities[_entityId] = _entity;
-        s.entities[_entityId].assetId = originalAssetId;
+        s.entities[_entityId].assetId = originalAssetId; // assetId change not allowed
+
+        // if it's a cell, and collateral ratio changed
+        if (_entity.assetId != 0 && _entity.collateralRatio != oldCollateralRatio) {
+            uint256 newUtilizedCapacity = (oldUtilizedCapacity * _entity.collateralRatio) / oldCollateralRatio;
+            uint256 newLockedBalance = s.lockedBalances[_entityId][_entity.assetId] - oldUtilizedCapacity + newUtilizedCapacity;
+
+            require(LibTokenizedVault._internalBalanceOf(_entityId, _entity.assetId) >= newLockedBalance, "collateral ratio invalid, not enough balance");
+
+            s.entities[_entityId].utilizedCapacity = newUtilizedCapacity;
+            s.lockedBalances[_entityId][_entity.assetId] = newLockedBalance;
+
+            emit CollateralRatioUpdated(_entityId, _entity.collateralRatio, s.entities[_entityId].utilizedCapacity);
+        }
 
         emit EntityUpdated(_entityId);
     }

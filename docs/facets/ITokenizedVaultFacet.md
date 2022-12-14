@@ -140,3 +140,23 @@ Transfer dividends to the entity
 |`guid` | bytes32 | Globally unique identifier of a dividend distribution.
 |`amount` | uint256 | the mamount of the dividend token to be distributed to NAYMS token holders.|
 <br></br>
+### getLockedBalance
+Get the amount of tokens that an entity has for sale in the marketplace.
+```solidity
+  function getLockedBalance(
+    bytes32 _entityId,
+    bytes32 _tokenId
+  ) external returns (uint256 amount)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_entityId` | bytes32 |  Unique platform ID of the entity.
+|`_tokenId` | bytes32 | The ID assigned to an external token.
+|
+<br></br>
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`amount` | of tokens that the entity has for sale in the marketplace.|
+<br></br>
