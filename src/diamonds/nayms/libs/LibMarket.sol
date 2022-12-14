@@ -4,12 +4,18 @@ pragma solidity >=0.8.13;
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { MarketInfo, TokenAmount, TradingCommissions } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 library LibMarket {
+    struct MatchingOfferResult {
+        uint256 remainingBuyAmount;
+        uint256 remainingSellAmount;
+        uint256 buyTokenCommissionsPaid;
+        uint256 sellTokenCommissionsPaid;
+    }
+
     /// @notice order has been added
     event OrderAdded(
         uint256 indexed orderId,
@@ -28,13 +34,6 @@ library LibMarket {
 
     /// @notice order has been canceled
     event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
-
-    struct MatchingOfferResult {
-        uint256 remainingBuyAmount;
-        uint256 remainingSellAmount;
-        uint256 buyTokenCommissionsPaid;
-        uint256 sellTokenCommissionsPaid;
-    }
 
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -122,6 +121,10 @@ library LibMarket {
         s.span[sellToken][buyToken]--;
     }
 
+    /**
+     * @dev If the relative price of the sell token for offer1 ("low offer") is more expensive than the relative price of of the sell token for offer2 ("high offer"), then this returns true.
+     *      If the sell token for offer1 is "more expensive", this means that one will need more sell token to buy the same amount of buy token when comparing relative prices of offer1 to offer2.
+     */
     function _isOfferPricedLtOrEq(uint256 _lowOfferId, uint256 _highOfferId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -233,7 +236,7 @@ library LibMarket {
 
         uint256 lastOfferId = ++s.lastOfferId;
 
-        MarketInfo memory marketInfo = s.offers[lastOfferId];
+        MarketInfo memory marketInfo;
         marketInfo.creator = _creator;
         marketInfo.sellToken = _sellToken;
         marketInfo.sellAmount = _sellAmount;

@@ -63,6 +63,12 @@ interface ITokenizedVaultFacet {
         bytes32 dividendTokenId
     ) external;
 
+    /**
+     * @notice Withdraws a user's available dividends.
+     * @dev Dividends can be available in more than one dividend denomination. This method will withdraw all available dividends in the different dividend denominations.
+     * @param ownerId Unique ID of the dividend receiver
+     * @param tokenId Unique ID of token
+     */
     function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external;
 
     /**

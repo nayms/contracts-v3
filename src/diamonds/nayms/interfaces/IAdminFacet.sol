@@ -34,7 +34,7 @@ interface IAdminFacet {
     function getMaxDividendDenominations() external view returns (uint8);
 
     /**
-     * @notice is the specified token an external ERC20?
+     * @notice Is the specified tokenId an external ERC20 that is supported by the Nayms platform?
      * @param _tokenId token address converted to bytes32
      * @return whether token issupported or not
      */

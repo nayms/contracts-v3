@@ -63,7 +63,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function getReadyToCreatePolicies() public {
         // create entity
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test entity");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test entity");
 
         // assign entity admin
         nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
@@ -86,14 +86,14 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testEnableEntityTokenization() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, false), "entity test hash");
 
         // Attempt to tokenize an entity when the entity does not exist. Should throw an error.
         bytes32 nonExistentEntity = bytes32("ffffaaa");
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (nonExistentEntity)));
         nayms.enableEntityTokenization(nonExistentEntity, "123456789012345");
 
-        vm.expectRevert("symbol more than 16 characters");
+        vm.expectRevert("symbol must be less than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456");
 
         nayms.enableEntityTokenization(entityId1, "123456789012345");
@@ -104,52 +104,52 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testUpdateEntity() public {
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
-        nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, false));
+        nayms.updateEntity(entityId1, initEntity(wethId, 10_000, 0, false));
 
-        nayms.createEntity(entityId1, account0Id, initEntity2(0, 0, 0, 0, false), testPolicyDataHash);
+        console2.logBytes32(wethId);
+        nayms.createEntity(entityId1, account0Id, initEntity(0, 0, 0, false), testPolicyDataHash);
+        console2.log(" >>> CREATED");
 
         vm.expectRevert("only cell has collateral ratio");
-        nayms.updateEntity(entityId1, initEntity2(0, 1000, 0, 0, false));
+        nayms.updateEntity(entityId1, initEntity(0, 1_000, 0, false));
 
         vm.expectRevert("only cell can issue policies");
-        nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, true));
+        nayms.updateEntity(entityId1, initEntity(0, 0, 0, true));
 
         vm.expectRevert("only cells have max capacity");
-        nayms.updateEntity(entityId1, initEntity2(0, 0, 1000, 0, false));
+        nayms.updateEntity(entityId1, initEntity(0, 0, 10_000, false));
 
         vm.recordLogs();
-        nayms.updateEntity(entityId1, initEntity2(0, 0, 0, 0, false));
+        nayms.updateEntity(entityId1, initEntity(0, 0, 0, false));
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
-        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics.length, 2, "Invalid event count");
         assertEq(entries[0].topics[0], keccak256("EntityUpdated(bytes32)"));
-        bytes32 id = abi.decode(entries[0].data, (bytes32));
-        assertEq(id, entityId1);
+        assertEq(entries[0].topics[1], entityId1, "EntityUpdated: incorrect entity"); // assert entity
     }
 
     function testUpdateCell() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 100000, 0, true), testPolicyDataHash);
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 100000, true), testPolicyDataHash);
 
         vm.expectRevert("external token is not supported");
-        nayms.updateEntity(entityId1, initEntity(wbtc, 0, LibConstants.BP_FACTOR, 0, false));
+        nayms.updateEntity(entityId1, initEntity(wbtcId, 0, LibConstants.BP_FACTOR, false));
 
         vm.expectRevert("collateral ratio should be 1 to 10000");
-        nayms.updateEntity(entityId1, initEntity(weth, 10001, LibConstants.BP_FACTOR, 0, false));
+        nayms.updateEntity(entityId1, initEntity(wethId, 10001, LibConstants.BP_FACTOR, false));
 
         vm.expectRevert("max capacity should be greater than 0 for policy creation");
-        nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, 0, 0, true));
+        nayms.updateEntity(entityId1, initEntity(wethId, LibConstants.BP_FACTOR, 0, true));
 
         vm.recordLogs();
-        nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false));
+        nayms.updateEntity(entityId1, initEntity(wethId, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, false));
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[1].topics.length, 1);
+        assertEq(entries[1].topics.length, 2, "Invalid event count");
         assertEq(entries[1].topics[0], keccak256("EntityUpdated(bytes32)"));
-        bytes32 id = abi.decode(entries[1].data, (bytes32));
-        assertEq(id, entityId1);
+        assertEq(entries[1].topics[1], entityId1, "EntityUpdated: incorrect entity"); // assert entity
     }
 
     function testUpdateCellCollateralRatio() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test entity");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test entity");
         nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
 
         // fund the entity balance
@@ -197,7 +197,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testDuplicateSignerWhenCreatingSimplePolicy() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, true), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, true), "entity test hash");
 
         address alice = vm.addr(0xACC1);
         address bob = vm.addr(0xACC2);
@@ -240,7 +240,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testSignatureWhenCreatingSimplePolicy() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5000, 10000, 0, true), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, true), "entity test hash");
 
         address alice = vm.addr(0xACC2);
         address bob = vm.addr(0xACC1);
@@ -282,12 +282,12 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testCreateSimplePolicyValidation() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false), "entity test hash");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, false), "entity test hash");
 
         // enable simple policy creation
         vm.expectRevert("simple policy creation disabled");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        nayms.updateEntity(entityId1, initEntity(weth, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, true));
+        nayms.updateEntity(entityId1, initEntity(wethId, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, true));
 
         // stakeholders entity ids array different length to signatures array
         bytes[] memory sig = stakeholders.signatures;
@@ -332,14 +332,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // update max capacity
-        nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
+        nayms.updateEntity(entityId1, initEntity(wethId, 5000, 300000, true));
 
         // test collateral ratio constraint
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // fund the policy sponsor entity
-        nayms.updateEntity(entityId1, initEntity(weth, 5000, 300000, 0, true));
+        nayms.updateEntity(entityId1, initEntity(wethId, 5000, 300000, true));
         weth.approve(naymsAddress, 10000);
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         assertEq(weth.balanceOf(account0), 100000);
@@ -607,7 +607,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         uint256 sellAmount = 1000;
         uint256 sellAtPrice = 1000;
 
-        Entity memory entity1 = initEntity(weth, 5000, 10000, 0, false);
+        Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId1, account0Id, entity1, "entity test hash");
 
         assertEq(nayms.getLastOfferId(), 0);
@@ -702,7 +702,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM);
     }
 
-    function testCancellSimplePolicy() public {
+    function testCancelSimplePolicy() public {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
@@ -723,5 +723,19 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("Policy already cancelled");
         nayms.cancelSimplePolicy(policyId1);
+    }
+
+    function testUtilizedCapacityMustBeZeroOnEntityCreate() public {
+        // prettier-ignore
+        Entity memory e = Entity({ 
+            assetId: wethId, 
+            collateralRatio: 5_000, 
+            maxCapacity: 10_000, 
+            utilizedCapacity: 10_000, 
+            simplePolicyEnabled: false 
+        });
+
+        vm.expectRevert("utilized capacity starts at 0");
+        nayms.createEntity(entityId1, account0Id, e, "entity test hash");
     }
 }

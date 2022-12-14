@@ -104,7 +104,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testStartTokenSale() public {
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // mint weth for account0
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
@@ -193,7 +193,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
         vm.startPrank(signer1);
-        vm.expectRevert("_internalTransferFrom: tokens locked");
+        vm.expectRevert("_internalTransfer: tokens locked");
         nayms.internalTransfer(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
         vm.stopPrank();
 
@@ -204,8 +204,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         // init and fund taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
-        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         vm.startPrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt);
@@ -267,7 +267,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         // init and fund taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
 
         vm.startPrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
@@ -287,7 +287,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         vm.startPrank(signer3);
-        vm.expectRevert("only creator can cancel");
+        vm.expectRevert("only member of entity can cancel");
         nayms.cancelOffer(1);
         vm.stopPrank();
 
@@ -324,8 +324,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
 
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
 
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
@@ -374,8 +374,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // whitelist underlying token
         nayms.addSupportedExternalToken(wethAddress);
 
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
 
         // init test funds to maxint
         writeTokenBalance(signer1, naymsAddress, wethAddress, ~uint256(0));
@@ -419,7 +419,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         // init taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // fund taker entity
         vm.startPrank(signer2);
@@ -448,9 +448,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         // init taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.createEntity(entity4, signer4Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
+        nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
+        nayms.createEntity(entity4, signer4Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // fund taker entity
         vm.startPrank(signer2);
@@ -495,7 +495,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         // init taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         vm.startPrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, 1_000 ether);
@@ -550,14 +550,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(wethAddress);
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
 
         nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
         // start nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
         // create (x2) counter offer
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         vm.startPrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt * 2);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 2);
@@ -579,9 +579,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         // init taker entity
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.createEntity(entity3, signer3Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.createEntity(entity4, signer4Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
+        nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
+        nayms.createEntity(entity4, signer4Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // fund taker entity
         vm.startPrank(signer2);
@@ -727,14 +727,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // OFFER 1: 2000 pTokens -> 2000 WETH
         writeTokenBalance(account0, naymsAddress, wethAddress, e1balance);
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
 
         nayms.startTokenSale(entity1, offer1sell, offer1buy);
 
         // OFFER 2 (x2) counter offer: 4000 WETH -> 4000 pTokens
         // we have to do this as the protocol does not allow us to create an offer to buy pTokens before they are minted!
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_2000eth, totalLimit_2000eth, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         vm.startPrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2balance);
         nayms.externalDeposit(wethAddress, e2balance);
@@ -759,8 +759,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.addSupportedExternalToken(wethAddress);
 
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, salePrice, salePrice, true), "test");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
 
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));

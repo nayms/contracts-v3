@@ -78,7 +78,7 @@ library LibObject {
         if (bytes(_symbol).length == 0) {
             revert MissingSymbolWhenEnablingTokenization(_objectId);
         }
-        require(bytes(_symbol).length < 16, "symbol more than 16 characters");
+        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
         require(s.objectTokenSymbol[_objectId] == LibAdmin._getEmptyId(), "object already tokenized");
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.

@@ -3,7 +3,6 @@ pragma solidity >=0.8.13;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
-import { LibObject } from "../libs/LibObject.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
@@ -49,7 +48,7 @@ contract AdminFacet is IAdminFacet, Modifiers {
     }
 
     /**
-     * @notice is the specified token an external ERC20?
+     * @notice Is the specified tokenId an external ERC20 that is supported by the Nayms platform?
      * @param _tokenId token address converted to bytes32
      * @return whether token issupported or not
      */

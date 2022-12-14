@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, LibAppStorage, SimplePolicy, TokenAmount, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, SimplePolicy, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -45,7 +45,7 @@ library LibFeeRouter {
     ) internal returns (uint256 commissionPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<10000bp");
+        require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
         require(
             s.tradingCommissionNaymsLtdBP + s.tradingCommissionNDFBP + s.tradingCommissionSTMBP + s.tradingCommissionMakerBP <= LibConstants.BP_FACTOR,
             "commissions sum over 10000 bp"

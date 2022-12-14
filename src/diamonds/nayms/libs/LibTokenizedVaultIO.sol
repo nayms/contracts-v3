@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibERC20 } from "../../../erc20/LibERC20.sol";
 import { ExternalDepositAmountCannotBeZero, ExternalWithdrawAmountCannotBeZero } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
@@ -13,10 +11,6 @@ import { ExternalDepositAmountCannotBeZero, ExternalWithdrawAmountCannotBeZero }
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
 library LibTokenizedVaultIO {
-    event NaymsVaultTokenTransfer(address operator, bytes32 indexed from, bytes32 indexed to, uint256 amount);
-
-    event ExternalDeposit();
-
     function _externalDeposit(
         bytes32 _receiverId,
         address _externalTokenAddress,

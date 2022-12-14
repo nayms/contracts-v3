@@ -123,8 +123,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSingleExternalDeposit() public {
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_3000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_3000eth, true), "entity test hash");
 
         uint256 externalDepositAmount = depositAmount / 5;
 
@@ -182,9 +182,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.assume(!nayms.isObject(entity1));
         require(!nayms.isObject(entity1), "entity1 is already an object, pick a different ID");
         require(!nayms.isObject(entity2), "entity2 is already an object, pick a different ID");
-        nayms.createEntity(entity1, signer1Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_3000eth, true), "entity test hash");
 
-        nayms.createEntity(entity2, signer2Id, initEntity(weth, collateralRatio_500, maxCapital_3000eth, totalLimit_2000eth, true), "entity test hash");
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_3000eth, true), "entity test hash");
 
         uint256 externalDepositAmount = depositAmount / 5;
 

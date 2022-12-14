@@ -23,8 +23,8 @@ library LibEntity {
      * @param entityId Unique ID for the entity
      * @param entityAdmin Unique ID of the entity administrator
      */
-    event EntityCreated(bytes32 entityId, bytes32 entityAdmin);
-    event EntityUpdated(bytes32 entityId);
+    event EntityCreated(bytes32 indexed entityId, bytes32 entityAdmin);
+    event EntityUpdated(bytes32 indexed entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId);
     event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
@@ -161,6 +161,7 @@ library LibEntity {
 
         Entity memory entity = s.entities[_entityId];
 
+        // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
         (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
@@ -188,7 +189,7 @@ library LibEntity {
         LibACL._assignRole(_entityAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
 
         // An entity starts without any capacity being utilized
-        delete _entity.utilizedCapacity;
+        require(_entity.utilizedCapacity == 0, "utilized capacity starts at 0");
 
         s.entities[_entityId] = _entity;
 

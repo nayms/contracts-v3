@@ -78,32 +78,20 @@ contract D03ProtocolDefaults is D02TestSetup {
     function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
         // create entity with signer2 as child
         entityId = "0xe1";
-        Entity memory entity1 = initEntity(weth, 5000, 10000, 10000, false);
+        Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
     }
 
     function initEntity(
-        ERC20 _asset,
-        uint256 _collateralRatio,
-        uint256 _maxCapacity,
-        uint256 _utilizedCapacity,
-        bool _simplePolicyEnabled
-    ) public pure returns (Entity memory e) {
-        bytes32 assetId = LibHelpers._getIdForAddress(address(_asset));
-        return initEntity2(assetId, _collateralRatio, _maxCapacity, _utilizedCapacity, _simplePolicyEnabled);
-    }
-
-    function initEntity2(
         bytes32 _assetId,
         uint256 _collateralRatio,
         uint256 _maxCapacity,
-        uint256 _utilizedCapacity,
         bool _simplePolicyEnabled
     ) public pure returns (Entity memory e) {
         e.assetId = _assetId;
         e.collateralRatio = _collateralRatio;
         e.maxCapacity = _maxCapacity;
-        e.utilizedCapacity = _utilizedCapacity;
+        e.utilizedCapacity = 0;
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 

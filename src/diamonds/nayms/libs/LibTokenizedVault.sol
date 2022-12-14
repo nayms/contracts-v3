@@ -9,26 +9,6 @@ import { LibObject } from "./LibObject.sol";
 
 library LibTokenizedVault {
     /**
-     * @notice Entity funds deposit
-     * @dev Thrown when entity is funded
-     * @param caller address of the funder
-     * @param receivingEntityId Unique ID of the entity receiving the funds
-     * @param assetId Unique ID of the asset being deposited
-     * @param shares Amount deposited
-     */
-    event EntityDeposit(address indexed caller, bytes32 indexed receivingEntityId, bytes32 assetId, uint256 shares);
-
-    /**
-     * @notice Entity funds withdrawn
-     * @dev Thrown when entity funds are withdrawn
-     * @param caller address of the account initiating the transfer
-     * @param receiver address of the account receiving the funds
-     * @param assetId Unique ID of the asset being transferred
-     * @param shares Withdrawn amount
-     */
-    event EntityWithdraw(address indexed caller, address indexed receiver, address assetId, uint256 shares);
-
-    /**
      * @dev Emitted when a token balance gets updated.
      * @param ownerId Id of owner
      * @param tokenId ID of token
@@ -75,9 +55,9 @@ library LibTokenizedVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.lockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens locked");
+            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransfer: tokens locked");
         } else {
-            require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransferFrom: must own the funds");
+            require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: must own the funds");
         }
 
         _withdrawAllDividends(_from, _tokenId);
@@ -87,8 +67,8 @@ library LibTokenizedVault {
 
         _normalizeDividends(_to, _tokenId, _amount, false);
 
-        emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransferFrom", msg.sender);
-        emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransferFrom", msg.sender);
+        emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransfer", msg.sender);
+        emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransfer", msg.sender);
 
         success = true;
     }
@@ -227,13 +207,10 @@ library LibTokenizedVault {
 
     function _withdrawAllDividends(bytes32 _ownerId, bytes32 _tokenId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
-        bytes32 dividendDenominationId;
 
         for (uint256 i = 0; i < dividendDenominations.length; ++i) {
-            dividendDenominationId = dividendDenominations[i];
-            _withdrawDividend(_ownerId, _tokenId, dividendDenominationId);
+            _withdrawDividend(_ownerId, _tokenId, dividendDenominations[i]);
         }
     }
 
@@ -252,6 +229,8 @@ library LibTokenizedVault {
         bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
 
         // If no tokens are issued, then deposit directly.
+        // note: This functionality is for the business case where we want to distribute dividends directly to entities.
+        // How this functionality is implemented may be changed in the future.
         if (_internalTokenSupply(_to) == 0) {
             _internalTransfer(_from, _to, _dividendTokenId, _amount);
         }

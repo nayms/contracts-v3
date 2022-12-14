@@ -10,7 +10,6 @@ import { LibERC20 } from "src/erc20/LibERC20.sol";
 import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibAdmin {
-    event BalanceUpdated(uint256 oldBalance, uint256 newBalance);
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
     event SupportedTokenAdded(address tokenAddress);
 

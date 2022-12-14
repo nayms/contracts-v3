@@ -2,7 +2,6 @@
 pragma solidity >=0.8.13;
 
 import { AppStorage, LibAppStorage } from "./AppStorage.sol";
-import { LibObject } from "./libs/LibObject.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
 import { LibConstants } from "./libs/LibConstants.sol";
 import { LibAdmin } from "./libs/LibAdmin.sol";
@@ -69,15 +68,12 @@ contract InitDiamond {
         LibACL._updateRoleAssigner(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS);
 
-        // dissalow creating an object with ID of 0
+        // disallow creating an object with ID of 0
         s.existingObjects[0] = true;
 
         // assign msg.sender as a Nayms System Admin
@@ -87,7 +83,7 @@ contract InitDiamond {
         LibACL._assignRole(userId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN));
 
         // Set Commissions (all are in basis points)
-        s.tradingCommissionTotalBP = 40;
+        s.tradingCommissionTotalBP = 30;
         s.tradingCommissionNaymsLtdBP = 5000;
         s.tradingCommissionNDFBP = 2500;
         s.tradingCommissionSTMBP = 2500;

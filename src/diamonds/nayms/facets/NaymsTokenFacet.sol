@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.13;
 
-import { LibAppStorage, AppStorage } from "../AppStorage.sol";
 import { INaymsTokenFacet } from "../interfaces/INaymsTokenFacet.sol";
 import { LibNaymsToken } from "../libs/LibNaymsToken.sol";
 

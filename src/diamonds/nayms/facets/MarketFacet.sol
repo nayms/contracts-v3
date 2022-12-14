@@ -35,7 +35,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     function cancelOffer(uint256 _offerId) external nonReentrant {
         require(LibMarket._getOffer(_offerId).state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
-        require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only creator can cancel");
+        require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only member of entity can cancel");
         LibMarket._cancelOffer(_offerId);
     }
 

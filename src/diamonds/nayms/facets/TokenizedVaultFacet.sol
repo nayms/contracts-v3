@@ -93,6 +93,12 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
+    /**
+     * @notice Withdraws a user's available dividends.
+     * @dev Dividends can be available in more than one dividend denomination. This method will withdraw all available dividends in the different dividend denominations.
+     * @param ownerId Unique ID of the dividend receiver
+     * @param tokenId Unique ID of token
+     */
     function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
@@ -113,6 +119,8 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
         );
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 
+        // note: The from and to are both entityId. In the case where a dividend is paid to an entity that was not tokenized to have participation tokens, the dividend payment
+        // will go to the user's entity.
         LibTokenizedVault._payDividend(guid, entityId, entityId, dividendTokenId, amount);
     }
 
