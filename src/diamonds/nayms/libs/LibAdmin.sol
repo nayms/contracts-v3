@@ -52,20 +52,11 @@ library LibAdmin {
         }
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        bool alreadyAdded;
-        s.externalTokenSupported[_tokenAddress] = true;
-
-        // Supported tokens cannot be removed because they may exist in the system!
-        for (uint256 i = 0; i < s.supportedExternalTokens.length; i++) {
-            if (s.supportedExternalTokens[i] == _tokenAddress) {
-                alreadyAdded = true;
-                break;
-            }
-        }
+        bool alreadyAdded = s.externalTokenSupported[_tokenAddress];
         if (!alreadyAdded) {
+            s.externalTokenSupported[_tokenAddress] = true;
             LibObject._createObject(LibHelpers._getIdForAddress(_tokenAddress));
             s.supportedExternalTokens.push(_tokenAddress);
-
             emit SupportedTokenAdded(_tokenAddress);
         }
     }
