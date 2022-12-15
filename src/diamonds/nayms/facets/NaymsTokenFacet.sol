@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { INaymsTokenFacet } from "../interfaces/INaymsTokenFacet.sol";
 import { LibNaymsToken } from "../libs/LibNaymsToken.sol";

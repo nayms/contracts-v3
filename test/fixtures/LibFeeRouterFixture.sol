@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { LibFeeRouter, TradingCommissions, TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 

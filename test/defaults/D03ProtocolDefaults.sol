@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
