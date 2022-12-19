@@ -24,7 +24,21 @@ interface ITokenizedVaultFacet {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransfer(
+    function internalTransferFromEntity(
+        bytes32 to,
+        bytes32 tokenId,
+        uint256 amount
+    ) external;
+
+    /**
+     * @notice Internal transfer of `amount` tokens `from` -> `to`
+     * @dev Transfer tokens internally between two IDs
+     * @param from token sender
+     * @param to token receiver
+     * @param tokenId Internal ID of the token
+     */
+    function wrapperInternalTransferFrom(
+        bytes32 from,
         bytes32 to,
         bytes32 tokenId,
         uint256 amount

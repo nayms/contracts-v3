@@ -7,6 +7,7 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
+import { LibEntity } from "./LibEntity.sol";
 
 library LibMarket {
     struct MatchingOfferResult {

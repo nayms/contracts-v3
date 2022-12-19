@@ -58,11 +58,11 @@ Total supply of platform asset
 | --- | --- |
 |`current` | balance|
 <br></br>
-### internalTransfer
+### internalTransferFromEntity
 Internal transfer of `amount` tokens
 Transfer tokens internally
 ```solidity
-  function internalTransfer(
+  function internalTransferFromEntity(
     bytes32 to,
     bytes32 tokenId
   ) external
@@ -70,6 +70,23 @@ Transfer tokens internally
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
+|`to` | bytes32 | token receiver
+|`tokenId` | bytes32 | Internal ID of the token|
+<br></br>
+### wrapperInternalTransferFrom
+Internal transfer of `amount` tokens `from` -> `to`
+Transfer tokens internally between two IDs
+```solidity
+  function wrapperInternalTransferFrom(
+    bytes32 from,
+    bytes32 to,
+    bytes32 tokenId
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`from` | bytes32 | token sender
 |`to` | bytes32 | token receiver
 |`tokenId` | bytes32 | Internal ID of the token|
 <br></br>

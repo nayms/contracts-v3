@@ -3,7 +3,9 @@
 -include .env
 
 .DEFAULT_GOAL := help
-.PHONY: help
+
+.PHONY: help docs test
+
 help:		## display this help message
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
@@ -43,7 +45,6 @@ b: build
 bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
-.PHONY: test
 test: ## forge test local, alias t
 	forge test
 t: test
@@ -159,12 +160,30 @@ deploy-sim: ## simulate smart deploy to goerli
 		-vv \
 		--ffi
 
+anvil:	## run anvil with shared wallet
+	anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt --state anvil.json
+
+anvil-debug:	## run anvil in debug mode with shared wallet
+	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
+
 anvil-fork: ## fork goerli locally with anvil
 	anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
 
 anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" true true 0 ${facetsToCutIn} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-upgrade: ## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory)" false false 1 ${facetsToCutIn} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${senderAddress} \
@@ -208,16 +227,9 @@ update-commissions: ## update trading and premium commissions
 		-vv \
 		--broadcast
 
-anvil-debug:	## run anvil in debug mode with shared wallet
-	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
-
-anvil:	## run anvil with shared wallet
-	anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt
-
 subgraph: ## generate diamond ABI for the subgraph
 	yarn subgraph:abi
 
-.PHONY: docs
 docs: ## generate docs from natspec comments
 	yarn docgen
 

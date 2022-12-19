@@ -53,4 +53,11 @@ contract T01LibHelpers is D03ProtocolDefaults {
         }
         assertEq(LibHelpers._bytes32ToBytes(b32), b);
     }
+
+    function testIdAddressConversionStabilityFuzz(address input) public {
+        bytes32 id = LibHelpers._getIdForAddress(input);
+        address addr = LibHelpers._getAddressFromId(id);
+        assertEq(input, addr);
+        assertEq(id, LibHelpers._getIdForAddress(addr));
+    }
 }

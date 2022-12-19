@@ -91,15 +91,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         // Attempt to tokenize an entity when the entity does not exist. Should throw an error.
         bytes32 nonExistentEntity = bytes32("ffffaaa");
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (nonExistentEntity)));
-        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345");
+        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345", "1234567890123456");
 
         vm.expectRevert("symbol must be less than 16 characters");
-        nayms.enableEntityTokenization(entityId1, "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
 
-        nayms.enableEntityTokenization(entityId1, "123456789012345");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
         vm.expectRevert("object already tokenized");
-        nayms.enableEntityTokenization(entityId1, "123456789012345");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
     }
 
     function testUpdateEntity() public {
@@ -612,6 +612,11 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         assertEq(nayms.getLastOfferId(), 0);
 
+        vm.expectRevert("must be tokenizable");
+        nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
+
+        nayms.enableEntityTokenization(entityId1, "e1token", "e1token");
+
         vm.prank(account9);
         vm.expectRevert("not a system manager");
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
@@ -622,8 +627,6 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("total price must be > 0");
         nayms.startTokenSale(entityId1, sellAmount, 0);
-
-        nayms.enableEntityTokenization(entityId1, "ENTITYSYMBOL");
 
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 

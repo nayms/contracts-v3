@@ -9,6 +9,7 @@ import { LibACL } from "../libs/LibACL.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
+import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
 /**
  * @title Token Vault
@@ -17,7 +18,7 @@ import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
-contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
+contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Gets balance of an account within platform
      * @dev Internal balance for given account
@@ -45,13 +46,29 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransfer(
+    function internalTransferFromEntity(
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external assertEntityAdmin(LibObject._getParent(LibHelpers._getSenderId())) {
+    ) external nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
+    }
+
+    /**
+     * @notice Internal transfer of `amount` tokens `from` -> `to`
+     * @dev Transfer tokens internally between two IDs
+     * @param from token sender
+     * @param to token receiver
+     * @param tokenId Internal ID of the token
+     */
+    function wrapperInternalTransferFrom(
+        bytes32 from,
+        bytes32 to,
+        bytes32 tokenId,
+        uint256 amount
+    ) external nonReentrant assertERC20Wrapper(tokenId) {
+        LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
     function internalBurn(

@@ -50,9 +50,14 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @notice Enable an entity to be tokenized
      * @param _objectId ID of the entity
      * @param _symbol The symbol assigned to the entity token
+     * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(bytes32 _objectId, string memory _symbol) external assertSysAdmin {
-        LibObject._enableObjectTokenization(_objectId, _symbol);
+    function enableEntityTokenization(
+        bytes32 _objectId,
+        string memory _symbol,
+        string memory _name
+    ) external assertSysAdmin {
+        LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
     /**
@@ -68,6 +73,14 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         uint256 _totalPrice
     ) external nonReentrant assertSysMgr {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
+    }
+
+    /**
+     * @notice Check if an entity token is wrapped as ERC20
+     * @param _entityId ID of the entity
+     */
+    function isTokenWrapped(bytes32 _entityId) external view returns (bool) {
+        return LibObject._isObjectTokenWrapped(_entityId);
     }
 
     /**

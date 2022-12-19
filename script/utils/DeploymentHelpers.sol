@@ -333,6 +333,31 @@ contract DeploymentHelpers is Test {
         string sig21;
     }
 
+    struct MethodId22 {
+        string sig1;
+        string sig2;
+        string sig3;
+        string sig4;
+        string sig5;
+        string sig6;
+        string sig7;
+        string sig8;
+        string sig9;
+        string sig10;
+        string sig11;
+        string sig12;
+        string sig13;
+        string sig14;
+        string sig15;
+        string sig16;
+        string sig17;
+        string sig18;
+        string sig19;
+        string sig20;
+        string sig21;
+        string sig22;
+    }
+    
     function removeFromArray(uint256 index) public {
         console2.log(string.concat("removeFromArray index: ", vm.toString(index), ". removeSelectors.length: ", vm.toString(removeSelectors.length)));
         require(removeSelectors.length > index, "Out of bounds");
@@ -818,6 +843,32 @@ contract DeploymentHelpers is Test {
             functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
             functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
             functionSelectors[20] = bytes4(vm.parseBytes(decodedData.sig21));
+       } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 21) {
+            MethodId22 memory decodedData = abi.decode(parsedArtifactData, (MethodId22));
+
+            functionSelectors = new bytes4[](22);
+            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
+            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
+            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
+            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
+            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
+            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
+            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
+            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
+            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
+            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
+            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
+            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
+            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
+            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
+            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
+            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
+            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
+            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
+            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
+            functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
+            functionSelectors[20] = bytes4(vm.parseBytes(decodedData.sig21));
+            functionSelectors[21] = bytes4(vm.parseBytes(decodedData.sig22));
         }
 
         numberOfFunctionSignaturesFromArtifact = functionSelectors.length;

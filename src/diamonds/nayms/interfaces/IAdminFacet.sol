@@ -57,4 +57,10 @@ interface IAdminFacet {
      * @return System Identifier
      */
     function getSystemId() external pure returns (bytes32);
+
+    /**
+     * @notice Check if object can be tokenized
+     * @param _objectId ID of the object
+     */
+    function isObjectTokenizable(bytes32 _objectId) external returns (bool);
 }

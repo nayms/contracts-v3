@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
 import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
@@ -78,5 +79,9 @@ contract AdminFacet is IAdminFacet, Modifiers {
      */
     function getSystemId() external pure returns (bytes32) {
         return LibAdmin._getSystemId();
+    }
+
+    function isObjectTokenizable(bytes32 _objectId) external view returns (bool) {
+        return LibObject._isObjectTokenizable(_objectId);
     }
 }

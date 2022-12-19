@@ -121,7 +121,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, dt.entity1ExternalDepositAmt);
         vm.stopPrank();
 
-        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
+
         // start a token sale: sell entity tokens for nWETH
         // when a token sale starts: entity tokens are minted to the entity,
         // 2nd param is the sell amount, 3rd param is the buy amount
@@ -165,10 +166,12 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(state, LibConstants.OFFER_STATE_ACTIVE, "OrderAdded: invalid offer state");
 
         assertEq(entries[3].topics.length, 2, "TokenSaleStarted: topics length incorrect");
-        assertEq(entries[3].topics[0], keccak256("TokenSaleStarted(bytes32,uint256)"));
+        assertEq(entries[3].topics[0], keccak256("TokenSaleStarted(bytes32,uint256,string,string)"));
         assertEq(entries[3].topics[1], entity1, "TokenSaleStarted: incorrect entity"); // assert entity
-        uint256 offerId = abi.decode(entries[3].data, (uint256));
+        (uint256 offerId, string memory tokenSymbol, string memory tokenName) = abi.decode(entries[3].data, (uint256, string, string));
         assertEq(offerId, 1, "TokenSaleStarted: invalid offerId");
+        assertEq(tokenSymbol, "e1token", "TokenSaleStarted: invalid token symbol");
+        assertEq(tokenName, "e1token", "TokenSaleStarted: invalid token name");
 
         // note: the token balance for sale is not escrowed in the marketplace anymore, instead we keep track of another balance (user's tokens for sale)
         // in order to ensure a user cannot transfer the token balance that they have for sale
@@ -194,7 +197,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
         vm.startPrank(signer1);
         vm.expectRevert("_internalTransfer: tokens locked");
-        nayms.internalTransfer(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
+        nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
         vm.stopPrank();
 
         assertTrue(nayms.isActiveOffer(1), "Token sale offer should be active");
@@ -329,8 +332,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
-
-        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
 
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
@@ -378,9 +380,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
 
         // init test funds to maxint
-        writeTokenBalance(signer1, naymsAddress, wethAddress, ~uint256(0));
 
-        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
+        writeTokenBalance(signer1, naymsAddress, wethAddress, ~uint256(0));
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
 
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
@@ -536,7 +538,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.stopPrank();
 
-        nayms.enableEntityTokenization(entity2, "ENTITYSYMBOL");
+        nayms.enableEntityTokenization(entity2, "e2token", "e2token");
         nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
 
         vm.startPrank(signer3);
@@ -551,8 +553,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
 
-        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
         // start nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
@@ -728,7 +730,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // OFFER 1: 2000 pTokens -> 2000 WETH
         writeTokenBalance(account0, naymsAddress, wethAddress, e1balance);
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
-        nayms.enableEntityTokenization(entity1, "ENTITYSYMBOL");
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
 
         nayms.startTokenSale(entity1, offer1sell, offer1buy);
 
@@ -773,7 +775,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         // sell x nENTITY1 for y WETH
-        nayms.enableEntityTokenization(entity1, "e1token");
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
         nayms.startTokenSale(entity1, saleAmount, salePrice);
 
         vm.prank(signer2);

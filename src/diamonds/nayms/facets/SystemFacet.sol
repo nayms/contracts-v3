@@ -7,13 +7,14 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ISystemFacet } from "../interfaces/ISystemFacet.sol";
+import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
 /**
  * @title System
  * @notice Use it to perform system level operations
  * @dev Use it to perform system level operations
  */
-contract SystemFacet is ISystemFacet, Modifiers {
+contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Create an entity
      * @dev An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.
@@ -54,6 +55,8 @@ contract SystemFacet is ISystemFacet, Modifiers {
      * @return parent object parent
      * @return dataHash object data hash
      * @return tokenSymbol object token symbol
+     * @return tokenName object token name
+     * @return tokenWrapper object token ERC20 wrapper address
      */
     function getObjectMeta(bytes32 _id)
         external
@@ -61,9 +64,19 @@ contract SystemFacet is ISystemFacet, Modifiers {
         returns (
             bytes32 parent,
             bytes32 dataHash,
-            bytes32 tokenSymbol
+            string memory tokenSymbol,
+            string memory tokenName,
+            address tokenWrapper
         )
     {
         return LibObject._getObjectMeta(_id);
+    }
+
+    /**
+     * @notice Wrap an object token as ERC20
+     * @param _objectId ID of the tokenized object
+     */
+    function wrapToken(bytes32 _objectId) external nonReentrant assertSysMgr {
+        LibObject._wrapToken(_objectId);
     }
 }
