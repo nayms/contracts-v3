@@ -76,7 +76,7 @@ jobs:
         with:
           sarif: results.sarif
           target: src/diamonds/nayms
-          slither-args: --exclude solc-version,assembly-usage,naming-convention --ignore-compile
+          slither-args: --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
         continue-on-error: true
 
       - name: Upload Slither SARIF file
