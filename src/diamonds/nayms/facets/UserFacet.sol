@@ -42,7 +42,7 @@ contract UserFacet is IUserFacet, Modifiers {
      * @param _entityId Unique platform ID of the entity
      */
     function setEntity(bytes32 _userId, bytes32 _entityId) external assertSysAdmin {
-        if (LibEntity._isEntity(_entityId) == false) {
+        if (!LibEntity._isEntity(_entityId)) {
             revert EntityDoesNotExist(_entityId);
         }
         LibObject._setParent(_userId, _entityId);

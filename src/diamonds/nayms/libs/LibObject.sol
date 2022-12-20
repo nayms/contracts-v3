@@ -88,7 +88,7 @@ library LibObject {
         }
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
-        if (s.existingEntities[_objectId] == false) {
+        if (!s.existingEntities[_objectId]) {
             revert EntityDoesNotExist(_objectId);
         }
 

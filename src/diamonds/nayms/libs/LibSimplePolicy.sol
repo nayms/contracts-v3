@@ -43,10 +43,10 @@ library LibSimplePolicy {
         require(_amount > 0, "invalid premium amount");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (s.existingEntities[_payerEntityId] == false) {
+        if (!s.existingEntities[_payerEntityId]) {
             revert EntityDoesNotExist(_payerEntityId);
         }
-        if (s.existingSimplePolicies[_policyId] == false) {
+        if (!s.existingSimplePolicies[_policyId]) {
             revert PolicyDoesNotExist(_policyId);
         }
         bytes32 policyEntityId = LibObject._getParent(_policyId);

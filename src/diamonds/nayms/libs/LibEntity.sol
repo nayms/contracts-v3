@@ -46,7 +46,7 @@ library LibEntity {
         if (simplePolicy.premiumsPaid != 0) {
             revert SimplePolicyPremiumsPaidShouldStartAtZero();
         }
-        if (simplePolicy.cancelled == true) {
+        if (simplePolicy.cancelled) {
             revert CancelCannotBeTrueWhenCreatingSimplePolicy();
         }
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -95,7 +95,7 @@ library LibEntity {
         }
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (s.existingEntities[_entityId] == false) {
+        if (!s.existingEntities[_entityId]) {
             revert EntityDoesNotExist(_entityId);
         }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
@@ -152,11 +152,11 @@ library LibEntity {
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.existingEntities[_entityId] == false) {
+        if (!s.existingEntities[_entityId]) {
             revert EntityDoesNotExist(_entityId);
         }
 
-        if (LibObject._isObjectTokenizable(_entityId) == false) {
+        if (!LibObject._isObjectTokenizable(_entityId)) {
             revert ObjectCannotBeTokenized(_entityId);
         }
 
@@ -178,7 +178,7 @@ library LibEntity {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.existingEntities[_entityId] == true) {
+        if (s.existingEntities[_entityId]) {
             revert CreatingEntityThatAlreadyExists(_entityId);
         }
         validateEntity(_entity);
@@ -201,7 +201,7 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Cannot update a non-existing entity's metadata.
-        if (s.existingEntities[_entityId] == false) {
+        if (!s.existingEntities[_entityId]) {
             revert EntityDoesNotExist(_entityId);
         }
 

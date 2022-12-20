@@ -31,7 +31,7 @@ contract InitDiamond {
 
     function initialize() external {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (s.diamondInitialized == true) {
+        if (s.diamondInitialized) {
             revert DiamondAlreadyInitialized();
         }
 

@@ -74,7 +74,7 @@ struct AppStorage {
 }
 
 library LibAppStorage {
-    bytes32 constant NAYMS_DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.nayms.storage");
+    bytes32 internal constant NAYMS_DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.nayms.storage");
 
     function diamondStorage() internal pure returns (AppStorage storage ds) {
         bytes32 position = NAYMS_DIAMOND_STORAGE_POSITION;
