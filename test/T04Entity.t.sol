@@ -161,6 +161,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS shoud be locked");
 
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         uint256 expectedLockedBalance = (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR;
         assertEq(nayms.getLockedBalance(entityId1, wethId), expectedLockedBalance, "funds SHOULD BE locked");
@@ -277,7 +281,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[1] = eBob;
 
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
 
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
@@ -394,6 +401,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         // create it successfully
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
@@ -410,6 +421,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCreateSimplePolicyAlreadyExists() public {
         getReadyToCreatePolicies();
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // todo: improve this error message when a premium is being created with the same premium ID
@@ -419,6 +434,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCreateSimplePolicyUpdatesEntityUtilizedCapacity() public {
         getReadyToCreatePolicies();
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // check utilized capacity of entity
@@ -427,6 +446,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 policyId2 = "0xC0FFEF";
         (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(testPolicyDataHash);
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, testPolicyDataHash);
 
         e = nayms.getEntityInfo(entityId1);
@@ -435,6 +455,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCreateSimplePolicyFundsAreLockedInitially() public {
         getReadyToCreatePolicies();
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         SimplePolicy memory p = getSimplePolicy(policyId1);
@@ -446,7 +470,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // assign parent entity as system manager so that I can assign roles below
         nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
-
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
         bytes32[] memory signerIds = new bytes32[](4);
         signerIds[0] = signer1Id;
         signerIds[1] = signer1Id;
@@ -464,8 +489,9 @@ contract T04EntityTest is D03ProtocolDefaults {
             // remove role
             nayms.unassignRole(signerId, stakeholders.entityIds[i]);
 
+            vm.prank(signer1);
             // try creating
-            vm.expectRevert("invalid stakeholder");
+            // note: We have updated the logic such that the stakeholders (users) do not have to have the entity admin role.
             nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
             // restore role
@@ -486,7 +512,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         for (uint256 i = 0; i < rolesCount; i++) {
             assertFalse(nayms.isInGroup(stakeholders.entityIds[i], policyId1, groups[i]), "not in group yet");
         }
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
 
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         for (uint256 i = 0; i < rolesCount; i++) {
@@ -497,6 +526,10 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testCreateSimplePolicyEmitsEvent() public {
         getReadyToCreatePolicies();
 
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         vm.recordLogs();
 
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
@@ -512,6 +545,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testSimplePolicyPremiumsCommissionsClaims() public {
         getReadyToCreatePolicies();
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         vm.expectRevert("not a policy handler");
@@ -641,6 +678,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCheckAndUpdateSimplePolicyState() public {
         getReadyToCreatePolicies();
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         Entity memory entityBefore = nayms.getEntityInfo(entityId1);
@@ -686,6 +727,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         getReadyToCreatePolicies();
 
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         uint256 premiumPaid = 10_000;
@@ -704,6 +749,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testCancelSimplePolicy() public {
         getReadyToCreatePolicies();
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         Entity memory entityBefore = nayms.getEntityInfo(entityId1);

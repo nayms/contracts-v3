@@ -143,8 +143,6 @@ contract D03ProtocolDefaults is D02TestSetup {
         bytes32 userEntityId,
         bytes32 policyDataHash
     ) internal returns (bytes memory sig_) {
-        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), policyDataHash));
-        // bytes32 entityId =
         bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), userEntityId, policyDataHash));
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toTypedDataHash(nayms.domainSeparatorV4(), structHash));

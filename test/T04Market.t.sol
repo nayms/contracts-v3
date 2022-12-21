@@ -791,7 +791,25 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         bytes32 policyId1 = "policy1";
         uint256 policyLimit = 85 ether;
 
-        (Stakeholders memory stakeholders, SimplePolicy memory policy) = initPolicyWithLimit(testPolicyDataHash, policyLimit);
+        (, SimplePolicy memory policy) = initPolicyWithLimit(testPolicyDataHash, policyLimit);
+        bytes32[] memory roles = new bytes32[](2);
+        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+
+        bytes32[] memory entityIds = new bytes32[](2);
+        entityIds[0] = entity1;
+        entityIds[1] = entity2;
+
+        bytes[] memory signatures = new bytes[](2);
+        signatures[0] = initPolicySig(0xACC2, entity1, testPolicyDataHash);
+        signatures[1] = initPolicySig(0xACC1, entity2, testPolicyDataHash);
+
+        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+
+        string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
+        nayms.assignRole(signer1Id, systemContext, role);
+
+        vm.prank(signer1);
         nayms.createSimplePolicy(policyId1, entity1, stakeholders, policy, testPolicyDataHash);
 
         assertEq(nayms.getLockedBalance(entity1, wethId), (policyLimit * collateralRatio_500) / LibConstants.BP_FACTOR, "locked balance should increase");
