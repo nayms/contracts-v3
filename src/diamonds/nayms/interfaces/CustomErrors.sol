@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity >=0.8.13;
 
 /// @dev Passing in a missing role when trying to assign a role.
 error RoleIsMissing();
