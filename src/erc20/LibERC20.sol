@@ -15,8 +15,12 @@ library LibERC20 {
             size := extcodesize(_token)
         }
         require(size > 0, "LibERC20: ERC20 token address has no code");
-        (, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.decimals.selector));
-        return abi.decode(result, (uint8));
+        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.decimals.selector));
+        if (success) {
+            return abi.decode(result, (uint8));
+        } else {
+            revert("LibERC20: call to decimals() failed");
+        }
     }
 
     function balanceOf(address _token, address _who) internal returns (uint256) {
@@ -25,8 +29,12 @@ library LibERC20 {
             size := extcodesize(_token)
         }
         require(size > 0, "LibERC20: ERC20 token address has no code");
-        (, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.balanceOf.selector, _who));
-        return abi.decode(result, (uint256));
+        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.balanceOf.selector, _who));
+        if (success) {
+            return abi.decode(result, (uint256));
+        } else {
+            revert("LibERC20: call to balanceOf() failed");
+        }
     }
 
     function transferFrom(
