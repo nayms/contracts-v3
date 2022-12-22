@@ -49,14 +49,6 @@ interface IMarketFacet {
      */
     function cancelOffer(uint256 _offerId) external;
 
-    function calculateFee(
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
-    ) external view returns (address feeToken_, uint256 feeAmount_);
-
     /**
      * @notice Get current best offer for given token pair.
      *

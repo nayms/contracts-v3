@@ -1,5 +1,5 @@
 // // SPDX-License-Identifier: MIT
-// pragma solidity >=0.8.13 <0.9;
+// pragma solidity 0.8.17;
 
 // import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 // import "script/utils/LibWriteJson.sol";

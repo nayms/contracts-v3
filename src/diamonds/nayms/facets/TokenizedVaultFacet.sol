@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
@@ -8,6 +8,7 @@ import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
 /**
@@ -17,7 +18,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
-contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
+contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Gets balance of an account within platform
      * @dev Internal balance for given account
@@ -51,7 +52,6 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         uint256 amount
     ) external nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
-        require(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER) != tokenId, "internalTransfer: can't transfer internal veNAYM");
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
 
@@ -110,6 +110,12 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
+    /**
+     * @notice Withdraws a user's available dividends.
+     * @dev Dividends can be available in more than one dividend denomination. This method will withdraw all available dividends in the different dividend denominations.
+     * @param ownerId Unique ID of the dividend receiver
+     * @param tokenId Unique ID of token
+     */
     function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
@@ -121,13 +127,17 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
     function payDividendFromEntity(bytes32 guid, uint256 amount) external {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
-        bytes32 entityId = LibObject._getParent(senderId);
+        bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 
-        require(LibACL._isInGroup(senderId, entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "payDividendFromEntity: not the entity's admin");
+        require(
+            LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)),
+            "payDividendFromEntity: not the entity's admin"
+        );
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 
+        // note: The from and to are both entityId. In the case where a dividend is paid to an entity that was not tokenized to have participation tokens, the dividend payment
+        // will go to the user's entity.
         LibTokenizedVault._payDividend(guid, entityId, entityId, dividendTokenId, amount);
     }
 

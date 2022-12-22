@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
@@ -7,6 +7,7 @@ import { Vm } from "forge-std/Vm.sol";
 import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     LibFeeRouterFixture internal libFeeRouterFixture = new LibFeeRouterFixture();
@@ -31,176 +32,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testGetSystemId() public {
         assertEq(nayms.getSystemId(), LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER));
-    }
-
-    function testSetEquilibriumLevelFailIfNotAdmin() public {
-        vm.startPrank(account1);
-        vm.expectRevert("not a system admin");
-        nayms.setEquilibriumLevel(50);
-        vm.stopPrank();
-    }
-
-    function testSetEquilibriumLevel() public {
-        vm.recordLogs();
-        uint256 orig = nayms.getEquilibriumLevel();
-        nayms.setEquilibriumLevel(50);
-        assertEq(nayms.getEquilibriumLevel(), 50);
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("EquilibriumLevelUpdated(uint256,uint256)"));
-        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
-        assertEq(oldV, orig);
-        assertEq(newV, 50);
-    }
-
-    function testFuzzSetEquilibriumLevel(uint256 _newLevel) public {
-        nayms.setEquilibriumLevel(_newLevel);
-    }
-
-    function testSetMaxDiscountFailIfNotAdmin() public {
-        vm.startPrank(account1);
-        vm.expectRevert("not a system admin");
-        nayms.setMaxDiscount(70);
-        vm.stopPrank();
-    }
-
-    function testSetMaxDiscount() public {
-        uint256 orig = nayms.getMaxDiscount();
-
-        vm.recordLogs();
-
-        nayms.setMaxDiscount(70);
-        assertEq(nayms.getMaxDiscount(), 70);
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("MaxDiscountUpdated(uint256,uint256)"));
-        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
-        assertEq(oldV, orig);
-        assertEq(newV, 70);
-    }
-
-    function testFuzzSetMaxDiscount(uint256 _newDiscount) public {
-        nayms.setMaxDiscount(_newDiscount);
-    }
-
-    function testSetTargetNaymSAllocationFailIfNotAdmin() public {
-        vm.startPrank(account1);
-        vm.expectRevert("not a system admin");
-        nayms.setTargetNaymsAllocation(70);
-        vm.stopPrank();
-    }
-
-    function testGetActualNaymsAllocation() public {
-        assertEq(nayms.getActualNaymsAllocation(), 0);
-    }
-
-    function testSetTargetNaymsAllocation() public {
-        uint256 orig = nayms.getTargetNaymsAllocation();
-
-        vm.recordLogs();
-
-        nayms.setTargetNaymsAllocation(70);
-        assertEq(nayms.getTargetNaymsAllocation(), 70);
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("TargetNaymsAllocationUpdated(uint256,uint256)"));
-        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
-        assertEq(oldV, orig);
-        assertEq(newV, 70);
-    }
-
-    function testFuzzSetTargetNaymsAllocation(uint256 _newTarget) public {
-        nayms.setTargetNaymsAllocation(_newTarget);
-    }
-
-    function testSetDiscountTokenFailIfNotAdmin() public {
-        vm.startPrank(account1);
-        vm.expectRevert("not a system admin");
-        nayms.setDiscountToken(LibConstants.DAI_CONSTANT);
-        vm.stopPrank();
-    }
-
-    function testSetDiscountToken() public {
-        address orig = nayms.getDiscountToken();
-
-        vm.recordLogs();
-
-        nayms.setDiscountToken(LibConstants.DAI_CONSTANT);
-        assertEq(nayms.getDiscountToken(), LibConstants.DAI_CONSTANT);
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("DiscountTokenUpdated(address,address)"));
-        (address oldV, address newV) = abi.decode(entries[0].data, (address, address));
-        assertEq(oldV, orig);
-        assertEq(newV, LibConstants.DAI_CONSTANT);
-    }
-
-    function testFuzzSetDiscountToken(address _newToken) public {
-        nayms.setDiscountToken(_newToken);
-    }
-
-    function testSetPoolFeeFailIfNotAdmin() public {
-        vm.startPrank(account1);
-        vm.expectRevert("not a system admin");
-        nayms.setPoolFee(4000);
-        vm.stopPrank();
-    }
-
-    function testSetPoolFee() public {
-        uint256 orig = nayms.getPoolFee();
-
-        vm.recordLogs();
-
-        nayms.setPoolFee(4000);
-        assertEq(nayms.getPoolFee(), 4000);
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("PoolFeeUpdated(uint256,uint256)"));
-        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
-        assertEq(oldV, orig);
-        assertEq(newV, 4000);
-    }
-
-    function testFuzzSetPoolFee(uint24 _newFee) public {
-        nayms.setPoolFee(_newFee);
-    }
-
-    function testSetCoefficientFailIfNotAdmin() public {
-        vm.startPrank(account1);
-        vm.expectRevert("not a system admin");
-        nayms.setCoefficient(100);
-        vm.stopPrank();
-    }
-
-    function testSetCoefficientFailIfValueTooHigh() public {
-        vm.expectRevert("Coefficient too high");
-        nayms.setCoefficient(1001);
-    }
-
-    function testSetCoefficient() public {
-        uint256 orig = nayms.getRewardsCoefficient();
-
-        vm.recordLogs();
-
-        nayms.setCoefficient(100);
-        assertEq(nayms.getRewardsCoefficient(), 100);
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("CoefficientUpdated(uint256,uint256)"));
-        (uint256 oldV, uint256 newV) = abi.decode(entries[0].data, (uint256, uint256));
-        assertEq(oldV, orig);
-        assertEq(newV, 100);
-    }
-
-    function testFuzzSetCoefficient(uint256 _newCoefficient) public {
-        _newCoefficient = bound(_newCoefficient, 0, 1000);
-        nayms.setCoefficient(_newCoefficient);
     }
 
     function testGetMaxDividendDenominationsDefaultValue() public {
@@ -242,8 +73,13 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
         vm.startPrank(account1);
         vm.expectRevert("not a system admin");
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wethAddress);
         vm.stopPrank();
+    }
+
+    function testAddSupportedExternalTokenFailIfTokenAddressHasNoCode() public {
+        vm.expectRevert("LibERC20: ERC20 token address has no code");
+        nayms.addSupportedExternalToken(address(0xdddddaaaaa));
     }
 
     function testAddSupportedExternalToken() public {
@@ -251,24 +87,24 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wbtcAddress);
         address[] memory v = nayms.getSupportedExternalTokens();
         assertEq(v.length, orig.length + 1);
-        assertEq(v[v.length - 1], LibConstants.DAI_CONSTANT);
+        assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
         address tok = abi.decode(entries[0].data, (address));
-        assertEq(tok, LibConstants.DAI_CONSTANT);
+        assertEq(tok, wbtcAddress);
     }
 
     function testIsSupportedToken() public {
-        bytes32 id = LibHelpers._getIdForAddress(LibConstants.DAI_CONSTANT);
+        bytes32 id = LibHelpers._getIdForAddress(wbtcAddress);
 
         assertFalse(nayms.isSupportedExternalToken(id));
 
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wbtcAddress);
 
         assertTrue(nayms.isSupportedExternalToken(id));
     }
@@ -278,12 +114,12 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
-        nayms.addSupportedExternalToken(LibConstants.DAI_CONSTANT);
+        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress);
 
         address[] memory v = nayms.getSupportedExternalTokens();
         assertEq(v.length, orig.length + 1);
-        assertEq(v[v.length - 1], LibConstants.DAI_CONSTANT);
+        assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);

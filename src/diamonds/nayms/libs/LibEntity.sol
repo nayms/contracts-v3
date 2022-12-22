@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
 import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
@@ -10,8 +10,10 @@ import { LibObject } from "./LibObject.sol";
 import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
+import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -21,8 +23,8 @@ library LibEntity {
      * @param entityId Unique ID for the entity
      * @param entityAdmin Unique ID of the entity administrator
      */
-    event EntityCreated(bytes32 entityId, bytes32 entityAdmin);
-    event EntityUpdated(bytes32 entityId);
+    event EntityCreated(bytes32 indexed entityId, bytes32 entityAdmin);
+    event EntityUpdated(bytes32 indexed entityId);
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
     event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
@@ -38,13 +40,20 @@ library LibEntity {
         bool isEntityAdmin = LibACL._isInGroup(LibHelpers._getSenderId(), _entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS));
         require(isEntityAdmin, "must be entity admin");
 
+        if (simplePolicy.claimsPaid != 0) {
+            revert SimplePolicyClaimsPaidShouldStartAtZero();
+        }
+        if (simplePolicy.premiumsPaid != 0) {
+            revert SimplePolicyPremiumsPaidShouldStartAtZero();
+        }
+        if (simplePolicy.cancelled) {
+            revert CancelCannotBeTrueWhenCreatingSimplePolicy();
+        }
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
 
-        // todo: ensure that the capital raised is >= max capacity. Probably want to do this check when the trade is made.
-
-        // note: An entity cannot be created / updated to have a 0 collateral ratio, 0 max capacity, so no need to check this here.
-        // require(entity.collateralRatio > 0 && entity.maxCapacity > 0, "currency disabled");
+        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
+        require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
         uint256 updatedUtilizedCapacity = entity.utilizedCapacity + ((simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR);
@@ -81,8 +90,14 @@ library LibEntity {
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (_policyId == 0) {
+            revert PolicyIdCannotBeZero();
+        }
 
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (!s.existingEntities[_entityId]) {
+            revert EntityDoesNotExist(_entityId);
+        }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         _validateSimplePolicyCreation(_entityId, _simplePolicy);
@@ -98,21 +113,30 @@ library LibEntity {
         s.simplePolicies[_policyId].fundsLocked = true;
 
         uint256 rolesCount = _stakeholders.roles.length;
+        address signer;
+        bytes32 signerId;
+        address previousSigner;
+
+        bytes32 structHash;
 
         for (uint256 i = 0; i < rolesCount; i++) {
-            address signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(_policyId), _stakeholders.signatures[i]);
-            bytes32 signerId = LibHelpers._getIdForAddress(signer);
+            structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), _stakeholders.entityIds[i], _dataHash));
+            previousSigner = signer;
+
+            signer = ECDSA.recover(LibEIP712._hashTypedDataV4(structHash), _stakeholders.signatures[i]);
+
+            // Ensure there are no duplicate signers.
+            if (previousSigner >= signer) {
+                revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
+            }
+            signerId = LibHelpers._getIdForAddress(signer);
 
             require(LibACL._isInGroup(signerId, _stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 
+        s.existingSimplePolicies[_policyId] = true;
         emit SimplePolicyCreated(_policyId, _entityId);
-    }
-
-    function _updateAllowSimplePolicy(bytes32 _entityId, bool _allow) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.entities[_entityId].simplePolicyEnabled = _allow;
     }
 
     /// @param _amount the amount of entity token that is minted and put on sale
@@ -127,8 +151,18 @@ library LibEntity {
         require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (!s.existingEntities[_entityId]) {
+            revert EntityDoesNotExist(_entityId);
+        }
+
+        if (!LibObject._isObjectTokenizable(_entityId)) {
+            revert ObjectCannotBeTokenized(_entityId);
+        }
+
         Entity memory entity = s.entities[_entityId];
 
+        // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
         (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
@@ -144,6 +178,9 @@ library LibEntity {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        if (s.existingEntities[_entityId]) {
+            revert CreatingEntityThatAlreadyExists(_entityId);
+        }
         validateEntity(_entity);
 
         LibObject._createObject(_entityId, _dataHash);
@@ -153,7 +190,7 @@ library LibEntity {
         LibACL._assignRole(_entityAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
 
         // An entity starts without any capacity being utilized
-        delete _entity.utilizedCapacity;
+        require(_entity.utilizedCapacity == 0, "utilized capacity starts at 0");
 
         s.entities[_entityId] = _entity;
 
@@ -163,12 +200,19 @@ library LibEntity {
     function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        // Cannot update a non-existing entity's metadata.
+        if (!s.existingEntities[_entityId]) {
+            revert EntityDoesNotExist(_entityId);
+        }
+
         validateEntity(_entity);
 
         uint256 oldCollateralRatio = s.entities[_entityId].collateralRatio;
         uint256 oldUtilizedCapacity = s.entities[_entityId].utilizedCapacity;
+        bytes32 originalAssetId = s.entities[_entityId].assetId;
 
         s.entities[_entityId] = _entity;
+        s.entities[_entityId].assetId = originalAssetId; // assetId change not allowed
 
         // if it's a cell, and collateral ratio changed
         if (_entity.assetId != 0 && _entity.collateralRatio != oldCollateralRatio) {
@@ -199,14 +243,18 @@ library LibEntity {
 
             // Max capacity is the capital amount that an entity can write across all of their policies.
             // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.
-            //       First, we use the bool simplePolicyEnabled to control and dictate whether an entity can or cannot write a policy.
-            //       If an entity has this set to true, then we check if an entity has enough capacity to write the policy.
-            require(!_entity.simplePolicyEnabled || _entity.maxCapacity > 0, "max capacity should be greater than 0 for policy creation");
+            //       First, we use the bool simplePolicyEnabled to toggle (enable / disable) whether an entity can or cannot write a policy.
+            //       If an entity has this set to true, then we check if an entity has enough capacity to write a policy.
+            require(!_entity.simplePolicyEnabled || (_entity.maxCapacity > 0), "max capacity should be greater than 0 for policy creation");
+
+            if (_entity.utilizedCapacity > _entity.maxCapacity) {
+                revert UtilizedCapacityGreaterThanMaxCapacity(_entity.utilizedCapacity, _entity.maxCapacity);
+            }
         } else {
             // non-cell entity
             require(_entity.collateralRatio == 0, "only cell has collateral ratio");
             require(!_entity.simplePolicyEnabled, "only cell can issue policies");
-            require(_entity.maxCapacity == 0, "only calls have max capacity");
+            require(_entity.maxCapacity == 0, "only cells have max capacity");
         }
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { D01Deployment, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D01Deployment.sol";
 

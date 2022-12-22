@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { TradingCommissions, TradingCommissionsBasisPoints, MarketInfo } from "../AppStorage.sol";
@@ -8,6 +8,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
+import { IMarketFacet } from "../interfaces/IMarketFacet.sol";
 
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
@@ -16,7 +17,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  * @notice Trade entity tokens
  * @dev This should only be called through an entity, never directly by an EOA
  */
-contract MarketFacet is Modifiers, ReentrancyGuard {
+contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Cancel offer #`_offerId`. This will cancel the offer so that it's no longer active.
      *
@@ -34,7 +35,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
     function cancelOffer(uint256 _offerId) external nonReentrant {
         require(LibMarket._getOffer(_offerId).state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
-        require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only creator can cancel");
+        require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only member of entity can cancel");
         LibMarket._cancelOffer(_offerId);
     }
 
@@ -110,7 +111,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
     /**
      * @dev Calculate the trading commissions based on a buy amount.
      * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct todo
+     * @return tc TradingCommissions struct
      */
     function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
         tc = LibFeeRouter._calculateTradingCommissions(buyAmount);

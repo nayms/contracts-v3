@@ -10,12 +10,26 @@ import { SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
  */
 interface IEntityFacet {
     /**
-     * @notice Enable/Disable Simple Policy creation for Entity ID: `_entityId`
-     * @dev Update simple policy creation allow flag
-     * @param _entityId ID of the entity to update
-     * @param _allow Allow or not simple policy creation
+     * @dev Returns the domain separator for the current chain.
      */
-    function updateAllowSimplePolicy(bytes32 _entityId, bool _allow) external;
+    function domainSeparatorV4() external view returns (bytes32);
+
+    /**
+     * @dev Given an already https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct[hashed struct], this
+     * function returns the hash of the fully encoded EIP712 message for this domain.
+     *
+     * This hash can be used together with {ECDSA-recover} to obtain the signer of a message. For example:
+     *
+     * ```solidity
+     * bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
+     *     keccak256("Mail(address to,string contents)"),
+     *     mailTo,
+     *     keccak256(bytes(mailContents))
+     * )));
+     * address signer = ECDSA.recover(digest, signature);
+     * ```
+     */
+    function hashTypedDataV4(bytes32 structHash) external view returns (bytes32);
 
     /**
      * @notice Create a Simple Policy

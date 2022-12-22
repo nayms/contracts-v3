@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage, SimplePolicy, TokenAmount, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, SimplePolicy, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
+import { PolicyCommissionsBasisPointsCannotBeGreaterThan10000 } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
     event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
@@ -31,7 +32,9 @@ library LibFeeRouter {
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), simplePolicy.asset, commissionNDF);
         LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
 
-        emit PremiumCommissionsPaid(_policyId, policyEntityId, _premiumPaid);
+        uint256 premiumCommissionPaid = commissionNaymsLtd + commissionNDF + commissionSTM;
+
+        emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
     }
 
     function _payTradingCommissions(
@@ -42,7 +45,7 @@ library LibFeeRouter {
     ) internal returns (uint256 commissionPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<10000bp");
+        require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
         require(
             s.tradingCommissionNaymsLtdBP + s.tradingCommissionNDFBP + s.tradingCommissionSTMBP + s.tradingCommissionMakerBP <= LibConstants.BP_FACTOR,
             "commissions sum over 10000 bp"
@@ -73,7 +76,7 @@ library LibFeeRouter {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(
-            bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == 10000,
+            bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == LibConstants.BP_FACTOR,
             "trading commission BPs must sum up to 10000"
         );
 
@@ -86,6 +89,10 @@ library LibFeeRouter {
 
     function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 totalBp = bp.premiumCommissionNaymsLtdBP + bp.premiumCommissionNDFBP + bp.premiumCommissionSTMBP;
+        if (totalBp > LibConstants.BP_FACTOR) {
+            revert PolicyCommissionsBasisPointsCannotBeGreaterThan10000(totalBp);
+        }
         s.premiumCommissionNaymsLtdBP = bp.premiumCommissionNaymsLtdBP;
         s.premiumCommissionNDFBP = bp.premiumCommissionNDFBP;
         s.premiumCommissionSTMBP = bp.premiumCommissionSTMBP;

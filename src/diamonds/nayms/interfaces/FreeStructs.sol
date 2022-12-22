@@ -43,7 +43,6 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
-    uint256 sponsorCommissionBasisPoints; //underwriter is parent
 }
 
 struct SimplePolicyInfo {

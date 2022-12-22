@@ -1,32 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
+import { LibObject } from "./LibObject.sol";
 
 library LibTokenizedVault {
-    /**
-     * @notice Entity funds deposit
-     * @dev Thrown when entity is funded
-     * @param caller address of the funder
-     * @param receivingEntityId Unique ID of the entity receiving the funds
-     * @param assetId Unique ID of the asset being deposited
-     * @param shares Amount deposited
-     */
-    event EntityDeposit(address indexed caller, bytes32 indexed receivingEntityId, bytes32 assetId, uint256 shares);
-
-    /**
-     * @notice Entity funds withdrawn
-     * @dev Thrown when entity funds are withdrawn
-     * @param caller address of the account initiating the transfer
-     * @param receiver address of the account receiving the funds
-     * @param assetId Unique ID of the asset being transferred
-     * @param shares Withdrawn amount
-     */
-    event EntityWithdraw(address indexed caller, address indexed receiver, address assetId, uint256 shares);
-
     /**
      * @dev Emitted when a token balance gets updated.
      * @param ownerId Id of owner
@@ -74,9 +55,9 @@ library LibTokenizedVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.lockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransferFrom: tokens locked");
+            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransfer: tokens locked");
         } else {
-            require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransferFrom: must own the funds");
+            require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: must own the funds");
         }
 
         _withdrawAllDividends(_from, _tokenId);
@@ -86,8 +67,8 @@ library LibTokenizedVault {
 
         _normalizeDividends(_to, _tokenId, _amount, false);
 
-        emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransferFrom", msg.sender);
-        emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransferFrom", msg.sender);
+        emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransfer", msg.sender);
+        emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransfer", msg.sender);
 
         success = true;
     }
@@ -130,7 +111,7 @@ library LibTokenizedVault {
             uint256 totalDividend = s.totalDividends[_tokenId][dividendDenominationId];
 
             // Dividend deduction for newly issued shares
-            (, uint256 dividendDeductionIssued) = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, 0);
+            uint256 dividendDeductionIssued = _getWithdrawableDividendAndDeductionMath(_amount, supply, totalDividend, 0);
 
             // Scale total dividends and withdrawn dividend for new owner
             s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeductionIssued;
@@ -162,6 +143,26 @@ library LibTokenizedVault {
         emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalBurn", msg.sender);
     }
 
+    //   DIVIDEND PAYOUT LOGIC
+    //
+    // When a dividend is payed, you divide by the total supply and add it to the totalDividendPerToken
+    // Dividends are held by the diamond contract at: LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER)
+    // When dividends are paid, they are transfered OUT of that same diamond contract ID.
+    //
+    // To calculate withdrawableDividiend = ownedTokens * totalDividendPerToken - totalWithdrawnDividendPerOwner
+    //
+    // When a dividend is collected you set the totalWithdrawnDividendPerOwner to the total amount the owner withdrew
+    //
+    // When you trasnsfer, you pay out all dividends to previous owner first, then transfer ownership
+    // !!!YOU ALSO TRANSFER totalWithdrawnDividendPerOwner for those shares!!!
+    // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesTransfered * totalDividendPerToken
+    // totalWithdrawnDividendPerOwner(for previous owner) -= numberOfSharesTransfered * totalDividendPerToken (can be optimized)
+    //
+    // When minting
+    // Add the token balance to the new owner
+    // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesMinted * totalDividendPerToken
+    //
+    // When doing the division theser will be dust. Leave the dust in the diamond!!!
     function _withdrawDividend(
         bytes32 _ownerId,
         bytes32 _tokenId,
@@ -175,11 +176,10 @@ library LibTokenizedVault {
         uint256 totalDividend = s.totalDividends[_tokenId][_dividendTokenId];
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
-        (uint256 withdrawableDividend, uint256 dividendDeduction) = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
-        // require(withdrawableDividend > 0, "_withdrawDividend: no dividend");
+        uint256 withdrawableDividend = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
         if (withdrawableDividend > 0) {
             // Bump the withdrawn dividends for the owner
-            s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += dividendDeduction;
+            s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId] += withdrawableDividend;
 
             // Move the dividend
             s.tokenBalances[_dividendTokenId][dividendBankId] -= withdrawableDividend;
@@ -202,18 +202,15 @@ library LibTokenizedVault {
         uint256 totalDividend = s.totalDividends[_tokenId][_dividendTokenId];
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
-        (withdrawableDividend_, ) = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend, withdrawnSoFar);
+        withdrawableDividend_ = _getWithdrawableDividendAndDeductionMath(amount, supply, totalDividend, withdrawnSoFar);
     }
 
     function _withdrawAllDividends(bytes32 _ownerId, bytes32 _tokenId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
-        bytes32 dividendDenominationId;
 
         for (uint256 i = 0; i < dividendDenominations.length; ++i) {
-            dividendDenominationId = dividendDenominations[i];
-            _withdrawDividend(_ownerId, _tokenId, dividendDenominationId);
+            _withdrawDividend(_ownerId, _tokenId, dividendDenominations[i]);
         }
     }
 
@@ -226,11 +223,14 @@ library LibTokenizedVault {
     ) internal {
         require(_amount > 0, "dividend amount must be > 0");
         require(LibAdmin._isSupportedExternalToken(_dividendTokenId), "must be supported dividend token");
+        require(!LibObject._isObject(_guid), "nonunique dividend distribution identifier");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
 
         // If no tokens are issued, then deposit directly.
+        // note: This functionality is for the business case where we want to distribute dividends directly to entities.
+        // How this functionality is implemented may be changed in the future.
         if (_internalTokenSupply(_to) == 0) {
             _internalTransfer(_from, _to, _dividendTokenId, _amount);
         }
@@ -254,6 +254,10 @@ library LibTokenizedVault {
                 s.dividendDenominations[_to].push(_dividendTokenId);
             }
         }
+
+        // prevent guid reuse/collision
+        LibObject._createObject(_guid);
+
         // Events are emitted from the _internalTransfer()
         emit DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);
     }
@@ -263,19 +267,13 @@ library LibTokenizedVault {
         uint256 _supply,
         uint256 _totalDividend,
         uint256 _withdrawnSoFar
-    ) internal pure returns (uint256 _withdrawableDividend, uint256 _dividendDeduction) {
+    ) internal pure returns (uint256 _withdrawableDividend) {
         // The holder dividend is: holderDividend = (totalDividend/tokenSupply) * _amount. The remainer (dust) is lost.
         // To get a smaller remainder we re-arrange to: holderDividend = (totalDividend * _amount) / _supply
         uint256 totalDividendTimesAmount = _totalDividend * _amount;
         uint256 holderDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
 
         _withdrawableDividend = (_withdrawnSoFar >= holderDividend) ? 0 : holderDividend - _withdrawnSoFar;
-        _dividendDeduction = _withdrawableDividend;
-
-        // If there is a remainder, add 1 to the _dividendDeduction
-        if (totalDividendTimesAmount > _withdrawableDividend * _supply) {
-            _dividendDeduction += 1;
-        }
     }
 
     function _getLockedBalance(bytes32 _accountId, bytes32 _tokenId) internal view returns (uint256 amount) {

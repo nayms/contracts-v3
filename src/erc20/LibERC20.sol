@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 /******************************************************************************\
 * Author: Nick Mudge
@@ -9,6 +9,34 @@ pragma solidity >=0.8.13;
 import { IERC20 } from "./IERC20.sol";
 
 library LibERC20 {
+    function decimals(address _token) internal returns (uint8) {
+        uint256 size;
+        assembly {
+            size := extcodesize(_token)
+        }
+        require(size > 0, "LibERC20: ERC20 token address has no code");
+        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.decimals.selector));
+        if (success) {
+            return abi.decode(result, (uint8));
+        } else {
+            revert("LibERC20: call to decimals() failed");
+        }
+    }
+
+    function balanceOf(address _token, address _who) internal returns (uint256) {
+        uint256 size;
+        assembly {
+            size := extcodesize(_token)
+        }
+        require(size > 0, "LibERC20: ERC20 token address has no code");
+        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.balanceOf.selector, _who));
+        if (success) {
+            return abi.decode(result, (uint256));
+        } else {
+            revert("LibERC20: call to balanceOf() failed");
+        }
+    }
+
     function transferFrom(
         address _token,
         address _from,

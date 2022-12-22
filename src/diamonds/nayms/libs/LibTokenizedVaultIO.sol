@@ -1,32 +1,37 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibERC20 } from "../../../erc20/LibERC20.sol";
+import { ExternalDepositAmountCannotBeZero, ExternalWithdrawAmountCannotBeZero } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 /**
  * @dev Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
 library LibTokenizedVaultIO {
-    event NaymsVaultTokenTransfer(address operator, bytes32 indexed from, bytes32 indexed to, uint256 amount);
-
-    event ExternalDeposit();
-
     function _externalDeposit(
         bytes32 _receiverId,
         address _externalTokenAddress,
         uint256 _amount
     ) internal {
-        LibERC20.transferFrom(_externalTokenAddress, msg.sender, address(this), _amount);
+        if (_amount == 0) {
+            revert ExternalDepositAmountCannotBeZero();
+        }
 
         bytes32 internalTokenId = LibHelpers._getIdForAddress(_externalTokenAddress);
 
+        uint256 balanceBeforeTransfer = LibERC20.balanceOf(_externalTokenAddress, address(this));
         // Funds are transferred to entity
-        LibTokenizedVault._internalMint(_receiverId, internalTokenId, _amount);
+        LibERC20.transferFrom(_externalTokenAddress, msg.sender, address(this), _amount);
+
+        uint256 balanceAfterTransfer = LibERC20.balanceOf(_externalTokenAddress, address(this));
+
+        uint256 mintAmount = balanceAfterTransfer - balanceBeforeTransfer;
+
+        // note: Only mint what has been collected.
+        LibTokenizedVault._internalMint(_receiverId, internalTokenId, mintAmount);
     }
 
     function _externalWithdraw(
@@ -35,6 +40,10 @@ library LibTokenizedVaultIO {
         address _externalTokenAddress,
         uint256 _amount
     ) internal {
+        if (_amount == 0) {
+            revert ExternalWithdrawAmountCannotBeZero();
+        }
+
         // withdraw from the user's entity
         bytes32 internalTokenId = LibHelpers._getIdForAddress(_externalTokenAddress);
 

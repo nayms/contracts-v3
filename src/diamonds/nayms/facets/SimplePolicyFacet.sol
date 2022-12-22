@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { Entity, SimplePolicy, SimplePolicyInfo, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
@@ -7,13 +7,14 @@ import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
+import { ISimplePolicyFacet } from "../interfaces/ISimplePolicyFacet.sol";
 
 /**
  * @title Simple Policies
  * @notice Facet for working with Simple Policies
  * @dev Simple Policy facet
  */
-contract SimplePolicyFacet is Modifiers {
+contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
     /**
      * @dev Pay a premium of `_amount` on simple policy
      * @param _policyId Id of the simple policy

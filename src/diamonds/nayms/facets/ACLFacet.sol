@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";
+import { LibConstants } from "../libs/LibConstants.sol";
+import { LibDiamond } from "../../shared/libs/LibDiamond.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
 
@@ -16,16 +18,20 @@ contract ACLFacet is Modifiers, IACLFacet {
      * @dev Any object ID can be a context, system is a special context with highest priority
      * @param _objectId ID of an object that is being assigned a role
      * @param _contextId ID of the context in which a role is being assigned
-     * @param _roleId ID of a role being assigned
+     * @param _role Name of the role being assigned
      */
     function assignRole(
         bytes32 _objectId,
         bytes32 _contextId,
-        string memory _roleId
+        string memory _role
     ) external {
+        bool sysCtx = _contextId == LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        bool owner = LibHelpers._getIdForAddress(LibDiamond.contractOwner()) == _objectId;
+        require(!sysCtx || !owner, "cannot reassign role to owner in system context");
+
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
-        require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_roleId)), "not in assigners group");
-        LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_roleId));
+        require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
+        LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_role));
     }
 
     /**
@@ -35,9 +41,14 @@ contract ACLFacet is Modifiers, IACLFacet {
      * @param _contextId ID of the context in which a role membership is being revoked
      */
     function unassignRole(bytes32 _objectId, bytes32 _contextId) external {
+        bool sysCtx = _contextId == LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        bool owner = LibHelpers._getIdForAddress(LibDiamond.contractOwner()) == _objectId;
+        require(!sysCtx || !owner, "cannot unassign owner in system context");
+
         bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
         require(LibACL._canAssign(assignerId, _objectId, _contextId, roleId), "not in assigners group");
+
         LibACL._unassignRole(_objectId, _contextId);
     }
 
@@ -76,6 +87,7 @@ contract ACLFacet is Modifiers, IACLFacet {
     /**
      * @notice Check whether a user can assign specific object to the `_role` role in given context
      * @dev Check permission to assign to a role
+     * @param _assignerId The object ID of the user who is assigning a role to  another object.
      * @param _objectId ID of an object that is being checked for assigning rights
      * @param _contextId ID of the context in which permission is checked
      * @param _role name of the role to check
@@ -144,6 +156,11 @@ contract ACLFacet is Modifiers, IACLFacet {
         string memory _group,
         bool _roleInGroup
     ) external assertSysAdmin {
+        require(!strEquals(_group, LibConstants.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
+    }
+
+    function strEquals(string memory s1, string memory s2) private pure returns (bool) {
+        return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
     }
 }

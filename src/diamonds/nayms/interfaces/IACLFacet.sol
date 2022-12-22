@@ -12,12 +12,12 @@ interface IACLFacet {
      * @dev Any object ID can be a context, system is a special context with highest priority
      * @param _objectId ID of an object that is being assigned a role
      * @param _contextId ID of the context in which a role is being assigned
-     * @param _roleId ID of a role being assigned
+     * @param _role Name of the role being assigned
      */
     function assignRole(
         bytes32 _objectId,
         bytes32 _contextId,
-        string memory _roleId
+        string memory _role
     ) external;
 
     /**
@@ -59,6 +59,7 @@ interface IACLFacet {
     /**
      * @notice Check whether a user can assign specific object to the `_role` role in given context
      * @dev Check permission to assign to a role
+     * @param _assignerId The object ID of the user who is assigning a role to  another object.
      * @param _objectId ID of an object that is being checked for assigning rights
      * @param _contextId ID of the context in which permission is checked
      * @param _role name of the role to check

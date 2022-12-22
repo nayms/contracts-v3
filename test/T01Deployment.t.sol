@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
@@ -7,8 +7,23 @@ import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defau
 
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
-
+import { DiamondAlreadyInitialized } from "src/diamonds/nayms/InitDiamond.sol";
 import { CREATE3 } from "solmate/utils/CREATE3.sol";
+
+import { IERC165 } from "../src/diamonds/shared/interfaces/IERC165.sol";
+import { IDiamondCut } from "../src/diamonds/shared/interfaces/IDiamondCut.sol";
+import { IERC173 } from "../src/diamonds/shared/interfaces/IERC173.sol";
+import { IERC20 } from "../src/erc20/IERC20.sol";
+import { IACLFacet } from "../src/diamonds/nayms/interfaces/IACLFacet.sol";
+import { IAdminFacet } from "../src/diamonds/nayms/interfaces/IAdminFacet.sol";
+import { IEntityFacet } from "../src/diamonds/nayms/interfaces/IEntityFacet.sol";
+import { IMarketFacet } from "../src/diamonds/nayms/interfaces/IMarketFacet.sol";
+import { INaymsTokenFacet } from "../src/diamonds/nayms/interfaces/INaymsTokenFacet.sol";
+import { ISimplePolicyFacet } from "../src/diamonds/nayms/interfaces/ISimplePolicyFacet.sol";
+import { ISystemFacet } from "../src/diamonds/nayms/interfaces/ISystemFacet.sol";
+import { ITokenizedVaultFacet } from "../src/diamonds/nayms/interfaces/ITokenizedVaultFacet.sol";
+import { ITokenizedVaultIOFacet } from "../src/diamonds/nayms/interfaces/ITokenizedVaultIOFacet.sol";
+import { IUserFacet } from "../src/diamonds/nayms/interfaces/IUserFacet.sol";
 
 contract T01DeploymentTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
@@ -21,7 +36,6 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertEq(nayms.owner(), account0);
     }
 
-    // todo test against artifact data generated for deployment
     function testDiamondLoupeFunctionality() public view {
         IDiamondLoupe.Facet[] memory facets = nayms.facets();
 
@@ -95,11 +109,31 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(fixture.isObject(0));
         assertTrue(fixture.isObject(account0Id));
 
-        assertEq(fixture.getDiscountToken(), 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-        assertEq(fixture.getEquilibriumLevel(), 20);
-        assertEq(fixture.getTargetNaymsAllocation(), 20);
-        assertEq(fixture.getMaxDiscount(), 10);
-        assertEq(fixture.getPoolFee(), 3000);
         assertEq(fixture.getMaxDividendDenominations(), 1);
+
+        assertTrue(nayms.supportsInterface(type(IERC165).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IDiamondCut).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IDiamondLoupe).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IERC173).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IERC20).interfaceId));
+
+        assertTrue(nayms.supportsInterface(type(IACLFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IAdminFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IEntityFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IMarketFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(INaymsTokenFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ISimplePolicyFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ISystemFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ITokenizedVaultFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ITokenizedVaultIOFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IUserFacet).interfaceId));
+    }
+
+    function testCallInitDiamondTwice() public {
+        // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
+        INayms.FacetCut[] memory cut;
+
+        vm.expectRevert(abi.encodePacked(DiamondAlreadyInitialized.selector));
+        nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
     }
 }

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
-
-import { LibHelpers } from "./LibHelpers.sol";
+pragma solidity 0.8.17;
 
 /**
  * @dev Settings keys.

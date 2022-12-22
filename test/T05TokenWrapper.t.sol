@@ -28,7 +28,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     }
 
     function testWrapEntityToken() public {
-        nayms.createEntity(entityId1, account0Id, initEntity(weth, 5_000, 30_000, 0, true), "test");
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
 
         vm.expectRevert("must be tokenizable");
         nayms.wrapToken(entityId1);

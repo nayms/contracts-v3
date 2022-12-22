@@ -1,21 +1,31 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
+import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
+import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 /**
  * @title Entities
  * @notice Used to handle policies and token sales
  * @dev Mainly used for token sale and policies
  */
-contract EntityFacet is Modifiers, ReentrancyGuard {
+contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     modifier assertSimplePolicyEnabled(bytes32 _entityId) {
         require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
         _;
+    }
+
+    function domainSeparatorV4() external view returns (bytes32) {
+        return LibEIP712._domainSeparatorV4();
+    }
+
+    function hashTypedDataV4(bytes32 structHash) external view returns (bytes32) {
+        return LibEIP712._hashTypedDataV4(structHash);
     }
 
     /**
@@ -34,16 +44,6 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         bytes32 _dataHash
     ) external assertSysMgr assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
-    }
-
-    /**
-     * @notice Enable/Disable Simple Policy creation for Entity ID: `_entityId`
-     * @dev Update simple policy creation allow flag
-     * @param _entityId ID of the entity to update
-     * @param _allow Allow or not simple policy creation
-     */
-    function updateAllowSimplePolicy(bytes32 _entityId, bool _allow) external assertSysMgr {
-        LibEntity._updateAllowSimplePolicy(_entityId, _allow);
     }
 
     /**

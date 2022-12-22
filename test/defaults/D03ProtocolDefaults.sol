@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
@@ -23,13 +23,13 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public constant DEFAULT_INSURED_PARTY_ENTITY_ID = bytes32("e4");
 
     // deriving public keys from private keys
-    address public immutable signer1 = vm.addr(0xACC1);
-    address public immutable signer2 = vm.addr(0xACC2);
+    address public immutable signer1 = vm.addr(0xACC2);
+    address public immutable signer2 = vm.addr(0xACC1);
     address public immutable signer3 = vm.addr(0xACC3);
     address public immutable signer4 = vm.addr(0xACC4);
 
-    bytes32 public immutable signer1Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
-    bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+    bytes32 public immutable signer1Id = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+    bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
     bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
 
@@ -78,40 +78,28 @@ contract D03ProtocolDefaults is D02TestSetup {
     function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
         // create entity with signer2 as child
         entityId = "0xe1";
-        Entity memory entity1 = initEntity(weth, 5000, 10000, 10000, false);
+        Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
     }
 
     function initEntity(
-        ERC20 _asset,
-        uint256 _collateralRatio,
-        uint256 _maxCapacity,
-        uint256 _utilizedCapacity,
-        bool _simplePolicyEnabled
-    ) public pure returns (Entity memory e) {
-        bytes32 assetId = LibHelpers._getIdForAddress(address(_asset));
-        return initEntity2(assetId, _collateralRatio, _maxCapacity, _utilizedCapacity, _simplePolicyEnabled);
-    }
-
-    function initEntity2(
         bytes32 _assetId,
         uint256 _collateralRatio,
         uint256 _maxCapacity,
-        uint256 _utilizedCapacity,
         bool _simplePolicyEnabled
     ) public pure returns (Entity memory e) {
         e.assetId = _assetId;
         e.collateralRatio = _collateralRatio;
         e.maxCapacity = _maxCapacity;
-        e.utilizedCapacity = _utilizedCapacity;
+        e.utilizedCapacity = 0;
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 
-    function initPolicy(bytes32 policyId) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        return initPolicyWithLimit(policyId, 10_000);
+    function initPolicy(bytes32 policyDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        return initPolicyWithLimit(policyDataHash, 10_000);
     }
 
-    function initPolicyWithLimit(bytes32 policyId, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicyWithLimit(bytes32 policyDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -125,10 +113,10 @@ contract D03ProtocolDefaults is D02TestSetup {
         entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
 
         bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initSig(0xACC1, policyId);
-        signatures[1] = initSig(0xACC2, policyId);
-        signatures[2] = initSig(0xACC3, policyId);
-        signatures[3] = initSig(0xACC4, policyId);
+        signatures[0] = initPolicySig(0xACC2, DEFAULT_UNDERWRITER_ENTITY_ID, policyDataHash);
+        signatures[1] = initPolicySig(0xACC1, DEFAULT_BROKER_ENTITY_ID, policyDataHash);
+        signatures[2] = initPolicySig(0xACC3, DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, policyDataHash);
+        signatures[3] = initPolicySig(0xACC4, DEFAULT_INSURED_PARTY_ENTITY_ID, policyDataHash);
 
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -150,8 +138,16 @@ contract D03ProtocolDefaults is D02TestSetup {
         policy.limit = limitAmount;
     }
 
-    function initSig(uint256 account, bytes32 policyId) internal returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(account, ECDSA.toEthSignedMessageHash(policyId));
+    function initPolicySig(
+        uint256 privateKey,
+        bytes32 userEntityId,
+        bytes32 policyDataHash
+    ) internal returns (bytes memory sig_) {
+        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), policyDataHash));
+        // bytes32 entityId =
+        bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), userEntityId, policyDataHash));
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toTypedDataHash(nayms.domainSeparatorV4(), structHash));
         sig_ = abi.encodePacked(r, s, v);
     }
 }

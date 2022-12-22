@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
+import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 
@@ -18,8 +19,8 @@ library LibObject {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // check if the id has been used (has a parent account associated with it) and revert if it has
-        require(!s.existingObjects[_objectId], "object already exists");
+        // Check if the objectId is already being used by another object
+        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
         s.objectParent[_objectId] = _parentId;
@@ -29,7 +30,7 @@ library LibObject {
     function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(!s.existingObjects[_objectId], "object already exists");
+        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
         s.objectDataHashes[_objectId] = _dataHash;
@@ -38,7 +39,7 @@ library LibObject {
     function _createObject(bytes32 _objectId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(!s.existingObjects[_objectId], "object already exists");
+        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
     }
@@ -82,8 +83,17 @@ library LibObject {
         string memory _name
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        require(!_isObjectTokenizable(_objectId), "tokenization enabled already");
-        require(bytes(_symbol).length < 16, "symbol more than 16 characters");
+        if (bytes(_symbol).length == 0) {
+            revert MissingSymbolWhenEnablingTokenization(_objectId);
+        }
+
+        // Ensure the entity exists before tokenizing the entity, otherwise revert.
+        if (!s.existingEntities[_objectId]) {
+            revert EntityDoesNotExist(_objectId);
+        }
+
+        require(!_isObjectTokenizable(_objectId), "object already tokenized");
+        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;

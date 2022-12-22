@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 /// @notice Default test setup part 00
 ///         Global level defaults for any and all solidity projects using solc >=0.7.6

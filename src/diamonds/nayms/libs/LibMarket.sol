@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { MarketInfo, TokenAmount, TradingCommissions } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibEntity } from "./LibEntity.sol";
 
 library LibMarket {
+    struct MatchingOfferResult {
+        uint256 remainingBuyAmount;
+        uint256 remainingSellAmount;
+        uint256 buyTokenCommissionsPaid;
+        uint256 sellTokenCommissionsPaid;
+    }
+
     /// @notice order has been added
     event OrderAdded(
         uint256 indexed orderId,
@@ -29,13 +35,6 @@ library LibMarket {
 
     /// @notice order has been canceled
     event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
-
-    struct MatchingOfferResult {
-        uint256 remainingBuyAmount;
-        uint256 remainingSellAmount;
-        uint256 buyTokenCommissionsPaid;
-        uint256 sellTokenCommissionsPaid;
-    }
 
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -123,6 +122,10 @@ library LibMarket {
         s.span[sellToken][buyToken]--;
     }
 
+    /**
+     * @dev If the relative price of the sell token for offer1 ("low offer") is more expensive than the relative price of of the sell token for offer2 ("high offer"), then this returns true.
+     *      If the sell token for offer1 is "more expensive", this means that one will need more sell token to buy the same amount of buy token when comparing relative prices of offer1 to offer2.
+     */
     function _isOfferPricedLtOrEq(uint256 _lowOfferId, uint256 _highOfferId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -215,7 +218,7 @@ library LibMarket {
                 }
                 // calculate how much is left to buy/sell
                 result.remainingSellAmount -= currentSellAmount;
-                result.remainingBuyAmount -= currentBuyAmount;
+                result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
             }
         }
     }
@@ -234,7 +237,7 @@ library LibMarket {
 
         uint256 lastOfferId = ++s.lastOfferId;
 
-        MarketInfo memory marketInfo = s.offers[lastOfferId];
+        MarketInfo memory marketInfo;
         marketInfo.creator = _creator;
         marketInfo.sellToken = _sellToken;
         marketInfo.sellAmount = _sellAmount;
@@ -244,7 +247,7 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeSchedule;
 
-        if (_buyAmount <= LibConstants.DUST || _sellAmount <= LibConstants.DUST) {
+        if (_buyAmount < LibConstants.DUST || _sellAmount < LibConstants.DUST) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -363,19 +366,29 @@ library LibMarket {
     ) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(_entityId != 0 && LibEntity._isEntity(_entityId), "must belong to entity to make an offer");
+        // A valid offer can only be made by an existing entity.
+        require(_entityId != 0 && s.existingEntities[_entityId], "offer must be made by an existing entity");
 
-        bool sellTokenIsEntity = LibEntity._isEntity(_sellToken);
-        bool sellTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
-        bool buyTokenIsEntity = LibEntity._isEntity(_buyToken);
-        bool buyTokenIsSupported = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        // note: Clarification on terminology:
+        // A participation token is also called an entity token. A par token is an entity tokenized.
+        // An external token is an ERC20 token. An external token can be approved to be used on the Nayms platform.
+        // There can only be one participation token and one external token involved in a trade. In other words, a par token cannot be traded for another par token.
+        // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
+
+        bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
+        bool isSellTokenASupportedExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
+        bool isBuyTokenASupportedExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
 
         _assertAmounts(_sellAmount, _buyAmount);
 
-        require(sellTokenIsEntity || sellTokenIsSupported, "sell token must be valid");
-        require(buyTokenIsEntity || buyTokenIsSupported, "buy token must be valid");
+        require(isSellTokenAParticipationToken || isSellTokenASupportedExternalToken, "sell token must be valid");
+        require(isBuyTokenAParticipationToken || isBuyTokenASupportedExternalToken, "buy token must be valid");
         require(_sellToken != _buyToken, "cannot sell and buy same token");
-        require((sellTokenIsEntity && buyTokenIsSupported) || (sellTokenIsSupported && buyTokenIsEntity), "must be one platform token");
+        require(
+            (isSellTokenAParticipationToken && isBuyTokenASupportedExternalToken) || (isSellTokenASupportedExternalToken && isBuyTokenAParticipationToken),
+            "must be one participation token and one external token"
+        );
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
@@ -418,7 +431,8 @@ library LibMarket {
         offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
 
         // if still some left
-        if (result.remainingBuyAmount > 0 && result.remainingSellAmount > 0 && result.remainingSellAmount >= LibConstants.DUST) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (s.offers[offerId_].state == LibConstants.OFFER_STATE_ACTIVE) {
             // ensure it's in the right position in the list
             _insertOfferIntoSortedList(offerId_);
         }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 
@@ -7,6 +7,7 @@ import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
 import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { Entity } from "src/diamonds/nayms/AppStorage.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal immutable objectContext1 = "0x1";
@@ -25,13 +26,13 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     function testUnsupportedExternalTokenWhenCreatingEntity() public {
         bytes32 objectId1 = "0x1";
         vm.expectRevert("external token is not supported");
-        nayms.createEntity(objectId1, objectContext1, initEntity(wbtc, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, 0, false), "entity test hash");
+        nayms.createEntity(objectId1, objectContext1, initEntity(wbtcId, LibConstants.BP_FACTOR, LibConstants.BP_FACTOR, false), "entity test hash");
     }
 
     function testZeroCollateralRatioWhenCreatingEntity() public {
         bytes32 objectId1 = "0x1";
         vm.expectRevert("collateral ratio should be 1 to 10000");
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 0, 1, 0, false), "entity test hash");
+        nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 0, 1, false), "entity test hash");
     }
 
     function testNonManagerCreateEntity() public {
@@ -39,28 +40,28 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
 
         vm.expectRevert("not a system manager");
         vm.prank(account1);
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
     }
 
     function testSingleCreateEntity() public {
         bytes32 objectId1 = "0x1";
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
     }
 
     function testMultipleCreateEntity() public {
         bytes32 objectId1 = "0x1";
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
 
         // cannot create an object that already exists in a given context
-        vm.expectRevert("object already exists");
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        vm.expectRevert(abi.encodePacked(CreatingEntityThatAlreadyExists.selector, (objectId1)));
+        nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
 
         // still reverts regardless of role being assigned
-        vm.expectRevert("object already exists");
-        nayms.createEntity(objectId1, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        vm.expectRevert(abi.encodePacked(CreatingEntityThatAlreadyExists.selector, (objectId1)));
+        nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
 
         bytes32 objectId2 = "0x2";
-        nayms.createEntity(objectId2, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
     }
 
     function testStringToBytes32() public {
@@ -71,14 +72,16 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     function testIsObject() public {
         bytes32 objectId2 = "0x2";
         assertFalse(nayms.isObject(objectId2));
-        nayms.createEntity(objectId2, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+        nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
         assertTrue(nayms.isObject(objectId2));
     }
 
     function testGetObjectMeta() public {
         bytes32 objectId2 = "0x2";
-        nayms.createEntity(objectId2, objectContext1, initEntity(weth, 5000, LibConstants.BP_FACTOR, 0, true), "entity test hash");
+
+        nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
         (bytes32 parent, bytes32 dataHash, string memory tokenSymbol, string memory tokenName, address wrapperAddress) = nayms.getObjectMeta(objectId2);
+
         assertEq(dataHash, "entity test hash");
         assertEq(parent, "");
         assertEq(tokenSymbol, "");

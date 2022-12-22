@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 
@@ -21,15 +21,11 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
 
     function testTransferOwernship() public {
         nayms.transferOwnership(signer1);
-
         assertTrue(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
-        assertFalse(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
-    function testTransferOwernshipWithRoleGroupsNotSetPropertly() public {
-        nayms.updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS, false);
-
-        vm.expectRevert("NEW owner NOT in sys admin group");
-        nayms.transferOwnership(signer1);
+    function testTransferOwernshipToZeroAddressFails() public {
+        vm.expectRevert("new owner must not be address 0");
+        nayms.transferOwnership(address(0));
     }
 }

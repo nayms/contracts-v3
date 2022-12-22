@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
 import { LibSimplePolicy } from "src/diamonds/nayms/libs/LibSimplePolicy.sol";

@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.13;
+pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { Entity } from "../AppStorage.sol";
-import { LibAdmin } from "../libs/LibAdmin.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
-import { LibACL } from "../libs/LibACL.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { ISystemFacet } from "../interfaces/ISystemFacet.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 
 /**
@@ -16,7 +14,7 @@ import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
  * @notice Use it to perform system level operations
  * @dev Use it to perform system level operations
  */
-contract SystemFacet is Modifiers, ReentrancyGuard {
+contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Create an entity
      * @dev An entity can be created with a zero max capacity! This is in the event where an entity cannot write any policies.

@@ -11,15 +11,6 @@ interface ITokenizedVaultFacet {
     function internalBalanceOf(bytes32 accountId, bytes32 tokenId) external view returns (uint256);
 
     /**
-     * @notice Gets balances of accounts within platform
-     * @dev Each account should have a corresponding token ID to query for balance
-     * @param accountIds Internal ID of the accounts
-     * @param tokenIds Internal ID of the assets
-     * @return current balance for each account
-     */
-    function balanceOfBatch(bytes32[] calldata accountIds, bytes32[] calldata tokenIds) external view returns (uint256[] memory);
-
-    /**
      * @notice Current supply for the asset
      * @dev Total supply of platform asset
      * @param tokenId Internal ID of the asset
@@ -86,6 +77,12 @@ interface ITokenizedVaultFacet {
         bytes32 dividendTokenId
     ) external;
 
+    /**
+     * @notice Withdraws a user's available dividends.
+     * @dev Dividends can be available in more than one dividend denomination. This method will withdraw all available dividends in the different dividend denominations.
+     * @param ownerId Unique ID of the dividend receiver
+     * @param tokenId Unique ID of token
+     */
     function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external;
 
     /**
