@@ -13,7 +13,7 @@ import { LibMarket } from "./LibMarket.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { InvalidStakeholder, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -101,12 +101,14 @@ library LibEntity {
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         _validateSimplePolicyCreation(_entityId, _simplePolicy);
+        {
+            Entity storage entity = s.entities[_entityId];
 
-        Entity storage entity = s.entities[_entityId];
-        uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
+            uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
 
-        entity.utilizedCapacity += factoredLimit;
-        s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
+            entity.utilizedCapacity += factoredLimit;
+            s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
+        }
 
         LibObject._createObject(_policyId, _entityId, _dataHash);
         s.simplePolicies[_policyId] = _simplePolicy;
@@ -116,23 +118,31 @@ library LibEntity {
         address signer;
         bytes32 signerId;
         address previousSigner;
-
+        bytes32 signersEntity; // The entityId associated with the userId.
         bytes32 structHash;
-
+        bool aSignerIsSender;
         for (uint256 i = 0; i < rolesCount; i++) {
             structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), _stakeholders.entityIds[i], _dataHash));
             previousSigner = signer;
 
             signer = ECDSA.recover(LibEIP712._hashTypedDataV4(structHash), _stakeholders.signatures[i]);
 
+            if (signer == msg.sender) {
+                aSignerIsSender = true;
+            }
             // Ensure there are no duplicate signers.
             if (previousSigner >= signer) {
                 revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
             }
             signerId = LibHelpers._getIdForAddress(signer);
-
-            require(LibACL._isInGroup(signerId, _stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
+            signersEntity = LibObject._getParent(signerId);
+            if (signersEntity != _stakeholders.entityIds[i]) {
+                revert InvalidStakeholder(signersEntity, _stakeholders.entityIds[i]);
+            }
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
+        }
+        if (!aSignerIsSender) {
+            revert("no signers are msg.sender");
         }
 
         s.existingSimplePolicies[_policyId] = true;
