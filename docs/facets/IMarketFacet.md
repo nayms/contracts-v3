@@ -46,12 +46,6 @@ This function can be frontrun: In the scenario where a user wants to cancel an u
 | --- | --- | --- |
 |`_offerId` | uint256 | offer ID|
 <br></br>
-### calculateFee
-No description
-```solidity
-  function calculateFee(
-  ) external returns (address feeToken_, uint256 feeAmount_)
-```
 ### getBestOfferId
 Get current best offer for given token pair.
 This means finding the highest sellToken-per-buyToken price, i.e. price = sellToken / buyToken

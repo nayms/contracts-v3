@@ -18,27 +18,6 @@ Internal balance for given account
 | --- | --- |
 |`current` | balance|
 <br></br>
-### balanceOfBatch
-Gets balances of accounts within platform
-Each account should have a corresponding token ID to query for balance
-```solidity
-  function balanceOfBatch(
-    bytes32[] accountIds,
-    bytes32[] tokenIds
-  ) external returns (uint256[])
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`accountIds` | bytes32[] | Internal ID of the accounts
-|`tokenIds` | bytes32[] | Internal ID of the assets
-|
-<br></br>
-#### Returns:
-| Type | Description |
-| --- | --- |
-|`current` | balance for each account|
-<br></br>
 ### internalTokenSupply
 Current supply for the asset
 Total supply of platform asset
@@ -137,11 +116,20 @@ Transfer dividends to the entity
 |`dividendTokenId` | bytes32 | Unique ID of dividend token|
 <br></br>
 ### withdrawAllDividends
-No description
+Withdraws a user's available dividends.
+Dividends can be available in more than one dividend denomination. This method will withdraw all available dividends in the different dividend denominations.
 ```solidity
   function withdrawAllDividends(
+    bytes32 ownerId,
+    bytes32 tokenId
   ) external
 ```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`ownerId` | bytes32 | Unique ID of the dividend receiver
+|`tokenId` | bytes32 | Unique ID of token|
+<br></br>
 ### payDividendFromEntity
 Pay `amount` of dividends
 Transfer dividends to the entity

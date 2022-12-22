@@ -7,7 +7,7 @@ Any object ID can be a context, system is a special context with highest priorit
   function assignRole(
     bytes32 _objectId,
     bytes32 _contextId,
-    string _roleId
+    string _role
   ) external
 ```
 #### Arguments:
@@ -15,7 +15,7 @@ Any object ID can be a context, system is a special context with highest priorit
 | --- | --- | --- |
 |`_objectId` | bytes32 | ID of an object that is being assigned a role
 |`_contextId` | bytes32 | ID of the context in which a role is being assigned
-|`_roleId` | string | ID of a role being assigned|
+|`_role` | string | Name of the role being assigned|
 <br></br>
 ### unassignRole
 Unassign object from a role in given context
@@ -83,17 +83,19 @@ Check whether a user can assign specific object to the `_role` role in given con
 Check permission to assign to a role
 ```solidity
   function canAssign(
+    bytes32 _assignerId,
     bytes32 _objectId,
     bytes32 _contextId,
-    bytes32 _role
+    string _role
   ) external returns (bool)
 ```
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
+|`_assignerId` | bytes32 | The object ID of the user who is assigning a role to  another object.
 |`_objectId` | bytes32 | ID of an object that is being checked for assigning rights
 |`_contextId` | bytes32 | ID of the context in which permission is checked
-|`_role` | bytes32 | name of the role to check
+|`_role` | string | name of the role to check
 |
 <br></br>
 #### Returns:

@@ -40,7 +40,7 @@ Convert the bytes32 external token ID to its respective ERC20 contract address
 <br></br>
 ### setEntity
 Set the entity for the user
-Assign the user an entity
+Assign the user an entity. The entity must exist in order to associate it with a user.
 ```solidity
   function setEntity(
     bytes32 _userId,

@@ -1,20 +1,29 @@
 Used to handle policies and token sales
 ## Functions
-### updateAllowSimplePolicy
-Enable/Disable Simple Policy creation for Entity ID: `_entityId`
-Update simple policy creation allow flag
+### domainSeparatorV4
+No description
+Returns the domain separator for the current chain.
 ```solidity
-  function updateAllowSimplePolicy(
-    bytes32 _entityId,
-    bool _allow
-  ) external
+  function domainSeparatorV4(
+  ) external returns (bytes32)
 ```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_entityId` | bytes32 | ID of the entity to update
-|`_allow` | bool | Allow or not simple policy creation|
-<br></br>
+### hashTypedDataV4
+No description
+Given an already https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct[hashed struct], this
+function returns the hash of the fully encoded EIP712 message for this domain.
+This hash can be used together with {ECDSA-recover} to obtain the signer of a message. For example:
+```solidity
+bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
+    keccak256("Mail(address to,string contents)"),
+    mailTo,
+    keccak256(bytes(mailContents))
+)));
+address signer = ECDSA.recover(digest, signature);
+```
+```solidity
+  function hashTypedDataV4(
+  ) external returns (bytes32)
+```
 ### createSimplePolicy
 Create a Simple Policy
 ```solidity
