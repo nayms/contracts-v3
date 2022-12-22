@@ -197,7 +197,7 @@ svm install "0.7.6"
 
 Convenience targets are provided in the Makefile for running a specific test against a forked network.
 
-To run a test against a Goerli fork us the following command passing in the test matching expression i.e. `testStartTokenSale`
+To run a test against a Goerli fork use the following command passing in the test matching expression i.e. `testStartTokenSale`
 
 ```zsh
 make test-goerli MT=testStartTokenSale

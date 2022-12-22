@@ -32,7 +32,7 @@ jobs:
         run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
 
       - name: Install solc
-        run: svm install 0.7.6 && svm install 0.8.13 && svm use 0.8.13
+        run: svm install 0.7.6 && svm install 0.8.17 && svm use 0.8.17
 
       - name: Install Forge dependencies
         run: forge install
