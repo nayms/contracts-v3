@@ -3,6 +3,8 @@ name: npm
 on:
   release:
     types: [created]
+  workflow_dispatch: {}
+  workflow_call:
 
 jobs:
   publish-npm:
