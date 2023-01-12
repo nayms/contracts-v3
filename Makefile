@@ -216,6 +216,16 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		-vv \
 		--broadcast
 
+add-supported-external-token: ## Add a supported external token (goerli)
+	@forge script AddSupportedExternalToken \
+		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv
+
 update-commissions: ## update trading and premium commissions
 	forge script UpdateCommissions \
 		-s "tradingAndPremium(address)" ${naymsDiamondAddress} \
