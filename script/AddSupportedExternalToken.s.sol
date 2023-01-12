@@ -7,9 +7,9 @@ import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 
 contract AddSupportedExternalToken is Script {
     function addSupportedExternalToken(address naymsDiamondAddress, address externalToken) public {
-        INayms nayms = INayms(naymsDiamondAddress);
+        vm.startBroadcast(msg.sender);
 
-        vm.startPrank(msg.sender);
+        INayms nayms = INayms(naymsDiamondAddress);
 
         nayms.addSupportedExternalToken(externalToken);
 

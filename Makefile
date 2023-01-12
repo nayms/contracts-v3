@@ -224,7 +224,8 @@ add-supported-external-token: ## Add a supported external token (goerli)
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
-		-vv
+		-vv \
+		--broadcast
 
 update-commissions: ## update trading and premium commissions
 	forge script UpdateCommissions \
