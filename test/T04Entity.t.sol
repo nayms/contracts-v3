@@ -296,14 +296,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         stakeholders.signatures = sig;
 
-        // test caller is entity admin
-        nayms.unassignRole(account0Id, entityId1);
-        assertFalse(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
-        vm.expectRevert("must be entity admin");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
-        assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
-
         // test limit
         simplePolicy.limit = 0;
         vm.expectRevert("limit not > 0");

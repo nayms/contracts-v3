@@ -37,9 +37,6 @@ library LibEntity {
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
 
-        bool isEntityAdmin = LibACL._isInGroup(LibHelpers._getSenderId(), _entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS));
-        require(isEntityAdmin, "must be entity admin");
-
         if (simplePolicy.claimsPaid != 0) {
             revert SimplePolicyClaimsPaidShouldStartAtZero();
         }
