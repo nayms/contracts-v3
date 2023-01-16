@@ -33,9 +33,6 @@ library LibEntity {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
 
-        bool isEntityAdmin = LibACL._isInGroup(LibHelpers._getSenderId(), _entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS));
-        require(isEntityAdmin, "must be entity admin");
-
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
 
