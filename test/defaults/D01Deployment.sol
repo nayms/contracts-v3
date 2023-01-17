@@ -10,6 +10,7 @@ import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
+import { LibSimplePolicy } from "src/diamonds/nayms/libs/LibSimplePolicy.sol";
 
 import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
 

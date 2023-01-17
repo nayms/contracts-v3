@@ -32,9 +32,6 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
-        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), testPolicyDataHash));
-
-        // policyHashedTypedData = nayms.hashTypedDataV4(structHash);
 
         (stakeholders, simplePolicy) = initPolicy(testPolicyDataHash);
 
@@ -221,9 +218,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         nayms.externalDeposit(wethAddress, 100000);
 
+        bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
+
         bytes[] memory signatures = new bytes[](2);
-        signatures[0] = initPolicySig(0xACC1, eAlice, testPolicyDataHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
-        signatures[1] = initPolicySig(0xACC2, eBob, testPolicyDataHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[0] = initPolicySig(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
+        signatures[1] = initPolicySig(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
         bytes32[] memory roles = new bytes32[](2);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
@@ -242,8 +241,6 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testSignatureWhenCreatingSimplePolicy() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, true), "entity test hash");
 
-        address alice = vm.addr(0xACC2);
-        address bob = vm.addr(0xACC1);
         bytes32 bobId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
         bytes32 aliceId = LibHelpers._getIdForAddress(vm.addr(0xACC2));
 
@@ -264,9 +261,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         nayms.externalDeposit(wethAddress, 100000);
 
+        bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
+
         bytes[] memory signatures = new bytes[](2);
-        signatures[0] = initPolicySig(0xACC2, eAlice, testPolicyDataHash);
-        signatures[1] = initPolicySig(0xACC1, eBob, testPolicyDataHash);
+        signatures[0] = initPolicySig(0xACC2, signingHash);
+        signatures[1] = initPolicySig(0xACC1, signingHash);
 
         bytes32[] memory roles = new bytes32[](2);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
