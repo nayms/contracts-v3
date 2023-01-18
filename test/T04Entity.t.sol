@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
@@ -439,35 +439,30 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertTrue(p.fundsLocked, "funds locked");
     }
 
-    function testCreateSimplePolicySignersAreNotEntityAdminsOfStakeholderEntities() public {
+    function testCreateSimplePolicyStakeholderEntitiesAreNotSignersParent() public {
         getReadyToCreatePolicies();
-
-        // assign parent entity as system manager so that I can assign roles below
-        nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
         bytes32[] memory signerIds = new bytes32[](4);
         signerIds[0] = signer1Id;
-        signerIds[1] = signer1Id;
-        signerIds[2] = signer1Id;
-        signerIds[3] = signer1Id;
+        signerIds[1] = signer2Id;
+        signerIds[2] = signer3Id;
+        signerIds[3] = signer4Id;
 
         uint256 rolesCount = 1; //stakeholders.roles.length;
         for (uint256 i = 0; i < rolesCount; i++) {
             bytes32 signerId = signerIds[i];
 
             // check permissions
-            assertEq(nayms.getRoleInContext(signerId, stakeholders.entityIds[i]), LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN), "must have role");
-            assertTrue(nayms.canAssign(account0Id, signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN), "can assign");
+            assertEq(nayms.getEntity(signerId), stakeholders.entityIds[i], "must be parent");
 
-            // remove role
-            nayms.unassignRole(signerId, stakeholders.entityIds[i]);
+            // change parent
+            nayms.setEntity(signerId, bytes32("e0"));
 
             // try creating
             vm.expectRevert("invalid stakeholder");
             nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-            // restore role
-            nayms.assignRole(signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN);
+            nayms.setEntity(signerId, stakeholders.entityIds[i]);
         }
     }
 

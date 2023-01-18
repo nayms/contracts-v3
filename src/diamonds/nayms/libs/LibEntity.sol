@@ -115,7 +115,6 @@ library LibEntity {
 
         uint256 rolesCount = _stakeholders.roles.length;
         address signer;
-        bytes32 signerId;
         address previousSigner;
 
         for (uint256 i = 0; i < rolesCount; i++) {
@@ -127,9 +126,9 @@ library LibEntity {
             if (previousSigner >= signer) {
                 revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
             }
-            signerId = LibHelpers._getIdForAddress(signer);
+            bytes32 signersParent = LibObject._getParentFromAddress(signer);
+            require(signersParent == _stakeholders.entityIds[i], "invalid stakeholder");
 
-            require(LibACL._isInGroup(signerId, _stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 
