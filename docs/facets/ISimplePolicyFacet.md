@@ -90,3 +90,24 @@ Cancel a simple policy
 | --- | --- | --- |
 |`_policyId` | bytes32 | Id of the simple policy|
 <br></br>
+### getSigningHash
+No description
+Generate a simple policy hash for singing by the stakeholders
+```solidity
+  function getSigningHash(
+    uint256 _startDate,
+    uint256 _maturationDate,
+    bytes32 _asset,
+    uint256 _limit,
+    bytes32 _dataHash
+  ) external returns (bytes32)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_startDate` | uint256 | Date when policy becomes active
+|`_maturationDate` | uint256 | Date after which policy becomes matured
+|`_asset` | bytes32 | ID of the underlying asset, used as collateral and to pay out claims
+|`_limit` | uint256 | Policy coverage limit
+|`_dataHash` | bytes32 | Hash of all the important policy data stored offchain|
+<br></br>
