@@ -126,8 +126,8 @@ library LibEntity {
             if (previousSigner >= signer) {
                 revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
             }
-            bytes32 signersParent = LibObject._getParentFromAddress(signer);
-            require(signersParent == _stakeholders.entityIds[i], "invalid stakeholder");
+            bytes32 signersParentId = LibObject._getParentFromAddress(signer);
+            require(signersParentId == _stakeholders.entityIds[i], "invalid stakeholder");
 
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
