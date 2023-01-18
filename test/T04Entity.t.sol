@@ -301,6 +301,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.limit = 100000;
 
+        bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
+
+        stakeholders.signatures[0] = initPolicySig(0xACC2, signingHash);
+        stakeholders.signatures[1] = initPolicySig(0xACC1, signingHash);
+        stakeholders.signatures[2] = initPolicySig(0xACC3, signingHash);
+        stakeholders.signatures[3] = initPolicySig(0xACC4, signingHash);
+
         // external token not supported
         vm.expectRevert("external token is not supported");
         simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
