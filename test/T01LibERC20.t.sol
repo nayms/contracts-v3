@@ -6,6 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibERC20Fixture } from "./fixtures/LibERC20Fixture.sol";
+import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 contract T01LibERC20 is D03ProtocolDefaults {
     DummyToken private token;
@@ -22,6 +23,32 @@ contract T01LibERC20 is D03ProtocolDefaults {
 
         fixture = new LibERC20Fixture();
         fixtureAddress = address(fixture);
+
+        bytes4[] memory funcSelectors = new bytes4[](2);
+        funcSelectors[0] = fixture.decimals.selector;
+        funcSelectors[1] = fixture.balanceOf.selector;
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(fixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
+
+        nayms.diamondCut(cut, address(0), "");
+    }
+
+    function getDecimals(address tokenAddress) internal returns (uint8) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.decimals.selector, tokenAddress));
+        require(success, "Should get token decimals via library fixture");
+        return abi.decode(result, (uint8));
+    }
+
+    function getBalanceOf(address _token, address _who) internal returns (uint256) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.balanceOf.selector, _token, _who));
+        require(success, "Should get holders balance via library fixture");
+        return abi.decode(result, (uint256));
+    }
+
+    function testBalanceOf() public {
+        token.mint(fixtureAddress, 100);
+        assertEq(getBalanceOf(tokenAddress, fixtureAddress), 100, "invalid balance of");
     }
 
     function testTransfer() public {
@@ -76,5 +103,9 @@ contract T01LibERC20 is D03ProtocolDefaults {
 
         assertEq(token.balanceOf(signer1), 0);
         assertEq(token.balanceOf(account0), 100);
+    }
+
+    function testDecimals() public {
+        assertEq(getDecimals(tokenAddress), 18, "invalid decimals");
     }
 }
