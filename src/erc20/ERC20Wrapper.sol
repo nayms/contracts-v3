@@ -13,8 +13,8 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                               ERC20 STORAGE
     //////////////////////////////////////////////////////////////*/
-    bytes32 internal tokenId;
-    INayms internal nayms;
+    bytes32 internal immutable tokenId;
+    INayms internal immutable nayms;
     mapping(address => mapping(address => uint256)) public allowances;
 
     /*//////////////////////////////////////////////////////////////
