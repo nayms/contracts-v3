@@ -3,8 +3,6 @@ pragma solidity 0.8.17;
 
 import "forge-std/console2.sol";
 import "forge-std/Test.sol";
-import "forge-std/StdJson.sol";
-import "script/utils/LibWriteJson.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
 import "solmate/utils/CREATE3.sol";
 import "./LibGeneratedNaymsFacetHelpers.sol";
@@ -17,7 +15,6 @@ interface IInitDiamond {
 }
 
 contract DeploymentHelpers is Test {
-    using stdJson for *;
     using strings for *;
     using stdStorage for StdStorage;
 
@@ -97,42 +94,18 @@ contract DeploymentHelpers is Test {
     // false: reads deployFile .NaymsDiamond
     function diamondDeployment(bool deployNewDiamond) public returns (address naymsDiamondAddress) {
         if (deployNewDiamond) {
-            // string memory contractName = "Nayms";
-            // string memory artifactFile = string.concat(artifactsPath, contractName, ".sol/", contractName, ".json");
-
-            // Deploy new Diamond
-            // bytes memory args = abi.encode(msg.sender);
-            // naymsDiamondAddress = deployCode(artifactFile, args);
-
             naymsDiamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
             vm.label(address(naymsDiamondAddress), "New Nayms Diamond");
 
             // Output diamond address
 
-            // string memory write = LibWriteJson.createObject(
-            //     LibWriteJson.keyObject(
-            //         "NaymsDiamond",
-            //         LibWriteJson.keyObject(vm.toString(block.chainid), LibWriteJson.keyValue("address", vm.toString(address(naymsDiamondAddress))))
-            //     )
-            // );
             // solhint-disable quotes
-            vm.removeFile(deployFile);
-            vm.writeLine(deployFile, '{ "NaymsDiamond": { ');
-
-            string memory d = string.concat('"', vm.toString(block.chainid), '": { "address": "', vm.toString(naymsDiamondAddress), '" } ');
-            vm.writeLine(deployFile, d);
-
-            if (block.chainid != 31337) {
-                string memory d31337 = string.concat(', "31337": { "address": "0xAe2Df030C2184a369B8a4F6fA4d3CB19Fbe55955" } ');
-                vm.writeLine(deployFile, d31337);
-            }
-
-            vm.writeLine(deployFile, "}}");
+            string memory writeToKey = string.concat(".NaymsDiamond.", vm.toString(block.chainid), ".address");
+            vm.writeJson(vm.toString(address(naymsDiamondAddress)), deployFile, writeToKey);
         } else {
             // Read in current diamond address
             naymsDiamondAddress = getDiamondAddressFromFile();
 
-            // todo label with an additional identifier, such as timestamp or package version number?
             vm.label(address(naymsDiamondAddress), "Same Nayms Diamond");
         }
 
