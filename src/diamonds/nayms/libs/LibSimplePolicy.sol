@@ -119,7 +119,7 @@ library LibSimplePolicy {
         bytes32 _asset,
         uint256 _limit,
         bytes32 _offchainDataHash
-    ) internal returns (bytes32) {
+    ) internal view returns (bytes32) {
         return
             LibEIP712._hashTypedDataV4(
                 keccak256(

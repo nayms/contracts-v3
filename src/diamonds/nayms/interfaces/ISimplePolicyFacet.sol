@@ -62,6 +62,7 @@ interface ISimplePolicyFacet {
      * @param _asset ID of the underlying asset, used as collateral and to pay out claims
      * @param _limit Policy coverage limit
      * @param _offchainDataHash Hash of all the important policy data stored offchain
+     * @return hash for signing
      */
     function getSigningHash(
         uint256 _startDate,
