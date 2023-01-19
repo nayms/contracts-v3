@@ -10,7 +10,7 @@ Generate a simple policy hash for singing by the stakeholders
     bytes32 _asset,
     uint256 _limit,
     bytes32 _offchainDataHash
-  ) external returns (bytes32)
+  ) external returns (bytes32 signingHash_)
 ```
 #### Arguments:
 | Argument | Type | Description |
@@ -25,7 +25,7 @@ Generate a simple policy hash for singing by the stakeholders
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`hash` | for signing|
+|`signingHash_` | hash for signing|
 <br></br>
 ### paySimplePremium
 No description

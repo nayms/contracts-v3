@@ -90,7 +90,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _asset ID of the underlying asset, used as collateral and to pay out claims
      * @param _limit Policy coverage limit
      * @param _offchainDataHash Hash of all the important policy data stored offchain
-     * @return hash for signing
+     * @return signingHash_ hash for signing
      */
     function getSigningHash(
         uint256 _startDate,
@@ -98,7 +98,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         bytes32 _asset,
         uint256 _limit,
         bytes32 _offchainDataHash
-    ) external view returns (bytes32) {
-        return LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
+    ) external view returns (bytes32 signingHash_) {
+        signingHash_ = LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
     }
 }
