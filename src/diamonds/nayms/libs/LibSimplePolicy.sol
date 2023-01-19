@@ -9,6 +9,8 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibHelpers } from "./LibHelpers.sol";
+import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
+
 import { EntityDoesNotExist, PolicyDoesNotExist } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibSimplePolicy {
@@ -109,5 +111,27 @@ library LibSimplePolicy {
         s.lockedBalances[entityId][entity.assetId] -= policyLockedAmount;
 
         simplePolicy.fundsLocked = false;
+    }
+
+    function _getSigningHash(
+        uint256 _startDate,
+        uint256 _maturationDate,
+        bytes32 _asset,
+        uint256 _limit,
+        bytes32 _offchainDataHash
+    ) internal returns (bytes32) {
+        return
+            LibEIP712._hashTypedDataV4(
+                keccak256(
+                    abi.encode(
+                        keccak256("SimplePolicy(uint256 startDate,uint256 maturationDate,bytes32 asset,uint256 limit,bytes32 offchainDataHash)"),
+                        _startDate,
+                        _maturationDate,
+                        _asset,
+                        _limit,
+                        _offchainDataHash
+                    )
+                )
+            );
     }
 }

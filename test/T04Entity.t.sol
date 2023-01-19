@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
@@ -32,9 +32,6 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
-        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), testPolicyDataHash));
-
-        // policyHashedTypedData = nayms.hashTypedDataV4(structHash);
 
         (stakeholders, simplePolicy) = initPolicy(testPolicyDataHash);
 
@@ -221,9 +218,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         nayms.externalDeposit(wethAddress, 100000);
 
+        bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
+
         bytes[] memory signatures = new bytes[](2);
-        signatures[0] = initPolicySig(0xACC1, eAlice, testPolicyDataHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
-        signatures[1] = initPolicySig(0xACC2, eBob, testPolicyDataHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[0] = initPolicySig(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
+        signatures[1] = initPolicySig(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
         bytes32[] memory roles = new bytes32[](2);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
@@ -242,8 +241,6 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testSignatureWhenCreatingSimplePolicy() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, true), "entity test hash");
 
-        address alice = vm.addr(0xACC2);
-        address bob = vm.addr(0xACC1);
         bytes32 bobId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
         bytes32 aliceId = LibHelpers._getIdForAddress(vm.addr(0xACC2));
 
@@ -264,9 +261,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         nayms.externalDeposit(wethAddress, 100000);
 
+        bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
+
         bytes[] memory signatures = new bytes[](2);
-        signatures[0] = initPolicySig(0xACC2, eAlice, testPolicyDataHash);
-        signatures[1] = initPolicySig(0xACC1, eBob, testPolicyDataHash);
+        signatures[0] = initPolicySig(0xACC2, signingHash);
+        signatures[1] = initPolicySig(0xACC1, signingHash);
 
         bytes32[] memory roles = new bytes32[](2);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
@@ -301,6 +300,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("limit not > 0");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.limit = 100000;
+
+        bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
+
+        stakeholders.signatures[0] = initPolicySig(0xACC2, signingHash);
+        stakeholders.signatures[1] = initPolicySig(0xACC1, signingHash);
+        stakeholders.signatures[2] = initPolicySig(0xACC3, signingHash);
+        stakeholders.signatures[3] = initPolicySig(0xACC4, signingHash);
 
         // external token not supported
         vm.expectRevert("external token is not supported");
@@ -433,35 +439,30 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertTrue(p.fundsLocked, "funds locked");
     }
 
-    function testCreateSimplePolicySignersAreNotEntityAdminsOfStakeholderEntities() public {
+    function testCreateSimplePolicyStakeholderEntitiesAreNotSignersParent() public {
         getReadyToCreatePolicies();
-
-        // assign parent entity as system manager so that I can assign roles below
-        nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
         bytes32[] memory signerIds = new bytes32[](4);
         signerIds[0] = signer1Id;
-        signerIds[1] = signer1Id;
-        signerIds[2] = signer1Id;
-        signerIds[3] = signer1Id;
+        signerIds[1] = signer2Id;
+        signerIds[2] = signer3Id;
+        signerIds[3] = signer4Id;
 
         uint256 rolesCount = 1; //stakeholders.roles.length;
         for (uint256 i = 0; i < rolesCount; i++) {
             bytes32 signerId = signerIds[i];
 
             // check permissions
-            assertEq(nayms.getRoleInContext(signerId, stakeholders.entityIds[i]), LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN), "must have role");
-            assertTrue(nayms.canAssign(account0Id, signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN), "can assign");
+            assertEq(nayms.getEntity(signerId), stakeholders.entityIds[i], "must be parent");
 
-            // remove role
-            nayms.unassignRole(signerId, stakeholders.entityIds[i]);
+            // change parent
+            nayms.setEntity(signerId, bytes32("e0"));
 
             // try creating
             vm.expectRevert("invalid stakeholder");
             nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-            // restore role
-            nayms.assignRole(signerId, stakeholders.entityIds[i], LibConstants.ROLE_ENTITY_ADMIN);
+            nayms.setEntity(signerId, stakeholders.entityIds[i]);
         }
     }
 

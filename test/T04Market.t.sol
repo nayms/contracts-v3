@@ -761,8 +761,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.addSupportedExternalToken(wethAddress);
 
-        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
-        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
+        bytes32 e1Id = DEFAULT_UNDERWRITER_ENTITY_ID;
 
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
@@ -775,30 +774,28 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         // sell x nENTITY1 for y WETH
-        nayms.enableEntityTokenization(entity1, "e1token", "e1token");
-        nayms.startTokenSale(entity1, saleAmount, salePrice);
+        nayms.enableEntityTokenization(e1Id, "e1token", "e1token");
+        nayms.startTokenSale(e1Id, saleAmount, salePrice);
 
         vm.prank(signer2);
-        nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
+        nayms.executeLimitOffer(wethId, salePrice, e1Id, saleAmount);
 
-        assertOfferFilled(1, entity1, entity1, saleAmount, wethId, salePrice);
-        assertEq(nayms.internalBalanceOf(entity1, wethId), saleAmount, "balance should have INCREASED"); // has 100 weth
+        assertOfferFilled(1, e1Id, e1Id, saleAmount, wethId, salePrice);
+        assertEq(nayms.internalBalanceOf(e1Id, wethId), saleAmount, "balance should have INCREASED"); // has 100 weth
 
-        // assign entity admin
-        nayms.assignRole(account0Id, entity1, LibConstants.ROLE_ENTITY_ADMIN);
-        assertTrue(nayms.isInGroup(account0Id, entity1, LibConstants.GROUP_ENTITY_ADMINS));
-
-        assertEq(nayms.getLockedBalance(entity1, wethId), 0, "locked balance should be 0");
+        assertEq(nayms.getLockedBalance(e1Id, wethId), 0, "locked balance should be 0");
 
         bytes32 policyId1 = "policy1";
         uint256 policyLimit = 85 ether;
 
         (Stakeholders memory stakeholders, SimplePolicy memory policy) = initPolicyWithLimit(testPolicyDataHash, policyLimit);
-        nayms.createSimplePolicy(policyId1, entity1, stakeholders, policy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, e1Id, stakeholders, policy, testPolicyDataHash);
 
-        assertEq(nayms.getLockedBalance(entity1, wethId), (policyLimit * collateralRatio_500) / LibConstants.BP_FACTOR, "locked balance should increase");
+        uint256 lockedBalance = nayms.getLockedBalance(e1Id, wethId);
+        assertEq(lockedBalance, policyLimit, "locked balance should increase");
 
         vm.expectRevert("tokens locked");
-        nayms.executeLimitOffer(entity1, salePrice, wethId, saleAmount);
+        vm.prank(signer1);
+        nayms.executeLimitOffer(e1Id, salePrice, wethId, saleAmount);
     }
 }

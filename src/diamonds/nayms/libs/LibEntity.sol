@@ -10,6 +10,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
+import { LibSimplePolicy } from "./LibSimplePolicy.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -85,7 +86,7 @@ library LibEntity {
         bytes32 _entityId,
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
-        bytes32 _dataHash
+        bytes32 _offchainDataHash
     ) internal {
         if (_policyId == 0) {
             revert PolicyIdCannotBeZero();
@@ -105,30 +106,29 @@ library LibEntity {
         entity.utilizedCapacity += factoredLimit;
         s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
 
-        LibObject._createObject(_policyId, _entityId, _dataHash);
+        // hash contents are implicitlly checked by making sure that resolved signer is the stakeholder entity's admin
+        bytes32 signingHash = LibSimplePolicy._getSigningHash(_simplePolicy.startDate, _simplePolicy.maturationDate, _simplePolicy.asset, _simplePolicy.limit, _offchainDataHash);
+
+        LibObject._createObject(_policyId, _entityId, signingHash);
         s.simplePolicies[_policyId] = _simplePolicy;
         s.simplePolicies[_policyId].fundsLocked = true;
 
         uint256 rolesCount = _stakeholders.roles.length;
         address signer;
-        bytes32 signerId;
         address previousSigner;
 
-        bytes32 structHash;
-
         for (uint256 i = 0; i < rolesCount; i++) {
-            structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), _stakeholders.entityIds[i], _dataHash));
             previousSigner = signer;
 
-            signer = ECDSA.recover(LibEIP712._hashTypedDataV4(structHash), _stakeholders.signatures[i]);
+            signer = ECDSA.recover(signingHash, _stakeholders.signatures[i]);
 
             // Ensure there are no duplicate signers.
             if (previousSigner >= signer) {
                 revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
             }
-            signerId = LibHelpers._getIdForAddress(signer);
 
-            require(LibACL._isInGroup(signerId, _stakeholders.entityIds[i], LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "invalid stakeholder");
+            require(LibObject._getParentFromAddress(signer) == _stakeholders.entityIds[i], "invalid stakeholder");
+
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 

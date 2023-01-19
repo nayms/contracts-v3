@@ -6,6 +6,14 @@ import { LibERC20 } from "src/erc20/LibERC20.sol";
 /// Create a fixture to test the library LibERC20
 
 contract LibERC20Fixture {
+    function decimals(address _token) external returns (uint8) {
+        return LibERC20.decimals(_token);
+    }
+
+    function balanceOf(address _token, address _who) external returns (uint256) {
+        return LibERC20.balanceOf(_token, _who);
+    }
+
     function transferFrom(
         address _token,
         address _from,

@@ -82,4 +82,22 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
     function cancelSimplePolicy(bytes32 _policyId) external assertSysMgr {
         LibSimplePolicy._cancel(_policyId);
     }
+
+    /**
+     * @dev Generate a simple policy hash for singing by the stakeholders
+     * @param _startDate Date when policy becomes active
+     * @param _maturationDate Date after which policy becomes matured
+     * @param _asset ID of the underlying asset, used as collateral and to pay out claims
+     * @param _limit Policy coverage limit
+     * @param _offchainDataHash Hash of all the important policy data stored offchain
+     */
+    function getSigningHash(
+        uint256 _startDate,
+        uint256 _maturationDate,
+        bytes32 _asset,
+        uint256 _limit,
+        bytes32 _offchainDataHash
+    ) external returns (bytes32) {
+        return LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
+    }
 }

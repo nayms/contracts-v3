@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject } from "./D02TestSetup.sol";
+import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Entity, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
@@ -36,9 +36,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     function setUp() public virtual override {
         console2.log("\n Test SETUP:");
         super.setUp();
-
         console2.log("\n -- D03 Protocol Defaults\n");
-
         console2.log("Test contract address ID, aka account0Id:");
         console2.logBytes32(account0Id);
 
@@ -51,7 +49,6 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        // vm.startPrank(msg.sender);
         nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({
@@ -67,10 +64,6 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
-
-        // transfer ownership and change system admin to be the test contract address
-        // nayms.transferOwnership(address(this));
-        // vm.stopPrank();
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
@@ -95,11 +88,11 @@ contract D03ProtocolDefaults is D02TestSetup {
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 
-    function initPolicy(bytes32 policyDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        return initPolicyWithLimit(policyDataHash, 10_000);
+    function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        return initPolicyWithLimit(offchainDataHash, 10_000);
     }
 
-    function initPolicyWithLimit(bytes32 policyDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -111,14 +104,6 @@ contract D03ProtocolDefaults is D02TestSetup {
         entityIds[1] = DEFAULT_BROKER_ENTITY_ID;
         entityIds[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
         entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
-
-        bytes[] memory signatures = new bytes[](4);
-        signatures[0] = initPolicySig(0xACC2, DEFAULT_UNDERWRITER_ENTITY_ID, policyDataHash);
-        signatures[1] = initPolicySig(0xACC1, DEFAULT_BROKER_ENTITY_ID, policyDataHash);
-        signatures[2] = initPolicySig(0xACC3, DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, policyDataHash);
-        signatures[3] = initPolicySig(0xACC4, DEFAULT_INSURED_PARTY_ENTITY_ID, policyDataHash);
-
-        policyStakeholders = Stakeholders(roles, entityIds, signatures);
 
         bytes32[] memory commissionReceivers = new bytes32[](3);
         commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
@@ -133,21 +118,24 @@ contract D03ProtocolDefaults is D02TestSetup {
         policy.startDate = 1000;
         policy.maturationDate = 10000;
         policy.asset = wethId;
+        policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;
         policy.commissionBasisPoints = commissions;
-        policy.limit = limitAmount;
+
+        bytes[] memory signatures = new bytes[](4);
+
+        bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, offchainDataHash);
+
+        signatures[0] = initPolicySig(0xACC2, signingHash);
+        signatures[1] = initPolicySig(0xACC1, signingHash);
+        signatures[2] = initPolicySig(0xACC3, signingHash);
+        signatures[3] = initPolicySig(0xACC4, signingHash);
+
+        policyStakeholders = Stakeholders(roles, entityIds, signatures);
     }
 
-    function initPolicySig(
-        uint256 privateKey,
-        bytes32 userEntityId,
-        bytes32 policyDataHash
-    ) internal returns (bytes memory sig_) {
-        // bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 dataHash))"), policyDataHash));
-        // bytes32 entityId =
-        bytes32 structHash = keccak256(abi.encode(keccak256("PolicyHash(bytes32 signerEntityId, bytes32 dataHash))"), userEntityId, policyDataHash));
-
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toTypedDataHash(nayms.domainSeparatorV4(), structHash));
+    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal returns (bytes memory sig_) {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, signingHash);
         sig_ = abi.encodePacked(r, s, v);
     }
 }
