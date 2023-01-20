@@ -196,7 +196,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
         vm.startPrank(signer1);
-        vm.expectRevert("_internalTransfer: tokens locked");
+        vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
         vm.stopPrank();
 
@@ -430,7 +430,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt - 200 ether, entity1, dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("_internalBurn: tokens locked");
+        vm.expectRevert("_internalBurn: insufficient balance available, funds locked");
         nayms.externalWithdrawFromEntity(entity2, signer2, wethAddress, 500 ether);
 
         uint256 lastOfferId = nayms.getLastOfferId();
@@ -530,7 +530,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt - 10 ether, entity1, dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("tokens locked");
+        vm.expectRevert("insufficient balance available, funds locked");
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         uint256 lastOfferId = nayms.getLastOfferId();
@@ -794,7 +794,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 lockedBalance = nayms.getLockedBalance(e1Id, wethId);
         assertEq(lockedBalance, policyLimit, "locked balance should increase");
 
-        vm.expectRevert("tokens locked");
+        vm.expectRevert("insufficient balance");
         vm.prank(signer1);
         nayms.executeLimitOffer(e1Id, salePrice, wethId, saleAmount);
     }

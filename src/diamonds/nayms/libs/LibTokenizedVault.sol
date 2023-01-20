@@ -54,11 +54,8 @@ library LibTokenizedVault {
     ) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.lockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransfer: tokens locked");
-        } else {
-            require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: must own the funds");
-        }
+        require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: insufficient balance");
+        require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransfer: insufficient balance available, funds locked");
 
         _withdrawAllDividends(_from, _tokenId);
 
@@ -128,11 +125,8 @@ library LibTokenizedVault {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.lockedBalances[_from][_tokenId] > 0) {
-            require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalBurn: tokens locked");
-        } else {
-            require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalBurn: must own the funds");
-        }
+        require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalBurn: insufficient balance");
+        require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalBurn: insufficient balance available, funds locked");
 
         _withdrawAllDividends(_from, _tokenId);
 
