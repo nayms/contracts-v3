@@ -51,6 +51,11 @@ contract T01LibERC20 is D03ProtocolDefaults {
         assertEq(getBalanceOf(tokenAddress, fixtureAddress), 100, "invalid balance of");
     }
 
+    // function testBalanceOfForZeroAddressTokenFails() public {
+    //     vm.expectRevert("Should get holders balance via library fixture");
+    //     getBalanceOf(address(0), fixtureAddress);
+    // }
+
     function testTransfer() public {
         token.mint(fixtureAddress, 100);
         assertEq(token.balanceOf(fixtureAddress), 100);
@@ -107,5 +112,10 @@ contract T01LibERC20 is D03ProtocolDefaults {
 
     function testDecimals() public {
         assertEq(getDecimals(tokenAddress), 18, "invalid decimals");
+    }
+
+    function getDecimalsOnZeroAddressFails() public {
+        vm.expectRevert("Should get token decimals via library fixture");
+        getDecimals(address(0));
     }
 }
