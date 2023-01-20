@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "forge-std/console2.sol";
 import "forge-std/Test.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
 import "solmate/utils/CREATE3.sol";
@@ -21,6 +20,8 @@ contract DeploymentHelpers is Test {
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
     string public deployFile = "deployedAddresses.json";
+
+    string public keyToReadDiamondAddress = string.concat(".NaymsDiamond.", vm.toString(block.chainid));
 
     address internal sDiamondAddress;
 
@@ -74,8 +75,7 @@ contract DeploymentHelpers is Test {
         // Read in current diamond address
         string memory deployData = vm.readFile(deployFile);
 
-        string memory key = string.concat(".NaymsDiamond.", vm.toString(block.chainid));
-        bytes memory parsed = vm.parseJson(deployData, key);
+        bytes memory parsed = vm.parseJson(deployData, keyToReadDiamondAddress);
         diamondAddress = abi.decode(parsed, (address));
     }
 
@@ -100,8 +100,7 @@ contract DeploymentHelpers is Test {
             // Output diamond address
 
             // solhint-disable quotes
-            string memory writeToKey = string.concat(".NaymsDiamond.", vm.toString(block.chainid), ".address");
-            vm.writeJson(vm.toString(address(naymsDiamondAddress)), deployFile, writeToKey);
+            vm.writeJson(vm.toString(address(naymsDiamondAddress)), deployFile, keyToReadDiamondAddress);
         } else {
             // Read in current diamond address
             naymsDiamondAddress = getDiamondAddressFromFile();
@@ -183,7 +182,7 @@ contract DeploymentHelpers is Test {
         bytes memory bytecode = vm.parseJson(artifactData, ".deployedBytecode.object");
         bytes memory bytecodeDecoded = abi.decode(bytecode, (bytes));
 
-        bytes4[] memory functionSignatures = generateSelectors(facetName);
+        bytes4[] memory functionSignatures = generateSelectors(string.concat(facetName, "Facet"));
         uint256 numberOfFunctionSignaturesFromArtifact = functionSignatures.length;
         // get first non zero address
         address targetFacetAddress;
@@ -204,7 +203,7 @@ contract DeploymentHelpers is Test {
     function deployFacetAndCreateFacetCut(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
         cut.facetAddress = deploySelectFacet(facetName);
 
-        cut.functionSelectors = generateSelectors(facetName);
+        cut.functionSelectors = generateSelectors(string.concat(facetName, "Facet"));
 
         cut.action = IDiamondCut.FacetCutAction.Add;
     }
@@ -216,7 +215,7 @@ contract DeploymentHelpers is Test {
     function deployFacetAndCreateFacetCutOLD(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
         cut.facetAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName(facetName);
 
-        cut.functionSelectors = generateSelectors(facetName);
+        cut.functionSelectors = generateSelectors(string.concat(facetName, "Facet"));
 
         cut.action = IDiamondCut.FacetCutAction.Add;
     }
@@ -291,7 +290,7 @@ contract DeploymentHelpers is Test {
 
         address oldFacetAddress;
 
-        bytes4[] memory functionSelectors = generateSelectors(facetName);
+        bytes4[] memory functionSelectors = generateSelectors(string.concat(facetName, "Facet"));
         uint256 numFunctionSelectors = functionSelectors.length;
         console2.log("numFunctionSelectors - dynamicFacetCutV1()", numFunctionSelectors);
         console2.log(facetName);
