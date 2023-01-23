@@ -21,7 +21,7 @@ contract DeploymentHelpers is Test {
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
     string public deployFile = "deployedAddresses.json";
 
-    string public keyToReadDiamondAddress = string.concat(".NaymsDiamond.", vm.toString(block.chainid));
+    string public keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
 
     address internal sDiamondAddress;
 
