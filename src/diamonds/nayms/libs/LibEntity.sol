@@ -14,7 +14,7 @@ import { LibSimplePolicy } from "./LibSimplePolicy.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -120,15 +120,22 @@ library LibEntity {
         for (uint256 i = 0; i < rolesCount; i++) {
             previousSigner = signer;
 
-            signer = ECDSA.recover(signingHash, _stakeholders.signatures[i]);
+            signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(signingHash), _stakeholders.signatures[i]);
 
             // Ensure there are no duplicate signers.
             if (previousSigner >= signer) {
                 revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
             }
 
-            require(LibObject._getParentFromAddress(signer) == _stakeholders.entityIds[i], "invalid stakeholder");
-
+            if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
+                revert SimplePolicyStakeholderSignatureInvalid(
+                    signingHash,
+                    _stakeholders.signatures[i],
+                    LibHelpers._getIdForAddress(signer),
+                    LibObject._getParentFromAddress(signer),
+                    _stakeholders.entityIds[i]
+                );
+            }
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 

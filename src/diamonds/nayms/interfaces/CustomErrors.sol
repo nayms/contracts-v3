@@ -42,6 +42,9 @@ error PolicyCommissionsBasisPointsCannotBeGreaterThan10000(uint256 calculatedTot
 /// @dev When validating an entity, the utilized capacity cannot be greater than the max capacity.
 error UtilizedCapacityGreaterThanMaxCapacity(uint256 utilizedCapacity, uint256 maxCapacity);
 
+/// @dev Policy stakeholder signature validation failed
+error SimplePolicyStakeholderSignatureInvalid(bytes32 signingHash, bytes signature, bytes32 signerId, bytes32 signersParent, bytes32 entityId);
+
 /// @dev When creating a simple policy, the total claims paid should start at 0.
 error SimplePolicyClaimsPaidShouldStartAtZero();
 

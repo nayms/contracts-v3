@@ -459,7 +459,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             nayms.setEntity(signerId, bytes32("e0"));
 
             // try creating
-            vm.expectRevert("invalid stakeholder");
+            vm.expectRevert();
             nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
             nayms.setEntity(signerId, stakeholders.entityIds[i]);

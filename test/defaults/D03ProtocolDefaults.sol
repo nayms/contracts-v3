@@ -135,7 +135,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, signingHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
 }
