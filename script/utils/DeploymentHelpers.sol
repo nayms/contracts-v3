@@ -3,9 +3,9 @@ pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
-import "solmate/utils/CREATE3.sol";
 import "./LibGeneratedNaymsFacetHelpers.sol";
 import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
+import { Create3Deployer } from "src/utils/Create3Deployer.sol";
 
 /// @notice helper methods to deploy a diamond,
 
@@ -79,37 +79,35 @@ contract DeploymentHelpers is Test {
         diamondAddress = abi.decode(parsed, (address));
     }
 
-    function getFacetNameFromFacetAddress() internal returns (string memory facetName) {}
-
-    function deployDeterministically() internal returns (address) {
-        // // deterministically deploy Nayms diamond
-        // console2.log("Deterministic contract address for Nayms", CREATE3.getDeployed(salt));
-        // naymsAddress = CREATE3.getDeployed(salt);
-        // vm.label(CREATE3.getDeployed(salt), "Nayms Diamond");
-        // nayms = INayms(CREATE3.deploy(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(account0)), 0));
-        // assertEq(naymsAddress, CREATE3.getDeployed(salt));
-    }
-
     // true: deploys a new diamond, writes to deployFile
-    // false: reads deployFile .NaymsDiamond
-    function diamondDeployment(bool deployNewDiamond) public returns (address naymsDiamondAddress) {
+    // false: reads deployFile
+    function diamondDeployment(bool deployNewDiamond, bytes32 salt) public returns (address diamondAddress) {
         if (deployNewDiamond) {
-            naymsDiamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
-            vm.label(address(naymsDiamondAddress), "New Nayms Diamond");
+            if (salt != 0) {
+                // deterministically deploy diamond
+                Create3Deployer create3 = new Create3Deployer();
+
+                console2.log("Deterministic contract address", create3.getDeployed(salt));
+                diamondAddress = create3.deployContract(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(msg.sender)), 0);
+            } else {
+                diamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
+            }
+
+            vm.label(address(diamondAddress), "New Nayms Diamond");
 
             // Output diamond address
 
             // solhint-disable quotes
-            vm.writeJson(vm.toString(address(naymsDiamondAddress)), deployFile, keyToReadDiamondAddress);
+            vm.writeJson(vm.toString(address(diamondAddress)), deployFile, keyToReadDiamondAddress);
         } else {
             // Read in current diamond address
-            naymsDiamondAddress = getDiamondAddressFromFile();
+            diamondAddress = getDiamondAddressFromFile();
 
-            vm.label(address(naymsDiamondAddress), "Same Nayms Diamond");
+            vm.label(address(diamondAddress), "Same Nayms Diamond");
         }
 
         // store diamond address to be used later to create output
-        sDiamondAddress = naymsDiamondAddress;
+        sDiamondAddress = diamondAddress;
     }
 
     function findAndReplace(bytes memory res, string memory find) public view returns (string[] memory parts) {
@@ -459,10 +457,11 @@ contract DeploymentHelpers is Test {
         bool deployNewDiamond,
         bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
-        string[] memory facetsToCutIn
+        string[] memory facetsToCutIn,
+        bytes32 salt
     ) public returns (address diamondAddress, address initDiamond) {
         // deploys new Nayms diamond, or gets the diamond address from file
-        diamondAddress = diamondDeployment(deployNewDiamond);
+        diamondAddress = diamondDeployment(deployNewDiamond, salt);
 
         // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
         if (initNewDiamond) {

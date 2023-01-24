@@ -102,12 +102,12 @@ make swap
 
 ## Nayms Deployment Flow
 
-Current deployment flow, 2022-09-21:
+Current deployment flow:
 
 Simulate the deployment:
 
 ```zsh
-make deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]>
+make deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]> deploymentSalt=<bytes32>
 ```
 
 |                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -146,6 +146,8 @@ To __upgrade specific set of facets__, run command like this one:
 ```zsh
 make deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
 ```
+
+Include a bytes32 salt to deploy the diamond with a deterministic address. Including a salt will first deploy a contract that is used to predetermine the diamond deployment address. If a salt is not included, then the script will deploy the diamond non-deterministically. Currently, there is a default deployment salt given in the make file.
 
 > :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` sufix from the target name
 
