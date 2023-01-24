@@ -98,7 +98,22 @@ contract DeploymentHelpers is Test {
             // Output diamond address
 
             // solhint-disable quotes
-            vm.writeJson(vm.toString(address(diamondAddress)), deployFile, keyToReadDiamondAddress);
+
+            // If key exists, then replace value.
+            // Otherwise, add a new row.
+            try vm.parseJson(deployFile, keyToReadDiamondAddress) {
+                vm.writeJson(vm.toString(address(diamondAddress)), deployFile, keyToReadDiamondAddress);
+            } catch {
+                string memory json = vm.readFile(deployFile);
+                // todo read in list of supported chainids instead of loop
+                for (uint256 i; i < 31338; ++i) {
+                    try vm.parseJsonAddress(json, string.concat(".", vm.toString(i))) {
+                        vm.serializeAddress("key", vm.toString(i), vm.parseJsonAddress(json, string.concat(".", vm.toString(i))));
+                    } catch {}
+                }
+                string memory addRow = vm.serializeAddress("key", vm.toString(block.chainid), diamondAddress);
+                vm.writeJson(addRow, deployFile);
+            }
         } else {
             // Read in current diamond address
             diamondAddress = getDiamondAddressFromFile();
