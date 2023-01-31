@@ -87,3 +87,6 @@ jobs:
       # - name: Static analyser Mythril (todo)
       #   run: mythril
       #   continue-on-error: true
+
+      - name: Generate upgrade hash
+        run: UPGRADE_HASH=$(make upgrade-hash) && echo 'UPGRADE HASH =>' $UPGRADE_HASH>> $GITHUB_STEP_SUMMARY

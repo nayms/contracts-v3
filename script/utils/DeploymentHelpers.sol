@@ -357,7 +357,7 @@ contract DeploymentHelpers is Test {
         string sig21;
         string sig22;
     }
-    
+
     function removeFromArray(uint256 index) public {
         console2.log(string.concat("removeFromArray index: ", vm.toString(index), ". removeSelectors.length: ", vm.toString(removeSelectors.length)));
         require(removeSelectors.length > index, "Out of bounds");
@@ -843,7 +843,7 @@ contract DeploymentHelpers is Test {
             functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
             functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
             functionSelectors[20] = bytes4(vm.parseBytes(decodedData.sig21));
-       } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 21) {
+        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 21) {
             MethodId22 memory decodedData = abi.decode(parsedArtifactData, (MethodId22));
 
             functionSelectors = new bytes4[](22);
@@ -1097,6 +1097,35 @@ contract DeploymentHelpers is Test {
         } else {
             IDiamondCut(diamondAddress).diamondCut(cut, address(0), "");
         }
+    }
+
+    /**
+     * @notice This method produces the hash of the deployment that would be done
+     * @param deployNewDiamond Flag: true: deploy a new diamond. false: use the current diamond.
+     * @param initNewDiamond Flag: true: deploy InitDiamond and initialize the diamond. false: does not deploy InitDiamond and does not call initialize.
+     * @param facetDeploymentAction DeployAllFacets - deploys all facets in the facets folder and cuts them in.
+     * UpgradeFacetsWithChangesOnly - looks at bytecode, if there's a difference, then will deploy a new facet, run through dynamic deployment
+     * UpgradeFacetsListedOnly - looks at facetsToCutIn and runs through dynamic deployment only on those facets
+     * @param facetsToCutIn List facets to manually cut in
+     * @return upgradeHash hash of the facet cuts
+     */
+    function smartDeploymentHash(
+        bool deployNewDiamond,
+        bool initNewDiamond,
+        FacetDeploymentAction facetDeploymentAction,
+        string[] memory facetsToCutIn
+    ) public returns (bytes32 upgradeHash) {
+        address diamondAddress = diamondDeployment(deployNewDiamond);
+
+        // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
+        if (initNewDiamond) {
+            // initDiamond = deployContract("InitDiamond");
+            LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond");
+        }
+        // deploys facets
+        IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
+
+        upgradeHash = keccak256(abi.encode(cut));
     }
 
     /**

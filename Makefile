@@ -246,3 +246,14 @@ docs: ## generate docs from natspec comments
 
 slither:	## run slither static analysis
 	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
+
+upgrade-hash: ## smart deploy locally to anvil
+	@forge script SmartDeployHash \
+		-s "run(bool, bool, uint8, string[] memory)" true true 0 ${facetsToCutIn} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--silent \
+		--json | jq .returns.upgradeHash.value
