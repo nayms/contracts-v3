@@ -50,22 +50,8 @@ jobs:
           ALCHEMY_ETH_GOERLI_RPC_URL: ${{ secrets.ALCHEMY_ETH_GOERLI_RPC_URL }}
         run: make test
 
-      # - name: Check gas snapshots on local tests
-      #   run: forge snapshot --diff --gas-report --no-match-test testWithNaymsTokenCreateLiquidityPool
-
-      # - name: Tests - mainnet fork
-      #   run: forge t -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --etherscan-api-key ${{secrets.ETHERSCAN_API_KEY}} --gas-report
-
-      # - name: Gas snapshot diff (not via-ir, yet)
-      #   run: forge snapshot --diff -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000
-      #   continue-on-error: true
-
       - name: Coverage report
         run: make coverage
-
-      # - name: Coverage report from fork compiled via-ir
-      #   run: forge coverage --report lcov -f ${{secrets.ETH_HTTPS_URL_1}} --fork-block-number 15078000 --via-ir
-      #   continue-on-error: true
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
@@ -87,9 +73,5 @@ jobs:
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
 
-      # - name: Static analyser Mythril (todo)
-      #   run: mythril
-      #   continue-on-error: true
-
       - name: Generate upgrade hash
-        run: UPGRADE_HASH=$(make upgrade-hash) && echo 'UPGRADE HASH =>' $UPGRADE_HASH>> $GITHUB_STEP_SUMMARY
+        run: UPGRADE_HASH=$(make upgrade-hash) && echo "### Upgrade hash\n-" $UPGRADE_HASH >> $GITHUB_STEP_SUMMARY

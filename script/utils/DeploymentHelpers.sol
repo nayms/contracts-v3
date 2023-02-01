@@ -1102,7 +1102,6 @@ contract DeploymentHelpers is Test {
     /**
      * @notice This method produces the hash of the deployment that would be done
      * @param deployNewDiamond Flag: true: deploy a new diamond. false: use the current diamond.
-     * @param initNewDiamond Flag: true: deploy InitDiamond and initialize the diamond. false: does not deploy InitDiamond and does not call initialize.
      * @param facetDeploymentAction DeployAllFacets - deploys all facets in the facets folder and cuts them in.
      * UpgradeFacetsWithChangesOnly - looks at bytecode, if there's a difference, then will deploy a new facet, run through dynamic deployment
      * UpgradeFacetsListedOnly - looks at facetsToCutIn and runs through dynamic deployment only on those facets
@@ -1111,17 +1110,11 @@ contract DeploymentHelpers is Test {
      */
     function smartDeploymentHash(
         bool deployNewDiamond,
-        bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn
     ) public returns (bytes32 upgradeHash) {
         address diamondAddress = diamondDeployment(deployNewDiamond);
 
-        // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
-        if (initNewDiamond) {
-            // initDiamond = deployContract("InitDiamond");
-            LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond");
-        }
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
