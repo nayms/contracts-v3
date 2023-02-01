@@ -24,7 +24,9 @@ contract DiamondCutFacet is IDiamondCut {
     ) external override {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.upgradeScheduled[keccak256(abi.encode(_diamondCut))] == true, "upgrade is not scheduled");
+        bytes32 upgradeId = keccak256(abi.encode(_diamondCut));
+        require(s.upgradeScheduled[upgradeId] == true, "upgrade is not scheduled");
+        s.upgradeScheduled[upgradeId] = false;
 
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
