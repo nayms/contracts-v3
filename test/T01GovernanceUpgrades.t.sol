@@ -91,12 +91,26 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
 
         nayms.createUpgrade(keccak256(abi.encode(cut)));
 
-        // second step, call diamondCut()
         nayms.diamondCut(cut, address(0), "");
 
         bytes memory call = abi.encodeCall(TestFacet.sayHello, ());
 
         (bool success, ) = address(nayms).call(call);
+    }
+
+    function testMustBeOwnerToDoAGovernanceUpgrade() public {
+        IDiamondCut.FacetCut[] memory cut;
+        cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory f0 = new bytes4[](1);
+        f0 = new bytes4[](1);
+        f0[0] = TestFacet.sayHello.selector;
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
+
+        nayms.createUpgrade(keccak256(abi.encode(cut)));
+
+        vm.prank(address(0xAAAAAAAAA));
+        vm.expectRevert("LibDiamond: Must be contract owner");
+        nayms.diamondCut(cut, address(0), "");
     }
 
     function testCancelGovernanceUpgrade() public {
