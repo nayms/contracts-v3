@@ -72,7 +72,8 @@ struct AppStorage {
 
     mapping(bytes32 => mapping(bytes32 => uint256)) lockedBalances; // keep track of token balance that is locked, ownerId => tokenId => lockedAmount
     /// Simple two phase upgrade scheme
-    mapping(bytes32 => bool) upgradeScheduled; // id of the upgrade => is the upgrade scheduled?
+    mapping(bytes32 => uint256) upgradeScheduled; // id of the upgrade => the time that the upgrade is valid until.
+    uint256 upgradeExpiration; // the period of time that an upgrade is valid until.
 }
 
 library LibAppStorage {

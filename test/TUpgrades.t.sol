@@ -45,6 +45,8 @@ contract TUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
+        // warp so block.timestamp does not = 0, otherwise all upgrades will be "scheduled".
+        vm.warp(100);
         // try to call diamondCut() without scheduling
         vm.expectRevert("upgrade is not scheduled");
         nayms.diamondCut(cut, address(0), "");
