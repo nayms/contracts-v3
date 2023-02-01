@@ -11,8 +11,6 @@ import { LibDiamond } from "../libs/LibDiamond.sol";
 import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
 
 contract DiamondCutFacet is IDiamondCut {
-    uint256 internal constant _UPGRADE_DONE_TIMESTAMP = uint256(1);
-
     /// @notice Add/replace/remove any number of functions and optionally execute
     ///         a function with delegatecall
     /// @param _diamondCut Contains the facet addresses and function selectors
@@ -28,8 +26,9 @@ contract DiamondCutFacet is IDiamondCut {
             AppStorage storage s = LibAppStorage.diamondStorage();
 
             bytes32 upgradeId = keccak256(abi.encode(_diamondCut));
-            require(s.upgradeScheduled[upgradeId] >= block.timestamp, "upgrade is not scheduled");
-            s.upgradeScheduled[upgradeId] = _UPGRADE_DONE_TIMESTAMP;
+            require(s.upgradeScheduled[upgradeId] >= block.timestamp, "upgrade is not valid");
+            // Reset back to 0 if an upgrade is executed.
+            delete s.upgradeScheduled[upgradeId];
         }
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
