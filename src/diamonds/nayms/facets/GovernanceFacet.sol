@@ -8,7 +8,7 @@ import { IGovernanceFacet } from "../interfaces/IGovernanceFacet.sol";
 contract GovernanceFacet is Modifiers, IGovernanceFacet {
     event CreateUpgrade(bytes32 id, address who);
     event UpdateUpgradeExpiration(uint256 duration);
-    event UpgradeCanceled(bytes32 id, address who);
+    event UpgradeCancelled(bytes32 id, address who);
 
     function createUpgrade(bytes32 id) external assertSysAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -34,6 +34,6 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.upgradeScheduled[id] = 0;
 
-        emit UpgradeCanceled(id, msg.sender);
+        emit UpgradeCancelled(id, msg.sender);
     }
 }
