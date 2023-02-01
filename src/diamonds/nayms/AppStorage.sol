@@ -71,6 +71,9 @@ struct AppStorage {
     // A policy can pay out additional commissions on premiums to entities having a variety of roles on the policy
 
     mapping(bytes32 => mapping(bytes32 => uint256)) lockedBalances; // keep track of token balance that is locked, ownerId => tokenId => lockedAmount
+    /// Governance upgrade variables
+    mapping(bytes32 => uint256) timestamps; // The ID of the upgrade => the time which it can be executed
+    uint256 minDelay; // The minimum delay for scheduled transactions to be approved
 }
 
 library LibAppStorage {
