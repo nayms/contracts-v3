@@ -74,4 +74,4 @@ jobs:
           sarif_file: ${{ steps.slither.outputs.sarif }}
 
       - name: Generate upgrade hash
-        run: UPGRADE_HASH=$(make upgrade-hash) && echo "### Upgrade hash\n-" $UPGRADE_HASH >> $GITHUB_STEP_SUMMARY
+        run: UPGRADE_HASH=$(make upgrade-hash) && echo "### Upgrade hash\n - \`"$UPGRADE_HASH"\`" >> $GITHUB_STEP_SUMMARY

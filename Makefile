@@ -184,7 +184,7 @@ anvil-deploy: ## smart deploy locally to anvil
 
 anvil-upgrade: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" false false 1 ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" false false 1 ${facetsToCutIn} ${deploymentSalt}\
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${senderAddress} \
@@ -248,9 +248,9 @@ docs: ## generate docs from natspec comments
 slither:	## run slither static analysis
 	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
 
-upgrade-hash: ## smart deploy locally to anvil
-	@forge script SmartDeployHash \
-		-s "run(bool, uint8, string[] memory)" true 0 ${facetsToCutIn} \
+upgrade-hash: ## generate upgrade hash
+	@forge script SmartDeploy \
+		-s "hash(bool, bool, uint8, string[] memory, bytes32)" true true 0 ${facetsToCutIn} ${deploymentSalt} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \

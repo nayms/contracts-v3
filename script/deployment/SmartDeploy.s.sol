@@ -25,4 +25,14 @@ contract SmartDeploy is DeploymentHelpers {
 
         vm.stopBroadcast();
     }
+
+    function hash(
+        bool deployNewDiamond,
+        bool initNewDiamond,
+        FacetDeploymentAction facetDeploymentAction,
+        string[] memory facetsToCutIn,
+        bytes32 salt
+    ) external returns (bytes32 upgradeHash) {
+        (, , upgradeHash) = smartDeployment(deployNewDiamond, initNewDiamond, facetDeploymentAction, facetsToCutIn, salt);
+    }
 }
