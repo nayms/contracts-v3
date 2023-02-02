@@ -7,8 +7,9 @@ contract SmartDeployHash is DeploymentHelpers {
     function run(
         bool deployNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
-        string[] memory facetsToCutIn
+        string[] memory facetsToCutIn,
+        bytes32 saltForDeterministicDeployment
     ) external returns (bytes32 upgradeHash) {
-        upgradeHash = smartDeploymentHash(deployNewDiamond, facetDeploymentAction, facetsToCutIn);
+        (, , upgradeHash) = smartDeployment(deployNewDiamond, false, facetDeploymentAction, facetsToCutIn, saltForDeterministicDeployment);
     }
 }

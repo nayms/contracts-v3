@@ -17,6 +17,8 @@ contract DeploymentHelpers is Test {
     using strings for *;
     using stdStorage for StdStorage;
 
+    uint256[] SUPPORTED_CHAINS = [1, 5, 31337];
+
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
     string public deployFile = "deployedAddresses.json";
@@ -105,10 +107,12 @@ contract DeploymentHelpers is Test {
                 vm.writeJson(vm.toString(address(diamondAddress)), deployFile, keyToReadDiamondAddress);
             } catch {
                 string memory json = vm.readFile(deployFile);
-                // todo read in list of supported chainids instead of loop
-                for (uint256 i; i < 31338; ++i) {
-                    try vm.parseJsonAddress(json, string.concat(".", vm.toString(i))) {
-                        vm.serializeAddress("key", vm.toString(i), vm.parseJsonAddress(json, string.concat(".", vm.toString(i))));
+                uint256 numOfChainIds = SUPPORTED_CHAINS.length;
+                uint256 chainId;
+                for (uint256 i; i < numOfChainIds; i++) {
+                    chainId = SUPPORTED_CHAINS[i];
+                    try vm.parseJsonAddress(json, string.concat(".", vm.toString(chainId))) {
+                        vm.serializeAddress("key", vm.toString(chainId), vm.parseJsonAddress(json, string.concat(".", vm.toString(chainId))));
                     } catch {}
                 }
                 string memory addRow = vm.serializeAddress("key", vm.toString(block.chainid), diamondAddress);
@@ -437,28 +441,6 @@ contract DeploymentHelpers is Test {
     }
 
     /**
-     * @notice This method produces the hash of the deployment that would be done
-     * @param deployNewDiamond Flag: true: deploy a new diamond. false: use the current diamond.
-     * @param facetDeploymentAction DeployAllFacets - deploys all facets in the facets folder and cuts them in.
-     * UpgradeFacetsWithChangesOnly - looks at bytecode, if there's a difference, then will deploy a new facet, run through dynamic deployment
-     * UpgradeFacetsListedOnly - looks at facetsToCutIn and runs through dynamic deployment only on those facets
-     * @param facetsToCutIn List facets to manually cut in
-     * @return upgradeHash hash of the facet cuts
-     */
-    function smartDeploymentHash(
-        bool deployNewDiamond,
-        FacetDeploymentAction facetDeploymentAction,
-        string[] memory facetsToCutIn
-    ) public returns (bytes32 upgradeHash) {
-        address diamondAddress = diamondDeployment(deployNewDiamond);
-
-        // deploys facets
-        IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
-
-        upgradeHash = keccak256(abi.encode(cut));
-    }
-
-    /**
      * @notice This method ties everything together
      * @param deployNewDiamond Flag: true: deploy a new diamond. false: use the current diamond.
      * @param initNewDiamond Flag: true: deploy InitDiamond and initialize the diamond. false: does not deploy InitDiamond and does not call initialize.
@@ -466,7 +448,7 @@ contract DeploymentHelpers is Test {
      * UpgradeFacetsWithChangesOnly - looks at bytecode, if there's a difference, then will deploy a new facet, run through dynamic deployment
      * UpgradeFacetsListedOnly - looks at facetsToCutIn and runs through dynamic deployment only on those facets
      * @param facetsToCutIn List facets to manually cut in
-     * @return diamondAddress initDiamond
+     * @return diamondAddress initDiamond, upgradeHash hash of the facet cuts
      */
     function smartDeployment(
         bool deployNewDiamond,
@@ -474,7 +456,14 @@ contract DeploymentHelpers is Test {
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn,
         bytes32 salt
-    ) public returns (address diamondAddress, address initDiamond) {
+    )
+        public
+        returns (
+            address diamondAddress,
+            address initDiamond,
+            bytes32 upgradeHash
+        )
+    {
         // deploys new Nayms diamond, or gets the diamond address from file
         diamondAddress = diamondDeployment(deployNewDiamond, salt);
 
@@ -485,6 +474,8 @@ contract DeploymentHelpers is Test {
         }
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
+
+        upgradeHash = keccak256(abi.encode(cut));
 
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
         cutAndInit(diamondAddress, cut, initDiamond);
