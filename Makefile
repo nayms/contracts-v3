@@ -133,10 +133,11 @@ newDiamond=false
 initNewDiamond=false
 facetAction=1
 senderAddress=0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
+deploymentSalt=0xdeffffffff
 
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -150,7 +151,7 @@ deploy: ## smart deploy to goerli
 
 deploy-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -171,7 +172,7 @@ anvil-fork: ## fork goerli locally with anvil
 
 anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory)" true true 0 ${facetsToCutIn} \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" true true 0 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${senderAddress} \

@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "forge-std/console2.sol";
 import "forge-std/Test.sol";
-import "forge-std/StdJson.sol";
-import "script/utils/LibWriteJson.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
-import "solmate/utils/CREATE3.sol";
 import "./LibGeneratedNaymsFacetHelpers.sol";
 import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
+import { Create3Deployer } from "src/utils/Create3Deployer.sol";
 
 /// @notice helper methods to deploy a diamond,
 
@@ -17,13 +14,16 @@ interface IInitDiamond {
 }
 
 contract DeploymentHelpers is Test {
-    using stdJson for *;
     using strings for *;
     using stdStorage for StdStorage;
+
+    uint256[] SUPPORTED_CHAINS = [1, 5, 31337];
 
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
     string public deployFile = "deployedAddresses.json";
+
+    string public keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
 
     address internal sDiamondAddress;
 
@@ -39,323 +39,28 @@ contract DeploymentHelpers is Test {
         UpgradeFacetsListedOnly
     }
 
-    struct MethodId1 {
-        string sig1;
-    }
+    // return array of function selectors for given facet name
+    function generateSelectors(string memory _facetName) internal returns (bytes4[] memory selectors) {
+        //get string of contract methods
+        string[] memory cmd = new string[](4);
+        cmd[0] = "forge";
+        cmd[1] = "inspect";
+        cmd[2] = _facetName;
+        cmd[3] = "methods";
+        bytes memory res = vm.ffi(cmd);
+        string memory st = string(res);
 
-    struct MethodId2 {
-        string sig1;
-        string sig2;
-    }
-
-    struct MethodId3 {
-        string sig1;
-        string sig2;
-        string sig3;
-    }
-
-    struct MethodId4 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-    }
-
-    struct MethodId5 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-    }
-
-    struct MethodId6 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-    }
-
-    struct MethodId7 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-    }
-
-    struct MethodId8 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-    }
-
-    struct MethodId9 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-    }
-
-    struct MethodId10 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-    }
-
-    struct MethodId11 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-    }
-
-    struct MethodId12 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-    }
-
-    struct MethodId13 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-    }
-
-    struct MethodId14 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-    }
-
-    struct MethodId15 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-    }
-
-    struct MethodId16 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-    }
-
-    struct MethodId17 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-        string sig17;
-    }
-
-    struct MethodId18 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-        string sig17;
-        string sig18;
-    }
-
-    struct MethodId19 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-        string sig17;
-        string sig18;
-        string sig19;
-    }
-
-    struct MethodId20 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-        string sig17;
-        string sig18;
-        string sig19;
-        string sig20;
-    }
-
-    struct MethodId21 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-        string sig17;
-        string sig18;
-        string sig19;
-        string sig20;
-        string sig21;
-    }
-
-    struct MethodId22 {
-        string sig1;
-        string sig2;
-        string sig3;
-        string sig4;
-        string sig5;
-        string sig6;
-        string sig7;
-        string sig8;
-        string sig9;
-        string sig10;
-        string sig11;
-        string sig12;
-        string sig13;
-        string sig14;
-        string sig15;
-        string sig16;
-        string sig17;
-        string sig18;
-        string sig19;
-        string sig20;
-        string sig21;
-        string sig22;
+        // extract function signatures and take first 4 bytes of keccak
+        strings.slice memory s = st.toSlice();
+        strings.slice memory delim = ":".toSlice();
+        strings.slice memory delim2 = ",".toSlice();
+        selectors = new bytes4[]((s.count(delim)));
+        for (uint256 i = 0; i < selectors.length; i++) {
+            s.split('"'.toSlice());
+            selectors[i] = bytes4(s.split(delim).until('"'.toSlice()).keccak());
+            s.split(delim2);
+        }
+        return selectors;
     }
 
     function removeFromArray(uint256 index) public {
@@ -372,67 +77,56 @@ contract DeploymentHelpers is Test {
         // Read in current diamond address
         string memory deployData = vm.readFile(deployFile);
 
-        string memory key = string.concat(".NaymsDiamond.", vm.toString(block.chainid));
-        bytes memory parsed = vm.parseJson(deployData, key);
+        bytes memory parsed = vm.parseJson(deployData, keyToReadDiamondAddress);
         diamondAddress = abi.decode(parsed, (address));
     }
 
-    function getFacetNameFromFacetAddress() internal returns (string memory facetName) {}
-
-    function deployDeterministically() internal returns (address) {
-        // // deterministically deploy Nayms diamond
-        // console2.log("Deterministic contract address for Nayms", CREATE3.getDeployed(salt));
-        // naymsAddress = CREATE3.getDeployed(salt);
-        // vm.label(CREATE3.getDeployed(salt), "Nayms Diamond");
-        // nayms = INayms(CREATE3.deploy(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(account0)), 0));
-        // assertEq(naymsAddress, CREATE3.getDeployed(salt));
-    }
-
     // true: deploys a new diamond, writes to deployFile
-    // false: reads deployFile .NaymsDiamond
-    function diamondDeployment(bool deployNewDiamond) public returns (address naymsDiamondAddress) {
+    // false: reads deployFile
+    function diamondDeployment(bool deployNewDiamond, bytes32 salt) public returns (address diamondAddress) {
         if (deployNewDiamond) {
-            // string memory contractName = "Nayms";
-            // string memory artifactFile = string.concat(artifactsPath, contractName, ".sol/", contractName, ".json");
+            if (salt != 0) {
+                // deterministically deploy diamond
+                Create3Deployer create3 = new Create3Deployer();
 
-            // Deploy new Diamond
-            // bytes memory args = abi.encode(msg.sender);
-            // naymsDiamondAddress = deployCode(artifactFile, args);
+                console2.log("Deterministic contract address", create3.getDeployed(salt));
+                diamondAddress = create3.deployContract(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(msg.sender)), 0);
+            } else {
+                diamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
+            }
 
-            naymsDiamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
-            vm.label(address(naymsDiamondAddress), "New Nayms Diamond");
+            vm.label(address(diamondAddress), "New Nayms Diamond");
 
             // Output diamond address
 
-            // string memory write = LibWriteJson.createObject(
-            //     LibWriteJson.keyObject(
-            //         "NaymsDiamond",
-            //         LibWriteJson.keyObject(vm.toString(block.chainid), LibWriteJson.keyValue("address", vm.toString(address(naymsDiamondAddress))))
-            //     )
-            // );
             // solhint-disable quotes
-            vm.removeFile(deployFile);
-            vm.writeLine(deployFile, '{ "NaymsDiamond": { ');
 
-            string memory d = string.concat('"', vm.toString(block.chainid), '": { "address": "', vm.toString(naymsDiamondAddress), '" } ');
-            vm.writeLine(deployFile, d);
-
-            if (block.chainid != 31337) {
-                string memory d31337 = string.concat(', "31337": { "address": "0xAe2Df030C2184a369B8a4F6fA4d3CB19Fbe55955" } ');
-                vm.writeLine(deployFile, d31337);
+            // If key exists, then replace value.
+            // Otherwise, add a new row.
+            try vm.parseJson(deployFile, keyToReadDiamondAddress) {
+                vm.writeJson(vm.toString(address(diamondAddress)), deployFile, keyToReadDiamondAddress);
+            } catch {
+                string memory json = vm.readFile(deployFile);
+                uint256 numOfChainIds = SUPPORTED_CHAINS.length;
+                uint256 chainId;
+                for (uint256 i; i < numOfChainIds; i++) {
+                    chainId = SUPPORTED_CHAINS[i];
+                    try vm.parseJsonAddress(json, string.concat(".", vm.toString(chainId))) {
+                        vm.serializeAddress("key", vm.toString(chainId), vm.parseJsonAddress(json, string.concat(".", vm.toString(chainId))));
+                    } catch {}
+                }
+                string memory addRow = vm.serializeAddress("key", vm.toString(block.chainid), diamondAddress);
+                vm.writeJson(addRow, deployFile);
             }
-
-            vm.writeLine(deployFile, "}}");
         } else {
             // Read in current diamond address
-            naymsDiamondAddress = getDiamondAddressFromFile();
+            diamondAddress = getDiamondAddressFromFile();
 
-            // todo label with an additional identifier, such as timestamp or package version number?
-            vm.label(address(naymsDiamondAddress), "Same Nayms Diamond");
+            vm.label(address(diamondAddress), "Same Nayms Diamond");
         }
 
         // store diamond address to be used later to create output
-        sDiamondAddress = naymsDiamondAddress;
+        sDiamondAddress = diamondAddress;
     }
 
     function findAndReplace(bytes memory res, string memory find) public view returns (string[] memory parts) {
@@ -505,8 +199,8 @@ contract DeploymentHelpers is Test {
         bytes memory bytecode = vm.parseJson(artifactData, ".deployedBytecode.object");
         bytes memory bytecodeDecoded = abi.decode(bytecode, (bytes));
 
-        (uint256 numberOfFunctionSignaturesFromArtifact, bytes4[] memory functionSignatures) = getFunctionSignaturesFromArtifact(facetName);
-
+        bytes4[] memory functionSignatures = generateSelectors(string.concat(facetName, "Facet"));
+        uint256 numberOfFunctionSignaturesFromArtifact = functionSignatures.length;
         // get first non zero address
         address targetFacetAddress;
         for (uint256 i; i < numberOfFunctionSignaturesFromArtifact; i++) {
@@ -520,367 +214,13 @@ contract DeploymentHelpers is Test {
         bytecodeMatchFlag = checkEq0(targetFacetBytecode, bytecodeDecoded);
     }
 
-    function getFunctionSignaturesFromArtifact(string memory facetName) public returns (uint256 numberOfFunctionSignaturesFromArtifact, bytes4[] memory functionSelectors) {
-        string memory artifactFile = string.concat(artifactsPath, facetName, "Facet.sol/", facetName, "Facet.json");
-        string memory artifactData = vm.readFile(artifactFile);
-        bytes memory parsedArtifactData = vm.parseJson(artifactData, ".methodIdentifiers");
-
-        // todo rename for clarity,
-        numberOfFunctionSignaturesFromArtifact = parsedArtifactData.length / 32;
-
-        if (numberOfFunctionSignaturesFromArtifact == 4) {
-            MethodId1 memory decodedData = abi.decode(parsedArtifactData, (MethodId1));
-
-            functionSelectors = new bytes4[](1);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 1) {
-            MethodId2 memory decodedData = abi.decode(parsedArtifactData, (MethodId2));
-
-            functionSelectors = new bytes4[](2);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 2) {
-            MethodId3 memory decodedData = abi.decode(parsedArtifactData, (MethodId3));
-
-            functionSelectors = new bytes4[](3);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 3) {
-            MethodId4 memory decodedData = abi.decode(parsedArtifactData, (MethodId4));
-
-            functionSelectors = new bytes4[](4);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 4) {
-            MethodId5 memory decodedData = abi.decode(parsedArtifactData, (MethodId5));
-
-            functionSelectors = new bytes4[](5);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 5) {
-            MethodId6 memory decodedData = abi.decode(parsedArtifactData, (MethodId6));
-
-            functionSelectors = new bytes4[](6);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 6) {
-            MethodId7 memory decodedData = abi.decode(parsedArtifactData, (MethodId7));
-
-            functionSelectors = new bytes4[](7);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 7) {
-            MethodId8 memory decodedData = abi.decode(parsedArtifactData, (MethodId8));
-
-            functionSelectors = new bytes4[](8);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 8) {
-            MethodId9 memory decodedData = abi.decode(parsedArtifactData, (MethodId9));
-
-            functionSelectors = new bytes4[](9);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 9) {
-            MethodId10 memory decodedData = abi.decode(parsedArtifactData, (MethodId10));
-
-            functionSelectors = new bytes4[](10);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 10) {
-            MethodId11 memory decodedData = abi.decode(parsedArtifactData, (MethodId11));
-
-            functionSelectors = new bytes4[](11);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 11) {
-            MethodId12 memory decodedData = abi.decode(parsedArtifactData, (MethodId12));
-
-            functionSelectors = new bytes4[](12);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 12) {
-            MethodId13 memory decodedData = abi.decode(parsedArtifactData, (MethodId13));
-
-            functionSelectors = new bytes4[](13);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 13) {
-            MethodId14 memory decodedData = abi.decode(parsedArtifactData, (MethodId14));
-
-            functionSelectors = new bytes4[](14);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 14) {
-            MethodId15 memory decodedData = abi.decode(parsedArtifactData, (MethodId15));
-
-            functionSelectors = new bytes4[](15);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 15) {
-            MethodId16 memory decodedData = abi.decode(parsedArtifactData, (MethodId16));
-
-            functionSelectors = new bytes4[](16);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 16) {
-            MethodId17 memory decodedData = abi.decode(parsedArtifactData, (MethodId17));
-
-            functionSelectors = new bytes4[](17);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 17) {
-            MethodId18 memory decodedData = abi.decode(parsedArtifactData, (MethodId18));
-
-            functionSelectors = new bytes4[](18);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
-            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 18) {
-            MethodId19 memory decodedData = abi.decode(parsedArtifactData, (MethodId19));
-
-            functionSelectors = new bytes4[](19);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
-            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
-            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 19) {
-            MethodId20 memory decodedData = abi.decode(parsedArtifactData, (MethodId20));
-
-            functionSelectors = new bytes4[](20);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
-            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
-            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
-            functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 20) {
-            MethodId21 memory decodedData = abi.decode(parsedArtifactData, (MethodId21));
-
-            functionSelectors = new bytes4[](21);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
-            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
-            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
-            functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
-            functionSelectors[20] = bytes4(vm.parseBytes(decodedData.sig21));
-        } else if (numberOfFunctionSignaturesFromArtifact == 4 + 3 * 21) {
-            MethodId22 memory decodedData = abi.decode(parsedArtifactData, (MethodId22));
-
-            functionSelectors = new bytes4[](22);
-            functionSelectors[0] = bytes4(vm.parseBytes(decodedData.sig1));
-            functionSelectors[1] = bytes4(vm.parseBytes(decodedData.sig2));
-            functionSelectors[2] = bytes4(vm.parseBytes(decodedData.sig3));
-            functionSelectors[3] = bytes4(vm.parseBytes(decodedData.sig4));
-            functionSelectors[4] = bytes4(vm.parseBytes(decodedData.sig5));
-            functionSelectors[5] = bytes4(vm.parseBytes(decodedData.sig6));
-            functionSelectors[6] = bytes4(vm.parseBytes(decodedData.sig7));
-            functionSelectors[7] = bytes4(vm.parseBytes(decodedData.sig8));
-            functionSelectors[8] = bytes4(vm.parseBytes(decodedData.sig9));
-            functionSelectors[9] = bytes4(vm.parseBytes(decodedData.sig10));
-            functionSelectors[10] = bytes4(vm.parseBytes(decodedData.sig11));
-            functionSelectors[11] = bytes4(vm.parseBytes(decodedData.sig12));
-            functionSelectors[12] = bytes4(vm.parseBytes(decodedData.sig13));
-            functionSelectors[13] = bytes4(vm.parseBytes(decodedData.sig14));
-            functionSelectors[14] = bytes4(vm.parseBytes(decodedData.sig15));
-            functionSelectors[15] = bytes4(vm.parseBytes(decodedData.sig16));
-            functionSelectors[16] = bytes4(vm.parseBytes(decodedData.sig17));
-            functionSelectors[17] = bytes4(vm.parseBytes(decodedData.sig18));
-            functionSelectors[18] = bytes4(vm.parseBytes(decodedData.sig19));
-            functionSelectors[19] = bytes4(vm.parseBytes(decodedData.sig20));
-            functionSelectors[20] = bytes4(vm.parseBytes(decodedData.sig21));
-            functionSelectors[21] = bytes4(vm.parseBytes(decodedData.sig22));
-        }
-
-        numberOfFunctionSignaturesFromArtifact = functionSelectors.length;
-    }
-
     /**
      * @notice Deploys a new facet by its name (calling deploySelectFacet()) and creates the Cut struct
      */
     function deployFacetAndCreateFacetCut(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
         cut.facetAddress = deploySelectFacet(facetName);
 
-        (, cut.functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
+        cut.functionSelectors = generateSelectors(string.concat(facetName, "Facet"));
 
         cut.action = IDiamondCut.FacetCutAction.Add;
     }
@@ -892,7 +232,7 @@ contract DeploymentHelpers is Test {
     function deployFacetAndCreateFacetCutOLD(string memory facetName) public returns (IDiamondCut.FacetCut memory cut) {
         cut.facetAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName(facetName);
 
-        (, cut.functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
+        cut.functionSelectors = generateSelectors(string.concat(facetName, "Facet"));
 
         cut.action = IDiamondCut.FacetCutAction.Add;
     }
@@ -967,7 +307,8 @@ contract DeploymentHelpers is Test {
 
         address oldFacetAddress;
 
-        (uint256 numFunctionSelectors, bytes4[] memory functionSelectors) = getFunctionSignaturesFromArtifact(facetName);
+        bytes4[] memory functionSelectors = generateSelectors(string.concat(facetName, "Facet"));
+        uint256 numFunctionSelectors = functionSelectors.length;
         console2.log("numFunctionSelectors - dynamicFacetCutV1()", numFunctionSelectors);
         console2.log(facetName);
         // REPLACE, ADD (remove is after REPLACE and ADD)
@@ -1100,28 +441,6 @@ contract DeploymentHelpers is Test {
     }
 
     /**
-     * @notice This method produces the hash of the deployment that would be done
-     * @param deployNewDiamond Flag: true: deploy a new diamond. false: use the current diamond.
-     * @param facetDeploymentAction DeployAllFacets - deploys all facets in the facets folder and cuts them in.
-     * UpgradeFacetsWithChangesOnly - looks at bytecode, if there's a difference, then will deploy a new facet, run through dynamic deployment
-     * UpgradeFacetsListedOnly - looks at facetsToCutIn and runs through dynamic deployment only on those facets
-     * @param facetsToCutIn List facets to manually cut in
-     * @return upgradeHash hash of the facet cuts
-     */
-    function smartDeploymentHash(
-        bool deployNewDiamond,
-        FacetDeploymentAction facetDeploymentAction,
-        string[] memory facetsToCutIn
-    ) public returns (bytes32 upgradeHash) {
-        address diamondAddress = diamondDeployment(deployNewDiamond);
-
-        // deploys facets
-        IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
-
-        upgradeHash = keccak256(abi.encode(cut));
-    }
-
-    /**
      * @notice This method ties everything together
      * @param deployNewDiamond Flag: true: deploy a new diamond. false: use the current diamond.
      * @param initNewDiamond Flag: true: deploy InitDiamond and initialize the diamond. false: does not deploy InitDiamond and does not call initialize.
@@ -1129,16 +448,24 @@ contract DeploymentHelpers is Test {
      * UpgradeFacetsWithChangesOnly - looks at bytecode, if there's a difference, then will deploy a new facet, run through dynamic deployment
      * UpgradeFacetsListedOnly - looks at facetsToCutIn and runs through dynamic deployment only on those facets
      * @param facetsToCutIn List facets to manually cut in
-     * @return diamondAddress initDiamond
+     * @return diamondAddress initDiamond, upgradeHash hash of the facet cuts
      */
     function smartDeployment(
         bool deployNewDiamond,
         bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
-        string[] memory facetsToCutIn
-    ) public returns (address diamondAddress, address initDiamond) {
+        string[] memory facetsToCutIn,
+        bytes32 salt
+    )
+        public
+        returns (
+            address diamondAddress,
+            address initDiamond,
+            bytes32 upgradeHash
+        )
+    {
         // deploys new Nayms diamond, or gets the diamond address from file
-        diamondAddress = diamondDeployment(deployNewDiamond);
+        diamondAddress = diamondDeployment(deployNewDiamond, salt);
 
         // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
         if (initNewDiamond) {
@@ -1147,6 +474,8 @@ contract DeploymentHelpers is Test {
         }
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
+
+        upgradeHash = keccak256(abi.encode(cut));
 
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
         cutAndInit(diamondAddress, cut, initDiamond);

@@ -8,18 +8,20 @@ contract SmartDeploy is DeploymentHelpers {
         bool deployNewDiamond,
         bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
-        string[] memory facetsToCutIn
+        string[] memory facetsToCutIn,
+        bytes32 salt
     )
         external
         returns (
             // string[] memory facetsToCutIn
             address diamondAddress,
-            address initDiamondAddress
+            address initDiamondAddress,
+            bytes32 upgradeHash
         )
     {
         vm.startBroadcast(msg.sender);
 
-        (diamondAddress, initDiamondAddress) = smartDeployment(deployNewDiamond, initNewDiamond, facetDeploymentAction, facetsToCutIn);
+        (diamondAddress, initDiamondAddress, upgradeHash) = smartDeployment(deployNewDiamond, initNewDiamond, facetDeploymentAction, facetsToCutIn, salt);
 
         vm.stopBroadcast();
     }
