@@ -36,6 +36,9 @@ jobs:
       - name: Install solc
         run: svm install 0.7.6 && svm install 0.8.17 && svm use 0.8.17
 
+      - name: Fix ownership
+        run: git config --global --add safe.directory /__w/contracts-v3/contracts-v3
+
       - name: Install Forge dependencies
         run: forge install
 
