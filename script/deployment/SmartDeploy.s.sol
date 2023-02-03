@@ -33,6 +33,8 @@ contract SmartDeploy is DeploymentHelpers {
         string[] memory facetsToCutIn,
         bytes32 salt
     ) external returns (bytes32 upgradeHash) {
+        vm.startPrank(msg.sender);
         (, , upgradeHash) = smartDeployment(deployNewDiamond, initNewDiamond, facetDeploymentAction, facetsToCutIn, salt);
+        vm.stopPrank();
     }
 }
