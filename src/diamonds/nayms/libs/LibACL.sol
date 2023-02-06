@@ -5,6 +5,7 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
+import { LibConstants } from "./LibConstants.sol";
 import { RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibACL {
@@ -41,11 +42,23 @@ library LibACL {
         require(_roleId != "", "invalid role ID");
 
         s.roles[_objectId][_contextId] = _roleId;
+
+        if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
+            s.sysAdmins += 1;
+        }
+
         emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
     }
 
     function _unassignRole(bytes32 _objectId, bytes32 _contextId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 roleId = s.roles[_objectId][_contextId];
+        if (_contextId == LibAdmin._getSystemId() && roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
+            require(s.sysAdmins > 1, "must have at least one system admin");
+            s.sysAdmins -= 1;
+        }
+
         emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
         delete s.roles[_objectId][_contextId];
     }
