@@ -9,7 +9,7 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
 import { DiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
 
-/// @dev Testing for Nayms RBAC - Access Control List (ACL)
+/// @dev Testing for Nayms upgrade pattern
 
 contract TestFacet {
     function sayHello() external returns (string memory greeting) {

@@ -18,7 +18,7 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
         }
         // 0 == upgrade is not scheduled / has been cancelled
         // block.timestamp + upgradeExpiration == upgrade is scheduled and expires at this time
-        // 1 == upgrade has been successfully done
+        // Set back to 0 when an upgrade is complete
         s.upgradeScheduled[id] = block.timestamp + s.upgradeExpiration;
         emit CreateUpgrade(id, msg.sender);
     }
