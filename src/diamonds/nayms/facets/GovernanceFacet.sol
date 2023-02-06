@@ -36,4 +36,9 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
 
         emit UpgradeCancelled(id, msg.sender);
     }
+
+    function getUpgrade(bytes32 id) external returns (uint256 expiry) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        expiry = s.upgradeScheduled[id];
+    }
 }
