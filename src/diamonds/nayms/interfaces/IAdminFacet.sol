@@ -63,4 +63,12 @@ interface IAdminFacet {
      * @param _objectId ID of the object
      */
     function isObjectTokenizable(bytes32 _objectId) external returns (bool);
+
+    function setEquilibriumLevel(uint256 _newLevel) external;
+
+    function setMaxDiscount(uint256 _newDiscount) external;
+
+    function getEquilibriumLevel() external view returns (uint256);
+
+    function getMaxDiscount() external view returns (uint256);
 }

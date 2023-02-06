@@ -1,5 +1,5 @@
-@uniswap/v3-core/=lib/v3-core/
-@uniswap/v3-periphery/=lib/v3-periphery/
+@uniswap/v3-core/=lib/v3-core-08/
+@uniswap/v3-periphery/=lib/v3-peri-08/
 @uniswap/v2-core/=lib/v2-core/
 @uniswap/lib/=lib/solidity-lib/
 base64-sol/=lib/base64/

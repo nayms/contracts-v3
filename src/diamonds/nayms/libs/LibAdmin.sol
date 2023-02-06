@@ -12,6 +12,8 @@ import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, Cannot
 library LibAdmin {
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
     event SupportedTokenAdded(address tokenAddress);
+    event EquilibriumLevelUpdated(uint256 oldLevel, uint256 newLevel);
+    event MaxDiscountUpdated(uint256 oldDiscount, uint256 newDiscount);
 
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
@@ -65,5 +67,21 @@ library LibAdmin {
 
         // Supported tokens cannot be removed because they may exist in the system!
         return s.supportedExternalTokens;
+    }
+
+    function _setEquilibriumLevel(uint256 _newLevel) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 oldLevel = s.equilibriumLevel;
+        s.equilibriumLevel = _newLevel;
+
+        emit EquilibriumLevelUpdated(oldLevel, _newLevel);
+    }
+
+    function _setMaxDiscount(uint256 _newDiscount) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 oldDiscount = s.maxDiscount;
+        s.maxDiscount = _newDiscount;
+
+        emit MaxDiscountUpdated(oldDiscount, _newDiscount);
     }
 }

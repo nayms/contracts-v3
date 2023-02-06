@@ -19,6 +19,10 @@ import { IMarketFacet } from "./interfaces/IMarketFacet.sol";
 import { IEntityFacet } from "./interfaces/IEntityFacet.sol";
 import { ISimplePolicyFacet } from "./interfaces/ISimplePolicyFacet.sol";
 import { IGovernanceFacet } from "./interfaces/IGovernanceFacet.sol";
+import { IUniswapFacet } from "./interfaces/IUniswapFacet.sol";
+import { INDFFacet } from "./interfaces/INDFFacet.sol";
+import { IStakingFacet } from "./interfaces/IStakingFacet.sol";
+import { ISSFFacet } from "./interfaces/ISSFFacet.sol";
 
 /**
  * @title Nayms Diamond
@@ -40,7 +44,11 @@ interface INayms is
     IMarketFacet,
     IEntityFacet,
     ISimplePolicyFacet,
-    IGovernanceFacet
+    IGovernanceFacet,
+    IUniswapFacet,
+    INDFFacet,
+    IStakingFacet,
+    ISSFFacet
 {
 
 }

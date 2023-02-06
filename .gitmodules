@@ -19,3 +19,11 @@
 [submodule "lib/solidity-stringutils"]
 	path = lib/solidity-stringutils
 	url = https://github.com/arachnid/solidity-stringutils
+[submodule "lib/v3-peri-08"]
+	path = lib/v3-peri-08
+	url = https://github.com/Uniswap/v3-periphery
+	branch = 0.8
+[submodule "lib/v3-core-08"]
+	path = lib/v3-core-08
+	url = https://github.com/Uniswap/v3-core
+	branch = 0.8

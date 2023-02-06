@@ -74,6 +74,34 @@ struct AppStorage {
     mapping(bytes32 => uint256) upgradeScheduled; // id of the upgrade => the time that the upgrade is valid until.
     uint256 upgradeExpiration; // the period of time that an upgrade is valid until.
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
+    //// NAYMS ERC20 TOKEN VARIABLES CONTINUED FROM ABOVE ////
+    string tokenSymbol;
+    uint16 tokenDecimals;
+    mapping(address => uint256) nonces;
+    //// Uniswap ////
+    address lpAddress;
+    mapping(address => int24) tickSpacings; // uniswap pool address => tickSpacing
+    mapping(address => int24) baseThresholds; // uniswap pool address => baseThreshold
+    mapping(address => int24) limitThresholds; // uniswap pool address => limitThreshold
+    mapping(address => int24) maxTwapDeviations; // uniswap pool address => maxTwapDeviation
+    mapping(address => uint32) twapDurations; // uniswap pool address => twapDuration
+    mapping(address => int24) lastTicks; // uniswap pool address => lastTick
+    mapping(address => uint256) lastRebalances; // uniswap pool address => lastRebalance
+    int24 tickSpacing;
+    int24 baseThreshold;
+    int24 limitThreshold;
+    int24 maxTwapDeviation;
+    uint32 twapDuration;
+    int24 lastTick;
+    uint256 lastRebalance;
+    ////  NDF  ////
+    uint256 equilibriumLevel;
+    uint256 maxDiscount;
+    address discountToken;
+    uint24 poolFee;
+    //// SSF ////
+    uint256 rewardsCoefficient;
+    mapping(bytes32 => uint256) userRewards;
 }
 
 library LibAppStorage {

@@ -84,4 +84,44 @@ contract AdminFacet is IAdminFacet, Modifiers {
     function isObjectTokenizable(bytes32 _objectId) external view returns (bool) {
         return LibObject._isObjectTokenizable(_objectId);
     }
+
+    /**
+     * @notice Set the equilibrium level to `_newLevel` in the NDF
+     * @dev Desired amount of NAYM tokens in NDF
+     * @param _newLevel new value for the equilibrium level
+     */
+    function setEquilibriumLevel(uint256 _newLevel) external assertSysAdmin {
+        LibAdmin._setEquilibriumLevel(_newLevel);
+    }
+
+    /**
+     * @notice Set the maximum discount `_newDiscount` in the NDF
+     * @dev TODO explain
+     * @param _newDiscount new value for the max discount
+     */
+    function setMaxDiscount(uint256 _newDiscount) external assertSysAdmin {
+        LibAdmin._setMaxDiscount(_newDiscount);
+    }
+
+    /**
+     * @notice Get the equilibrium level
+     * @dev TODO explain
+     * @return equilibrium level value
+     */
+    function getEquilibriumLevel() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        return s.equilibriumLevel;
+    }
+
+    /**
+     * @notice Get the maximum discount
+     * @dev TODO explain
+     * @return max discount value
+     */
+    function getMaxDiscount() external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        return s.maxDiscount;
+    }
 }
