@@ -97,6 +97,8 @@ contract InitDiamond {
         s.naymsToken = address(this);
         s.maxDividendDenominations = 1;
 
+        s.upgradeExpiration = 7 days;
+
         // adding ERC165 data
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;

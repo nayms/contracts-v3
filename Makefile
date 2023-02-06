@@ -194,6 +194,17 @@ anvil-upgrade: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
+anvil-replace-dc: ## Replace diamondCut() with the 2-phase diamondCut() on anvil
+	forge script ReplaceDiamondCut \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
+
 anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \
 		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \

@@ -7,6 +7,8 @@ import "./LibGeneratedNaymsFacetHelpers.sol";
 import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 import { Create3Deployer } from "src/utils/Create3Deployer.sol";
 
+import { DiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
+
 /// @notice helper methods to deploy a diamond,
 
 interface IInitDiamond {
@@ -479,6 +481,21 @@ contract DeploymentHelpers is Test {
 
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
         cutAndInit(diamondAddress, cut, initDiamond);
+
+        // If a new diamond is being deployed, then, following the initialization, we replace the diamondCut() function with the 2-phase diamondCut() function.
+        if (deployNewDiamond) {
+            address phasedDiamondCutFacet = address(new DiamondCutFacet());
+
+            IDiamondCut.FacetCut[] memory cut;
+            cut = new IDiamondCut.FacetCut[](1);
+
+            bytes4[] memory f0 = new bytes4[](1);
+            f0[0] = IDiamondCut.diamondCut.selector;
+            cut[0] = IDiamondCut.FacetCut({ facetAddress: address(phasedDiamondCutFacet), action: IDiamondCut.FacetCutAction.Replace, functionSelectors: f0 });
+
+            // replace the diamondCut() with the 2-phase diamondCut()
+            INayms(diamondAddress).diamondCut(cut, address(0), "");
+        }
     }
 
     function debugDeployment(

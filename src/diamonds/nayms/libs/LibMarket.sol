@@ -33,7 +33,7 @@ library LibMarket {
     /// @notice order has been executed
     event OrderExecuted(uint256 indexed orderId, bytes32 indexed taker, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
 
-    /// @notice order has been canceled
+    /// @notice order has been cancelled
     event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
 
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
@@ -342,7 +342,7 @@ library LibMarket {
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
         }
 
-        // don't emit event stating market order is canceled if the market order was executed and fulfilled
+        // don't emit event stating market order is cancelled if the market order was executed and fulfilled
         if (marketInfo.state != LibConstants.OFFER_STATE_FULFILLED) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_CANCELLED;
             emit OrderCancelled(_offerId, marketInfo.creator, marketInfo.sellToken);
