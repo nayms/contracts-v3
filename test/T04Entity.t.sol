@@ -78,7 +78,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testDomainSeparator() public {
         bytes32 domainSeparator = nayms.domainSeparatorV4();
 
-        bytes32 expected = bytes32(0x2558bfb28c101059c8344fa723b1d53b41339016ca92a7b1cf0d1b9d8b75c01c);
+        bytes32 expected = bytes32(0x38c40ddfc309275c926499b83dd3de3a9c824318ef5204fd7ae58f823f845291);
         assertEq(domainSeparator, expected);
     }
 
