@@ -20,23 +20,17 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
-    function testDeployerUnassignInSystemContext() public {
-        vm.expectRevert("cannot unassign owner in system context");
+    function testUnassignLastSystemAdminFails() public {
+        vm.expectRevert("must have at least one system admin");
         nayms.unassignRole(account0Id, systemContext);
     }
 
-    function testDeployerReassignInSystemContext() public {
-        vm.expectRevert("cannot reassign role to owner in system context");
-        nayms.assignRole(account0Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN);
-    }
+    function testUnassignSystemAdmin() public {
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
-    // the deployer, as a system admin, should be able to assign roles that system admins can assign
-    function testDeployerCannotAssignRoleToThemself() public {
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
-
-        // assign the role entity admin to deployer / account0 within the system context
-        vm.expectRevert("cannot reassign role to owner in system context");
-        nayms.assignRole(account0Id, systemContext, role);
+        vm.prank(signer1);
+        nayms.unassignRole(account0Id, systemContext);
+        vm.stopPrank();
     }
 
     function testDeployerAssignRoleToAnotherObject() public {

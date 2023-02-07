@@ -9,6 +9,10 @@ import { Create3Deployer } from "src/utils/Create3Deployer.sol";
 
 import { DiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
 
+// solhint-disable no-empty-blocks
+// solhint-disable state-visibility
+// solhint-disable quotes
+
 /// @notice helper methods to deploy a diamond,
 
 interface IInitDiamond {
@@ -57,6 +61,7 @@ contract DeploymentHelpers is Test {
         strings.slice memory delim = ":".toSlice();
         strings.slice memory delim2 = ",".toSlice();
         selectors = new bytes4[]((s.count(delim)));
+
         for (uint256 i = 0; i < selectors.length; i++) {
             s.split('"'.toSlice());
             selectors[i] = bytes4(s.split(delim).until('"'.toSlice()).keccak());
@@ -100,8 +105,6 @@ contract DeploymentHelpers is Test {
             vm.label(address(diamondAddress), "New Nayms Diamond");
 
             // Output diamond address
-
-            // solhint-disable quotes
 
             // If key exists, then replace value.
             // Otherwise, add a new row.
