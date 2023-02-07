@@ -30,5 +30,5 @@ interface IGovernanceFacet {
      * @dev This will get the value from AppStorage.upgradeScheduled  mapping.
      * @param id This is the keccak256(abi.encode(cut)), where cut is the array of FacetCut struct, IDiamondCut.FacetCut[].
      */
-    function getUpgrade(bytes32 id) external returns (uint256 expiry);
+    function getUpgrade(bytes32 id) external view returns (uint256 expiry);
 }
