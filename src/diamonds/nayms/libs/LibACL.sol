@@ -44,7 +44,9 @@ library LibACL {
         s.roles[_objectId][_contextId] = _roleId;
 
         if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
-            s.sysAdmins += 1;
+            unchecked {
+                s.sysAdmins += 1;
+            }
         }
 
         emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
@@ -56,7 +58,9 @@ library LibACL {
         bytes32 roleId = s.roles[_objectId][_contextId];
         if (_contextId == LibAdmin._getSystemId() && roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
             require(s.sysAdmins > 1, "must have at least one system admin");
-            s.sysAdmins -= 1;
+            unchecked {
+                s.sysAdmins -= 1;
+            }
         }
 
         emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
