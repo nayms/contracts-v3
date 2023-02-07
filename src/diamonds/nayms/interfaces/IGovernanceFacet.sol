@@ -3,7 +3,7 @@ pragma solidity >=0.8.13;
 
 interface IGovernanceFacet {
     /**
-     * @notice Create a diamond cut upgrade that can be executed.
+     * @notice Approve the following upgrade hash: `id`
      * @dev The diamondCut() has been modified to check if the upgrade has been scheduled. This method needs to be called in order
      *      for an upgrade to be executed.
      * @param id This is the keccak256(abi.encode(cut)), where cut is the array of FacetCut struct, IDiamondCut.FacetCut[].
@@ -19,9 +19,16 @@ interface IGovernanceFacet {
     function updateUpgradeExpiration(uint256 duration) external;
 
     /**
-     * @notice Cancel an upgrade that was created by createUpgrade().
+     * @notice Cancel the following upgrade hash: `id`
      * @dev This will set the mapping AppStorage.upgradeScheduled back to 0.
      * @param id This is the keccak256(abi.encode(cut)), where cut is the array of FacetCut struct, IDiamondCut.FacetCut[].
      */
     function cancelUpgrade(bytes32 id) external;
+
+    /**
+     * @notice Get the expiry date for provided upgrade hash.
+     * @dev This will get the value from AppStorage.upgradeScheduled  mapping.
+     * @param id This is the keccak256(abi.encode(cut)), where cut is the array of FacetCut struct, IDiamondCut.FacetCut[].
+     */
+    function getUpgrade(bytes32 id) external returns (uint256 expiry);
 }
