@@ -25,9 +25,8 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         vm.prank(signer1);
         nayms.transferOwnership(signer2);
         vm.stopPrank();
-        
+
         assertTrue(nayms.owner() == signer2);
         assertFalse(nayms.isInGroup(signer2Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
-
 }
