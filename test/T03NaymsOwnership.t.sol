@@ -19,6 +19,23 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         nayms.transferOwnership(signer1);
     }
 
+    function testTransferOwernshipFailsIfNewOwnerIsSysAdmin() public {
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+
+        vm.prank(signer1);
+        vm.expectRevert("NEW owner MUST NOT be sys admin");
+        nayms.transferOwnership(signer1);
+    }
+
+    function testTransferOwernshipFailsIfNewOwnerIsSysManager() public {
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(signer2Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        
+        vm.prank(signer1);
+        vm.expectRevert("NEW owner MUST NOT be sys manager");
+        nayms.transferOwnership(signer2);
+    }
+
     function testTransferOwernship() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
@@ -30,6 +47,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isInGroup(signer2Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
+    // solhint-disable func-name-mixedcase
     function testFuzz_TransferOwnership(
         address newOwner,
         address notSysAdmin,
