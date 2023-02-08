@@ -53,6 +53,8 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         address notSysAdmin,
         address anotherSysAdmin
     ) public {
+        vm.assume(newOwner != anotherSysAdmin);
+
         bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
         assertFalse(nayms.isInGroup(notSysAdminId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
         // 1. Diamond is deployed, owner is set to msg.sender
