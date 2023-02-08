@@ -23,6 +23,7 @@ import { ISystemFacet } from "../nayms/interfaces/ISystemFacet.sol";
 import { ITokenizedVaultFacet } from "../nayms/interfaces/ITokenizedVaultFacet.sol";
 import { ITokenizedVaultIOFacet } from "../nayms/interfaces/ITokenizedVaultIOFacet.sol";
 import { IUserFacet } from "../nayms/interfaces/IUserFacet.sol";
+import { IGovernanceFacet } from "../nayms/interfaces/IGovernanceFacet.sol";
 
 error DiamondAlreadyInitialized();
 
@@ -37,7 +38,7 @@ contract InitDiamond {
 
         // ERC20
         s.name = "Nayms";
-        s.totalSupply = 1_000_000_000e18;
+        s.totalSupply = 100_000_000e18;
         s.balances[msg.sender] = s.totalSupply;
 
         // EIP712 domain separator
@@ -89,9 +90,9 @@ contract InitDiamond {
         s.tradingCommissionSTMBP = 2500;
         s.tradingCommissionMakerBP; // init 0
 
-        s.premiumCommissionNaymsLtdBP = 40;
-        s.premiumCommissionNDFBP = 40;
-        s.premiumCommissionSTMBP = 40;
+        s.premiumCommissionNaymsLtdBP = 150;
+        s.premiumCommissionNDFBP = 75;
+        s.premiumCommissionSTMBP = 75;
 
         s.naymsTokenId = LibHelpers._getIdForAddress(address(this));
         s.naymsToken = address(this);
@@ -117,6 +118,7 @@ contract InitDiamond {
         ds.supportedInterfaces[type(ITokenizedVaultFacet).interfaceId] = true;
         ds.supportedInterfaces[type(ITokenizedVaultIOFacet).interfaceId] = true;
         ds.supportedInterfaces[type(IUserFacet).interfaceId] = true;
+        ds.supportedInterfaces[type(IGovernanceFacet).interfaceId] = true;
 
         s.diamondInitialized = true;
         emit InitializeDiamond(msg.sender, userId);

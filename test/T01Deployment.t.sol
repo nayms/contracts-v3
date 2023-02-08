@@ -24,6 +24,7 @@ import { ISystemFacet } from "../src/diamonds/nayms/interfaces/ISystemFacet.sol"
 import { ITokenizedVaultFacet } from "../src/diamonds/nayms/interfaces/ITokenizedVaultFacet.sol";
 import { ITokenizedVaultIOFacet } from "../src/diamonds/nayms/interfaces/ITokenizedVaultIOFacet.sol";
 import { IUserFacet } from "../src/diamonds/nayms/interfaces/IUserFacet.sol";
+import { IGovernanceFacet } from "../src/diamonds/nayms/interfaces/IGovernanceFacet.sol";
 
 contract T01DeploymentTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
@@ -71,8 +72,8 @@ contract T01DeploymentTest is D03ProtocolDefaults {
 
         // check storage
 
-        assertEq(fixture.totalSupply(), 1_000_000_000e18);
-        assertEq(fixture.balanceOf(account0), 1_000_000_000e18);
+        assertEq(fixture.totalSupply(), 100_000_000e18);
+        assertEq(fixture.balanceOf(account0), 100_000_000e18);
 
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
         assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
@@ -127,6 +128,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(nayms.supportsInterface(type(ITokenizedVaultFacet).interfaceId));
         assertTrue(nayms.supportsInterface(type(ITokenizedVaultIOFacet).interfaceId));
         assertTrue(nayms.supportsInterface(type(IUserFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IGovernanceFacet).interfaceId));
     }
 
     function testCallInitDiamondTwice() public {
