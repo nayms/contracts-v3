@@ -1,0 +1,35 @@
+name: solstat
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch: {}
+  workflow_call:
+
+jobs:
+  run-tests:
+    name: Solstat
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
+    permissions:
+      id-token: write
+      packages: read
+      contents: read
+      security-events: write
+    timeout-minutes: 15
+    container:
+      image: ghcr.io/nayms/contracts-builder:latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Update path
+        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
+
+      - name: Make solstat report
+        run: solstat --path ./src/diamonds/nayms/
+
+      - name: Publish solstat report
+        run: cat solstat_report.md >> $GITHUB_STEP_SUMMARY
