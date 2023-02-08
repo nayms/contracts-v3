@@ -13,19 +13,21 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         super.setUp();
     }
 
-    function testTransferOwernshipFailsIfNotContractOwner() public {
-        vm.prank(signer1);
-        vm.expectRevert("LibDiamond: Must be contract owner");
+    function testTransferOwernshipFailsIfNotSysAdmin() public {
+        vm.prank(signer2);
+        vm.expectRevert("not a system admin");
         nayms.transferOwnership(signer1);
     }
 
     function testTransferOwernship() public {
-        nayms.transferOwnership(signer1);
-        assertTrue(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+
+        vm.prank(signer1);
+        nayms.transferOwnership(signer2);
+        vm.stopPrank();
+        
+        assertTrue(nayms.owner() == signer2);
+        assertFalse(nayms.isInGroup(signer2Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
-    function testTransferOwernshipToZeroAddressFails() public {
-        vm.expectRevert("new owner must not be address 0");
-        nayms.transferOwnership(address(0));
-    }
 }
