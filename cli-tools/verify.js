@@ -1,6 +1,11 @@
 const fs = require("fs");
 const https = require("https");
 
+if (process.argv.length > 3) {
+  console.error("Invalid arguments, only `--dry-run` or no args allowed");
+  return;
+}
+
 let raw = fs.readFileSync(
   "broadcast/SmartDeploy.s.sol/5/smartDeploy-latest.json"
 );
@@ -21,7 +26,23 @@ json.transactions
           if (r.status == 0) {
             // do verification!
             let cmd = `forge v ${element.contractAddress} src/diamonds/nayms/facets/${element.contractName}.sol:${element.contractName} $ETHERSCAN_API_KEY --chain goerli --watch`;
-            console.log(cmd);
+
+            if (process.argv.length === 3 && process.argv[2] === "--dry-run") {
+              console.log(cmd);
+            } else {
+              const { exec } = require("child_process");
+              exec(cmd, (error, stdout, stderr) => {
+                if (error) {
+                  console.log(`error: ${error.message}`);
+                  return;
+                }
+                if (stderr) {
+                  console.log(`stderr: ${stderr}`);
+                  return;
+                }
+                console.log(stdout);
+              });
+            }
           }
         });
       })

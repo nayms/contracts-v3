@@ -269,3 +269,9 @@ upgrade-hash: ## generate upgrade hash
 		--silent \
 		--json \
 		| jq --raw-output .returns.upgradeHash.value
+
+verify-dry-run:	## dry run verify script, prints out commands to be executed
+	node cli-tools/verify.js --dry-run
+
+verify:	## verify contracts on chain (goerli)
+	node cli-tools/verify.js
