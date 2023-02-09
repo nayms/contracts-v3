@@ -512,6 +512,10 @@ contract DeploymentHelpers is Test {
     {
         
         address diamondAddress = diamondDeployment(deployNewDiamond, salt);
+        if(diamondAddress == address(0)) {
+            return "";
+        }
+
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
         
         upgradeHash = keccak256(abi.encode(cut));

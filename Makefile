@@ -262,8 +262,9 @@ slither:	## run slither static analysis
 upgrade-hash-goerli: ## generate upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--fork-url ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
@@ -275,8 +276,9 @@ upgrade-hash-goerli: ## generate upgrade hash
 upgrade-hash-mainnet: ## generate upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-url ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
@@ -286,17 +288,12 @@ upgrade-hash-mainnet: ## generate upgrade hash
 		| jq --raw-output .returns.upgradeHash.value
 
 upgrade-hash-anvil: ## generate upgrade hash
-	@forge script SmartDeploy \
+	forge script SmartDeploy \
 		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
-		--chain-id 1 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
-		--ffi \
-		--silent \
-		--json \
-		| jq --raw-output .returns.upgradeHash.value
+		--ffi
 
 verify-dry-run:	## dry run verify script, prints out commands to be executed
 	node cli-tools/verify.js --dry-run
