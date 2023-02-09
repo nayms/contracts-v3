@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "script/utils/DeploymentHelpers.sol";
+import "../utils/DeploymentHelpers.sol";
 
 contract SmartDeploy is DeploymentHelpers {
     function smartDeploy(
@@ -28,13 +28,17 @@ contract SmartDeploy is DeploymentHelpers {
 
     function hash(
         bool deployNewDiamond,
-        bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn,
         bytes32 salt
-    ) external returns (bytes32 upgradeHash) {
+    ) 
+        external 
+        returns (bytes32 upgradeHash) 
+    {
         vm.startPrank(msg.sender);
-        (, , upgradeHash) = smartDeployment(deployNewDiamond, initNewDiamond, facetDeploymentAction, facetsToCutIn, salt);
+        
+        upgradeHash = initUpgradeHash(deployNewDiamond, facetDeploymentAction, facetsToCutIn, salt);
+        
         vm.stopPrank();
     }
 }

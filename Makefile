@@ -259,9 +259,12 @@ docs: ## generate docs from natspec comments
 slither:	## run slither static analysis
 	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
 
-upgrade-hash: ## generate upgrade hash
+upgrade-hash-goerli: ## generate upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, bool, uint8, string[] memory, bytes32)" true true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		--fork-url ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
@@ -269,6 +272,28 @@ upgrade-hash: ## generate upgrade hash
 		--silent \
 		--json \
 		| jq --raw-output .returns.upgradeHash.value
+
+upgrade-hash-mainnet: ## generate upgrade hash
+	@forge script SmartDeploy \
+		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		--fork-url ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		--ffi \
+		--silent \
+		--json \
+		| jq --raw-output .returns.upgradeHash.value
+
+upgrade-hash-anvil: ## generate upgrade hash
+	forge script SmartDeploy \
+		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		--ffi
 
 verify-dry-run:	## dry run verify script, prints out commands to be executed
 	node cli-tools/verify.js --dry-run

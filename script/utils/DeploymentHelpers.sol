@@ -501,6 +501,26 @@ contract DeploymentHelpers is Test {
         }
     }
 
+    function initUpgradeHash(
+        bool deployNewDiamond, 
+        FacetDeploymentAction facetDeploymentAction,
+        string[] memory facetsToCutIn,
+        bytes32 salt
+    ) 
+        internal 
+        returns (bytes32 upgradeHash) 
+    {
+        
+        address diamondAddress = diamondDeployment(deployNewDiamond, salt);
+        if(diamondAddress == address(0)) {
+            return "";
+        }
+
+        IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
+        
+        upgradeHash = keccak256(abi.encode(cut));
+    }
+
     function debugDeployment(
         address diamondAddress,
         string[] memory facetsToCutIn,
