@@ -217,6 +217,18 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 		--ffi \
 		--broadcast
 
+goerli-replace-ownership: ## Replace transferOwnership()
+	forge script ReplaceOwnershipFacet \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10
+
 create-entity: ## create an entity on the Nayms platform (using some default values, on anvil)
 	forge script CreateEntity \
 		-s "createAnEntity(address)" ${naymsDiamondAddress} \
