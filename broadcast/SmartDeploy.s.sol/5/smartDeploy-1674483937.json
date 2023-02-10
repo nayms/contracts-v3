@@ -7,7 +7,6 @@
       "contractAddress": "0xED0e6A4fdAa0983eb1cCB776BDAB47481A66feEf",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -26,7 +25,6 @@
       "contractAddress": "0x831DA214A106Ac619C53fb099453dD30E1104D01",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -45,7 +43,6 @@
       "contractAddress": "0x36D9d4Bfc9FC1D7943967442D16de9a830433304",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -64,7 +61,6 @@
       "contractAddress": "0x4d6abed623D245812B3539618900E3BcdFeF9833",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -83,7 +79,6 @@
       "contractAddress": "0x2D4DD4DEed2B35ae9Ec046e01273054C49c5B59a",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -102,7 +97,6 @@
       "contractAddress": "0xF2a93f0A16760c188769e15c78dBf87520DE33Aa",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -121,7 +115,6 @@
       "contractAddress": "0xdF9347B6aB2002C4aC32628C40fc62Ba3a44F72f",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -140,7 +133,6 @@
       "contractAddress": "0xC40Ed3d401D9fb00dea8fDe9D8F8Ff2b67C1404D",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -159,7 +151,6 @@
       "contractAddress": "0x47F990927f2307bbC62Ec240e02D36539fa9b762",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",
@@ -178,7 +169,6 @@
       "contractAddress": "0x0fBF26aec8F67f48113901a2c765e071b221d3C9",
       "function": null,
       "arguments": null,
-      "rpc": "https://eth-goerli.g.alchemy.com/v2/EPrjA2h82RgBBlgxti18NViJWUez9jNT",
       "transaction": {
         "type": "0x02",
         "from": "0x2b09bfca423cb4c8e688ee223ab00a9a0092d271",

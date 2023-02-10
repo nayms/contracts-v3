@@ -147,7 +147,8 @@ deploy: ## smart deploy to goerli
 		-vv \
 		--ffi \
 		--broadcast \
-		--verify --delay 30 --retries 10
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
 
 deploy-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
