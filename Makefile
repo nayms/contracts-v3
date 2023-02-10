@@ -274,7 +274,7 @@ slither:	## run slither static analysis
 
 upgrade-hash-goerli: ## generate upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "hash(bool, uint8, string[] memory, bytes32)" false 1 "[]" ${deploymentSalt} \
 		--fork-url ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -288,7 +288,7 @@ upgrade-hash-goerli: ## generate upgrade hash
 
 upgrade-hash-mainnet: ## generate upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "hash(bool, uint8, string[] memory, bytes32)" false 1 "[]" ${deploymentSalt} \
 		--fork-url ${ALCHEMY_ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
