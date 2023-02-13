@@ -27,6 +27,9 @@ contract MockERC20 is ERC20 {
         uint256 mintAmount = msg.value * 1000000;
         balanceOf[msg.sender] += mintAmount;
         emit Transfer(address(0), msg.sender, mintAmount);
+        // Send back the ETH
+        (bool sent, bytes memory data) = address(msg.sender).call{ value: msg.value }("");
+        require(sent, "Failed to send Ether");
     }
 }
 
