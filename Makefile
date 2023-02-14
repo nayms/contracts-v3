@@ -151,7 +151,7 @@ deploy: ## smart deploy to goerli
 		; node cli-tools/postproc-broadcasts.js
 
 
-deploy-mainnet: ## smart deploy to goerli
+deploy-mainnet: ## smart deploy to mainnet
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
