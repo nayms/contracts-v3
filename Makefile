@@ -150,7 +150,6 @@ deploy: ## smart deploy to goerli
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
-
 deploy-mainnet: ## smart deploy to mainnet
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
@@ -164,7 +163,19 @@ deploy-mainnet: ## smart deploy to mainnet
 		--ffi \
 		--broadcast \
 		--verify --delay 30 --retries 10 \
-		; node cli-tools/postproc-broadcasts.js		
+		; node cli-tools/postproc-broadcasts.js
+
+deploy-mainnet-sim: ## simulate deploy to mainnet
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi 
 
 deploy-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
