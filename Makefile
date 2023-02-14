@@ -116,6 +116,34 @@ erc20: ## deploy test ERC20
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 		-vvvv
 
+erc20-mainnet: ## deploy mock ERC20
+	forge script DeployERC20 \
+		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
+		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+
+erc20-mainnet-sim: ## simulate deploy mock ERC20
+	forge script DeployERC20 \
+		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
+		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
+		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		; node cli-tools/postproc-broadcasts.js
+
 # use the "@" to hide the command from your shell 
 erc20g: ## deploy test ERC20 to Goerli
 	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
