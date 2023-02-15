@@ -14,4 +14,9 @@ library LibNaymsToken {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.balances[addr];
     }
+
+    function _getNaymsTokenId() internal view returns (bytes32) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.naymsTokenId;
+    }
 }

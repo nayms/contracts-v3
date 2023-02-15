@@ -26,4 +26,8 @@ contract NaymsTokenFacet is INaymsTokenFacet {
     function balanceOf(address addr) external view returns (uint256) {
         return LibNaymsToken._balanceOf(addr);
     }
+
+    function getNaymsTokenId() external view returns (bytes32) {
+        return LibNaymsToken._getNaymsTokenId();
+    }
 }

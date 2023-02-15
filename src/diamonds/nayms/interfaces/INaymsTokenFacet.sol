@@ -18,4 +18,10 @@ interface INaymsTokenFacet {
      * @return balance of wallet.
      */
     function balanceOf(address addr) external view returns (uint256);
+
+    /**
+     * @dev Get the internal token id of the Nayms token.
+     * @return bytes32 nayms token id.
+     */
+    function getNaymsTokenId() external view returns (bytes32);
 }
