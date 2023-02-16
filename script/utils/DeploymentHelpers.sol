@@ -80,7 +80,7 @@ contract DeploymentHelpers is Test {
         removeSelectors.pop(); // delete the last item
     }
 
-    function getDiamondAddressFromFile() internal returns (address diamondAddress) {
+    function getDiamondAddressFromFile() internal view returns (address diamondAddress) {
         // Read in current diamond address
         string memory deployData = vm.readFile(deployFile);
 
@@ -489,7 +489,6 @@ contract DeploymentHelpers is Test {
         if (deployNewDiamond) {
             address phasedDiamondCutFacet = address(new DiamondCutFacet());
 
-            IDiamondCut.FacetCut[] memory cut;
             cut = new IDiamondCut.FacetCut[](1);
 
             bytes4[] memory f0 = new bytes4[](1);
@@ -502,22 +501,18 @@ contract DeploymentHelpers is Test {
     }
 
     function initUpgradeHash(
-        bool deployNewDiamond, 
+        bool deployNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn,
         bytes32 salt
-    ) 
-        internal 
-        returns (bytes32 upgradeHash) 
-    {
-        
+    ) internal returns (bytes32 upgradeHash) {
         address diamondAddress = diamondDeployment(deployNewDiamond, salt);
-        if(diamondAddress == address(0)) {
+        if (diamondAddress == address(0)) {
             return "";
         }
 
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
-        
+
         upgradeHash = keccak256(abi.encode(cut));
     }
 
@@ -525,7 +520,7 @@ contract DeploymentHelpers is Test {
         address diamondAddress,
         string[] memory facetsToCutIn,
         FacetDeploymentAction facetDeploymentAction
-    ) internal {
+    ) internal view {
         uint256 addCount;
         uint256 replaceCount;
         uint256 removeCount;

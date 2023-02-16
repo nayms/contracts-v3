@@ -150,7 +150,9 @@ erc20g: ## deploy test ERC20 to Goerli
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--private-key ${PRIVATE_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
 		--broadcast \
 		--verify \
 		-vvvv
@@ -162,6 +164,20 @@ initNewDiamond=false
 facetAction=1
 senderAddress=0x2b09BfCA423CB4c8E688eE223Ab00a9a0092D271
 deploymentSalt=0xdeffffffff
+
+schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
+	@forge script SmartDeploy \
+		-s "scheduleAndUpgradeDiamond()" \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
 
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
@@ -368,3 +384,13 @@ verify-dry-run:	## dry run verify script, prints out commands to be executed
 
 verify:	## verify contracts on chain (goerli)
 	node cli-tools/verify.js
+
+
+update-e: ## update
+	forge script UpdateEntity \
+		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vvvv

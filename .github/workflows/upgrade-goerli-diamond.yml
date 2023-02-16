@@ -1,0 +1,50 @@
+name: upgrade-goerli-diamond
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run-tests:
+    name: Upgrade Goerli diamond
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
+    permissions:
+      id-token: write
+      packages: read
+      contents: read
+      security-events: write
+    timeout-minutes: 15
+    container:
+      image: ghcr.io/nayms/contracts-builder:latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Update path
+        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
+
+      - name: Install solc
+        run: svm install 0.8.17 && svm use 0.8.17
+
+      - name: Fix ownership
+        run: git config --global --add safe.directory /__w/contracts-v3/contracts-v3
+
+      - name: Install Forge dependencies
+        run: forge install
+
+      - name: Install Node dependencies
+        run: yarn
+
+      - name: Prepare build
+        run: make prep-build
+
+      - name: Build solidity contracts
+        run: make build
+
+      - name: Schedule upgrade to Goerli diamond, and then upgrade Goerli diamond
+        env:
+          ALCHEMY_ETH_GOERLI_RPC_URL: ${{ secrets.ALCHEMY_ETH_GOERLI_RPC_URL }}
+        run: make schedule-upgrade-goerli
