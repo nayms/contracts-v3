@@ -47,4 +47,5 @@ jobs:
       - name: Schedule upgrade to Goerli diamond, and then upgrade Goerli diamond
         env:
           ALCHEMY_ETH_GOERLI_RPC_URL: ${{ secrets.ALCHEMY_ETH_GOERLI_RPC_URL }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: make schedule-upgrade-goerli
