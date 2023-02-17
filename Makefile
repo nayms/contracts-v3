@@ -26,7 +26,7 @@ lintsol: ## run prettier and solhint
 	yarn run lint
 
 devnet: ## run development node
-	anvil -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+	anvil -f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		-vvvv
 
@@ -59,7 +59,7 @@ tttt: ## forge test local -vvvv
 	forge test -vvvv
 
 test-goerli: ## test forking goerli with match test regex, i.e. `make test-goerli MT=testStartTokenSale`
-	forge test -f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+	forge test -f ${ETH_GOERLI_RPC_URL} \
 		--fork-block-number 7602168 \
 		--mt $(MT) \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -67,7 +67,7 @@ test-goerli: ## test forking goerli with match test regex, i.e. `make test-goerl
 tg:	test-goerli
 
 test-mainnet: ## test forking mainnet with match test regex, i.e. `make test-mainnet MT=testStartTokenSale`
-	forge test -f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+	forge test -f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 7602168 \
 		--mt $(MT) \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -79,18 +79,18 @@ gas: ## gas snapshot
 
 gasforksnap: ## gas snapshot mainnet fork
 	forge snapshot --snap .gas-snapshot \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000
 
 gasforkcheck: ## gas check mainnet fork
 	forge snapshot --check \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		--via-ir
 
 gasforkdiff: ## gas snapshot diff mainnet fork
 	forge snapshot --diff \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		--via-ir
 
@@ -105,7 +105,7 @@ lcov: ## coverage report (lcov)
 
 lcov-fork: ## coverage report (lcov) for mainnet fork
 	forge coverage --report lcov \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000 \
 		--via-ir
 
@@ -120,7 +120,7 @@ erc20-mainnet: ## deploy mock ERC20
 	forge script DeployERC20 \
 		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -135,7 +135,7 @@ erc20-mainnet-sim: ## simulate deploy mock ERC20
 	forge script DeployERC20 \
 		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -148,7 +148,7 @@ erc20-mainnet-sim: ## simulate deploy mock ERC20
 erc20g: ## deploy test ERC20 to Goerli
 	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -168,7 +168,7 @@ deploymentSalt=0xdeffffffff
 schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 	@forge script SmartDeploy \
 		-s "scheduleAndUpgradeDiamond()" \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -182,7 +182,7 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -197,7 +197,7 @@ deploy: ## smart deploy to goerli
 deploy-mainnet: ## smart deploy to mainnet
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -212,7 +212,7 @@ deploy-mainnet: ## smart deploy to mainnet
 deploy-mainnet-sim: ## simulate deploy to mainnet
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -224,7 +224,7 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 deploy-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -240,7 +240,7 @@ anvil-debug:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
 anvil-fork: ## fork goerli locally with anvil
-	anvil -f ${ALCHEMY_ETH_GOERLI_RPC_URL}
+	anvil -f ${ETH_GOERLI_RPC_URL}
 
 anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
@@ -291,7 +291,7 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 
 goerli-replace-ownership: ## Replace transferOwnership()
 	forge script ReplaceOwnershipFacet \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -315,7 +315,7 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 add-supported-external-token: ## Add a supported external token (goerli)
 	@forge script AddSupportedExternalToken \
 		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -326,7 +326,7 @@ add-supported-external-token: ## Add a supported external token (goerli)
 update-commissions: ## update trading and premium commissions
 	forge script UpdateCommissions \
 		-s "tradingAndPremium(address)" ${naymsDiamondAddress} \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -346,7 +346,7 @@ slither:	## run slither static analysis
 upgrade-hash-goerli: ## generate upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, uint8, string[] memory, bytes32)" false 1 "[]" ${deploymentSalt} \
-		--fork-url ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		--fork-url ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -360,7 +360,7 @@ upgrade-hash-goerli: ## generate upgrade hash
 upgrade-hash-mainnet: ## generate upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, uint8, string[] memory, bytes32)" false 1 "[]" ${deploymentSalt} \
-		--fork-url ${ALCHEMY_ETH_MAINNET_RPC_URL} \
+		--fork-url ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
@@ -388,7 +388,7 @@ verify:	## verify contracts on chain (goerli)
 
 update-e: ## update
 	forge script UpdateEntity \
-		-f ${ALCHEMY_ETH_GOERLI_RPC_URL} \
+		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
