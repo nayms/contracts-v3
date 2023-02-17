@@ -2,7 +2,7 @@ const fs = require("fs");
 const glob = require("glob");
 const chalk = require("chalk");
 
-console.log(chalk.red("Postprocessing  broadcast files..."));
+console.log(chalk.yellow("Post-processing broadcast files:"));
 
 var walk = function (src, callback) {
   glob(src + "/**/*", callback);
