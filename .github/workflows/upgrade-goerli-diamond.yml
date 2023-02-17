@@ -1,9 +1,7 @@
 name: upgrade-goerli-diamond
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_dispatch: {}
+  workflow_call:
 
 jobs:
   run-tests:
