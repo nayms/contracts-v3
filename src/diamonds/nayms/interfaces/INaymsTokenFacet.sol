@@ -6,6 +6,8 @@ pragma solidity 0.8.17;
  * @dev Use it to access and manipulate Nayms token.
  */
 interface INaymsTokenFacet {
+    function decimals() external view returns (uint16);
+
     /**
      * @dev Get total supply of token.
      * @return total supply.
@@ -18,6 +20,14 @@ interface INaymsTokenFacet {
      * @return balance of wallet.
      */
     function balanceOf(address addr) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
 
     /**
      * @dev Get the internal token id of the Nayms token.

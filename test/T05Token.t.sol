@@ -33,6 +33,28 @@ contract T05TokenTest is D03ProtocolDefaults, MockAccounts, UniswapV3Fixture {
         nayms.setMaxDiscount(1000); // 10% discount
     }
 
+    function testDepositExternalNaymsTokenToNDF() public {
+        nayms.balanceOf(address(this));
+
+        nayms.addSupportedExternalToken(address(nayms));
+        // msg.sender was minted 100m ERC20 NAYMS. Need to deposit this into Nayms NDF, etc.
+
+        // approve the nayms diamond to be able to spend msg.sender's NAYMS tokens
+        nayms.approve(address(nayms), 100_000_000 ether);
+        // deposit NAYMS into nayms diamond. this NAYMS is sent to msg.sender's parent (entity)
+        nayms.externalDeposit(address(nayms), 100_000_000 ether);
+
+        // this transfers from msg.sender's associated entity to an entity of choosing
+        // can transfer internal nayms to an entity, meaning, for example, staking mech has to be an entity
+        // transfer to  naymsLtd
+        bytes32 naymsLtdId = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
+        nayms.internalTransferFromEntity(naymsLtdId, nayms.getNaymsTokenId(), 15_000_000 ether); // transfer 15m iNayms to naymsLtd
+
+        // if naymsLtd is created as an entity, then the child of naymsLtd can act on behalf of it. system admin should be the child of nayms ltd
+
+        //
+    }
+
     function testCreateNaymsERC20Token() public {
         // The object ID of the NAYMS ERC20 token
         bytes32 naymsTokenId = nayms.getNaymsTokenId();
@@ -54,7 +76,13 @@ contract T05TokenTest is D03ProtocolDefaults, MockAccounts, UniswapV3Fixture {
         nayms.enableEntityTokenization(naymsTokenId, symbol, name);
         nayms.wrapToken(naymsTokenId);
 
+        // Cannot erc20 tokenize the same object / entity twice
+        vm.expectRevert();
+        nayms.wrapToken(naymsTokenId);
+
         // todo test balances of the NAYMS token
+
+        // note todo currently, AppStorage.naymsToken is set to the diamond address
     }
 
     function testToken() public {
@@ -90,5 +118,9 @@ contract T05TokenTest is D03ProtocolDefaults, MockAccounts, UniswapV3Fixture {
         vm.roll(block.timestamp + 1001);
         // nayms.getSqrtTwapX96(newPoolAddress, 100);
         // nayms.getTwap();
+    }
+
+    function testNDF() public {
+        nayms.getNaymsValueRatio();
     }
 }

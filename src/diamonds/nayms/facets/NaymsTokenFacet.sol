@@ -4,12 +4,18 @@ pragma solidity 0.8.17;
 import { INaymsTokenFacet } from "../interfaces/INaymsTokenFacet.sol";
 import { LibNaymsToken } from "../libs/LibNaymsToken.sol";
 
+import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+
 /**
  * @title Nayms token facet.
  * @notice Use it to access and manipulate Nayms token.
  * @dev Use it to access and manipulate Nayms token.
  */
 contract NaymsTokenFacet is INaymsTokenFacet {
+    function decimals() external view returns (uint16) {
+        return LibNaymsToken._decimals();
+    }
+
     /**
      * @dev Get total supply of token.
      * @return total supply.
@@ -25,6 +31,41 @@ contract NaymsTokenFacet is INaymsTokenFacet {
      */
     function balanceOf(address addr) external view returns (uint256) {
         return LibNaymsToken._balanceOf(addr);
+    }
+
+    // todo temp. refactor.
+    function approve(address spender, uint256 amount) external returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        s.allowance[msg.sender][spender] = amount;
+
+        // emit Approval(msg.sender, spender, amount);
+
+        return true;
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        uint256 allowed = s.allowance[from][msg.sender]; // Saves gas for limited approvals.
+
+        if (allowed != type(uint256).max) s.allowance[from][msg.sender] = allowed - amount;
+
+        s.balances[from] -= amount;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            s.balances[to] += amount;
+        }
+
+        // emit Transfer(from, to, amount);
+
+        return true;
     }
 
     function getNaymsTokenId() external view returns (bytes32) {

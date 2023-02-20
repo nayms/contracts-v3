@@ -10,10 +10,10 @@ interface INDFFacet {
 
     function paySubSurplusFund(uint256 _amount) external;
 
-    function swapTokens(
-        address _tokenIn,
-        address _tokenOut,
-        uint256 _amountIn,
-        uint24 _poolFee
-    ) external returns (uint256 amountOut);
+    // function swapTokens(
+    //     address _tokenIn,
+    //     address _tokenOut,
+    //     uint256 _amountIn,
+    //     uint24 _poolFee
+    // ) external returns (uint256 amountOut);
 }

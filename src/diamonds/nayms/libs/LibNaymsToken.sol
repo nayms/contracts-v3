@@ -5,6 +5,11 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 
 /// @notice Contains internal methods for Nayms token functionality
 library LibNaymsToken {
+    function _decimals() internal view returns (uint16) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.tokenDecimals;
+    }
+
     function _totalSupply() internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.totalSupply;
