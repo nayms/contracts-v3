@@ -8,7 +8,7 @@ interface IUniswapFacet {
         int24 _baseThreshold,
         int24 _limitThreshold,
         int24 _maxTwapDeviation,
-        uint32 _twapDuration
+        uint32 _twapInterval
     ) external;
 
     function getTick() external view returns (int24 tick);

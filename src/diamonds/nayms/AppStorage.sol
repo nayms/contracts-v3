@@ -80,18 +80,19 @@ struct AppStorage {
     mapping(address => uint256) nonces;
     //// Uniswap ////
     address lpAddress;
+    mapping(address => address) uniswapPools; // token address => uniswap v3 pool address
     mapping(address => int24) tickSpacings; // uniswap pool address => tickSpacing
     mapping(address => int24) baseThresholds; // uniswap pool address => baseThreshold
     mapping(address => int24) limitThresholds; // uniswap pool address => limitThreshold
     mapping(address => int24) maxTwapDeviations; // uniswap pool address => maxTwapDeviation
-    mapping(address => uint32) twapDurations; // uniswap pool address => twapDuration
+    mapping(address => uint32) twapIntervals; // uniswap pool address => twapInterval //todo perhaps just have one twap interval for all pools?
     mapping(address => int24) lastTicks; // uniswap pool address => lastTick
     mapping(address => uint256) lastRebalances; // uniswap pool address => lastRebalance
     int24 tickSpacing;
     int24 baseThreshold;
     int24 limitThreshold;
     int24 maxTwapDeviation;
-    uint32 twapDuration;
+    uint32 twapInterval;
     int24 lastTick;
     uint256 lastRebalance;
     ////  NDF  ////

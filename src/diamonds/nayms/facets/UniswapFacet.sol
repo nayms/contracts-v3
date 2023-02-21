@@ -18,7 +18,7 @@ contract UniswapFacet {
         int24 _baseThreshold,
         int24 _limitThreshold,
         int24 _maxTwapDeviation,
-        uint32 _twapDuration
+        uint32 _twapInterval
     ) external {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -28,12 +28,12 @@ contract UniswapFacet {
         s.baseThreshold = _baseThreshold;
         s.limitThreshold = _limitThreshold;
         s.maxTwapDeviation = _maxTwapDeviation;
-        s.twapDuration = _twapDuration;
+        s.twapInterval = _twapInterval;
 
         _checkThreshold(_baseThreshold, tickSpacing);
         _checkThreshold(_limitThreshold, tickSpacing);
         require(_maxTwapDeviation > 0, "maxTwapDeviation");
-        require(_twapDuration > 0, "twapDuration");
+        require(_twapInterval > 0, "twapInterval");
 
         (, s.lastTick, , , , , ) = IUniswapV3Pool(s.lpAddress).slot0();
     }
@@ -85,13 +85,13 @@ contract UniswapFacet {
     function getTwap() public view returns (int24) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint32 _twapDuration = s.twapDuration;
+        uint32 _twapInterval = s.twapInterval;
         uint32[] memory secondsAgo = new uint32[](2);
-        secondsAgo[0] = _twapDuration;
+        secondsAgo[0] = _twapInterval;
         secondsAgo[1] = 0;
 
         (int56[] memory tickCumulatives, ) = IUniswapV3Pool(s.lpAddress).observe(secondsAgo);
-        return int24((tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(_twapDuration)));
+        return int24((tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(_twapInterval)));
     }
 
     /// @dev Fetches time-weighted average price from Uniswap pool.
@@ -152,11 +152,11 @@ contract UniswapFacet {
         s.maxTwapDeviation = _maxTwapDeviation;
     }
 
-    function setTwapDuration(uint32 _twapDuration) external {
-        require(_twapDuration > 0, "twapDuration");
+    function settwapInterval(uint32 _twapInterval) external {
+        require(_twapInterval > 0, "twapInterval");
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        s.twapDuration = _twapDuration;
+        s.twapInterval = _twapInterval;
     }
 
     //// NDF functionality todo move to separate facet
