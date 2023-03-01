@@ -30,7 +30,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
     function testTransferOwernshipFailsIfNewOwnerIsSysManager() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
         nayms.assignRole(signer2Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
-        
+
         vm.prank(signer1);
         vm.expectRevert("NEW owner MUST NOT be sys manager");
         nayms.transferOwnership(signer2);
@@ -54,6 +54,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         address anotherSysAdmin
     ) public {
         vm.assume(newOwner != anotherSysAdmin);
+        vm.assume(anotherSysAdmin != address(0));
 
         bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
         assertFalse(nayms.isInGroup(notSysAdminId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
