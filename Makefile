@@ -355,7 +355,7 @@ upgrade-hash-goerli: ## generate upgrade hash
 		--ffi \
 		--silent \
 		--json \
-		| jq --raw-output .returns.upgradeHash.value
+		| jq --raw-output '.returns.upgradeHash.value, .returns.cut.value'
 
 upgrade-hash-mainnet: ## generate upgrade hash
 	@forge script SmartDeploy \
@@ -369,7 +369,7 @@ upgrade-hash-mainnet: ## generate upgrade hash
 		--ffi \
 		--silent \
 		--json \
-		| jq --raw-output .returns.upgradeHash.value
+		| jq --raw-output '.returns.upgradeHash.value, .returns.cut.value'
 
 upgrade-hash-anvil: ## generate upgrade hash
 	forge script SmartDeploy \
