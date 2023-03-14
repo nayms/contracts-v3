@@ -183,6 +183,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 depositAmount
     ) public {
         vm.assume(entity1 > 0 && entity2 > 0 && entity1 != entity2); // else revert: object already exists
+        vm.assume(!nayms.isObject(entity1) && !nayms.isObject(entity2));
         vm.assume(depositAmount > 5); // else revert: _internalMint: mint zero tokens, note: > 5 to ensure the externalDepositAmount isn't 0, see code below
 
         vm.assume(signer1 != address(0) && signer1 != address(999999));
