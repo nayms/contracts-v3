@@ -289,6 +289,17 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 		--ffi \
 		--broadcast
 
+anvil-add-supported-external-token: ## Add a supported external token (anvil)
+	@forge script AddSupportedExternalToken \
+		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--broadcast
+
 goerli-replace-ownership: ## Replace transferOwnership()
 	forge script ReplaceOwnershipFacet \
 		-f ${ETH_GOERLI_RPC_URL} \
