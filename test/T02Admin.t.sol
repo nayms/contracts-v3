@@ -5,7 +5,7 @@ import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } fro
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { INayms, IDiamondCut, ITokenizedVaultIOFacet } from "src/diamonds/nayms/INayms.sol";
 import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
@@ -192,5 +192,61 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
         require(success, "Should get commissions from app storage");
         return abi.decode(result, (PolicyCommissionsBasisPoints));
+    }
+
+    function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {
+        bytes32 userId = LibHelpers._getIdForAddress(userAddress);
+        vm.startPrank(userAddress);
+        if (nayms.isInGroup(userId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS)) {
+            nayms.lockFunction(bytes4(0x12345678));
+
+            assertTrue(nayms.isFunctionLocked(bytes4(0x12345678)));
+
+            nayms.unlockFunction(bytes4(0x12345678));
+            assertFalse(nayms.isFunctionLocked(bytes4(0x12345678)));
+        } else {
+            vm.expectRevert("not a system admin");
+            nayms.lockFunction(bytes4(0x12345678));
+
+            vm.expectRevert("not a system admin");
+            nayms.unlockFunction(bytes4(0x12345678));
+        }
+    }
+
+    function testLockFunction() public {
+        // must be sys admin
+        vm.prank(account9);
+        vm.expectRevert("not a system admin");
+        nayms.lockFunction(bytes4(0x12345678));
+        vm.stopPrank();
+
+        // assert happy path
+        nayms.lockFunction(bytes4(0x12345678));
+
+        assertTrue(nayms.isFunctionLocked(bytes4(0x12345678)));
+    }
+
+    function testLockFunctionExternalWithdrawFromEntity() public {
+        bytes32 nWETH = LibHelpers._getIdForAddress(wethAddress);
+
+        // deposit
+        writeTokenBalance(account0, naymsAddress, wethAddress, 1 ether);
+        nayms.externalDeposit(wethAddress, 1 ether);
+
+        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "entity1 lost internal WETH");
+        assertEq(nayms.internalTokenSupply(nWETH), 1 ether);
+
+        nayms.lockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
+
+        vm.expectRevert("function is locked");
+        nayms.externalWithdrawFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0, address(weth), 0.5 ether);
+
+        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "balance should stay the same");
+
+        nayms.unlockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
+
+        nayms.externalWithdrawFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0, address(weth), 0.5 ether);
+
+        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 0.5 ether, "half of balance should be withdrawn");
     }
 }

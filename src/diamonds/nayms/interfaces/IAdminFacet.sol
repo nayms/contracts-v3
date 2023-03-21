@@ -63,4 +63,25 @@ interface IAdminFacet {
      * @param _objectId ID of the object
      */
     function isObjectTokenizable(bytes32 _objectId) external returns (bool);
+
+    /**
+     * @notice System Admin can lock a function
+     * @dev This toggles FunctionLockedStorage.lock to true
+     * @param functionSelector the bytes4 function selector
+     */
+    function lockFunction(bytes4 functionSelector) external;
+
+    /**
+     * @notice System Admin can unlock a function
+     * @dev This toggles FunctionLockedStorage.lock to false
+     * @param functionSelector the bytes4 function selector
+     */
+    function unlockFunction(bytes4 functionSelector) external;
+
+    /**
+     * @notice Check if a function has been locked by a system admin
+     * @dev This views FunctionLockedStorage.lock
+     * @param functionSelector the bytes4 function selector
+     */
+    function isFunctionLocked(bytes4 functionSelector) external view returns (bool);
 }

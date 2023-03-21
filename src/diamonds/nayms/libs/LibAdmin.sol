@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
@@ -65,5 +65,20 @@ library LibAdmin {
 
         // Supported tokens cannot be removed because they may exist in the system!
         return s.supportedExternalTokens;
+    }
+
+    function _lockFunction(bytes4 functionSelector) internal {
+        FunctionLockedStorage storage s = LibAppStorage.functionLockStorage();
+        s.locked[functionSelector] = true;
+    }
+
+    function _unlockFunction(bytes4 functionSelector) internal {
+        FunctionLockedStorage storage s = LibAppStorage.functionLockStorage();
+        s.locked[functionSelector] = false;
+    }
+
+    function _isFunctionLocked(bytes4 functionSelector) internal view returns (bool) {
+        FunctionLockedStorage storage s = LibAppStorage.functionLockStorage();
+        return s.locked[functionSelector];
     }
 }

@@ -16,6 +16,10 @@ import { LibACL } from "./libs/LibACL.sol";
  * @dev Function modifiers to control access
  */
 contract Modifiers {
+    modifier assertIsFunctionLocked(bytes4 functionSelector) {
+        require(!LibAdmin._isFunctionLocked(functionSelector), "function is locked");
+        _;
+    }
     modifier assertSysAdmin() {
         require(
             LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_ADMINS)),
