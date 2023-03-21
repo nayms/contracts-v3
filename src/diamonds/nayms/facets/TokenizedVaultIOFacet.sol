@@ -45,7 +45,7 @@ contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyG
         address _receiver,
         address _externalTokenAddress,
         uint256 _amount
-    ) external assertEntityAdmin(_entityId) nonReentrant {
+    ) external assertEntityAdmin(_entityId) nonReentrant assertIsFunctionLocked(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector) {
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
     }
 }

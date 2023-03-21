@@ -76,11 +76,23 @@ struct AppStorage {
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
 }
 
+struct FunctionLockedStorage {
+    mapping(bytes4 => bool) locked; // function selector => is locked?
+}
+
 library LibAppStorage {
     bytes32 internal constant NAYMS_DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.nayms.storage");
+    bytes32 internal constant FUNCTION_LOCK_STORAGE_POSITION = keccak256("diamond.function.lock.storage");
 
     function diamondStorage() internal pure returns (AppStorage storage ds) {
         bytes32 position = NAYMS_DIAMOND_STORAGE_POSITION;
+        assembly {
+            ds.slot := position
+        }
+    }
+
+    function functionLockStorage() internal pure returns (FunctionLockedStorage storage ds) {
+        bytes32 position = FUNCTION_LOCK_STORAGE_POSITION;
         assembly {
             ds.slot := position
         }

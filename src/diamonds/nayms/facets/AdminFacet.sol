@@ -84,4 +84,16 @@ contract AdminFacet is IAdminFacet, Modifiers {
     function isObjectTokenizable(bytes32 _objectId) external view returns (bool) {
         return LibObject._isObjectTokenizable(_objectId);
     }
+
+    function lockFunction(bytes4 functionSelector) external assertSysAdmin {
+        LibAdmin._lockFunction(functionSelector);
+    }
+
+    function unlockFunction(bytes4 functionSelector) external assertSysAdmin {
+        LibAdmin._unlockFunction(functionSelector);
+    }
+
+    function isFunctionLocked(bytes4 functionSelector) external view returns (bool) {
+        return LibAdmin._isFunctionLocked(functionSelector);
+    }
 }
