@@ -164,8 +164,36 @@ Following commands are provided for working with `anvil`, to make it more conven
 | `make anvil-deploy` | Do a full deployment of Nayms' contracts to local node |
 | `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
 | `make anvil-gtoken` | Deploy `GToken` to local node |
+| `make anvil-add-supported-external-token` | Add `GToken` as supported external token |
 
 > :warning: Anvil state is kept in `anvil.json` file in project root. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
+
+One of the things you will need, to do proper testing with local node, is to deploy an ERC-20 compatible token along with Nayms contracts and make that token a supported external token. Below is aan example how to do that.
+
+```zsh
+make anvil-gtoken
+
+make anvil-add-supported-external-token \
+        naymsDiamondAddress=0x942757fa0b73257AC3393730dCC59c8Aa15de6f5 \
+        externalToken=0x5Dc9485A39f64A5BF0E34904949aF7Cc62EE6Bd7
+```
+
+After making a token supported, you might want to mint some coins to a wallet address to make deposits etc. To mint some coins use `cast` tool from Foundry.
+
+```zsh
+cast send 0x5Dc9485A39f64A5BF0E34904949aF7Cc62EE6Bd7 "mint(address,uint256)" \
+        '0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f' '1000000000000000000000000' \
+        -r http:\\127.0.0.1:8545 \
+        --from 0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
+```
+
+Check balance to confirm previous action was successful
+
+```zsh
+cast call 0x5Dc9485A39f64A5BF0E34904949aF7Cc62EE6Bd7 "balanceOf(address)(uint256)" \
+        '0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f' \
+        -r http:\\127.0.0.1:8545
+```
 
 ## Development Flow
 
