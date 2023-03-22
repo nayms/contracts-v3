@@ -359,9 +359,6 @@ upgrade-hash-goerli: ## generate upgrade hash
 		--fork-url ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		--ffi \
 		--silent \
 		--json \
@@ -373,9 +370,6 @@ upgrade-hash-mainnet: ## generate upgrade hash
 		--fork-url ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		--ffi \
 		--silent \
 		--json \
