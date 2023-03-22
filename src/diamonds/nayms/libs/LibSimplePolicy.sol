@@ -81,6 +81,11 @@ library LibSimplePolicy {
         require(simplePolicy.limit >= _amount + claimsPaid, "exceeds policy limit");
         simplePolicy.claimsPaid += _amount;
 
+        bytes32 entityId = LibObject._getParent(_policyId);
+        Entity memory entity = s.entities[entityId];
+        require(s.lockedBalances[entityId][entity.assetId] >= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR, "insufficient balance");
+        s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
+
         LibObject._createObject(_claimId);
 
         LibTokenizedVault._internalTransfer(LibObject._getParent(_policyId), _insuredEntityId, simplePolicy.asset, _amount);
