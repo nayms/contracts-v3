@@ -86,6 +86,8 @@ library LibSimplePolicy {
         require(s.lockedBalances[entityId][entity.assetId] >= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR, "insufficient balance");
         s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
 
+        s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
+
         LibObject._createObject(_claimId);
 
         LibTokenizedVault._internalTransfer(LibObject._getParent(_policyId), _insuredEntityId, simplePolicy.asset, _amount);
@@ -111,7 +113,7 @@ library LibSimplePolicy {
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         Entity storage entity = s.entities[entityId];
 
-        uint256 policyLockedAmount = (simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        uint256 policyLockedAmount = ((simplePolicy.limit - simplePolicy.claimsPaid) * entity.collateralRatio) / LibConstants.BP_FACTOR;
         entity.utilizedCapacity -= policyLockedAmount;
         s.lockedBalances[entityId][entity.assetId] -= policyLockedAmount;
 
