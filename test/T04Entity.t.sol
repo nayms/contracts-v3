@@ -574,6 +574,40 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
     }
 
+    function testSimplePolicyLockedBalancesAfterPaySimpleClaim() public {
+        getReadyToCreatePolicies();
+
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42002);
+        vm.expectRevert("not enough capital");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        // create policyId1 with limit of 42000
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42000);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000, "locked balance should INCREASE");
+
+        vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, 20000);
+        nayms.externalDeposit(wethAddress, 20000);
+
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
+        assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 10500, "locked balance should DECREASE by half");
+
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId1"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 10000, "locked balance should DECREASE");
+
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 9500, "locked balance should DECREASE");
+
+        nayms.internalBalanceOf(entityId1, simplePolicy.asset);
+        // note: entity now has balance of 18000, locked balance of 9500
+        // attempting to pay a claim that's above the entity's balance, below the policy limit triggers the following error
+        vm.expectRevert("_internalTransfer: insufficient balance");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId3"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 19000);
+    }
+
     function testSimplePolicyPremiumsCommissionsClaims() public {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
