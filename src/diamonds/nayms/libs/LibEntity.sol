@@ -213,10 +213,12 @@ library LibEntity {
 
         uint256 oldCollateralRatio = s.entities[_entityId].collateralRatio;
         uint256 oldUtilizedCapacity = s.entities[_entityId].utilizedCapacity;
-        bytes32 originalAssetId = s.entities[_entityId].assetId;
+
+        if (s.entities[_entityId].assetId != _entity.assetId) {
+            revert("assetId change not allowed");
+        }
 
         s.entities[_entityId] = _entity;
-        s.entities[_entityId].assetId = originalAssetId; // assetId change not allowed
 
         // if it's a cell, and collateral ratio changed
         if (_entity.assetId != 0 && _entity.collateralRatio != oldCollateralRatio) {
