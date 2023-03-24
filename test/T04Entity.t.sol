@@ -80,6 +80,34 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 expected = bytes32(0x38c40ddfc309275c926499b83dd3de3a9c824318ef5204fd7ae58f823f845291);
         assertEq(domainSeparator, expected);
+
+        // change chain id
+        vm.chainId(block.chainid + 1);
+        // the new domain separator should be different
+        assertTrue(nayms.domainSeparatorV4() != expected);
+    }
+
+    function testSimplePolicyStructHash() public {
+        uint256 startDate;
+        uint256 maturationDate;
+        bytes32 asset;
+        uint256 limit;
+        bytes32 offchainDataHash;
+
+        bytes32 structHash = keccak256(
+            abi.encode(
+                keccak256("SimplePolicy(uint256 startDate,uint256 maturationDate,bytes32 asset,uint256 limit,bytes32 offchainDataHash)"),
+                startDate,
+                maturationDate,
+                asset,
+                limit,
+                offchainDataHash
+            )
+        );
+        bytes32 hashTypedDataV4 = nayms.hashTypedDataV4(structHash);
+
+        bytes32 signingHash = nayms.getSigningHash(startDate, maturationDate, asset, limit, offchainDataHash);
+        assertTrue(hashTypedDataV4 == signingHash);
     }
 
     function testEnableEntityTokenization() public {
