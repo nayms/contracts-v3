@@ -173,4 +173,33 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
 
         nayms.diamondCut(cut2, address(0), "");
     }
+
+    function testUpdateUpgradeExpiration() public {
+        IDiamondCut.FacetCut[] memory cut;
+        cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory f0 = new bytes4[](1);
+        f0 = new bytes4[](1);
+        f0[0] = TestFacet.sayHello.selector;
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
+
+        nayms.createUpgrade(keccak256(abi.encode(cut)));
+
+        vm.prank(address(0xAAAAAAAAA));
+        vm.expectRevert("not a system admin");
+        nayms.updateUpgradeExpiration(1 days);
+
+        nayms.updateUpgradeExpiration(1 days);
+
+        assertEq(block.timestamp + 7 days, nayms.getUpgrade(keccak256(abi.encode(cut))));
+
+        IDiamondCut.FacetCut[] memory cut2;
+        cut2 = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory f1 = new bytes4[](1);
+        f1 = new bytes4[](1);
+        f1[0] = TestFacet.sayHello2.selector;
+        cut2[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f1 });
+
+        nayms.createUpgrade(keccak256(abi.encode(cut2)));
+        assertEq(block.timestamp + 1 days, nayms.getUpgrade(keccak256(abi.encode(cut2))));
+    }
 }
