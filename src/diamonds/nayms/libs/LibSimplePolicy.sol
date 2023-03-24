@@ -83,7 +83,6 @@ library LibSimplePolicy {
 
         bytes32 entityId = LibObject._getParent(_policyId);
         Entity memory entity = s.entities[entityId];
-        require(s.lockedBalances[entityId][entity.assetId] >= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR, "insufficient balance");
         s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
 
         s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
