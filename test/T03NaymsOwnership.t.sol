@@ -57,7 +57,9 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         vm.assume(anotherSysAdmin != address(0));
 
         bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
-        assertFalse(nayms.isInGroup(notSysAdminId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+        // note: for this test, assume that the notSysAdmin address is not a system admin
+        vm.assume(!nayms.isInGroup(notSysAdminId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+
         // 1. Diamond is deployed, owner is set to msg.sender
         // 2. Diamond cuts in facets and initializes state, a sys admin is set to msg.sender who must be the owner since diamondCut() can only be called by the owner
 
