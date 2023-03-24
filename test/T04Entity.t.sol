@@ -135,6 +135,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createEntity(entityId1, account0Id, initEntity(0, 0, 0, false), testPolicyDataHash);
         console2.log(" >>> CREATED");
 
+        nayms.addSupportedExternalToken(address(wbtc));
+        vm.expectRevert("assetId change not allowed");
+        nayms.updateEntity(entityId1, initEntity(wbtcId, 10_000, 0, false));
+
         vm.expectRevert("only cell has collateral ratio");
         nayms.updateEntity(entityId1, initEntity(0, 1_000, 0, false));
 
