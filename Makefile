@@ -172,7 +172,7 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
-		--private-key ${OWNER_ACCOUNT_KEY}
+		--private-key ${OWNER_ACCOUNT_KEY} \
 		-vv \
 		--ffi \
 		--broadcast \
