@@ -19,7 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: recursive
+          submodules: true
+          token: ${{ secrets.REPO_SCOPED_TOKEN }}
 
       - name: Update path
         run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
