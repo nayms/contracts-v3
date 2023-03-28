@@ -176,6 +176,7 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 		-vv \
 		--ffi \
 		--broadcast \
+		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
 deploy: ## smart deploy to goerli
