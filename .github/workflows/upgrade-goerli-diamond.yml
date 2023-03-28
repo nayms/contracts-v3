@@ -52,7 +52,7 @@ jobs:
 
       - name: Set git identity
         run: |
-          git config --global user.email "nayms-engineering@nayms.com"
+          git config --global user.email "engineering@nayms.com"
           git config --global user.name "Nayms Engineering"
 
       - name: Commit broadcast files
