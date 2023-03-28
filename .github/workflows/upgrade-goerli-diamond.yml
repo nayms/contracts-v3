@@ -46,6 +46,7 @@ jobs:
         env:
           ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          OWNER_ACCOUNT_KEY: ${{ secrets.OWNER_ACCOUNT_KEY }}
         run: make schedule-upgrade-goerli
 
       - name: Set git identity
