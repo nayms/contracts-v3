@@ -228,7 +228,7 @@ deploy-sim: ## simulate smart deploy to goerli
 		--ffi
 
 anvil:	## run anvil with shared wallet
-	anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt --state anvil.json
+	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
 
 anvil-debug:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
