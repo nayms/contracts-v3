@@ -77,6 +77,11 @@ library LibObject {
         return (bytes(s.objectTokenSymbol[_objectId]).length != 0);
     }
 
+    function _tokenSymbolNotUsed(string memory _symbol) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.tokenSymbolObjectId[_symbol] == bytes32(0);
+    }
+
     function _enableObjectTokenization(
         bytes32 _objectId,
         string memory _symbol,
@@ -93,6 +98,7 @@ library LibObject {
         }
 
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
+        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
         require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
 
         s.objectTokenSymbol[_objectId] = _symbol;
