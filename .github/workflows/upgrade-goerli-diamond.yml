@@ -11,7 +11,7 @@ jobs:
     permissions:
       id-token: write
       packages: read
-      contents: read
+      contents: write
       security-events: write
     timeout-minutes: 15
     container:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-          token: ${{ secrets.REPO_SCOPED_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update path
         run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
