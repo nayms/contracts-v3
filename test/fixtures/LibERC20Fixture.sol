@@ -10,6 +10,10 @@ contract LibERC20Fixture {
         return LibERC20.decimals(_token);
     }
 
+    function symbol(address _token) external returns (string memory) {
+        return LibERC20.symbol(_token);
+    }
+
     function balanceOf(address _token, address _who) external returns (uint256) {
         return LibERC20.balanceOf(_token, _who);
     }

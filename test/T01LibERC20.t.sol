@@ -24,9 +24,10 @@ contract T01LibERC20 is D03ProtocolDefaults {
         fixture = new LibERC20Fixture();
         fixtureAddress = address(fixture);
 
-        bytes4[] memory funcSelectors = new bytes4[](2);
+        bytes4[] memory funcSelectors = new bytes4[](3);
         funcSelectors[0] = fixture.decimals.selector;
         funcSelectors[1] = fixture.balanceOf.selector;
+        funcSelectors[2] = fixture.symbol.selector;
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(fixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
@@ -44,6 +45,12 @@ contract T01LibERC20 is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.balanceOf.selector, _token, _who));
         require(success, "Should get holders balance via library fixture");
         return abi.decode(result, (uint256));
+    }
+
+    function getSymbol(address tokenAddress) internal returns (string memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.symbol.selector, tokenAddress));
+        require(success, "Should get token symbol via library fixture");
+        return abi.decode(result, (string));
     }
 
     function testBalanceOf() public {
@@ -117,5 +124,9 @@ contract T01LibERC20 is D03ProtocolDefaults {
     function getDecimalsOnZeroAddressFails() public {
         vm.expectRevert("Should get token decimals via library fixture");
         getDecimals(address(0));
+    }
+
+    function testSymbol() public {
+        assertEq(getSymbol(tokenAddress), "DUM", "invalid decimals");
     }
 }
