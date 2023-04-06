@@ -91,6 +91,7 @@ library LibObject {
         if (bytes(_symbol).length == 0) {
             revert MissingSymbolWhenEnablingTokenization(_objectId);
         }
+        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
         if (!s.existingEntities[_objectId]) {
@@ -99,10 +100,10 @@ library LibObject {
 
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
         require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
-        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
+        s.tokenSymbolObjectId[_symbol] = _objectId;
     }
 
     function _isObjectTokenWrapped(bytes32 _objectId) internal view returns (bool) {

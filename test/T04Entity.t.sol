@@ -13,6 +13,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+// solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
