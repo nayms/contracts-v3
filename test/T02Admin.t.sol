@@ -109,12 +109,20 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.isSupportedExternalToken(id));
     }
 
+    function testSupportedTokenSymbolUnique() public {
+        bytes32 entityId = createTestEntity(account0Id);
+        nayms.enableEntityTokenization(entityId, "WBTC", "Entity1 Token");
+
+        bytes32 wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
+        vm.expectRevert("token symbol already in use");
+        nayms.addSupportedExternalToken(wbtcAddress);
+    }
+
     function testAddSupportedExternalTokenIfAlreadyAdded() public {
         address[] memory orig = nayms.getSupportedExternalTokens();
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(wbtcAddress);
         nayms.addSupportedExternalToken(wbtcAddress);
 
         address[] memory v = nayms.getSupportedExternalTokens();

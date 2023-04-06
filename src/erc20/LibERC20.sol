@@ -10,11 +10,7 @@ import { IERC20 } from "./IERC20.sol";
 
 library LibERC20 {
     function decimals(address _token) internal returns (uint8) {
-        uint256 size;
-        assembly {
-            size := extcodesize(_token)
-        }
-        require(size > 0, "LibERC20: ERC20 token address has no code");
+        _assertNotEmptyContract(_token);
         (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.decimals.selector));
         if (success) {
             return abi.decode(result, (uint8));
@@ -23,12 +19,18 @@ library LibERC20 {
         }
     }
 
-    function balanceOf(address _token, address _who) internal returns (uint256) {
-        uint256 size;
-        assembly {
-            size := extcodesize(_token)
+    function symbol(address _token) internal returns (string memory) {
+        _assertNotEmptyContract(_token);
+        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.symbol.selector));
+        if (success) {
+            return abi.decode(result, (string));
+        } else {
+            revert("LibERC20: call to symbol() failed");
         }
-        require(size > 0, "LibERC20: ERC20 token address has no code");
+    }
+
+    function balanceOf(address _token, address _who) internal returns (uint256) {
+        _assertNotEmptyContract(_token);
         (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.balanceOf.selector, _who));
         if (success) {
             return abi.decode(result, (uint256));
@@ -43,11 +45,7 @@ library LibERC20 {
         address _to,
         uint256 _value
     ) internal {
-        uint256 size;
-        assembly {
-            size := extcodesize(_token)
-        }
-        require(size > 0, "LibERC20: ERC20 token address has no code");
+        _assertNotEmptyContract(_token);
         (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, _from, _to, _value));
         handleReturn(success, result);
     }
@@ -57,11 +55,7 @@ library LibERC20 {
         address _to,
         uint256 _value
     ) internal {
-        uint256 size;
-        assembly {
-            size := extcodesize(_token)
-        }
-        require(size > 0, "LibERC20: ERC20 token address has no code");
+        _assertNotEmptyContract(_token);
         (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.transfer.selector, _to, _value));
         handleReturn(success, result);
     }
@@ -82,5 +76,13 @@ library LibERC20 {
                 revert("LibERC20: transfer or transferFrom reverted");
             }
         }
+    }
+
+    function _assertNotEmptyContract(address _token) internal view {
+        uint256 size;
+        assembly {
+            size := extcodesize(_token)
+        }
+        require(size > 0, "LibERC20: ERC20 token address has no code");
     }
 }

@@ -53,7 +53,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         address notSysAdmin,
         address anotherSysAdmin
     ) public {
-        vm.assume(newOwner != anotherSysAdmin);
+        vm.assume(newOwner != anotherSysAdmin && newOwner != account0);
         vm.assume(anotherSysAdmin != address(0));
 
         bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));

@@ -792,9 +792,6 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testTokenSale() public {
-        // whitelist underlying token
-        nayms.addSupportedExternalToken(wethAddress);
-
         uint256 sellAmount = 1000;
         uint256 sellAtPrice = 1000;
 
