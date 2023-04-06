@@ -11,6 +11,7 @@ import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
     event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
+    event TokenInfoUpdated(bytes32 indexed objectId, string memory symbol, string memory name)
 
     function _createObject(
         bytes32 _objectId,
@@ -104,6 +105,25 @@ library LibObject {
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
         s.tokenSymbolObjectId[_symbol] = _objectId;
+    }
+
+    function _updateTokenInfo(
+        bytes32 _objectId,
+        string memory _symbol,
+        string memory _name
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
+        require(_isObjectTokenizable(_objectId), "object not tokenized");
+
+        string memory oldSymbol = s.objectTokenSymbol[_objectId];
+        delete s.tokenSymbolObjectId[oldSymbol];
+
+        s.objectTokenSymbol[_objectId] = _symbol;
+        s.objectTokenName[_objectId] = _name;
+        s.tokenSymbolObjectId[_symbol] = _objectId;
+
+        emit TokenInfoUpdated(_objectId, _symbol, _name);
     }
 
     function _isObjectTokenWrapped(bytes32 _objectId) internal view returns (bool) {
