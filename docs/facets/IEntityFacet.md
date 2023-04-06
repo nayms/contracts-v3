@@ -64,7 +64,7 @@ Enable an entity to be tokenized
 Update entity token name and symbol
 ```solidity
   function updateEntityTokenInfo(
-    bytes32 _objectId,
+    bytes32 _entityId,
     string _symbol,
     string _name
   ) external
@@ -72,7 +72,7 @@ Update entity token name and symbol
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_objectId` | bytes32 | ID of the entity
+|`_entityId` | bytes32 | ID of the entity
 |`_symbol` | string | New entity token symbol
 |`_name` | string | New entity token name|
 <br></br>

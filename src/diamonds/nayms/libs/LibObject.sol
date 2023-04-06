@@ -11,7 +11,7 @@ import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
     event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
-    event TokenInfoUpdated(bytes32 indexed objectId, string memory symbol, string memory name)
+    event TokenInfoUpdated(bytes32 indexed objectId, string symbol, string name);
 
     function _createObject(
         bytes32 _objectId,
