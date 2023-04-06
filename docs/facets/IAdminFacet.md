@@ -111,3 +111,42 @@ Check if object can be tokenized
 | --- | --- | --- |
 |`_objectId` | bytes32 | ID of the object|
 <br></br>
+### lockFunction
+System Admin can lock a function
+This toggles FunctionLockedStorage.lock to true
+```solidity
+  function lockFunction(
+    bytes4 functionSelector
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`functionSelector` | bytes4 | the bytes4 function selector|
+<br></br>
+### unlockFunction
+System Admin can unlock a function
+This toggles FunctionLockedStorage.lock to false
+```solidity
+  function unlockFunction(
+    bytes4 functionSelector
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`functionSelector` | bytes4 | the bytes4 function selector|
+<br></br>
+### isFunctionLocked
+Check if a function has been locked by a system admin
+This views FunctionLockedStorage.lock
+```solidity
+  function isFunctionLocked(
+    bytes4 functionSelector
+  ) external returns (bool)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`functionSelector` | bytes4 | the bytes4 function selector|
+<br></br>
