@@ -9,19 +9,19 @@ contract BadToken is IERC20 {
     mapping(address => mapping(address => uint256)) public allowance;
 
     function name() external view returns (string memory) {
-      revert("no name");
+        revert("no name");
     }
 
     function symbol() external view returns (string memory) {
-      revert("no symbol");
+        revert("no symbol");
     }
 
     function decimals() external view returns (uint8) {
-      revert("no decimals");
+        revert("no decimals");
     }
 
     function balanceOf(address who) external view returns (uint256) {
-      revert("not supported");
+        revert("not supported");
     }
 
     function transfer(address, uint256) external pure returns (bool) {

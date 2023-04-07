@@ -154,7 +154,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         (string memory eventTokenSymbol, string memory eventTokenName) = abi.decode(entries[0].data, (string, string));
         assertEq(newTokenSymbol, eventTokenSymbol, "TokenInfoUpdated: invalid token symbol");
         assertEq(newTokenName, eventTokenName, "TokenInfoUpdated: invalid token name");
-
     }
 
     function testUpdateEntity() public {
