@@ -57,7 +57,7 @@ library LibFeeRouter {
         // Pay Nayms, LTD commission
         LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), _tokenId, tc.commissionNaymsLtd);
 
-        // Pay Nayms Discretionsry Fund commission
+        // Pay Nayms Discretionary Fund commission
         LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), _tokenId, tc.commissionNDF);
 
         // Pay Staking Mechanism commission
@@ -66,7 +66,7 @@ library LibFeeRouter {
         // Pay market maker commission
         LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, tc.commissionMaker);
 
-        // Work it out again so the math is precise, ignoring remainers
+        // Work it out again so the math is precise, ignoring remainders
         commissionPaid_ = tc.totalCommissions;
 
         emit TradingCommissionsPaid(_takerId, _tokenId, commissionPaid_);
@@ -107,7 +107,7 @@ library LibFeeRouter {
         // Pay Nayms, LTD commission
         tc.commissionNaymsLtd = (s.tradingCommissionNaymsLtdBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
-        // Pay Nayms Discretionsry Fund commission
+        // Pay Nayms Discretionary Fund commission
         tc.commissionNDF = (s.tradingCommissionNDFBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
         // Pay Staking Mechanism commission
@@ -116,7 +116,7 @@ library LibFeeRouter {
         // Pay market maker commission
         tc.commissionMaker = (s.tradingCommissionMakerBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
-        // Work it out again so the math is precise, ignoring remainers
+        // Work it out again so the math is precise, ignoring remainders
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
     }
 

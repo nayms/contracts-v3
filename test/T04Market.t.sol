@@ -78,8 +78,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public virtual override {
         super.setUp();
 
-        // whitelist tokens
-        nayms.addSupportedExternalToken(wethAddress);
+        // whitelist WBTC as well
         nayms.addSupportedExternalToken(wbtcAddress);
 
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
@@ -324,9 +323,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.assume(1_000 < saleAmount && saleAmount < type(uint128).max);
         vm.assume(1_000 < salePrice && salePrice < type(uint128).max);
 
-        // whitelist underlying token
-        nayms.addSupportedExternalToken(wethAddress);
-
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
 
@@ -372,9 +368,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // avoid over/underflow issues
         vm.assume(1_000 < saleAmount && saleAmount < type(uint128).max);
         vm.assume(1_000 < salePrice && salePrice < type(uint128).max);
-
-        // whitelist underlying token
-        nayms.addSupportedExternalToken(wethAddress);
 
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
@@ -549,7 +542,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMatchingExternalTokenOnSellSide() public {
-        nayms.addSupportedExternalToken(wethAddress);
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
@@ -725,8 +717,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 offer3sell = 2000;
         uint256 offer3buy = 1000;
 
-        nayms.addSupportedExternalToken(wethAddress);
-
         // OFFER 1: 2000 pTokens -> 2000 WETH
         writeTokenBalance(account0, naymsAddress, wethAddress, e1balance);
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
@@ -758,8 +748,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function testNotAbleToTradeWithLockedFunds() public {
         uint256 salePrice = 100 ether;
         uint256 saleAmount = 100 ether;
-
-        nayms.addSupportedExternalToken(wethAddress);
 
         bytes32 e1Id = DEFAULT_UNDERWRITER_ENTITY_ID;
 

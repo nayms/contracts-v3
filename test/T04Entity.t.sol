@@ -13,6 +13,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+// solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
@@ -121,10 +122,38 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("symbol must be less than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
 
+        vm.prank(signer1);
+        vm.expectRevert("not a system admin");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        vm.stopPrank();
+
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
         vm.expectRevert("object already tokenized");
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+    }
+
+    function testUpdateEntityTokenInfo() public {
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, false), "entity test hash");
+        nayms.enableEntityTokenization(entityId1, "TT", "Test Token");
+
+        string memory newTokenSymbol = "nTT";
+        string memory newTokenName = "New Test Token";
+        vm.prank(signer1);
+        vm.expectRevert("not a system admin");
+        nayms.updateEntityTokenInfo(entityId1, newTokenSymbol, newTokenName);
+        vm.stopPrank();
+
+        vm.recordLogs();
+        nayms.updateEntityTokenInfo(entityId1, newTokenSymbol, newTokenName);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2, "TokenInfoUpdated: topics length incorrect");
+        assertEq(entries[0].topics[0], keccak256("TokenInfoUpdated(bytes32,string,string)"), "TokenInfoUpdated: Invalid event signature");
+        assertEq(entries[0].topics[1], entityId1, "TokenInfoUpdated: incorrect entityID");
+        (string memory eventTokenSymbol, string memory eventTokenName) = abi.decode(entries[0].data, (string, string));
+        assertEq(newTokenSymbol, eventTokenSymbol, "TokenInfoUpdated: invalid token symbol");
+        assertEq(newTokenName, eventTokenName, "TokenInfoUpdated: invalid token name");
     }
 
     function testUpdateEntity() public {
@@ -188,7 +217,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, amount);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), amount);
 
-        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS shoud be locked");
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS should be locked");
 
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         uint256 expectedLockedBalance = (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR;
@@ -791,9 +820,6 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testTokenSale() public {
-        // whitelist underlying token
-        nayms.addSupportedExternalToken(wethAddress);
-
         uint256 sellAmount = 1000;
         uint256 sellAtPrice = 1000;
 

@@ -68,11 +68,14 @@ contract D03ProtocolDefaults is D02TestSetup {
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
 
-    function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
-        // create entity with signer2 as child
-        entityId = "0xe1";
+    function createTestEntity(bytes32 adminId) internal returns (bytes32) {
+        return createTestEntityWithId(adminId, "0xe1");
+    }
+
+    function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
         Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
+        return entityId;
     }
 
     function initEntity(

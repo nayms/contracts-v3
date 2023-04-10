@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+// solhint-disable no-global-import
 import "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
+import { BadToken } from "./utils/BadToken.sol";
 import { LibERC20Fixture } from "./fixtures/LibERC20Fixture.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 contract T01LibERC20 is D03ProtocolDefaults {
     DummyToken private token;
     address private tokenAddress;
+
+    BadToken private badToken;
+    address private badTokenAddress;
 
     LibERC20Fixture private fixture;
     address private fixtureAddress;
@@ -21,12 +26,16 @@ contract T01LibERC20 is D03ProtocolDefaults {
         token = new DummyToken();
         tokenAddress = address(token);
 
+        badToken = new BadToken();
+        badTokenAddress = address(badToken);
+
         fixture = new LibERC20Fixture();
         fixtureAddress = address(fixture);
 
-        bytes4[] memory funcSelectors = new bytes4[](2);
+        bytes4[] memory funcSelectors = new bytes4[](3);
         funcSelectors[0] = fixture.decimals.selector;
         funcSelectors[1] = fixture.balanceOf.selector;
+        funcSelectors[2] = fixture.symbol.selector;
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(fixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
@@ -34,8 +43,8 @@ contract T01LibERC20 is D03ProtocolDefaults {
         nayms.diamondCut(cut, address(0), "");
     }
 
-    function getDecimals(address tokenAddress) internal returns (uint8) {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.decimals.selector, tokenAddress));
+    function getDecimals(address _tokenAddress) internal returns (uint8) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.decimals.selector, _tokenAddress));
         require(success, "Should get token decimals via library fixture");
         return abi.decode(result, (uint8));
     }
@@ -44,6 +53,12 @@ contract T01LibERC20 is D03ProtocolDefaults {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.balanceOf.selector, _token, _who));
         require(success, "Should get holders balance via library fixture");
         return abi.decode(result, (uint256));
+    }
+
+    function getSymbol(address _tokenAddress) internal returns (string memory) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(fixture.symbol.selector, _tokenAddress));
+        require(success, "Should get token symbol via library fixture");
+        return abi.decode(result, (string));
     }
 
     function testBalanceOf() public {
@@ -114,8 +129,23 @@ contract T01LibERC20 is D03ProtocolDefaults {
         assertEq(getDecimals(tokenAddress), 18, "invalid decimals");
     }
 
+    function testBadTokenCalls() public {
+        vm.expectRevert("LibERC20: call to symbol() failed");
+        getSymbol(badTokenAddress);
+
+        vm.expectRevert("LibERC20: call to decimals() failed");
+        getDecimals(badTokenAddress);
+
+        vm.expectRevert("LibERC20: call to balanceOf() failed");
+        getBalanceOf(badTokenAddress, account0);
+    }
+
     function getDecimalsOnZeroAddressFails() public {
         vm.expectRevert("Should get token decimals via library fixture");
         getDecimals(address(0));
+    }
+
+    function testSymbol() public {
+        assertEq(getSymbol(tokenAddress), "DUM", "invalid decimals");
     }
 }
