@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { Vm } from "forge-std/Vm.sol";
-
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
@@ -18,6 +16,6 @@ contract TNaymsToken is D03ProtocolDefaults {
     }
 
     function testNaymsBalanceOf() public {
-        assertEq(nayms.balanceOf(account0), 100_000_000e18, "account0 should have 100_000_000");
+        assertEq(nayms.balanceOf(deployer), 100_000_000e18, "account0 should have 100_000_000");
     }
 }

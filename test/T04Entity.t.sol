@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { Vm } from "forge-std/Vm.sol";
-
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, Vm, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
@@ -15,7 +13,7 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
-    bytes32 internal entityId1 = "0xe1";
+    bytes32 internal entityId1 = 0xee10000000000000000000000000000000000000000000000000000000000000;
     bytes32 internal policyId1 = "0xC0FFEE";
     bytes32 public testPolicyDataHash = "test";
     bytes32 public policyHashedTypedData;
@@ -45,7 +43,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(simplePolicyFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
     }
 
     function getSimplePolicy(bytes32 _policyId) internal returns (SimplePolicy memory) {
@@ -54,8 +52,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         return abi.decode(result, (SimplePolicy));
     }
 
-    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory simplePolicy) internal {
-        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, simplePolicy));
+    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory _simplePolicy) internal {
+        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, _simplePolicy));
         require(success, "Should update simple policy in app storage");
     }
 
@@ -79,7 +77,16 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testDomainSeparator() public {
         bytes32 domainSeparator = nayms.domainSeparatorV4();
 
-        bytes32 expected = bytes32(0x38c40ddfc309275c926499b83dd3de3a9c824318ef5204fd7ae58f823f845291);
+        // bytes32 expected = bytes32(0x38c40ddfc309275c926499b83dd3de3a9c824318ef5204fd7ae58f823f845291);
+        bytes32 expected = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("Nayms")),
+                keccak256("1"),
+                block.chainid,
+                naymsAddress
+            )
+        );
         assertEq(domainSeparator, expected);
 
         // change chain id
@@ -122,11 +129,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("symbol must be less than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
 
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not a system admin");
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
         vm.expectRevert("object already tokenized");
@@ -139,11 +146,11 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         string memory newTokenSymbol = "nTT";
         string memory newTokenName = "New Test Token";
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not a system admin");
         nayms.updateEntityTokenInfo(entityId1, newTokenSymbol, newTokenName);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         vm.recordLogs();
         nayms.updateEntityTokenInfo(entityId1, newTokenSymbol, newTokenName);
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -293,10 +300,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
 
-        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        Stakeholders memory stakeholders2 = Stakeholders(roles, entityIds, signatures);
 
         vm.expectRevert(abi.encodeWithSelector(DuplicateSignerCreatingSimplePolicy.selector, alice, bob));
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders2, simplePolicy, testPolicyDataHash);
     }
 
     function testSignatureWhenCreatingSimplePolicy() public {
@@ -336,9 +343,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
 
-        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        Stakeholders memory stakeholders2 = Stakeholders(roles, entityIds, signatures);
 
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders2, simplePolicy, testPolicyDataHash);
     }
 
     function testCreateSimplePolicyValidation() public {
@@ -382,11 +389,11 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // test caller is system manager
         vm.expectRevert("not a system manager");
-        vm.prank(account9);
+        changePrank(account9);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        vm.stopPrank();
 
         // test capacity
+        changePrank(systemAdmin);
         vm.expectRevert("not enough available capacity");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
@@ -405,18 +412,21 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, 100000);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), 100000);
 
+        uint256 blockTimestampBeforeWarp = block.timestamp;
+
         // start date too early
         vm.warp(1);
         simplePolicy.startDate = block.timestamp - 1;
         vm.expectRevert("start date < block.timestamp");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        simplePolicy.startDate = 1000;
+
+        vm.warp(blockTimestampBeforeWarp);
 
         // start date after maturation date
         simplePolicy.startDate = simplePolicy.maturationDate;
         vm.expectRevert("start date > maturation date");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        simplePolicy.startDate = 1000;
+        simplePolicy.startDate = block.timestamp + 1000; // reset to default test value
 
         // commission receivers
         vm.expectRevert("must have commission receivers");
@@ -517,7 +527,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             assertEq(nayms.getEntity(signerId), stakeholders.entityIds[i], "must be parent");
 
             // change parent
-            nayms.setEntity(signerId, bytes32("e0"));
+            nayms.setEntity(signerId, DEFAULT_ACCOUNT0_ENTITY_ID);
 
             // try creating
             vm.expectRevert();
@@ -736,7 +746,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("not a policy handler");
         nayms.paySimplePremium(policyId1, 1000);
 
-        vm.startPrank(signer2);
+        changePrank(signer2);
 
         simplePolicy.cancelled = true;
         updateSimplePolicy(policyId1, simplePolicy);
@@ -754,7 +764,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.startPrank(signer4);
         writeTokenBalance(signer4, naymsAddress, wethAddress, 100000);
         nayms.externalDeposit(wethAddress, 100000);
-        vm.stopPrank();
         assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), 100000);
 
         // test commissions
@@ -764,9 +773,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             uint256 premiumAmount = 10000;
             uint256 balanceBeforePremium = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId);
 
-            vm.startPrank(signer4);
             nayms.paySimplePremium(policyId1, premiumAmount);
-            vm.stopPrank();
 
             uint256 netPremiumAmount = premiumAmount;
             for (uint256 i = 0; i < simplePolicy.commissionReceivers.length; ++i) {
@@ -779,6 +786,8 @@ contract T04EntityTest is D03ProtocolDefaults {
             assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), balanceBeforePremium - premiumAmount);
         }
 
+        changePrank(systemAdmin);
+
         simplePolicy.cancelled = true;
         updateSimplePolicy(policyId1, simplePolicy);
         vm.expectRevert("Policy is cancelled");
@@ -787,10 +796,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.cancelled = false;
         updateSimplePolicy(policyId1, simplePolicy);
 
-        vm.prank(account9);
+        changePrank(account9);
+
         vm.expectRevert("not a system manager");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10000);
-        vm.stopPrank();
+
+        changePrank(systemAdmin);
 
         vm.expectRevert("not an insured party");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, 0, 10000);
@@ -826,18 +837,22 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId1, account0Id, entity1, "entity test hash");
 
-        assertEq(nayms.getLastOfferId(), 0);
+        uint256 startingLastOfferId = nayms.getLastOfferId();
+        // local deployment won't have any offers yet
+        if (block.chainid == 31337) {
+            assertEq(startingLastOfferId, 0);
+        }
 
         vm.expectRevert("must be tokenizable");
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
         nayms.enableEntityTokenization(entityId1, "e1token", "e1token");
 
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system manager");
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         vm.expectRevert("mint amount must be > 0");
         nayms.startTokenSale(entityId1, 0, sellAtPrice);
 
@@ -847,7 +862,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
         uint256 lastOfferId = nayms.getLastOfferId();
-        assertEq(lastOfferId, 1);
+        assertEq(lastOfferId, startingLastOfferId + 1);
 
         MarketInfo memory marketInfo = nayms.getOffer(lastOfferId);
         assertEq(marketInfo.creator, entityId1);
@@ -901,7 +916,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
 
         getReadyToCreatePolicies();
 

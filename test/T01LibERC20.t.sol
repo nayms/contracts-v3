@@ -2,8 +2,6 @@
 pragma solidity 0.8.17;
 
 // solhint-disable no-global-import
-import "forge-std/Test.sol";
-import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { BadToken } from "./utils/BadToken.sol";
@@ -40,7 +38,7 @@ contract T01LibERC20 is D03ProtocolDefaults {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(fixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
     }
 
     function getDecimals(address _tokenAddress) internal returns (uint8) {
@@ -99,10 +97,11 @@ contract T01LibERC20 is D03ProtocolDefaults {
         assertEq(token.balanceOf(signer1), 100);
         assertEq(token.balanceOf(account0), 0);
 
-        vm.prank(signer1);
+        changePrank(signer1);
         token.approve(fixtureAddress, 200);
         assertEq(token.allowance(signer1, fixtureAddress), 200);
 
+        changePrank(account0);
         vm.expectRevert("LibERC20: ERC20 token address has no code");
         fixture.transferFrom(address(0), signer1, account0, 1);
 

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+// solhint-disable-next-line no-global-import
+import "./defaults/D03ProtocolDefaults.sol";
+
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
-import { Vm } from "forge-std/Vm.sol";
 import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
@@ -28,9 +29,8 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     function testUnassignSystemAdmin() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
-        vm.prank(signer1);
+        changePrank(signer1);
         nayms.unassignRole(account0Id, systemContext);
-        vm.stopPrank();
     }
 
     function testDeployerAssignRoleToAnotherObject() public {
@@ -107,7 +107,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // signer1 tries to assign to signer2
         assertFalse(nayms.canAssign(signer1Id, signer2Id, context, role), "signer1 CAN assign role to signer2 when they SHOULDN'T be able to.");
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.assignRole(signer2Id, context, role);
     }
@@ -123,7 +123,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // signer2 tries to assign to signer3
         assertTrue(nayms.canAssign(signer2Id, signer3Id, context, role));
-        vm.prank(signer2);
+        changePrank(signer2);
         nayms.assignRole(signer3Id, context, role);
     }
 
@@ -136,7 +136,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // signer3 makes signer2 an approved user
         assertTrue(nayms.canAssign(signer3Id, signer2Id, context, role));
-        vm.prank(signer3);
+        changePrank(signer3);
         nayms.assignRole(signer2Id, context, role);
         assertTrue(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
     }
@@ -151,7 +151,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(signer1Id, context, role);
 
         // signer1 tries to unassign to signer2
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.unassignRole(signer2Id, context);
     }
@@ -162,13 +162,15 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // assign the role
         testAssignersCanAssignRole();
 
+        changePrank(account0);
+
         // create entity with signer1 as child
         bytes32 entityId1 = createTestEntity(signer1Id);
         // assign entity as system manager
         nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
         // signer1 tries to unassign to signer2
-        vm.prank(signer1);
+        changePrank(signer1);
         nayms.unassignRole(signer2Id, context);
     }
 
@@ -179,12 +181,12 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         testAssignersCanAssignRole();
 
         // signer1 tries to unassign signer2 as approved user
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.unassignRole(signer2Id, context);
 
         // signer3 can unassign signer2 as approved user
-        vm.prank(signer3);
+        changePrank(signer3);
         nayms.unassignRole(signer2Id, context);
         assertFalse(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
     }
@@ -196,7 +198,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // signer3 makes signer2 an approved user
         testAssignersCanAssignRole();
 
-        vm.prank(signer3);
+        changePrank(signer3);
         vm.recordLogs();
 
         nayms.unassignRole(signer2Id, context);
@@ -263,7 +265,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testUpdateRoleAssignerFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.updateRoleAssigner("role", "group");
         vm.stopPrank();
@@ -292,7 +294,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testUpdateRoleGroupFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.updateRoleGroup("role", "group", false);
         vm.stopPrank();

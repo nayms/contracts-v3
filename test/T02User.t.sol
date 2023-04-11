@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+// solhint-disable-next-line no-global-import
+import "./defaults/D03ProtocolDefaults.sol";
+
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
-import { Vm } from "forge-std/Vm.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02UserTest is D03ProtocolDefaults, MockAccounts {
@@ -21,7 +22,7 @@ contract T02UserTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetEntityFailsIfNotSysAdmin() public {
-        vm.prank(signer2);
+        changePrank(signer2);
         vm.expectRevert("not a system admin");
         nayms.setEntity(account0Id, bytes32(0));
     }

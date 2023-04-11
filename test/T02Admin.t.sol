@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+// solhint-disable-next-line no-global-import
+import "./defaults/D03ProtocolDefaults.sol";
+
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
-import { Vm } from "forge-std/Vm.sol";
 import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut, ITokenizedVaultIOFacet } from "src/diamonds/nayms/INayms.sol";
 import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
@@ -27,7 +28,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
     }
 
     function testGetSystemId() public {
@@ -39,7 +40,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetMaxDividendDenominationsFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.setMaxDividendDenominations(100);
         vm.stopPrank();
@@ -71,7 +72,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.addSupportedExternalToken(wethAddress);
         vm.stopPrank();
@@ -156,11 +157,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         });
 
         // must be sys admin
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system admin");
         nayms.setTradingCommissionsBasisPoints(s);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         // assert happy path
         nayms.setTradingCommissionsBasisPoints(s);
 
@@ -182,11 +183,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         });
 
         // must be sys admin
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system admin");
         nayms.setPolicyCommissionsBasisPoints(s);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         nayms.setPolicyCommissionsBasisPoints(s);
 
         PolicyCommissionsBasisPoints memory result = getPremiumCommissions();
@@ -204,7 +205,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {
         bytes32 userId = LibHelpers._getIdForAddress(userAddress);
-        vm.startPrank(userAddress);
+        changePrank(userAddress);
         if (nayms.isInGroup(userId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS)) {
             nayms.lockFunction(bytes4(0x12345678));
 
@@ -223,11 +224,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testLockFunction() public {
         // must be sys admin
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system admin");
         nayms.lockFunction(bytes4(0x12345678));
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         // assert happy path
         nayms.lockFunction(bytes4(0x12345678));
 
@@ -238,7 +239,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         bytes32 nWETH = LibHelpers._getIdForAddress(wethAddress);
 
         // deposit
-        writeTokenBalance(account0, naymsAddress, wethAddress, 1 ether);
+        deal(wethAddress, account0, 1 ether, true);
+        weth.approve(naymsAddress, 1 ether);
+
         nayms.externalDeposit(wethAddress, 1 ether);
 
         assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "entity1 lost internal WETH");

@@ -12,7 +12,7 @@ struct TradingCommissionsConfig {
 }
 
 contract TradingCommissionsFixture {
-    function getCommissionsConfig() public returns (TradingCommissionsConfig memory config_) {
+    function getCommissionsConfig() public view returns (TradingCommissionsConfig memory config_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         config_ = TradingCommissionsConfig({
             tradingCommissionTotalBP: s.tradingCommissionTotalBP,

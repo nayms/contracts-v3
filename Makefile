@@ -46,7 +46,7 @@ bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
 test: ## forge test local, alias t
-	forge test
+	forge test --code-size-limit 300000
 t: test
 
 tt: ## forge test local -vv
@@ -60,7 +60,6 @@ tttt: ## forge test local -vvvv
 
 test-goerli: ## test forking goerli with match test regex, i.e. `make test-goerli MT=testStartTokenSale`
 	forge test -f ${ETH_GOERLI_RPC_URL} \
-		--fork-block-number 7602168 \
 		--mt $(MT) \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		-vvvv
@@ -68,7 +67,6 @@ tg:	test-goerli
 
 test-mainnet: ## test forking mainnet with match test regex, i.e. `make test-mainnet MT=testStartTokenSale`
 	forge test -f ${ETH_MAINNET_RPC_URL} \
-		--fork-block-number 7602168 \
 		--mt $(MT) \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		-vvvv

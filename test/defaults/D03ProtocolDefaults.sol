@@ -1,26 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
+// solhint-disable-next-line no-global-import
+import "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Entity, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-/// @notice Default test setup part 03
-///         Protocol / project level defaults
-///         Setup internal token IDs, entities,
+/*
+ * D03ProtocolDefaults (D03ProtocolDefaults.sol)
+ *
+ * This file is responsible for setting up protocol-specific configurations,
+ * variables, and defaults required for testing.
+ *
+ * Key features and responsibilities of this file include:
+ *   - Defining protocol-specific variables or configurations.
+ *   - Setting default values for protocol-specific settings.
+ *   - Providing helper functions or utilities specific to the protocol being
+ *     tested.
+ *
+ * The D03ProtocolDefaults.sol file should focus on providing protocol-specific
+ * settings and configurations that are essential for conducting accurate and
+ * reliable tests.
+ */
+
 contract D03ProtocolDefaults is D02TestSetup {
-    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(address(this));
     bytes32 public naymsTokenId;
+    bytes32 public wethId;
+    bytes32 public wbtcId;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
 
-    bytes32 public constant DEFAULT_ACCOUNT0_ENTITY_ID = bytes32("e0");
-    bytes32 public constant DEFAULT_UNDERWRITER_ENTITY_ID = bytes32("e1");
-    bytes32 public constant DEFAULT_BROKER_ENTITY_ID = bytes32("e2");
-    bytes32 public constant DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = bytes32("e3");
-    bytes32 public constant DEFAULT_INSURED_PARTY_ENTITY_ID = bytes32("e4");
+    bytes32 public constant DEFAULT_ACCOUNT0_ENTITY_ID = 0xe000000000000000000000000000000000000000000000000000000000000000;
+    bytes32 public constant DEFAULT_UNDERWRITER_ENTITY_ID = 0xe100000000000000000000000000000000000000000000000000000000000000;
+    bytes32 public constant DEFAULT_BROKER_ENTITY_ID = 0xe200000000000000000000000000000000000000000000000000000000000000;
+    bytes32 public constant DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = 0xe300000000000000000000000000000000000000000000000000000000000000;
+    bytes32 public constant DEFAULT_INSURED_PARTY_ENTITY_ID = 0xe400000000000000000000000000000000000000000000000000000000000000;
 
     // deriving public keys from private keys
     address public immutable signer1 = vm.addr(0xACC2);
@@ -49,6 +65,9 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
+        wethId = LibHelpers._getIdForAddress(wethAddress);
+        wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
+
         nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({
@@ -74,6 +93,7 @@ contract D03ProtocolDefaults is D02TestSetup {
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
         Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
+
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
         return entityId;
     }
@@ -91,11 +111,11 @@ contract D03ProtocolDefaults is D02TestSetup {
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 
-    function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicy(bytes32 offchainDataHash) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         return initPolicyWithLimit(offchainDataHash, 10_000);
     }
 
-    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -118,8 +138,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         commissions[1] = 10;
         commissions[2] = 10;
 
-        policy.startDate = 1000;
-        policy.maturationDate = 10000;
+        policy.startDate = block.timestamp + 1000;
+        policy.maturationDate = block.timestamp + 10000;
         policy.asset = wethId;
         policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;
@@ -137,7 +157,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
     }
 
-    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal returns (bytes memory sig_) {
+    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
