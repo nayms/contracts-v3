@@ -132,19 +132,19 @@ Below are several examples on how you would use the smart deploy scripts.
 For a __fresh new deployment__ of the entire project, execute this command:
 
 ```zsh
-make deploy-sim newDiamond=true initNewDiamond=true facetAction=0
+make deploy-sepolia-sim newDiamond=true initNewDiamond=true facetAction=0
 ```
 
 To __upgrade the facets that have been changed__ since the last deployment, run the following:
 
 ```zsh
-make deploy-sim newDiamond=false initNewDiamond=false facetAction=1
+make deploy-sepolia-sim newDiamond=false initNewDiamond=false facetAction=1
 ```
 
 To __upgrade specific set of facets__, run command like this one:
 
 ```zsh
-make deploy-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
+make deploy-sepolia-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
 ```
 
 Include a bytes32 salt to deploy the diamond with a deterministic address. Including a salt will first deploy a contract that is used to predetermine the diamond deployment address. If a salt is not included, then the script will deploy the diamond non-deterministically. Currently, there is a default deployment salt given in the make file.

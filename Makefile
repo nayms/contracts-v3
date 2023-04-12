@@ -177,7 +177,7 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
-deploy: ## smart deploy to goerli
+deploy-goerli: ## smart deploy to goerli
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_GOERLI_RPC_URL} \
@@ -191,6 +191,41 @@ deploy: ## smart deploy to goerli
 		--broadcast \
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
+
+deploy-goerli-sim: ## simulate smart deploy to goerli
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		-vv \
+		--ffi
+
+deploy-sepolia: ## smart deploy to sepolia
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+
+deploy-sepolia-sim: ## simulate smart deploy to sepolia
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		-vv \
+		--ffi
 
 deploy-mainnet: ## smart deploy to mainnet
 	@forge script SmartDeploy \
@@ -216,16 +251,6 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 		--sender ${senderAddress} \
 		-vv \
 		--ffi 
-
-deploy-sim: ## simulate smart deploy to goerli
-	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
-		-vv \
-		--ffi
 
 anvil:	## run anvil with shared wallet
 	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
