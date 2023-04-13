@@ -36,6 +36,16 @@ library LibTokenizedVault {
      */
     event DividendDistribution(bytes32 indexed guid, bytes32 from, bytes32 to, bytes32 dividendTokenId, uint256 amount);
 
+    /**
+     * @dev Emitted when a dividend gets payed out.
+     * @param accountId ID of the account withdrawing the dividend
+     * @param tokenId ID of the participation token that is paying out the dividends to holders
+     * @param amountOwned owned amount of the participation tokens
+     * @param dividendTokenId ID of the dividend denomination token
+     * @param dividendAmountWithdrawn amount withdrawn
+     */
+    event DividendWithdrawn(bytes32 indexed accountId, bytes32 tokenId, uint256 amountOwned, bytes32 dividendTokenId, uint256 dividendAmountWithdrawn);
+
     function _internalBalanceOf(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.tokenBalances[_tokenId][_ownerId];
@@ -188,6 +198,7 @@ library LibTokenizedVault {
 
             emit InternalTokenBalanceUpdate(dividendBankId, _dividendTokenId, s.tokenBalances[_dividendTokenId][dividendBankId], "_withdrawDividend", msg.sender);
             emit InternalTokenBalanceUpdate(_ownerId, _dividendTokenId, s.tokenBalances[_dividendTokenId][_ownerId], "_withdrawDividend", msg.sender);
+            emit DividendWithdrawn(_ownerId, _tokenId, amountOwned, _dividendTokenId, withdrawableDividend);
         }
     }
 
