@@ -41,8 +41,15 @@ library LibACL {
         require(_contextId != "", "invalid context ID");
         require(_roleId != "", "invalid role ID");
 
-        s.roles[_objectId][_contextId] = _roleId;
+        bytes32 oldRole = s.roles[_objectId][_contextId];
+        if (_contextId == LibAdmin._getSystemId() && oldRole == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN) && oldRole != _roleId) {
+            require(s.sysAdmins > 1, "must have at least one system admin");
+            unchecked {
+                s.sysAdmins -= 1;
+            }
+        }
 
+        s.roles[_objectId][_contextId] = _roleId;
         if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
             unchecked {
                 s.sysAdmins += 1;

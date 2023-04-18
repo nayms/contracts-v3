@@ -1027,7 +1027,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         bytes32 eBob = nayms.getEntity(signer1Id);
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
         nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
-        
 
         // 1. Alice starts with 500 WETH in its internal balance
         nayms.externalDeposit(wethAddress, eAliceStartAmount);
@@ -1036,18 +1035,18 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // 2. Alice starts a sale, selling 100 ALICE tokens for 100 WETH;
         uint256 tokenAmount = 100e18;
         nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
-        
+
         // 3. Now Alice owns 100 ALICE but they are locked;
         assertEq(nayms.internalBalanceOf(eAlice, eAlice), tokenAmount, "eAlice's nWETH balance should INCREASE");
 
         // 4. Alice pays 100 WETH as a dividend;
         nayms.payDividendFromEntity("0x1", 100 ether);
-        
+
         // 5. Alice pays 100 WETH as a dividend;
         nayms.payDividendFromEntity("0x2", 100 ether);
 
-        // 6. Bob buys all 100 ALICE from Alice. Here, during the transfer, 
-        //    Alice would have withdrawn the 200 WETH dividend owed to her, 
+        // 6. Bob buys all 100 ALICE from Alice. Here, during the transfer,
+        //    Alice would have withdrawn the 200 WETH dividend owed to her,
         //    so her balance is 600 WETH (300 + 200 for dividend + 100 from Bob's purchase);
         vm.startPrank(bob);
         writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
