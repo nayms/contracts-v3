@@ -255,6 +255,14 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 anvil:	## run anvil with shared wallet
 	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
 
+anvil-docker:	## run anvil in a container
+	docker run -d \
+		-p 8545:8545 \
+		--mount src=`pwd`,target=/nayms,type=bind \
+		--name anvil \
+		ghcr.io/nayms/contracts-builder:latest \
+		-c "cd nayms && make anvil"
+
 anvil-debug:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
