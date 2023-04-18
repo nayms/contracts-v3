@@ -25,6 +25,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         nayms.unassignRole(account0Id, systemContext);
     }
 
+    function testReassignLastSystemAdminFails() public {
+        vm.expectRevert("must have at least one system admin");
+        nayms.assignRole(account0Id, systemContext, LibConstants.ROLE_BROKER);
+    }
+
     function testUnassignSystemAdmin() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
