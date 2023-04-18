@@ -244,9 +244,9 @@ library LibTokenizedVault {
 
             // keep track of the dividend denominations
             // if dividend has not yet been issued in this token, add it to the list and update mappings
-            if (s.dividendDenominationIndex[_to][_dividendTokenId] == 0) {
+            if (s.dividendDenominationIndex[_to][_dividendTokenId] == 0 && s.dividendDenominationAtIndex[_to][0] != _dividendTokenId) {
                 // We must limit the number of different tokens dividends are paid in
-                if (s.dividendDenominations[_to].length > LibAdmin._getMaxDividendDenominations()) {
+                if (s.dividendDenominations[_to].length >= LibAdmin._getMaxDividendDenominations()) {
                     revert("exceeds max div denominations");
                 }
 

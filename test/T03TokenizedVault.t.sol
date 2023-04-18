@@ -11,6 +11,7 @@ import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
 // solhint-disable max-states-count
+// solhint-disable no-console
 contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     using FixedPointMathLib for uint256;
 
@@ -974,6 +975,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 tokenAmount = 1e18;
         nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
         nayms.externalDeposit(wethAddress, 1 ether);
+        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether, "eAlice's nWETH balance should INCREASE");
         // eAlice is paying out a dividend with guid 0x1
         nayms.payDividendFromEntity("0x1", 1 ether);
 
@@ -1015,6 +1017,61 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // This SHOULD NOT fail because nayms.getWithdrawableDividend(eBob, eAlice, nWETH) will return 0, so Bob will not receive the new dividend.
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 2 ether, "eBob's current balance should increase by 1ETH after receiving dividend.");
         vm.stopPrank();
+    }
+
+    function testDoubleCountingDividendPayoutsFix() public {
+        uint256 eAliceStartAmount = 500 ether;
+        address alice = account0;
+        address bob = signer1;
+        bytes32 eAlice = nayms.getEntity(account0Id);
+        bytes32 eBob = nayms.getEntity(signer1Id);
+        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        
+
+        // 1. Alice starts with 500 WETH in its internal balance
+        nayms.externalDeposit(wethAddress, eAliceStartAmount);
+        assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount, "eAlice's nWETH balance should INCREASE");
+
+        // 2. Alice starts a sale, selling 100 ALICE tokens for 100 WETH;
+        uint256 tokenAmount = 100e18;
+        nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
+        
+        // 3. Now Alice owns 100 ALICE but they are locked;
+        assertEq(nayms.internalBalanceOf(eAlice, eAlice), tokenAmount, "eAlice's nWETH balance should INCREASE");
+
+        // 4. Alice pays 100 WETH as a dividend;
+        nayms.payDividendFromEntity("0x1", 100 ether);
+        
+        // 5. Alice pays 100 WETH as a dividend;
+        nayms.payDividendFromEntity("0x2", 100 ether);
+
+        // 6. Bob buys all 100 ALICE from Alice. Here, during the transfer, 
+        //    Alice would have withdrawn the 200 WETH dividend owed to her, 
+        //    so her balance is 600 WETH (300 + 200 for dividend + 100 from Bob's purchase);
+        vm.startPrank(bob);
+        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        TradingCommissions memory tc = nayms.calculateTradingCommissions(tokenAmount);
+        nayms.externalDeposit(wethAddress, tokenAmount + tc.totalCommissions);
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), tokenAmount + tc.totalCommissions, "eBob's nWETH balance should INCREASE");
+        nayms.executeLimitOffer(nWETH, tokenAmount, eAlice, tokenAmount);
+        assertEq(nayms.internalBalanceOf(eBob, eAlice), tokenAmount, "eBob's eAlice balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's nWETH balance should INCREASE");
+        vm.stopPrank();
+
+        // 7. Bob transfers all 100 ALICE back to Alice;
+        vm.startPrank(bob);
+        nayms.internalTransferFromEntity(eAlice, eAlice, tokenAmount);
+        assertEq(nayms.internalBalanceOf(eAlice, eAlice), tokenAmount, "eAlice's eAlice balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(eBob, eAlice), 0, "eAlice's eAlice balance should INCREASE");
+        vm.stopPrank();
+
+        // 8. Alice pays 500 WETH as a dividend;
+        nayms.payDividendFromEntity("0x3", eAliceStartAmount);
+
+        // 9. Alice tries to withdraw the 500 WETH dividend, should withdraw all 500 WETH
+        nayms.withdrawDividend(eAlice, eAlice, nWETH);
+        assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's current balance should increase by 500 WETH after receiving dividend.");
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
