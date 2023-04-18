@@ -957,9 +957,64 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
     }
 
-    function testWithdrawableDividenWhenPurchasedAfterDistribution() public {
+    function testWithdrawableDividendWhenPurchasedAfterDistribution() public {
         // test specific values
         testFuzzWithdrawableDividends(1_000 ether, 10, 100 ether);
+    }
+
+    function testReceivingDividendAfterTokenTrading() public {
+        address alice = account0;
+        address bob = signer1;
+        bytes32 eAlice = nayms.getEntity(account0Id);
+        bytes32 eBob = nayms.getEntity(signer1Id);
+        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+
+        // STAGE 1: Alice is starting an eAlice token sale.
+        uint256 tokenAmount = 1e18;
+        nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
+        nayms.externalDeposit(wethAddress, 1 ether);
+        // eAlice is paying out a dividend with guid 0x1
+        nayms.payDividendFromEntity("0x1", 1 ether);
+
+        // STAGE 2: Bob is trying to buy all of the newly sold eAlice Tokens.
+        vm.startPrank(bob);
+        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        TradingCommissions memory tc = nayms.calculateTradingCommissions(tokenAmount);
+        nayms.externalDeposit(wethAddress, 1 ether + tc.totalCommissions);
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether + tc.totalCommissions, "eBob's nWETH balance should INCREASE");
+        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
+        vm.stopPrank();
+
+        // STAGE 3: Bob selling the newly purchased eAlice token back to Alice.
+        vm.startPrank(bob);
+        nayms.executeLimitOffer(eAlice, tokenAmount, nWETH, 1 ether);
+        vm.stopPrank();
+        TradingCommissions memory tc2 = nayms.calculateTradingCommissions(tokenAmount);
+        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        nayms.externalDeposit(wethAddress, 1 ether + tc2.totalCommissions);
+        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
+
+        // STAGE 4: Alice selling the newly purchased eAlice token back to Bob.
+        nayms.executeLimitOffer(eAlice, tokenAmount, nWETH, 1 ether);
+        vm.startPrank(bob);
+        TradingCommissions memory tc3 = nayms.calculateTradingCommissions(tokenAmount);
+        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        nayms.externalDeposit(wethAddress, 1 ether + tc3.totalCommissions);
+        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
+        vm.stopPrank();
+
+        // STAGE 5: Alice wants to pay a dividend to the eAlice token holders.
+        nayms.payDividendFromEntity("0x2", 1 ether); // eAlice is paying out a dividend with new guid "0x2"
+        // Note that up to this point, Bob has not received any dividend because the initial dividend is already all taken by Alice.
+
+        // STAGE 6: Bob tries to get this new dividend since he now has all the eAlice
+        vm.prank(bob);
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether, "eBob's current balance");
+        nayms.withdrawDividend(eBob, eAlice, nWETH);
+        // This SHOULD NOT fail because nayms.getWithdrawableDividend(eBob, eAlice, nWETH) will return 0, so Bob will not receive the new dividend.
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), 2 ether, "eBob's current balance should increase by 1ETH after receiving dividend.");
+        vm.stopPrank();
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,

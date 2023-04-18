@@ -62,7 +62,7 @@ library LibTokenizedVault {
         s.tokenBalances[_tokenId][_from] -= _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
 
-        _normalizeDividends(_to, _tokenId, _amount, false);
+        _normalizeDividends(_from, _to, _tokenId, _amount, false);
 
         emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransfer", msg.sender);
         emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransfer", msg.sender);
@@ -80,7 +80,7 @@ library LibTokenizedVault {
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        _normalizeDividends(_to, _tokenId, _amount, true);
+        _normalizeDividends(bytes32(0), _to, _tokenId, _amount, true);
 
         s.tokenSupply[_tokenId] += _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
@@ -90,6 +90,7 @@ library LibTokenizedVault {
     }
 
     function _normalizeDividends(
+        bytes32 _from,
         bytes32 _to,
         bytes32 _tokenId,
         uint256 _amount,
@@ -99,7 +100,7 @@ library LibTokenizedVault {
         uint256 supply = _internalTokenSupply(_tokenId);
 
         // This must be done BEFORE the supply increases!!!
-        // This will calcualte the hypothetical dividends that would correspond to this number of shares.
+        // This will calculate the hypothetical dividends that would correspond to this number of shares.
         // It must be added to the withdrawn dividend for every denomination for the user who receives the minted tokens
         bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
 
@@ -112,6 +113,12 @@ library LibTokenizedVault {
 
             // Scale total dividends and withdrawn dividend for new owner
             s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeductionIssued;
+
+            // Scale total dividends for the previous owner, if applicable
+            if (_from != bytes32(0)) {
+                s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_from] -= dividendDeductionIssued;
+            }
+
             if (_updateTotals) {
                 s.totalDividends[_tokenId][dividendDenominationId] += (s.totalDividends[_tokenId][dividendDenominationId] * _amount) / supply;
             }
