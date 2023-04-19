@@ -121,6 +121,9 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
+        vm.expectRevert("invalid upgrade ID");
+        nayms.cancelUpgrade(keccak256(abi.encode(cut)));
+
         nayms.createUpgrade(keccak256(abi.encode(cut)));
 
         nayms.cancelUpgrade(keccak256(abi.encode(cut)));
