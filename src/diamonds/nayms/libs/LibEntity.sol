@@ -33,7 +33,10 @@ library LibEntity {
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
-    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy calldata simplePolicy) internal view {
+    function _validateSimplePolicyCreation(bytes32 _entityId, 
+        SimplePolicy calldata simplePolicy,
+        Stakeholders calldata _stakeholders
+    ) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
@@ -79,6 +82,8 @@ library LibEntity {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
+
+        require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
     }
 
     function _createSimplePolicy(
@@ -98,7 +103,7 @@ library LibEntity {
         }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
-        _validateSimplePolicyCreation(_entityId, _simplePolicy);
+        _validateSimplePolicyCreation(_entityId, _simplePolicy, _stakeholders);
 
         Entity storage entity = s.entities[_entityId];
         uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
@@ -106,7 +111,7 @@ library LibEntity {
         entity.utilizedCapacity += factoredLimit;
         s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
 
-        // hash contents are implicitlly checked by making sure that resolved signer is the stakeholder entity's admin
+        // hash contents are implicitly checked by making sure that resolved signer is the stakeholder entity's admin
         bytes32 signingHash = LibSimplePolicy._getSigningHash(_simplePolicy.startDate, _simplePolicy.maturationDate, _simplePolicy.asset, _simplePolicy.limit, _offchainDataHash);
 
         LibObject._createObject(_policyId, _entityId, signingHash);

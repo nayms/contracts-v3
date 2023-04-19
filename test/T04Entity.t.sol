@@ -436,6 +436,16 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(simplePolicyInfo.cancelled, false, "Cancelled flags should be false");
         assertEq(simplePolicyInfo.claimsPaid, simplePolicy.claimsPaid, "Claims paid amounts should match");
         assertEq(simplePolicyInfo.premiumsPaid, simplePolicy.premiumsPaid, "Premiums paid amounts should match");
+
+
+        bytes32[] memory roles = new bytes32[](2);
+        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+        
+        stakeholders.roles = roles;
+        vm.expectRevert("stakeholders roles mismatch");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
     }
 
     function testCreateSimplePolicyAlreadyExists() public {
