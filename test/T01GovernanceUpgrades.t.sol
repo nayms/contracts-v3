@@ -187,7 +187,13 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         vm.prank(address(0xAAAAAAAAA));
         vm.expectRevert("not a system admin");
         nayms.updateUpgradeExpiration(1 days);
-
+        vm.stopPrank();
+        
+        vm.expectRevert("invalid upgrade expiration period");
+        nayms.updateUpgradeExpiration(59);
+        vm.expectRevert("invalid upgrade expiration period");
+        nayms.updateUpgradeExpiration(1 weeks + 1);
+        
         nayms.updateUpgradeExpiration(1 days);
 
         assertEq(block.timestamp + 7 days, nayms.getUpgrade(keccak256(abi.encode(cut))));

@@ -26,6 +26,8 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
     function updateUpgradeExpiration(uint256 duration) external assertSysAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(1 minutes < duration && duration < 1 weeks, "invalid upgrade expiration period");
+
         s.upgradeExpiration = duration;
         emit UpdateUpgradeExpiration(duration);
     }
