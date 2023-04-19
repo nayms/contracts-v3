@@ -33,7 +33,8 @@ library LibEntity {
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
-    function _validateSimplePolicyCreation(bytes32 _entityId, 
+    function _validateSimplePolicyCreation(
+        bytes32 _entityId,
         SimplePolicy calldata simplePolicy,
         Stakeholders calldata _stakeholders
     ) internal view {
