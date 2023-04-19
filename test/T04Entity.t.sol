@@ -121,6 +121,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("symbol must be less than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
 
+        vm.expectRevert("name must not be empty");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "");
+
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
         vm.expectRevert("object already tokenized");
