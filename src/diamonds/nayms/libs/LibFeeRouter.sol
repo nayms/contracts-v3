@@ -75,6 +75,7 @@ library LibFeeRouter {
     function _updateTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata bp) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(0 < bp.tradingCommissionTotalBP && bp.tradingCommissionTotalBP < LibConstants.BP_FACTOR, "invalid trading commission total");
         require(
             bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == LibConstants.BP_FACTOR,
             "trading commission BPs must sum up to 10000"

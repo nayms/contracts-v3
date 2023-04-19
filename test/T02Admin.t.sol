@@ -147,6 +147,29 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetTradingCommissionsBasisPoints() public {
+        
+        // total must be > 0 and < 10_000
+        vm.expectRevert("invalid trading commission total");
+        nayms.setTradingCommissionsBasisPoints(
+            TradingCommissionsBasisPoints({
+                tradingCommissionTotalBP: 0,
+                tradingCommissionNaymsLtdBP: 5001,
+                tradingCommissionNDFBP: 2500,
+                tradingCommissionSTMBP: 2499,
+                tradingCommissionMakerBP: 1
+            })
+        );
+        vm.expectRevert("invalid trading commission total");
+        nayms.setTradingCommissionsBasisPoints(
+            TradingCommissionsBasisPoints({
+                tradingCommissionTotalBP: 10001,
+                tradingCommissionNaymsLtdBP: 5001,
+                tradingCommissionNDFBP: 2500,
+                tradingCommissionSTMBP: 2499,
+                tradingCommissionMakerBP: 1
+            })
+        );
+        
         // must add up to 10000
         vm.expectRevert("trading commission BPs must sum up to 10000");
         nayms.setTradingCommissionsBasisPoints(
