@@ -26,7 +26,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
     function createEntity(
         bytes32 _entityId,
         bytes32 _entityAdmin,
-        Entity memory _entityData,
+        Entity calldata _entityData,
         bytes32 _dataHash
     ) external assertSysMgr {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
