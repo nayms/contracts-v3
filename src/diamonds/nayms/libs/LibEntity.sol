@@ -177,7 +177,7 @@ library LibEntity {
     function _createEntity(
         bytes32 _entityId,
         bytes32 _entityAdmin,
-        Entity memory _entity,
+        Entity calldata _entity,
         bytes32 _dataHash
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -201,7 +201,9 @@ library LibEntity {
         emit EntityCreated(_entityId, _entityAdmin);
     }
 
-    function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {
+    /// @dev This currently updates a non cell type entity and a cell type entity, but
+    /// we should consider splitting the functionality
+    function _updateEntity(bytes32 _entityId, Entity calldata _updateEntityStruct) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Cannot update a non-existing entity's metadata.
@@ -209,34 +211,40 @@ library LibEntity {
             revert EntityDoesNotExist(_entityId);
         }
 
-        validateEntity(_entity);
+        validateEntity(_updateEntityStruct);
 
         uint256 oldCollateralRatio = s.entities[_entityId].collateralRatio;
         uint256 oldUtilizedCapacity = s.entities[_entityId].utilizedCapacity;
+        bytes32 entityAssetId = s.entities[_entityId].assetId;
 
-        if (s.entities[_entityId].assetId != _entity.assetId) {
+        if (entityAssetId != _updateEntityStruct.assetId) {
             revert("assetId change not allowed");
         }
 
-        s.entities[_entityId] = _entity;
+        // can update max capacity and simplePolicyEnabled toggle first since it's not used in collateral ratio calculation below
+        s.entities[_entityId].maxCapacity = _updateEntityStruct.maxCapacity;
+        s.entities[_entityId].simplePolicyEnabled = _updateEntityStruct.simplePolicyEnabled;
 
         // if it's a cell, and collateral ratio changed
-        if (_entity.assetId != 0 && _entity.collateralRatio != oldCollateralRatio) {
-            uint256 newUtilizedCapacity = (oldUtilizedCapacity * _entity.collateralRatio) / oldCollateralRatio;
-            uint256 newLockedBalance = s.lockedBalances[_entityId][_entity.assetId] - oldUtilizedCapacity + newUtilizedCapacity;
+        if (entityAssetId != 0 && _updateEntityStruct.collateralRatio != oldCollateralRatio) {
+            uint256 newUtilizedCapacity = (oldUtilizedCapacity * _updateEntityStruct.collateralRatio) / oldCollateralRatio;
+            uint256 newLockedBalance = s.lockedBalances[_entityId][entityAssetId] - oldUtilizedCapacity + newUtilizedCapacity;
 
-            require(LibTokenizedVault._internalBalanceOf(_entityId, _entity.assetId) >= newLockedBalance, "collateral ratio invalid, not enough balance");
+            require(LibTokenizedVault._internalBalanceOf(_entityId, entityAssetId) >= newLockedBalance, "collateral ratio invalid, not enough balance");
+            require(newUtilizedCapacity <= _updateEntityStruct.maxCapacity, "max capacity must be >= utilized capacity");
 
+            s.entities[_entityId].collateralRatio = _updateEntityStruct.collateralRatio;
             s.entities[_entityId].utilizedCapacity = newUtilizedCapacity;
-            s.lockedBalances[_entityId][_entity.assetId] = newLockedBalance;
+            s.lockedBalances[_entityId][entityAssetId] = newLockedBalance;
 
-            emit CollateralRatioUpdated(_entityId, _entity.collateralRatio, s.entities[_entityId].utilizedCapacity);
+            emit CollateralRatioUpdated(_entityId, _updateEntityStruct.collateralRatio, newUtilizedCapacity);
         }
 
         emit EntityUpdated(_entityId);
     }
 
-    function validateEntity(Entity memory _entity) internal view {
+    function validateEntity(Entity calldata _entity) internal view {
+        // If a non cell type entity is converted into a cell type entity, then the following checks must be performed.
         if (_entity.assetId != 0) {
             // entity has an underlying asset, which means it's a cell
 

@@ -86,10 +86,10 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Update entity metadata
      * @param _entityId ID of the entity
-     * @param _entity metadata of the entity
+     * @param _updateEntity metadata of the entity that can be updated
      */
-    function updateEntity(bytes32 _entityId, Entity memory _entity) external assertSysMgr {
-        LibEntity._updateEntity(_entityId, _entity);
+    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertSysMgr {
+        LibEntity._updateEntity(_entityId, _updateEntity);
     }
 
     /**
