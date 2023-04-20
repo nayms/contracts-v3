@@ -13,6 +13,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+// solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
@@ -391,6 +392,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("start date > maturation date");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.startDate = 1000;
+
+        uint256 maturationDateOrig = simplePolicy.maturationDate;
+        simplePolicy.maturationDate = simplePolicy.startDate + 1;
+        vm.expectRevert("policy period must be more than a day");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        simplePolicy.maturationDate = maturationDateOrig;
 
         // commission receivers
         vm.expectRevert("must have commission receivers");

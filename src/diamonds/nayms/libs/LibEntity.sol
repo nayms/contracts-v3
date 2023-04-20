@@ -71,6 +71,8 @@ library LibEntity {
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
 
+        require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
+
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
         require(commissionReceiversArrayLength > 0, "must have commission receivers");
 

@@ -117,7 +117,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         commissions[2] = 10;
 
         policy.startDate = 1000;
-        policy.maturationDate = 10000;
+        policy.maturationDate = 1000 + 2 days;
         policy.asset = wethId;
         policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;
