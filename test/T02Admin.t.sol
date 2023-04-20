@@ -5,7 +5,7 @@ import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } fro
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut, ITokenizedVaultIOFacet } from "src/diamonds/nayms/INayms.sol";
+import { INayms, IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "src/diamonds/nayms/INayms.sol";
 import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
@@ -227,26 +227,101 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testLockFunctionExternalWithdrawFromEntity() public {
-        bytes32 nWETH = LibHelpers._getIdForAddress(wethAddress);
+        bytes32 wethId = LibHelpers._getIdForAddress(wethAddress);
 
         // deposit
         writeTokenBalance(account0, naymsAddress, wethAddress, 1 ether);
         nayms.externalDeposit(wethAddress, 1 ether);
 
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "entity1 lost internal WETH");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether);
+        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, wethId), 1 ether, "entity1 lost internal WETH");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether);
 
         nayms.lockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
 
         vm.expectRevert("function is locked");
         nayms.externalWithdrawFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0, address(weth), 0.5 ether);
 
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "balance should stay the same");
+        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, wethId), 1 ether, "balance should stay the same");
 
         nayms.unlockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
 
         nayms.externalWithdrawFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0, address(weth), 0.5 ether);
 
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 0.5 ether, "half of balance should be withdrawn");
+        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, wethId), 0.5 ether, "half of balance should be withdrawn");
+    }
+
+    bytes4[] s_functionSelectors;
+
+    function test_lockAllFundTransferFunctions() public {
+        vm.recordLogs();
+
+        nayms.lockAllFundTransferFunctions();
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
+        (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
+
+        bytes4[] memory lockedFunctions = new bytes4[](14);
+        lockedFunctions[0] = IEntityFacet.startTokenSale.selector;
+        lockedFunctions[1] = ISimplePolicyFacet.paySimpleClaim.selector;
+        lockedFunctions[2] = ISimplePolicyFacet.paySimplePremium.selector;
+        lockedFunctions[3] = ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector;
+        lockedFunctions[4] = IMarketFacet.cancelOffer.selector;
+        lockedFunctions[5] = IMarketFacet.executeLimitOffer.selector;
+        lockedFunctions[6] = ITokenizedVaultFacet.internalTransferFromEntity.selector;
+        lockedFunctions[7] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[8] = ITokenizedVaultFacet.internalBurn.selector;
+        lockedFunctions[9] = ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
+        lockedFunctions[10] = ITokenizedVaultFacet.withdrawDividend.selector;
+        lockedFunctions[11] = ITokenizedVaultFacet.withdrawAllDividends.selector;
+        lockedFunctions[12] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[13] = ITokenizedVaultIOFacet.externalDeposit.selector;
+
+        for (uint256 i = 0; i < lockedFunctions.length; i++) {
+            assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
+            assertEq(s_functionSelectors[i], lockedFunctions[i]);
+        }
+        vm.expectRevert("function is locked");
+        nayms.startTokenSale(DEFAULT_ACCOUNT0_ENTITY_ID, 100, 100);
+
+        vm.expectRevert("function is locked");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), 0x1100000000000000000000000000000000000000000000000000000000000000, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
+
+        vm.expectRevert("function is locked");
+        nayms.paySimplePremium(0x1100000000000000000000000000000000000000000000000000000000000000, 1000);
+
+        vm.expectRevert("function is locked");
+        nayms.checkAndUpdateSimplePolicyState(0x1100000000000000000000000000000000000000000000000000000000000000);
+
+        vm.expectRevert("function is locked");
+        nayms.cancelOffer(1);
+
+        vm.expectRevert("function is locked");
+        nayms.executeLimitOffer(wethId, 1 ether, account0Id, 100);
+
+        vm.expectRevert("function is locked");
+        nayms.internalTransferFromEntity(account0Id, wethId, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.payDividendFromEntity(account0Id, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.internalBurn(account0Id, wethId, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.wrapperInternalTransferFrom(account0Id, account0Id, wethId, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.withdrawDividend(account0Id, wethId, wethId);
+
+        vm.expectRevert("function is locked");
+        nayms.withdrawAllDividends(account0Id, wethId);
+
+        vm.expectRevert("function is locked");
+        nayms.payDividendFromEntity(bytes32("0x11"), 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.externalDeposit(wethAddress, 1 ether);
     }
 }

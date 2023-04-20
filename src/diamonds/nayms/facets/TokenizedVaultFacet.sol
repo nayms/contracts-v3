@@ -50,7 +50,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
+    ) external notLocked(ITokenizedVaultFacet.internalTransferFromEntity.selector) nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
@@ -67,7 +67,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external nonReentrant assertERC20Wrapper(tokenId) {
+    ) external notLocked(ITokenizedVaultFacet.wrapperInternalTransferFrom.selector) nonReentrant assertERC20Wrapper(tokenId) {
         LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
@@ -75,7 +75,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 from,
         bytes32 tokenId,
         uint256 amount
-    ) external assertSysAdmin {
+    ) external notLocked(ITokenizedVaultFacet.internalBurn.selector) assertSysAdmin {
         LibTokenizedVault._internalBurn(from, tokenId, amount);
     }
 
@@ -106,7 +106,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 ownerId,
         bytes32 tokenId,
         bytes32 dividendTokenId
-    ) external {
+    ) external notLocked(ITokenizedVaultFacet.withdrawDividend.selector) {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
@@ -116,7 +116,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param ownerId Unique ID of the dividend receiver
      * @param tokenId Unique ID of token
      */
-    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external {
+    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external notLocked(ITokenizedVaultFacet.withdrawAllDividends.selector) {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
 
@@ -126,7 +126,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param guid Globally unique identifier of a dividend distribution.
      * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
      */
-    function payDividendFromEntity(bytes32 guid, uint256 amount) external {
+    function payDividendFromEntity(bytes32 guid, uint256 amount) external notLocked(ITokenizedVaultFacet.payDividendFromEntity.selector) {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 

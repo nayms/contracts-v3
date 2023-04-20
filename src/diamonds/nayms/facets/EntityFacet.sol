@@ -71,7 +71,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external nonReentrant assertSysMgr {
+    ) external notLocked(IEntityFacet.startTokenSale.selector) nonReentrant assertSysMgr {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
