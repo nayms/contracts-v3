@@ -126,6 +126,26 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
     }
 
+    function testAddSupportedExternalTokenIfWrapper() public {
+        bytes32 entityId1 = "0xe1";
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
+        nayms.enableEntityTokenization(entityId1, "E1", "E1 Token");
+        nayms.startTokenSale(entityId1, 100 ether, 100 ether);
+
+        vm.recordLogs();
+
+        nayms.wrapToken(entityId1);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2, "TokenWrapped: topics length incorrect");
+        assertEq(entries[0].topics[0], keccak256("TokenWrapped(bytes32,address)"), "TokenWrapped: Invalid event signature");
+        assertEq(entries[0].topics[1], entityId1, "TokenWrapped: incorrect tokenID"); // assert entity token
+        address loggedWrapperAddress = abi.decode(entries[0].data, (address));
+
+        vm.expectRevert("cannot add participation token wrapper as external");
+        nayms.addSupportedExternalToken(loggedWrapperAddress);
+    }
+
     function testSetTradingCommissionsBasisPoints() public {
         // must add up to 10000
         vm.expectRevert("trading commission BPs must sum up to 10000");
