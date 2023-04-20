@@ -457,6 +457,8 @@ contract DeploymentHelpers is Test {
 
         upgradeHash = keccak256(abi.encode(cut));
 
+        console2.log(StdStyle.blue("upgradeHash: "), StdStyle.yellow(vm.toString(upgradeHash)));
+
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
         cutAndInit(diamondAddress, cut, initDiamond);
 
