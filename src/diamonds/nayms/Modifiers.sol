@@ -16,7 +16,7 @@ import { LibACL } from "./libs/LibACL.sol";
  * @dev Function modifiers to control access
  */
 contract Modifiers {
-    modifier assertIsFunctionLocked(bytes4 functionSelector) {
+    modifier notLocked(bytes4 functionSelector) {
         require(!LibAdmin._isFunctionLocked(functionSelector), "function is locked");
         _;
     }
