@@ -96,4 +96,8 @@ contract AdminFacet is IAdminFacet, Modifiers {
     function isFunctionLocked(bytes4 functionSelector) external view returns (bool) {
         return LibAdmin._isFunctionLocked(functionSelector);
     }
+
+    function lockAllFundTransferFunctions() external assertSysAdmin {
+        LibAdmin._lockAllFundTransferFunctions();
+    }
 }

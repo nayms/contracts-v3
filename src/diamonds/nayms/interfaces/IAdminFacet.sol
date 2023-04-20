@@ -84,4 +84,6 @@ interface IAdminFacet {
      * @param functionSelector the bytes4 function selector
      */
     function isFunctionLocked(bytes4 functionSelector) external view returns (bool);
+
+    function lockAllFundTransferFunctions() external;
 }
