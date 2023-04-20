@@ -7,6 +7,7 @@ import { Entity, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamon
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+// solhint-disable no-console
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,

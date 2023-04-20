@@ -114,6 +114,7 @@ library LibObject {
         address wrapperAddress = address(tokenWrapper);
 
         s.objectTokenWrapper[_entityId] = wrapperAddress;
+        s.objectTokenWrapperId[wrapperAddress] = _entityId;
 
         emit TokenWrapped(_entityId, wrapperAddress);
     }
