@@ -7,7 +7,7 @@ import "./LibGeneratedNaymsFacetHelpers.sol";
 import { INayms, IDiamondCut, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 import { Create3Deployer } from "src/utils/Create3Deployer.sol";
 
-import { DiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
+import { PhasedDiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
 
 // solhint-disable no-empty-blocks
 // solhint-disable state-visibility
@@ -454,14 +454,15 @@ contract DeploymentHelpers is Test {
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
-        upgradeHash = keccak256(abi.encode(cut));
+        upgradeHash = keccak256(abi.encode(cut, address(0), ""));
 
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
         cutAndInit(diamondAddress, cut, initDiamond);
 
+        // note todo in [NAY-11], Nayms diamond proxy contract will deploy PhasedDiamondCutFacet instead of DiamondCutFacet at deployment (putting it in the constructor).
         // If a new diamond is being deployed, then, following the initialization, we replace the diamondCut() function with the 2-phase diamondCut() function.
         if (deployNewDiamond) {
-            address phasedDiamondCutFacet = address(new DiamondCutFacet());
+            address phasedDiamondCutFacet = address(new PhasedDiamondCutFacet());
 
             cut = new IDiamondCut.FacetCut[](1);
 
@@ -487,7 +488,7 @@ contract DeploymentHelpers is Test {
 
         cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
-        upgradeHash = keccak256(abi.encode(cut));
+        upgradeHash = keccak256(abi.encode(cut, address(0), ""));
 
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
     }

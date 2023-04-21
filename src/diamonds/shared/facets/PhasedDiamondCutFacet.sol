@@ -10,7 +10,9 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../libs/LibDiamond.sol";
 import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
 
-contract DiamondCutFacet is IDiamondCut {
+error PhasedDiamondCutUpgradeFailed(bytes32 upgradeId, uint256 blockTimestamp);
+
+contract PhasedDiamondCutFacet is IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute
     ///         a function with delegatecall
     /// @param _diamondCut Contains the facet addresses and function selectors
@@ -25,8 +27,10 @@ contract DiamondCutFacet is IDiamondCut {
         {
             AppStorage storage s = LibAppStorage.diamondStorage();
 
-            bytes32 upgradeId = keccak256(abi.encode(_diamondCut));
-            require(s.upgradeScheduled[upgradeId] >= block.timestamp, "upgrade is not valid");
+            bytes32 upgradeId = keccak256(abi.encode(_diamondCut, _init, _calldata));
+            if (s.upgradeScheduled[upgradeId] < block.timestamp) {
+                revert PhasedDiamondCutUpgradeFailed(upgradeId, block.timestamp);
+            }
             // Reset back to 0 if an upgrade is executed.
             delete s.upgradeScheduled[upgradeId];
         }
