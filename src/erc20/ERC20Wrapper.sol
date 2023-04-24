@@ -79,6 +79,23 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
         return true;
     }
 
+    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+        require(type(uint256).max - allowances[msg.sender][spender] >= addedValue, "ERC20: allowance overflow");
+        unchecked {
+            allowances[msg.sender][spender] += addedValue;
+        }
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+        uint256 currentAllowance = allowances[msg.sender][spender];
+        require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
+        unchecked {
+            allowances[msg.sender][spender] -= subtractedValue;
+        }
+        return true;
+    }
+
     function transferFrom(
         address from,
         address to,
