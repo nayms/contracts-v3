@@ -26,12 +26,17 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
     function updateUpgradeExpiration(uint256 duration) external assertSysAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(1 minutes < duration && duration < 1 weeks, "invalid upgrade expiration period");
+
         s.upgradeExpiration = duration;
         emit UpdateUpgradeExpiration(duration);
     }
 
     function cancelUpgrade(bytes32 id) external assertSysAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(s.upgradeScheduled[id] > 0, "invalid upgrade ID");
+
         s.upgradeScheduled[id] = 0;
 
         emit UpgradeCancelled(id, msg.sender);

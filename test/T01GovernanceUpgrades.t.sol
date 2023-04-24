@@ -129,8 +129,11 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
         bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
-        nayms.createUpgrade(upgradeId);
 
+        vm.expectRevert("invalid upgrade ID");
+        nayms.cancelUpgrade(upgradeId);
+
+        nayms.createUpgrade(upgradeId);
         nayms.cancelUpgrade(upgradeId);
 
         // second step, call diamondCut()
@@ -198,6 +201,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         vm.prank(address(0xAAAAAAAAA));
         vm.expectRevert("not a system admin");
         nayms.updateUpgradeExpiration(1 days);
+        vm.stopPrank();
+
+        vm.expectRevert("invalid upgrade expiration period");
+        nayms.updateUpgradeExpiration(59);
+        vm.expectRevert("invalid upgrade expiration period");
+        nayms.updateUpgradeExpiration(1 weeks + 1);
 
         nayms.updateUpgradeExpiration(1 days);
 

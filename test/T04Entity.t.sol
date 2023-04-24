@@ -13,7 +13,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
-//solhint-disable no-console
+// solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
@@ -121,6 +121,9 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("symbol must be less than 16 characters");
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
+
+        vm.expectRevert("name must not be empty");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "");
 
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
@@ -390,6 +393,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.startDate = 1000;
 
+        uint256 maturationDateOrig = simplePolicy.maturationDate;
+        simplePolicy.maturationDate = simplePolicy.startDate + 1;
+        vm.expectRevert("policy period must be more than a day");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        simplePolicy.maturationDate = maturationDateOrig;
+
         // commission receivers
         vm.expectRevert("must have commission receivers");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
@@ -437,6 +446,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(simplePolicyInfo.cancelled, false, "Cancelled flags should be false");
         assertEq(simplePolicyInfo.claimsPaid, simplePolicy.claimsPaid, "Claims paid amounts should match");
         assertEq(simplePolicyInfo.premiumsPaid, simplePolicy.premiumsPaid, "Premiums paid amounts should match");
+
+        bytes32[] memory roles = new bytes32[](2);
+        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+
+        stakeholders.roles = roles;
+        vm.expectRevert("stakeholders roles mismatch");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
     function testCreateSimplePolicyAlreadyExists() public {

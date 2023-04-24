@@ -95,6 +95,8 @@ library LibObject {
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
         require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
 
+        require(bytes(_name).length > 0, "name must not be empty");
+
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
     }
