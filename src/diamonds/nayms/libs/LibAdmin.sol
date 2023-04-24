@@ -59,7 +59,7 @@ library LibAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.objectTokenWrapperId[_tokenAddress] == bytes32(0), "cannot add participation token wrapper as external");
-        
+
         bool alreadyAdded = s.externalTokenSupported[_tokenAddress];
         if (!alreadyAdded) {
             s.externalTokenSupported[_tokenAddress] = true;

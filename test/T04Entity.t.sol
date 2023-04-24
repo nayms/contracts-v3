@@ -13,6 +13,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+//solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
     bytes32 internal policyId1 = "0xC0FFEE";
@@ -188,7 +189,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.externalDeposit(wethAddress, amount);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), amount);
 
-        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS shoud be locked");
+        assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS should be locked");
 
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
         uint256 expectedLockedBalance = (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR;
@@ -856,8 +857,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         nayms.checkAndUpdateSimplePolicyState(policyId1);
         Entity memory entityAfter2 = nayms.getEntityInfo(entityId1);
-        uint256 expectedutilizedCapacity = utilizedCapacityBefore - (simplePolicy.limit * entityAfter2.collateralRatio) / LibConstants.BP_FACTOR;
-        assertEq(expectedutilizedCapacity, entityAfter2.utilizedCapacity, "utilized capacity should increase");
+        uint256 expectedUtilizedCapacity = utilizedCapacityBefore - (simplePolicy.limit * entityAfter2.collateralRatio) / LibConstants.BP_FACTOR;
+        assertEq(expectedUtilizedCapacity, entityAfter2.utilizedCapacity, "utilized capacity should increase");
     }
 
     function testPayPremiumCommissions() public {
@@ -890,9 +891,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
 
         SimplePolicy memory sp = getSimplePolicy(policyId1);
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd);
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF);
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM);
+
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd, "Nayms LTD commission incorrect");
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF, "NDF commission incorrect");
+        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM, "STM commission incorrect");
     }
 
     function testCancelSimplePolicy() public {
