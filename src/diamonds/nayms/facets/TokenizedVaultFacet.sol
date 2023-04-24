@@ -124,7 +124,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @notice Pay `amount` of dividends
      * @dev Transfer dividends to the entity
      * @param guid Globally unique identifier of a dividend distribution.
-     * @param amount the mamount of the dividend token to be distributed to NAYMS token holders.
+     * @param amount the amount of the dividend token to be distributed to NAYMS token holders.
      */
     function payDividendFromEntity(bytes32 guid, uint256 amount) external notLocked(msg.sig) {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
