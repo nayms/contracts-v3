@@ -18,21 +18,14 @@ library LibFeeRouter {
         SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
+        uint256 premiumCommissionPaid;
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
+
         for (uint256 i = 0; i < commissionsCount; i++) {
             uint256 commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, commission);
+            premiumCommissionPaid += commission;
         }
-
-        uint256 commissionNaymsLtd = (_premiumPaid * s.premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
-        uint256 commissionNDF = (_premiumPaid * s.premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
-        uint256 commissionSTM = (_premiumPaid * s.premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
-
-        LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), simplePolicy.asset, commissionNaymsLtd);
-        LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), simplePolicy.asset, commissionNDF);
-        LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
-
-        uint256 premiumCommissionPaid = commissionNaymsLtd + commissionNDF + commissionSTM;
 
         emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
     }
@@ -57,7 +50,7 @@ library LibFeeRouter {
         // Pay Nayms, LTD commission
         LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), _tokenId, tc.commissionNaymsLtd);
 
-        // Pay Nayms Discretionsry Fund commission
+        // Pay Nayms Discretionary Fund commission
         LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), _tokenId, tc.commissionNDF);
 
         // Pay Staking Mechanism commission
@@ -66,7 +59,7 @@ library LibFeeRouter {
         // Pay market maker commission
         LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, tc.commissionMaker);
 
-        // Work it out again so the math is precise, ignoring remainers
+        // Work it out again so the math is precise, ignoring remainders
         commissionPaid_ = tc.totalCommissions;
 
         emit TradingCommissionsPaid(_takerId, _tokenId, commissionPaid_);
@@ -108,7 +101,7 @@ library LibFeeRouter {
         // Pay Nayms, LTD commission
         tc.commissionNaymsLtd = (s.tradingCommissionNaymsLtdBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
-        // Pay Nayms Discretionsry Fund commission
+        // Pay Nayms Discretionary Fund commission
         tc.commissionNDF = (s.tradingCommissionNDFBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
         // Pay Staking Mechanism commission
@@ -117,7 +110,7 @@ library LibFeeRouter {
         // Pay market maker commission
         tc.commissionMaker = (s.tradingCommissionMakerBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
-        // Work it out again so the math is precise, ignoring remainers
+        // Work it out again so the math is precise, ignoring remainders
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
     }
 

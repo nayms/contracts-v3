@@ -7,7 +7,7 @@ import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
-import { DiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
+import { PhasedDiamondCutFacet, PhasedDiamondCutUpgradeFailed } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
 
 /// @dev Testing for Nayms upgrade pattern
 
@@ -29,7 +29,7 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         super.setUp();
 
         // Replace diamondCut() with the two phase diamondCut()
-        address phasedDiamondCutFacet = address(new DiamondCutFacet());
+        address phasedDiamondCutFacet = address(new PhasedDiamondCutFacet());
 
         IDiamondCut.FacetCut[] memory cut;
 
@@ -63,7 +63,8 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
         // try to call diamondCut() without scheduling
-        vm.expectRevert("upgrade is not valid");
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+        vm.expectRevert(abi.encodeWithSelector(PhasedDiamondCutUpgradeFailed.selector, upgradeId, block.timestamp));
         nayms.diamondCut(cut, address(0), "");
     }
 
@@ -76,8 +77,10 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
         vm.warp(7 days + STARTING_BLOCK_TIMESTAMP + 1);
+
         // try to call diamondCut() without scheduling
-        vm.expectRevert("upgrade is not valid");
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+        vm.expectRevert(abi.encodeWithSelector(PhasedDiamondCutUpgradeFailed.selector, upgradeId, block.timestamp));
         nayms.diamondCut(cut, address(0), "");
     }
 
@@ -89,13 +92,16 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+
+        nayms.createUpgrade(upgradeId);
 
         nayms.diamondCut(cut, address(0), "");
 
         bytes memory call = abi.encodeCall(TestFacet.sayHello, ());
 
         (bool success, ) = address(nayms).call(call);
+        assertTrue(success);
     }
 
     function testMustBeOwnerToDoAGovernanceUpgrade() public {
@@ -106,7 +112,8 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+        nayms.createUpgrade(upgradeId);
 
         vm.prank(address(0xAAAAAAAAA));
         vm.expectRevert("LibDiamond: Must be contract owner");
@@ -121,15 +128,16 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+
         vm.expectRevert("invalid upgrade ID");
-        nayms.cancelUpgrade(keccak256(abi.encode(cut)));
+        nayms.cancelUpgrade(upgradeId);
 
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
-
-        nayms.cancelUpgrade(keccak256(abi.encode(cut)));
+        nayms.createUpgrade(upgradeId);
+        nayms.cancelUpgrade(upgradeId);
 
         // second step, call diamondCut()
-        vm.expectRevert("upgrade is not valid");
+        vm.expectRevert(abi.encodeWithSelector(PhasedDiamondCutUpgradeFailed.selector, upgradeId, block.timestamp));
         nayms.diamondCut(cut, address(0), "");
     }
 
@@ -141,15 +149,16 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+        nayms.createUpgrade(upgradeId);
 
         vm.expectRevert("Upgrade has already been scheduled");
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
+        nayms.createUpgrade(upgradeId);
 
         vm.warp(7 days + STARTING_BLOCK_TIMESTAMP + 1);
 
         /// note: don't need to cancel an upgrade if it has already expired
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
+        nayms.createUpgrade(upgradeId);
     }
 
     function testGovernanceUpgradeMultiple() public {
@@ -160,7 +169,8 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        nayms.createUpgrade(keccak256(abi.encode(cut)));
+        bytes32 upgradeId = keccak256(abi.encode(cut, address(0), ""));
+        nayms.createUpgrade(upgradeId);
 
         // cut in the method sayHello2()
         IDiamondCut.FacetCut[] memory cut2;
@@ -170,7 +180,8 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f1[0] = TestFacet.sayHello2.selector;
         cut2[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f1 });
 
-        nayms.createUpgrade(keccak256(abi.encode(cut2)));
+        bytes32 upgradeId2 = keccak256(abi.encode(cut2, address(0), ""));
+        nayms.createUpgrade(upgradeId2);
 
         nayms.diamondCut(cut, address(0), "");
 

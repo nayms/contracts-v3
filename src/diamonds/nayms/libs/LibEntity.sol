@@ -33,9 +33,10 @@ library LibEntity {
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
+
     function _validateSimplePolicyCreation(
         bytes32 _entityId,
-        SimplePolicy calldata simplePolicy,
+        SimplePolicy memory simplePolicy,
         Stakeholders calldata _stakeholders
     ) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
@@ -73,11 +74,13 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
+        // by default there are always 3 platform commission receivers: Nayms, NDF and STM
+        // policy-level receivers are also expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
-        require(commissionReceiversArrayLength > 0, "must have commission receivers");
+        require(commissionReceiversArrayLength > 3, "must have commission receivers");
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
-        require(commissionBasisPointsArrayLength > 0, "must have commission basis points");
+        require(commissionBasisPointsArrayLength > 3, "must have commission basis points");
         require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "commissions lengths !=");
 
         uint256 totalBP;
@@ -106,7 +109,15 @@ library LibEntity {
         }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
-        _validateSimplePolicyCreation(_entityId, _simplePolicy, _stakeholders);
+        s.simplePolicies[_policyId] = _simplePolicy;
+        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER));
+        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER));
+        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER));
+        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNaymsLtdBP);
+        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNDFBP);
+        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionSTMBP);
+
+        _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
         Entity storage entity = s.entities[_entityId];
         uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
@@ -118,7 +129,6 @@ library LibEntity {
         bytes32 signingHash = LibSimplePolicy._getSigningHash(_simplePolicy.startDate, _simplePolicy.maturationDate, _simplePolicy.asset, _simplePolicy.limit, _offchainDataHash);
 
         LibObject._createObject(_policyId, _entityId, signingHash);
-        s.simplePolicies[_policyId] = _simplePolicy;
         s.simplePolicies[_policyId].fundsLocked = true;
 
         uint256 rolesCount = _stakeholders.roles.length;
