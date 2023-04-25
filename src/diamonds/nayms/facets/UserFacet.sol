@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
-import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "src/diamonds/nayms/libs/LibEntity.sol";
 import { EntityDoesNotExist } from "src/diamonds/nayms/interfaces/CustomErrors.sol";

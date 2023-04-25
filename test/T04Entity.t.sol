@@ -421,14 +421,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
         // commission basis points
-        vm.expectRevert("must have commission basis points");
+        vm.expectRevert("number of commissions don't match");
         uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;
         simplePolicy.commissionBasisPoints = new uint256[](0);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
 
         // commission basis points array and commission receivers array must have same length
-        vm.expectRevert("commissions lengths !=");
+        vm.expectRevert("number of commissions don't match");
         simplePolicy.commissionBasisPoints = new uint256[](1);
         simplePolicy.commissionBasisPoints.push(1);
         simplePolicy.commissionReceivers = new bytes32[](2);
@@ -466,7 +466,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
 
         stakeholders.roles = roles;
-        vm.expectRevert("stakeholders roles mismatch");
+        vm.expectRevert("too many commission receivers");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
@@ -852,7 +852,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         assertEq(nayms.getLastOfferId(), 0);
 
-        vm.expectRevert("must be tokenizable");
+        vm.expectRevert(abi.encodeWithSelector(ObjectCannotBeTokenized.selector, entityId1));
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
         nayms.enableEntityTokenization(entityId1, "e1token", "e1token");

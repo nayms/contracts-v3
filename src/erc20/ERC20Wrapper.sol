@@ -6,7 +6,6 @@ pragma solidity 0.8.17;
 import { IERC20 } from "./IERC20.sol";
 import { INayms } from "../diamonds/nayms/INayms.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
-import { LibConstants } from "../diamonds/nayms/libs/LibConstants.sol";
 import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 
 contract ERC20Wrapper is IERC20, ReentrancyGuard {

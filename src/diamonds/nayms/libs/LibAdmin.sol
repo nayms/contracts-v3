@@ -30,8 +30,8 @@ library LibAdmin {
 
     function _updateMaxDividendDenominations(uint8 _newMaxDividendDenominations) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        require(_newMaxDividendDenominations > s.maxDividendDenominations, "_updateMaxDividendDenominations: cannot reduce");
         uint8 old = s.maxDividendDenominations;
+        require(_newMaxDividendDenominations > old, "_updateMaxDividendDenominations: cannot reduce");
         s.maxDividendDenominations = _newMaxDividendDenominations;
 
         emit MaxDividendDenominationsUpdated(old, _newMaxDividendDenominations);

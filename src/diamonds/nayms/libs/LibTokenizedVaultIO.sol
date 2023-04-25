@@ -51,6 +51,6 @@ library LibTokenizedVaultIO {
         LibTokenizedVault._internalBurn(_entityId, internalTokenId, _amount);
 
         // transfer AFTER burn
-        LibERC20.transfer(address(_externalTokenAddress), _receiver, _amount);
+        LibERC20.transfer(_externalTokenAddress, _receiver, _amount);
     }
 }
