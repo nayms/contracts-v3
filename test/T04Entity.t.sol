@@ -266,17 +266,20 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
-        bytes[] memory signatures = new bytes[](2);
+        bytes[] memory signatures = new bytes[](3);
         signatures[0] = initPolicySig(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
         signatures[1] = initPolicySig(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[2] = initPolicySig(0xACC3, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
-        bytes32[] memory roles = new bytes32[](2);
+        bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
 
-        bytes32[] memory entityIds = new bytes32[](2);
+        bytes32[] memory entityIds = new bytes32[](3);
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
+        entityIds[1] = "eEve";
 
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -290,6 +293,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 bobId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
         bytes32 aliceId = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+        bytes32 eveId = LibHelpers._getIdForAddress(vm.addr(0xACC3));
 
         Entity memory entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
@@ -299,10 +303,12 @@ contract T04EntityTest is D03ProtocolDefaults {
             simplePolicyEnabled: true
         });
 
-        bytes32 eAlice = "ealice";
-        bytes32 eBob = "ebob";
+        bytes32 eAlice = "eAlice";
+        bytes32 eBob = "eBob";
+        bytes32 eEve = "eEve";
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
         nayms.createEntity(eBob, bobId, entity, "entity test hash");
+        nayms.createEntity(eEve, eveId, entity, "entity test hash");
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
@@ -310,17 +316,20 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
-        bytes[] memory signatures = new bytes[](2);
+        bytes[] memory signatures = new bytes[](3);
         signatures[0] = initPolicySig(0xACC2, signingHash);
         signatures[1] = initPolicySig(0xACC1, signingHash);
+        signatures[2] = initPolicySig(0xACC3, signingHash);
 
-        bytes32[] memory roles = new bytes32[](2);
+        bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
 
-        bytes32[] memory entityIds = new bytes32[](2);
+        bytes32[] memory entityIds = new bytes32[](3);
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
+        entityIds[2] = eEve;
 
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
 

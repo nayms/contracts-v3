@@ -76,10 +76,10 @@ library LibEntity {
         // policy-level receivers are also expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
         require(commissionReceiversArrayLength > 3, "must have commission receivers");
+        require(commissionReceiversArrayLength <= 3 + _stakeholders.roles.length, "too many commission receivers");
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
-        require(commissionBasisPointsArrayLength > 3, "must have commission basis points");
-        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "commissions lengths !=");
+        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
 
         uint256 totalBP;
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
