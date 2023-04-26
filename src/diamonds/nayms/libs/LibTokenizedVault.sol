@@ -14,23 +14,23 @@ library LibTokenizedVault {
      * @param tokenId ID of token
      * @param newAmountOwned new amount owned
      * @param functionName Function name
-     * @param msgSender msg.sende
+     * @param msgSender msg.sender
      */
-    event InternalTokenBalanceUpdate(bytes32 indexed ownerId, bytes32 tokenId, uint256 newAmountOwned, string functionName, address msgSender);
+    event InternalTokenBalanceUpdate(bytes32 indexed ownerId, bytes32 tokenId, uint256 newAmountOwned, string functionName, address indexed msgSender);
 
     /**
      * @dev Emitted when a token supply gets updated.
      * @param tokenId ID of token
      * @param newTokenSupply New token supply
      * @param functionName Function name
-     * @param msgSender msg.sende
+     * @param msgSender msg.sender
      */
-    event InternalTokenSupplyUpdate(bytes32 indexed tokenId, uint256 newTokenSupply, string functionName, address msgSender);
+    event InternalTokenSupplyUpdate(bytes32 indexed tokenId, uint256 newTokenSupply, string functionName, address indexed msgSender);
 
     /**
      * @dev Emitted when a dividend gets payed out.
-     * @param guid divident distribution ID
-     * @param from distribution intiator
+     * @param guid dividend distribution ID
+     * @param from distribution initiator
      * @param to distribution receiver
      * @param amount distributed amount
      */

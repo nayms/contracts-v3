@@ -133,17 +133,19 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
-        assertEq(entries[0].topics.length, 2, "InternalTokenSupplyUpdate: topics length incorrect");
+        assertEq(entries[0].topics.length, 3, "InternalTokenSupplyUpdate: topics length incorrect");
         assertEq(entries[0].topics[0], keccak256("InternalTokenSupplyUpdate(bytes32,uint256,string,address)"), "InternalTokenSupplyUpdate: Invalid event signature");
         assertEq(entries[0].topics[1], entity1, "InternalTokenSupplyUpdate: incorrect tokenID"); // assert entity token
-        (uint256 newSupply, string memory fName, ) = abi.decode(entries[0].data, (uint256, string, address));
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[2]), (address)), systemAdmin, "InternalTokenSupplyUpdate: Invalid sender address");
+        (uint256 newSupply, string memory fName) = abi.decode(entries[0].data, (uint256, string));
         assertEq(fName, "_internalMint", "InternalTokenSupplyUpdate: invalid function name");
         assertEq(newSupply, dt.entity1MintAndSaleAmt, "InternalTokenSupplyUpdate: invalid token supply");
 
-        assertEq(entries[1].topics.length, 2, "InternalTokenBalanceUpdate: topics length incorrect");
+        assertEq(entries[1].topics.length, 3, "InternalTokenBalanceUpdate: topics length incorrect");
         assertEq(entries[1].topics[0], keccak256("InternalTokenBalanceUpdate(bytes32,bytes32,uint256,string,address)"), "InternalTokenBalanceUpdate: Invalid event signature");
         assertEq(entries[1].topics[1], entity1, "InternalTokenBalanceUpdate: incorrect tokenID"); // assert entity token
-        (bytes32 tokenId, uint256 newSupply2, string memory fName2, ) = abi.decode(entries[1].data, (bytes32, uint256, string, address));
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[2]), (address)), systemAdmin, "InternalTokenBalanceUpdate: Invalid sender address");
+        (bytes32 tokenId, uint256 newSupply2, string memory fName2) = abi.decode(entries[1].data, (bytes32, uint256, string));
         assertEq(fName2, "_internalMint", "InternalTokenBalanceUpdate: invalid function name");
         assertEq(tokenId, entity1, "InternalTokenBalanceUpdate: invalid token");
         assertEq(newSupply2, dt.entity1MintAndSaleAmt, "InternalTokenBalanceUpdate: invalid balance");
@@ -195,7 +197,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // transfer to invalid entity check?
         assertEq(nayms.getLockedBalance(entity1, entity1), dt.entity1MintAndSaleAmt, "entity1 nEntity1 balance of tokens for sale should INCREASE (lock)");
 
-        // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
+        // try transferring nEntity1 from entity1 to entity0 - this should REVERT!
         changePrank(signer1);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);

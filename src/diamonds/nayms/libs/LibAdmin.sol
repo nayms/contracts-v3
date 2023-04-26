@@ -16,7 +16,7 @@ import { ITokenizedVaultIOFacet } from "src/diamonds/nayms/interfaces/ITokenized
 
 library LibAdmin {
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
-    event SupportedTokenAdded(address tokenAddress);
+    event SupportedTokenAdded(address indexed tokenAddress);
     event FunctionsLocked(bytes4[] functionSelectors);
     event FunctionsUnlocked(bytes4[] functionSelectors);
 

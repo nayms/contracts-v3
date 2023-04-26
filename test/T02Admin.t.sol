@@ -94,10 +94,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[1].topics.length, 1);
-        assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"));
-        address tok = abi.decode(entries[1].data, (address));
-        assertEq(tok, wbtcAddress);
+        assertEq(entries[1].topics.length, 2);
+        assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"), "SupportedTokenAdded: Invalid event signature");
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[1].topics[1]), (address)), wbtcAddress, "SupportedTokenAdded: Invalid token address");
     }
 
     function testIsSupportedToken() public {
@@ -123,8 +122,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[1].topics.length, 1);
+        assertEq(entries[1].topics.length, 2);
         assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"));
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[1].topics[1]), (address)), wbtcAddress, "SupportedTokenAdded: Invalid token address");
     }
 
     function testAddSupportedExternalTokenIfWrapper() public {
