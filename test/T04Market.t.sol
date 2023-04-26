@@ -92,7 +92,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
 
         c = getCommissions();
     }
@@ -107,6 +107,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // mint weth for account0
+        changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
         // note: when using writeTokenBalance, this does not update the total supply!
@@ -116,11 +117,11 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // deposit into nayms vaults
         // note: the entity creator can deposit funds into an entity
 
-        vm.startPrank(signer1);
+        changePrank(signer1);
         writeTokenBalance(signer1, naymsAddress, wethAddress, dt.entity1StartingBal);
         nayms.externalDeposit(wethAddress, dt.entity1ExternalDepositAmt);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         nayms.enableEntityTokenization(entity1, "e1token", "e1token");
 
         // start a token sale: sell entity tokens for nWETH
@@ -195,12 +196,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getLockedBalance(entity1, entity1), dt.entity1MintAndSaleAmt, "entity1 nEntity1 balance of tokens for sale should INCREASE (lock)");
 
         // try transfering nEntity1 from entity1 to entity0 - this should REVERT!
-        vm.startPrank(signer1);
+        changePrank(signer1);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
-        vm.stopPrank();
 
         assertTrue(nayms.isActiveOffer(1), "Token sale offer should be active");
+
+        // Change signer back to system admin for the other tests that call this test first
+        changePrank(systemAdmin);
     }
 
     function testCommissionsPayed() public {
@@ -209,19 +212,19 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init and fund taker entity
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt);
         vm.stopPrank();
 
-        vm.startPrank(signer3);
+        changePrank(signer3);
         writeTokenBalance(signer3, naymsAddress, wethAddress, dt.entity3ExternalDepositAmt);
         nayms.externalDeposit(wethAddress, dt.entity3ExternalDepositAmt);
         vm.stopPrank();
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), wethId);
 
-        vm.startPrank(signer2);
+        changePrank(signer2);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
         vm.stopPrank();
@@ -254,11 +257,11 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 e2WethBeforeTrade = nayms.internalBalanceOf(entity2, wethId);
         uint256 e3WethBeforeTrade = nayms.internalBalanceOf(entity3, wethId);
 
-        vm.startPrank(signer2);
+        changePrank(signer2);
         nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
-        vm.startPrank(signer3);
+        changePrank(signer3);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         vm.stopPrank();
 
@@ -272,7 +275,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init and fund taker entity
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
 
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt);
 
@@ -289,14 +292,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function testCancelOffer() public {
         testStartTokenSale();
 
-        vm.startPrank(signer3);
+        changePrank(signer3);
         vm.expectRevert("only member of entity can cancel");
         nayms.cancelOffer(1);
         vm.stopPrank();
 
         vm.recordLogs();
 
-        vm.startPrank(signer1);
+        changePrank(signer1);
         nayms.cancelOffer(1);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -343,10 +346,11 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         } else {
             uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR;
 
-            vm.startPrank(signer2);
+            changePrank(signer2);
             writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
             nayms.externalDeposit(wethAddress, e2Balance);
-            vm.stopPrank();
+
+            changePrank(systemAdmin);
 
             // sell x nENTITY1 for y WETH
             nayms.startTokenSale(entity1, saleAmount, salePrice);
@@ -361,7 +365,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
             assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "state");
 
-            vm.prank(signer2);
+            changePrank(signer2);
             nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
 
             assertOfferFilled(1, entity1, entity1, saleAmount, wethId, salePrice);
@@ -380,9 +384,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, salePrice, true), "test");
 
         // init test funds to maxint
-
-        writeTokenBalance(signer1, naymsAddress, wethAddress, ~uint256(0));
         nayms.enableEntityTokenization(entity1, "e1token", "e1token");
+        changePrank(signer1);
+        writeTokenBalance(signer1, naymsAddress, wethAddress, ~uint256(0));
 
         if (saleAmount == 0) {
             vm.expectRevert("mint amount must be > 0");
@@ -391,7 +395,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(wethAddress, salePrice);
         } else {
-            vm.startPrank(signer2);
+            changePrank(signer2);
             writeTokenBalance(signer2, naymsAddress, wethAddress, salePrice);
             nayms.externalDeposit(wethAddress, salePrice);
             assertEq(nayms.internalBalanceOf(entity2, LibHelpers._getIdForAddress(wethAddress)), salePrice, "Entity2: invalid balance");
@@ -409,6 +413,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.stopPrank();
             assertEq(nayms.internalBalanceOf(entity1, LibHelpers._getIdForAddress(wethAddress)), e1Balance, "Entity1: invalid balance");
 
+            changePrank(systemAdmin); // prob need to be system admin
             // sell x nENTITY1 for y WETH
             nayms.startTokenSale(entity1, saleAmount, salePrice);
 
@@ -424,7 +429,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // fund taker entity
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, 1_000 ether);
         nayms.externalDeposit(wethAddress, 1_000 ether);
 
@@ -455,7 +460,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity4, signer4Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // fund taker entity
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, 1_000 ether);
         nayms.externalDeposit(wethAddress, 1_000 ether);
         vm.stopPrank();
@@ -491,15 +496,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function testOfferValidation() public {
         testStartTokenSale();
 
-        vm.startPrank(account9);
+        changePrank(account9);
         vm.expectRevert("offer must be made by an existing entity");
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
-        vm.stopPrank();
 
         // init taker entity
+        changePrank(systemAdmin);
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, 1_000 ether);
 
         nayms.externalDeposit(wethAddress, 1_000 ether);
@@ -538,10 +543,11 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         vm.stopPrank();
 
+        changePrank(systemAdmin);
         nayms.enableEntityTokenization(entity2, "e2token", "e2token");
         nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
 
-        vm.startPrank(signer3);
+        changePrank(signer3);
         vm.expectRevert("must be one participation token and one external token"); // 2 platform tokens
         nayms.executeLimitOffer(entity2, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
@@ -560,7 +566,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // create (x2) counter offer
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt * 2);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 2);
 
@@ -569,6 +575,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertOfferPartiallyFilled(2, entity2, wethId, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2);
 
+        changePrank(systemAdmin);
         // start another nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
@@ -586,7 +593,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity4, signer4Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "entity test hash");
 
         // fund taker entity
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, 1_000 ether);
         nayms.externalDeposit(wethAddress, 1_000 ether);
         vm.stopPrank();
@@ -685,7 +692,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
 
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.calculateTradingCommissionsFixture.selector, 10_000));
 
@@ -728,7 +735,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(wethAddress);
 
         // OFFER 1: 2000 pTokens -> 2000 WETH
+        changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, e1balance);
+        changePrank(systemAdmin);
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.enableEntityTokenization(entity1, "e1token", "e1token");
 
@@ -737,7 +746,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // OFFER 2 (x2) counter offer: 4000 WETH -> 4000 pTokens
         // we have to do this as the protocol does not allow us to create an offer to buy pTokens before they are minted!
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2balance);
         nayms.externalDeposit(wethAddress, e2balance);
         nayms.executeLimitOffer(wethId, offer2sell, entity1, offer2buy);
@@ -748,6 +757,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertOfferPartiallyFilled(2, entity2, wethId, offer1buy, offer2sell, entity1, offer1sell, offer2buy);
 
         // OFFER 3: 2000 pTokens -> 1000 WETH
+        changePrank(systemAdmin);
         nayms.startTokenSale(entity1, offer3sell, offer3buy);
 
         assertOfferFilled(1, entity1, entity1, offer1sell, wethId, offer1buy);
@@ -768,14 +778,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR;
 
-        vm.startPrank(signer2);
+        changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
         nayms.externalDeposit(wethAddress, e2Balance);
-        vm.stopPrank();
 
         // sell x nENTITY1 for y WETH
+        changePrank(systemAdmin);
         nayms.enableEntityTokenization(e1Id, "e1token", "e1token");
         nayms.startTokenSale(e1Id, saleAmount, salePrice);
+        vm.stopPrank();
 
         vm.prank(signer2);
         nayms.executeLimitOffer(wethId, salePrice, e1Id, saleAmount);
@@ -788,6 +799,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         bytes32 policyId1 = "policy1";
         uint256 policyLimit = 85 ether;
 
+        changePrank(systemAdmin);
         (Stakeholders memory stakeholders, SimplePolicy memory policy) = initPolicyWithLimit(testPolicyDataHash, policyLimit);
         nayms.createSimplePolicy(policyId1, e1Id, stakeholders, policy, testPolicyDataHash);
 
@@ -795,7 +807,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(lockedBalance, policyLimit, "locked balance should increase");
 
         vm.expectRevert("insufficient balance");
-        vm.prank(signer1);
+        changePrank(signer1);
         nayms.executeLimitOffer(e1Id, salePrice, wethId, saleAmount);
     }
 }

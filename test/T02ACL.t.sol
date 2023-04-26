@@ -15,46 +15,51 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         super.setUp();
     }
 
-    // the deployer should be in the system admin group at initialization
-    function testDeployerIsInGroup() public {
-        assertTrue(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+    /// deployer, owner, address(this), account0 are all the same address. This address should not be able to have the system admin role
+    /// systemAdmin is another address
+
+    // the deployer should NOT be a system admin
+    function testDeployerIsNotASystemAdmin() public {
+        assertFalse(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
     function testUnassignLastSystemAdminFails() public {
         vm.expectRevert("must have at least one system admin");
-        nayms.unassignRole(account0Id, systemContext);
+        nayms.unassignRole(systemAdminId, systemContext);
     }
 
     function testReassignLastSystemAdminFails() public {
         vm.expectRevert("must have at least one system admin");
-        nayms.assignRole(account0Id, systemContext, LibConstants.ROLE_BROKER);
+        nayms.assignRole(systemAdminId, systemContext, LibConstants.ROLE_BROKER);
     }
 
     function testUnassignSystemAdmin() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
-        vm.prank(signer1);
-        nayms.unassignRole(account0Id, systemContext);
-        vm.stopPrank();
+        changePrank(signer1);
+        nayms.unassignRole(systemAdminId, systemContext);
     }
 
+    /// test_canAssign_SystemAdminCanAssignAnyRoleToAnotherObjectInSystemContext
     function testDeployerAssignRoleToAnotherObject() public {
         string memory role = LibConstants.ROLE_ENTITY_ADMIN;
 
         // assign the role entity admin to deployer / account0
-        assertTrue(nayms.canAssign(account0Id, signer1Id, systemContext, role));
+        assertTrue(nayms.canAssign(systemAdminId, signer1Id, systemContext, role));
         nayms.assignRole(signer1Id, systemContext, role);
 
         // the group that the deployer / account0 is in is now the entity admins group
         assertTrue(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_ENTITY_ADMINS));
     }
 
-    function testDeployerAssignAnyRoleToAnotherObjectInNewContext() public {
+    /// test_canAssign_SystemAdminCanAssignAnyRoleToAnotherObjectInAnyContext
+    function testSystemAdminAssignAnyRoleToAnotherObjectInNewContext() public {
         string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign the role signer1
-        assertTrue(nayms.canAssign(account0Id, signer1Id, context, role));
+        // changePrank(systemAdmin);
+        assertTrue(nayms.canAssign(systemAdminId, signer1Id, context, role));
         nayms.assignRole(signer1Id, context, role);
 
         // the group that the signer1 is in is now the approved users group
@@ -112,7 +117,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // signer1 tries to assign to signer2
         assertFalse(nayms.canAssign(signer1Id, signer2Id, context, role), "signer1 CAN assign role to signer2 when they SHOULDN'T be able to.");
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.assignRole(signer2Id, context, role);
     }
@@ -128,7 +133,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // signer2 tries to assign to signer3
         assertTrue(nayms.canAssign(signer2Id, signer3Id, context, role));
-        vm.prank(signer2);
+        changePrank(signer2);
         nayms.assignRole(signer3Id, context, role);
     }
 
@@ -141,8 +146,10 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
         // signer3 makes signer2 an approved user
         assertTrue(nayms.canAssign(signer3Id, signer2Id, context, role));
-        vm.prank(signer3);
+        changePrank(signer3);
         nayms.assignRole(signer2Id, context, role);
+
+        changePrank(systemAdmin);
         assertTrue(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
     }
 
@@ -156,7 +163,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(signer1Id, context, role);
 
         // signer1 tries to unassign to signer2
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.unassignRole(signer2Id, context);
     }
@@ -173,7 +180,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
         // signer1 tries to unassign to signer2
-        vm.prank(signer1);
+        changePrank(signer1);
         nayms.unassignRole(signer2Id, context);
     }
 
@@ -184,12 +191,12 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         testAssignersCanAssignRole();
 
         // signer1 tries to unassign signer2 as approved user
-        vm.prank(signer1);
+        changePrank(signer1);
         vm.expectRevert("not in assigners group");
         nayms.unassignRole(signer2Id, context);
 
         // signer3 can unassign signer2 as approved user
-        vm.prank(signer3);
+        changePrank(signer3);
         nayms.unassignRole(signer2Id, context);
         assertFalse(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
     }
@@ -201,7 +208,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // signer3 makes signer2 an approved user
         testAssignersCanAssignRole();
 
-        vm.prank(signer3);
+        changePrank(signer3);
         vm.recordLogs();
 
         nayms.unassignRole(signer2Id, context);
@@ -268,10 +275,9 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testUpdateRoleAssignerFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.updateRoleAssigner("role", "group");
-        vm.stopPrank();
     }
 
     function testUpdateRoleAssigner() public {
@@ -297,7 +303,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testUpdateRoleGroupFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.updateRoleGroup("role", "group", false);
         vm.stopPrank();

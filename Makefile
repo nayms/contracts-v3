@@ -35,8 +35,11 @@ gen-i: ## generate solidity interfaces from facet implementations
 		-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
 		--ffi
 
-prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers
-	node ./cli-tools/prep-build.js 
+prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This excludes ACL and Governance facets, which are deployed with the Nayms diamond.
+	node ./cli-tools/prep-build.js ACL Governance
+
+prep-build-all: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
+	node ./cli-tools/prep-build.js
 
 build: ## forge build
 	forge build --names --sizes
@@ -164,6 +167,8 @@ initNewDiamond=false
 facetAction=1
 senderAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
 deploymentSalt=0xdeffffffff
+owner=0x931c3aC09202650148Edb2316e97815f904CF4fa
+systemAdmin=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
 
 schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 	@forge script SmartDeploy \
@@ -181,7 +186,7 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 
 deploy: ## smart deploy to goerli
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -196,7 +201,7 @@ deploy: ## smart deploy to goerli
 
 deploy-mainnet: ## smart deploy to mainnet
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -206,12 +211,13 @@ deploy-mainnet: ## smart deploy to mainnet
 		-vv \
 		--ffi \
 		--broadcast \
+		--slow \
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
 deploy-mainnet-sim: ## simulate deploy to mainnet
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -223,7 +229,7 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 
 deploy-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -244,7 +250,7 @@ anvil-fork: ## fork goerli locally with anvil
 
 anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" true true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${owner} ${systemAdmin} true 0 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${senderAddress} \
@@ -256,7 +262,7 @@ anvil-deploy: ## smart deploy locally to anvil
 
 anvil-upgrade: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, bool, uint8, string[] memory, bytes32)" false false 1 ${facetsToCutIn} ${deploymentSalt}\
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} false 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${senderAddress} \
@@ -356,7 +362,7 @@ slither:	## run slither static analysis
 
 upgrade-hash-goerli: ## generate upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, uint8, string[] memory, bytes32)" false 1 "[]" ${deploymentSalt} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -365,12 +371,11 @@ upgrade-hash-goerli: ## generate upgrade hash
 		--mnemonic-indexes 0 \
 		--ffi \
 		--silent \
-		--json \
-		| jq --raw-output '.returns.upgradeHash.value, .returns.cut.value'
+		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json
 
 upgrade-hash-mainnet: ## generate upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, uint8, string[] memory, bytes32)" false 1 "[]" ${deploymentSalt} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -379,12 +384,11 @@ upgrade-hash-mainnet: ## generate upgrade hash
 		--mnemonic-indexes 0 \
 		--ffi \
 		--silent \
-		--json \
-		| jq --raw-output '.returns.upgradeHash.value, .returns.cut.value'
+		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json
 
 upgrade-hash-anvil: ## generate upgrade hash
 	forge script SmartDeploy \
-		-s "hash(bool, uint8, string[] memory, bytes32)" ${newDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \

@@ -2,11 +2,12 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { LibDiamond } from "src/diamonds/shared/libs/LibDiamond.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
-import { RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { OwnerCannotBeSystemAdmin, RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibACL {
     /**
@@ -49,12 +50,17 @@ library LibACL {
             }
         }
 
-        s.roles[_objectId][_contextId] = _roleId;
         if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
-            unchecked {
-                s.sysAdmins += 1;
+            if (LibDiamond.contractOwner() == LibHelpers._getAddressFromId(_objectId)) {
+                revert OwnerCannotBeSystemAdmin();
+            } else {
+                unchecked {
+                    s.sysAdmins += 1;
+                }
             }
         }
+
+        s.roles[_objectId][_contextId] = _roleId;
 
         emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
     }

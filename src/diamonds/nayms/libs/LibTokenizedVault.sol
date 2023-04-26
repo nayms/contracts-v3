@@ -270,7 +270,6 @@ library LibTokenizedVault {
         uint256 _withdrawnSoFar
     ) internal pure returns (uint256 _withdrawableDividend) {
         // The holder dividend is: holderDividend = (totalDividend/tokenSupply) * _amount. The remainer (dust) is lost.
-        // To get a smaller remainder we re-arrange to: holderDividend = (totalDividend * _amount) / _supply
         uint256 totalDividendTimesAmount = _totalDividend * _amount;
         uint256 holderDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
 

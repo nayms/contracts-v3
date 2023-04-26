@@ -12,7 +12,7 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
 contract D03ProtocolDefaults is D02TestSetup {
-    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(address(this));
+    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
     bytes32 public naymsTokenId;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
@@ -50,6 +50,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
+        changePrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({
@@ -70,7 +71,6 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
-        // create entity with signer2 as child
         entityId = "0xe1";
         Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));

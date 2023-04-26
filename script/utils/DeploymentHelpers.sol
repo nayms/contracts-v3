@@ -23,7 +23,7 @@ contract DeploymentHelpers is Test {
     using strings for *;
     using stdStorage for StdStorage;
 
-    uint256[] SUPPORTED_CHAINS = [1, 5, 31337];
+    uint256[] SUPPORTED_CHAINS = [1, 5, 31337, 11155111];
 
     string public constant artifactsPath = "forge-artifacts/";
     // File that is being parsed for the diamond address. If we are deploying a new diamond, then the address will be overwritten here.
@@ -91,16 +91,21 @@ contract DeploymentHelpers is Test {
 
     // true: deploys a new diamond, writes to deployFile
     // false: reads deployFile
-    function diamondDeployment(bool deployNewDiamond, bytes32 salt) public returns (address diamondAddress) {
+    function diamondDeployment(
+        bool deployNewDiamond,
+        address owner,
+        address systemAdmin,
+        bytes32 salt
+    ) public returns (address diamondAddress) {
         if (deployNewDiamond) {
             if (salt != 0) {
                 // deterministically deploy diamond
                 Create3Deployer create3 = new Create3Deployer();
 
                 console2.log("Deterministic contract address", create3.getDeployed(salt));
-                diamondAddress = create3.deployContract(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(msg.sender)), 0);
+                diamondAddress = create3.deployContract(salt, abi.encodePacked(type(Nayms).creationCode, abi.encode(owner, systemAdmin)), 0);
             } else {
-                diamondAddress = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("Nayms");
+                diamondAddress = address(new Nayms(owner, systemAdmin));
             }
 
             vm.label(address(diamondAddress), "New Nayms Diamond");
@@ -431,6 +436,8 @@ contract DeploymentHelpers is Test {
      */
     function smartDeployment(
         bool deployNewDiamond,
+        address _owner,
+        address _systemAdmin,
         bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn,
@@ -439,57 +446,80 @@ contract DeploymentHelpers is Test {
         public
         returns (
             address diamondAddress,
-            address initDiamond,
+            address initDiamondAddress,
             bytes32 upgradeHash
         )
     {
         // deploys new Nayms diamond, or gets the diamond address from file
-        diamondAddress = diamondDeployment(deployNewDiamond, salt);
+        diamondAddress = diamondDeployment(deployNewDiamond, _owner, _systemAdmin, salt);
 
-        // todo do we want to deploy a new init contract, or do we want to use the "current" init contract?
-        if (initNewDiamond) {
-            // initDiamond = deployContract("InitDiamond");
-            initDiamond = LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond");
-        }
         // deploys facets
         IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
-        upgradeHash = keccak256(abi.encode(cut, address(0), ""));
-
+        if (initNewDiamond) {
+            IInitDiamond initDiamond = IInitDiamond(LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond"));
+            initDiamondAddress = address(initDiamond);
+            upgradeHash = keccak256(abi.encode(cut, initDiamondAddress, abi.encodeCall(initDiamond.initialize, ())));
+        } else {
+            upgradeHash = keccak256(abi.encode(cut, address(0), ""));
+        }
+        console2.log(StdStyle.blue("upgradeHash: "), StdStyle.yellow(vm.toString(upgradeHash)));
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
-        cutAndInit(diamondAddress, cut, initDiamond);
 
-        // note todo in [NAY-11], Nayms diamond proxy contract will deploy PhasedDiamondCutFacet instead of DiamondCutFacet at deployment (putting it in the constructor).
-        // If a new diamond is being deployed, then, following the initialization, we replace the diamondCut() function with the 2-phase diamondCut() function.
-        if (deployNewDiamond) {
-            address phasedDiamondCutFacet = address(new PhasedDiamondCutFacet());
-
-            cut = new IDiamondCut.FacetCut[](1);
-
-            bytes4[] memory f0 = new bytes4[](1);
-            f0[0] = IDiamondCut.diamondCut.selector;
-            cut[0] = IDiamondCut.FacetCut({ facetAddress: address(phasedDiamondCutFacet), action: IDiamondCut.FacetCutAction.Replace, functionSelectors: f0 });
-
-            // replace the diamondCut() with the 2-phase diamondCut()
-            INayms(diamondAddress).diamondCut(cut, address(0), "");
+        uint256 upgradeExpiry = INayms(diamondAddress).getUpgrade(upgradeHash);
+        if (upgradeExpiry >= block.timestamp) {
+            cutAndInit(diamondAddress, cut, initDiamondAddress);
+        } else {
+            console2.log(StdStyle.red("UPGRADE NOT PERFORMED"), StdStyle.blue("(but facets have been deployed and the upgrade hash is valid)"));
+            console2.log("Upgrade is not scheduled for this hash", vm.toString(upgradeHash));
+            console2.log("Upgrade expiry time from getUpgrade()", vm.toString(upgradeExpiry));
+            console2.log("Current block.timestamp for chainid", vm.toString(block.chainid), vm.toString(block.timestamp));
+            console2.log("Use the upgrade hash given above to schedule an upgrade");
         }
     }
 
     function initUpgradeHash(
         bool deployNewDiamond,
+        address _owner,
+        address _systemAdmin,
+        bool initNewDiamond,
         FacetDeploymentAction facetDeploymentAction,
         string[] memory facetsToCutIn,
         bytes32 salt
-    ) internal returns (bytes32 upgradeHash, IDiamondCut.FacetCut[] memory cut) {
-        address diamondAddress = diamondDeployment(deployNewDiamond, salt);
+    )
+        internal
+        returns (
+            bytes32 upgradeHash,
+            IDiamondCut.FacetCut[] memory cut,
+            address initDiamondAddress
+        )
+    {
+        address diamondAddress = diamondDeployment(deployNewDiamond, _owner, _systemAdmin, salt);
         if (diamondAddress == address(0)) {
-            return (upgradeHash, cut);
+            return (upgradeHash, cut, initDiamondAddress);
         }
 
         cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
-        upgradeHash = keccak256(abi.encode(cut, address(0), ""));
+        bool initialize;
 
+        try INayms(diamondAddress).isDiamondInitialized() returns (bool result) {
+            initialize = result;
+        } catch (bytes memory) {
+            // if the diamond does not have the isDiamondInitialized method, then check bool initNewDiamond
+            if (initNewDiamond) {
+                initialize = false; // if initialize == false then we will deploy InitDiamond and call initialize
+            }
+        }
+        if (!initialize) {
+            IInitDiamond initDiamond = IInitDiamond(LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond"));
+            initDiamondAddress = address(initDiamond);
+            upgradeHash = keccak256(abi.encode(cut, initDiamondAddress, abi.encodeCall(initDiamond.initialize, ())));
+        } else {
+            upgradeHash = keccak256(abi.encode(cut, address(0), ""));
+        }
+
+        console2.log(StdStyle.blue("upgradeHash: "), StdStyle.yellow(vm.toString(upgradeHash)));
         debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
     }
 

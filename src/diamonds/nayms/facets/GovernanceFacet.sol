@@ -10,6 +10,15 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
     event UpdateUpgradeExpiration(uint256 duration);
     event UpgradeCancelled(bytes32 id, address who);
 
+    /**
+     * @notice Check if the diamond has been initialized.
+     * @dev This will get the value from AppStorage.diamondInitialized.
+     */
+    function isDiamondInitialized() external view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.diamondInitialized;
+    }
+
     function createUpgrade(bytes32 id) external assertSysAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -45,5 +54,10 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
     function getUpgrade(bytes32 id) external view returns (uint256 expiry) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         expiry = s.upgradeScheduled[id];
+    }
+
+    function getUpgradeExpiration() external view returns (uint256 upgradeExpiration) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        upgradeExpiration = s.upgradeExpiration;
     }
 }

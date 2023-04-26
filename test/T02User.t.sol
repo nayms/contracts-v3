@@ -21,7 +21,7 @@ contract T02UserTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetEntityFailsIfNotSysAdmin() public {
-        vm.prank(signer2);
+        changePrank(signer2);
         vm.expectRevert("not a system admin");
         nayms.setEntity(account0Id, bytes32(0));
     }

@@ -4,8 +4,8 @@ pragma solidity 0.8.17;
 import "./D00GlobalDefaults.sol";
 
 import { InitDiamond } from "src/diamonds/nayms/InitDiamond.sol";
+import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { Nayms } from "src/diamonds/nayms/Nayms.sol";
-import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
@@ -29,6 +29,11 @@ contract D01Deployment is
     //// test constant variables ////
     bytes32 public immutable salt = keccak256(bytes("A salt!"));
 
+    address public systemAdmin;
+    bytes32 public systemAdminId;
+    address public owner;
+    address public deployer;
+
     function setUp() public virtual override {
         super.setUp();
 
@@ -38,8 +43,14 @@ contract D01Deployment is
         // deploy all facets
         address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
 
-        // deterministically deploy Nayms diamond
-        nayms = INayms(address(new Nayms(address(this))));
+        owner = account0;
+        deployer = account0;
+        vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
+
+        systemAdmin = makeAddr("System Admin 0");
+        systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
+        // vm.label(systemAdmin, "System Admin");
+        nayms = INayms(address(new Nayms(owner, systemAdmin)));
 
         naymsAddress = address(nayms);
         // initialize the diamond as well as cut in all facets
@@ -47,5 +58,39 @@ contract D01Deployment is
 
         // vm.prank(msg.sender);
         nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
+    }
+
+    function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut) internal {
+        // 1. schedule upgrade
+        // 2. upgrade
+        bytes32 upgradeHash = keccak256(abi.encode(_cut, address(0), ""));
+        if (upgradeHash == 0xc597f3eb22d11c46f626cd856bd65e9127b04623d83e442686776a2e3b670bbf) {
+            console2.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
+        } else {
+            changePrank(systemAdmin);
+            nayms.createUpgrade(upgradeHash);
+            changePrank(owner);
+            nayms.diamondCut(_cut, address(0), new bytes(0));
+            changePrank(systemAdmin);
+        }
+    }
+
+    function scheduleAndUpgradeDiamond(
+        IDiamondCut.FacetCut[] memory _cut,
+        address _init,
+        bytes memory _calldata
+    ) internal {
+        // 1. schedule upgrade
+        // 2. upgrade
+        bytes32 upgradeHash = keccak256(abi.encode(_cut, _init, _calldata));
+        if (upgradeHash == 0xc597f3eb22d11c46f626cd856bd65e9127b04623d83e442686776a2e3b670bbf) {
+            console2.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
+        } else {
+            changePrank(systemAdmin);
+            nayms.createUpgrade(upgradeHash);
+            changePrank(owner);
+            nayms.diamondCut(_cut, _init, _calldata);
+            changePrank(systemAdmin);
+        }
     }
 }
