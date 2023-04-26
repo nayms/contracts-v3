@@ -64,7 +64,6 @@ library LibEntity {
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // The entity's balance must be >= to the updated capacity requirement
-        // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
         require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
