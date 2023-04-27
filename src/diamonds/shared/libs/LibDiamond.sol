@@ -17,6 +17,8 @@ import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 
+error InitializationFunctionReverted(address _initializationContractAddress, bytes _calldata);
+
 library LibDiamond {
     bytes32 internal constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
@@ -318,7 +320,7 @@ library LibDiamond {
                     // bubble up the error
                     revert(string(error));
                 } else {
-                    revert("LibDiamondCut: _init function reverted");
+                    revert InitializationFunctionReverted(_init, _calldata);
                 }
             }
         }
