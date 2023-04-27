@@ -45,6 +45,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @dev Transfer tokens internally
      * @param to token receiver
      * @param tokenId Internal ID of the token
+     * @param amount being transferred
      */
     function internalTransferFromEntity(
         bytes32 to,
@@ -61,6 +62,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param from token sender
      * @param to token receiver
      * @param tokenId Internal ID of the token
+     * @param amount being transferred
      */
     function wrapperInternalTransferFrom(
         bytes32 from,

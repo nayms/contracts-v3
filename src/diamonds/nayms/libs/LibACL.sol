@@ -118,6 +118,7 @@ library LibACL {
      * @param _objectId ID of an object that is being assigned a role
      * @param _contextId ID of the context in which a role is being assigned
      * @param _roleId ID of a role being assigned
+     * @return  true if allowed false otherwise
      */
     function _canAssign(
         bytes32 _assignerId,

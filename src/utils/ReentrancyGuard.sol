@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
 
-// From OpenZeppellin: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol
+// From OpenZeppelin: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -44,7 +44,7 @@ abstract contract ReentrancyGuard {
      * `private` function that does the actual work.
      */
     modifier nonReentrant() {
-        // On the first call to nonReentrant, _notEntered will be true
+        // On the first call to nonReentrant, reentrancyStatus will be _NOT_ENTERED
         require(LibAppStorage.diamondStorage().reentrancyStatus != _ENTERED, "ReentrancyGuard: reentrant call");
 
         // Any calls to nonReentrant after this point will fail
