@@ -10,8 +10,9 @@ import { IUserFacet } from "../interfaces/IUserFacet.sol";
 
 /**
  * @title Users
- * @notice Manage user entity
- * @dev Use manage user entity
+ * @notice Utility functions for managing a user's entity.
+ * @dev This contract includes functions to set and get user-entity relationships,
+ *      and to convert wallet addresses to platform IDs and vice versa.
  */
 contract UserFacet is IUserFacet, Modifiers {
     /**
