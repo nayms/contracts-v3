@@ -19,7 +19,7 @@ library LibEntity {
     using ECDSA for bytes32;
     /**
      * @notice New entity has been created
-     * @dev Thrown when entity is created
+     * @dev Emitted when entity is created
      * @param entityId Unique ID for the entity
      * @param entityAdmin Unique ID of the entity administrator
      */

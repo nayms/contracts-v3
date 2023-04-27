@@ -77,11 +77,11 @@ contract ACLFacet is Modifiers, IACLFacet {
     /**
      * @notice Check whether a user can assign specific object to the `_role` role in given context
      * @dev Check permission to assign to a role
-     * @param _assignerId The object ID of the user who is assigning a role to  another object.
+     * @param _assignerId The object ID of the user who is assigning a role to another object.
      * @param _objectId ID of an object that is being checked for assigning rights
      * @param _contextId ID of the context in which permission is checked
      * @param _role name of the role to check
-     * @return true if user the right to assign, false otherwise
+     * @return true if user has the right to assign, false otherwise
      */
     function canAssign(
         bytes32 _assignerId,

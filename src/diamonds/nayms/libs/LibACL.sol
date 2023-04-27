@@ -26,7 +26,7 @@ library LibACL {
      */
     event RoleGroupUpdated(string role, string group, bool roleInGroup);
     /**
-     * @dev Emitted when a role assigners gets updated.
+     * @dev Emitted when a role assigners get updated.
      * @param role The role name.
      * @param group the name of the group that can now assign this role.
      */

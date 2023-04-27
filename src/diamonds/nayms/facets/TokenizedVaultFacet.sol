@@ -34,7 +34,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @notice Current supply for the asset
      * @dev Total supply of platform asset
      * @param tokenId Internal ID of the asset
-     * @return current balance
+     * @return total supply
      */
     function internalTokenSupply(bytes32 tokenId) external view returns (uint256) {
         return LibTokenizedVault._internalTokenSupply(tokenId);
@@ -83,7 +83,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
 
     /**
      * @notice Get withdrawable dividend amount
-     * @dev Divident available for an entity to withdraw
+     * @dev Dividend available for an entity to withdraw
      * @param ownerId Unique ID of the entity
      * @param tokenId Unique ID of token
      * @param dividendTokenId Unique ID of dividend token

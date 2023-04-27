@@ -11,7 +11,7 @@ import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
 
 /**
  * @title Administration
- * @notice Exposes methods that require administrative priviledges
+ * @notice Exposes methods that require administrative privileges
  * @dev Use it to configure various core parameters
  */
 contract AdminFacet is IAdminFacet, Modifiers {
@@ -51,7 +51,7 @@ contract AdminFacet is IAdminFacet, Modifiers {
     /**
      * @notice Is the specified tokenId an external ERC20 that is supported by the Nayms platform?
      * @param _tokenId token address converted to bytes32
-     * @return whether token issupported or not
+     * @return whether token is supported or not
      */
     function isSupportedExternalToken(bytes32 _tokenId) external view returns (bool) {
         return LibAdmin._isSupportedExternalToken(_tokenId);
