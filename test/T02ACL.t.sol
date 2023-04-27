@@ -87,7 +87,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string)"));
+        assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
         assertEq(entries[0].topics[1], signer1Id);
         (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
         assertEq(contextId, context);
@@ -216,7 +216,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdate(bytes32,bytes32,bytes32,string)"));
+        assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
         assertEq(entries[0].topics[1], signer2Id);
         (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
         assertEq(contextId, context);

@@ -17,7 +17,7 @@ library LibACL {
      * @param assignedRoleId The ID of the role which got (un)assigned. (empty ID when unassigned)
      * @param functionName The function performing the action
      */
-    event RoleUpdate(bytes32 indexed objectId, bytes32 contextId, bytes32 assignedRoleId, string functionName);
+    event RoleUpdated(bytes32 indexed objectId, bytes32 contextId, bytes32 assignedRoleId, string functionName);
     /**
      * @dev Emitted when a role group gets updated.
      * @param role The role name.
@@ -62,7 +62,7 @@ library LibACL {
 
         s.roles[_objectId][_contextId] = _roleId;
 
-        emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
+        emit RoleUpdated(_objectId, _contextId, _roleId, "_assignRole");
     }
 
     function _unassignRole(bytes32 _objectId, bytes32 _contextId) internal {
@@ -76,7 +76,7 @@ library LibACL {
             }
         }
 
-        emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
+        emit RoleUpdated(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
         delete s.roles[_objectId][_contextId];
     }
 
