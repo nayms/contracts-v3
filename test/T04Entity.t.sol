@@ -560,10 +560,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         // events: 4 role assignments + 1 policy creation => we want event at index 4
-        assertEq(entries[4].topics.length, 2);
-        assertEq(entries[4].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
-        assertEq(entries[4].topics[1], policyId1);
-        bytes32 entityId = abi.decode(entries[4].data, (bytes32));
+        assertEq(entries[5].topics.length, 2);
+        assertEq(entries[5].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
+        assertEq(entries[5].topics[1], policyId1);
+        bytes32 entityId = abi.decode(entries[5].data, (bytes32));
         assertEq(entityId, entityId1);
     }
 

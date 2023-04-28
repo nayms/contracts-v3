@@ -94,9 +94,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
-        address tok = abi.decode(entries[0].data, (address));
+        assertEq(entries[1].topics.length, 1);
+        assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"));
+        address tok = abi.decode(entries[1].data, (address));
         assertEq(tok, wbtcAddress);
     }
 
@@ -123,8 +123,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
+        assertEq(entries[1].topics.length, 1);
+        assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"));
     }
 
     function testAddSupportedExternalTokenIfWrapper() public {

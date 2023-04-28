@@ -10,7 +10,15 @@ import { PolicyCommissionsBasisPointsCannotBeGreaterThan10000 } from "src/diamon
 
 library LibFeeRouter {
     event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
+    event TradingCommissionsUpdated(
+        uint16 tradingCommissionTotalBP,
+        uint16 tradingCommissionNaymsLtdBP,
+        uint16 tradingCommissionNDFBP,
+        uint16 tradingCommissionSTMBP,
+        uint16 tradingCommissionMakerBP
+    );
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
+    event PremiumCommissionsUpdated(uint16 premiumCommissionNaymsLtdBP, uint16 premiumCommissionNDFBP, uint16 premiumCommissionSTMBP);
 
     function _payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -79,6 +87,14 @@ library LibFeeRouter {
         s.tradingCommissionNDFBP = bp.tradingCommissionNDFBP;
         s.tradingCommissionSTMBP = bp.tradingCommissionSTMBP;
         s.tradingCommissionMakerBP = bp.tradingCommissionMakerBP;
+
+        emit TradingCommissionsUpdated(
+            bp.tradingCommissionTotalBP,
+            bp.tradingCommissionNaymsLtdBP,
+            bp.tradingCommissionNDFBP,
+            bp.tradingCommissionSTMBP,
+            bp.tradingCommissionMakerBP
+        );
     }
 
     function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
@@ -90,6 +106,8 @@ library LibFeeRouter {
         s.premiumCommissionNaymsLtdBP = bp.premiumCommissionNaymsLtdBP;
         s.premiumCommissionNDFBP = bp.premiumCommissionNDFBP;
         s.premiumCommissionSTMBP = bp.premiumCommissionSTMBP;
+
+        emit PremiumCommissionsUpdated(bp.premiumCommissionNaymsLtdBP, bp.premiumCommissionNDFBP, bp.premiumCommissionSTMBP);
     }
 
     function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {

@@ -10,7 +10,10 @@ import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
+    event TokenizationEnabled(bytes32 objectId, string tokenSymbol, string tokenName);
     event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
+    event ObjectCreated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
+    event ObjectUpdated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
 
     function _createObject(
         bytes32 _objectId,
@@ -25,6 +28,8 @@ library LibObject {
         s.existingObjects[_objectId] = true;
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
+
+        emit ObjectCreated(_objectId, _parentId, _dataHash);
     }
 
     function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
@@ -34,6 +39,8 @@ library LibObject {
 
         s.existingObjects[_objectId] = true;
         s.objectDataHashes[_objectId] = _dataHash;
+
+        emit ObjectCreated(_objectId, 0, _dataHash);
     }
 
     function _createObject(bytes32 _objectId) internal {
@@ -42,6 +49,8 @@ library LibObject {
         require(!s.existingObjects[_objectId], "objectId is already being used by another object");
 
         s.existingObjects[_objectId] = true;
+
+        emit ObjectCreated(_objectId, 0, 0);
     }
 
     function _setDataHash(bytes32 _objectId, bytes32 _dataHash) internal {
@@ -49,6 +58,8 @@ library LibObject {
 
         require(s.existingObjects[_objectId], "setDataHash: object doesn't exist");
         s.objectDataHashes[_objectId] = _dataHash;
+
+        emit ObjectUpdated(_objectId, 0, _dataHash);
     }
 
     function _getDataHash(bytes32 _objectId) internal view returns (bytes32 objectDataHash) {
@@ -70,6 +81,8 @@ library LibObject {
     function _setParent(bytes32 _objectId, bytes32 _parentId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.objectParent[_objectId] = _parentId;
+
+        emit ObjectUpdated(_objectId, _parentId, 0);
     }
 
     function _isObjectTokenizable(bytes32 _objectId) internal view returns (bool) {
@@ -99,6 +112,8 @@ library LibObject {
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
+
+        emit TokenizationEnabled(_objectId, _symbol, _name);
     }
 
     function _isObjectTokenWrapped(bytes32 _objectId) internal view returns (bool) {
