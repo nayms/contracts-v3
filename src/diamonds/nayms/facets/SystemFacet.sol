@@ -35,6 +35,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Convert a string type to a bytes32 type
      * @param _strIn a string
+     * @return result Bytes32 representation of input string
      */
     function stringToBytes32(string memory _strIn) external pure returns (bytes32 result) {
         result = LibHelpers._stringToBytes32(_strIn);

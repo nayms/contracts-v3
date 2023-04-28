@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 /// @notice modifiers
 
-import { LibMeta } from "../shared/libs/LibMeta.sol";
 import { LibAdmin } from "./libs/LibAdmin.sol";
 import { LibConstants } from "./libs/LibConstants.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
@@ -22,7 +21,7 @@ contract Modifiers {
     }
     modifier assertSysAdmin() {
         require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_ADMINS)),
+            LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_ADMINS)),
             "not a system admin"
         );
         _;
@@ -30,25 +29,19 @@ contract Modifiers {
 
     modifier assertSysMgr() {
         require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_MANAGERS)),
+            LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.GROUP_SYSTEM_MANAGERS)),
             "not a system manager"
         );
         _;
     }
 
     modifier assertEntityAdmin(bytes32 _context) {
-        require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(LibMeta.msgSender()), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)),
-            "not the entity's admin"
-        );
+        require(LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)), "not the entity's admin");
         _;
     }
 
     modifier assertPolicyHandler(bytes32 _context) {
-        require(
-            LibACL._isInGroup(LibObject._getParentFromAddress(LibMeta.msgSender()), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_POLICY_HANDLERS)),
-            "not a policy handler"
-        );
+        require(LibACL._isInGroup(LibObject._getParentFromAddress(msg.sender), _context, LibHelpers._stringToBytes32(LibConstants.GROUP_POLICY_HANDLERS)), "not a policy handler");
         _;
     }
 

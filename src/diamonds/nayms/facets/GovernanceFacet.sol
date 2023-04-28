@@ -6,9 +6,9 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { IGovernanceFacet } from "../interfaces/IGovernanceFacet.sol";
 
 contract GovernanceFacet is Modifiers, IGovernanceFacet {
-    event CreateUpgrade(bytes32 id, address who);
+    event CreateUpgrade(bytes32 id, address indexed who);
     event UpdateUpgradeExpiration(uint256 duration);
-    event UpgradeCancelled(bytes32 id, address who);
+    event UpgradeCancelled(bytes32 id, address indexed who);
 
     /**
      * @notice Check if the diamond has been initialized.

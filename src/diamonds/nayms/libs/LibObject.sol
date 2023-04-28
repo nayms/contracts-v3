@@ -21,11 +21,7 @@ library LibObject {
         bytes32 _dataHash
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
-        // Check if the objectId is already being used by another object
-        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-
-        s.existingObjects[_objectId] = true;
+        _createObject(_objectId);
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
 
@@ -34,10 +30,7 @@ library LibObject {
 
     function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
-        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-
-        s.existingObjects[_objectId] = true;
+        _createObject(_objectId);
         s.objectDataHashes[_objectId] = _dataHash;
 
         emit ObjectCreated(_objectId, 0, _dataHash);
@@ -45,9 +38,7 @@ library LibObject {
 
     function _createObject(bytes32 _objectId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-
         s.existingObjects[_objectId] = true;
 
         emit ObjectCreated(_objectId, 0, 0);

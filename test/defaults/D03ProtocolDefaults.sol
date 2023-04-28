@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 

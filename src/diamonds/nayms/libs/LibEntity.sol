@@ -11,7 +11,6 @@ import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
 import { LibSimplePolicy } from "./LibSimplePolicy.sol";
-import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
@@ -20,7 +19,7 @@ library LibEntity {
     using ECDSA for bytes32;
     /**
      * @notice New entity has been created
-     * @dev Thrown when entity is created
+     * @dev Emitted when entity is created
      * @param entityId Unique ID for the entity
      * @param entityAdmin Unique ID of the entity administrator
      */
@@ -55,7 +54,6 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
 
-        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
@@ -66,7 +64,6 @@ library LibEntity {
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // The entity's balance must be >= to the updated capacity requirement
-        // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
         require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
@@ -78,10 +75,10 @@ library LibEntity {
         // policy-level receivers are also expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
         require(commissionReceiversArrayLength > 3, "must have commission receivers");
+        require(commissionReceiversArrayLength <= 3 + _stakeholders.roles.length, "too many commission receivers");
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
-        require(commissionBasisPointsArrayLength > 3, "must have commission basis points");
-        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "commissions lengths !=");
+        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
 
         uint256 totalBP;
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
@@ -170,7 +167,6 @@ library LibEntity {
     ) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
-        require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 

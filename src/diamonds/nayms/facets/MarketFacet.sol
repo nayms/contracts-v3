@@ -84,8 +84,9 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      * @notice Get current best offer for given token pair.
      *
      * @dev This means finding the highest sellToken-per-buyToken price, i.e. price = sellToken / buyToken
-     *
-     * @return offerId, or 0 if no current best is available.
+     * @param _sellToken ID of the token being sold
+     * @param _buyToken ID of the token being bought
+     * @return offerId, or 0 if no offer exists for given pair
      */
     function getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) external view returns (uint256) {
         return LibMarket._getBestOfferId(_sellToken, _buyToken);

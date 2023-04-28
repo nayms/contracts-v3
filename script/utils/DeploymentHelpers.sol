@@ -324,7 +324,7 @@ contract DeploymentHelpers is Test {
 
                     replaceSelectors.push(functionSelectors[i]);
 
-                    // assume the old facet address is the address with a matching function selector - todo make this more robust
+                    // assume the old facet address is the address with a matching function selector
                     oldFacetAddress = IDiamondLoupe(diamondAddress).facetAddress(functionSelectors[i]);
                     // add method if it doesn't exist in the old facet
                 } else if (IDiamondLoupe(diamondAddress).facetAddress(functionSelectors[i]) == address(0)) {
@@ -413,8 +413,6 @@ contract DeploymentHelpers is Test {
         IDiamondCut.FacetCut[] memory cut,
         address initAddress
     ) public {
-        // todo check if init contract has initialize method
-        // if the initAddress param is not null, then we assume to call initialize from the provided initAddress to "initialize" the diamond.
         if (initAddress != address(0)) {
             IInitDiamond initDiamond = IInitDiamond(initAddress);
 

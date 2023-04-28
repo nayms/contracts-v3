@@ -78,6 +78,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Check if an entity token is wrapped as ERC20
      * @param _entityId ID of the entity
+     * @return true if it is, false otherwise
      */
     function isTokenWrapped(bytes32 _entityId) external view returns (bool) {
         return LibObject._isObjectTokenWrapped(_entityId);

@@ -4,13 +4,15 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
+
+// solhint-disable no-global-import
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 // solhint-disable no-console
@@ -266,17 +268,20 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
-        bytes[] memory signatures = new bytes[](2);
+        bytes[] memory signatures = new bytes[](3);
         signatures[0] = initPolicySig(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
         signatures[1] = initPolicySig(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[2] = initPolicySig(0xACC3, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
-        bytes32[] memory roles = new bytes32[](2);
+        bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
 
-        bytes32[] memory entityIds = new bytes32[](2);
+        bytes32[] memory entityIds = new bytes32[](3);
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
+        entityIds[1] = "eEve";
 
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -290,6 +295,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 bobId = LibHelpers._getIdForAddress(vm.addr(0xACC1));
         bytes32 aliceId = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+        bytes32 eveId = LibHelpers._getIdForAddress(vm.addr(0xACC3));
 
         Entity memory entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
@@ -299,10 +305,12 @@ contract T04EntityTest is D03ProtocolDefaults {
             simplePolicyEnabled: true
         });
 
-        bytes32 eAlice = "ealice";
-        bytes32 eBob = "ebob";
+        bytes32 eAlice = "eAlice";
+        bytes32 eBob = "eBob";
+        bytes32 eEve = "eEve";
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
         nayms.createEntity(eBob, bobId, entity, "entity test hash");
+        nayms.createEntity(eEve, eveId, entity, "entity test hash");
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
@@ -310,17 +318,20 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
-        bytes[] memory signatures = new bytes[](2);
+        bytes[] memory signatures = new bytes[](3);
         signatures[0] = initPolicySig(0xACC2, signingHash);
         signatures[1] = initPolicySig(0xACC1, signingHash);
+        signatures[2] = initPolicySig(0xACC3, signingHash);
 
-        bytes32[] memory roles = new bytes32[](2);
+        bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
 
-        bytes32[] memory entityIds = new bytes32[](2);
+        bytes32[] memory entityIds = new bytes32[](3);
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
+        entityIds[2] = eEve;
 
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -421,14 +432,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
         // commission basis points
-        vm.expectRevert("must have commission basis points");
+        vm.expectRevert("number of commissions don't match");
         uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;
         simplePolicy.commissionBasisPoints = new uint256[](0);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
 
         // commission basis points array and commission receivers array must have same length
-        vm.expectRevert("commissions lengths !=");
+        vm.expectRevert("number of commissions don't match");
         simplePolicy.commissionBasisPoints = new uint256[](1);
         simplePolicy.commissionBasisPoints.push(1);
         simplePolicy.commissionReceivers = new bytes32[](2);
@@ -451,7 +462,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         // create it successfully
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
+        SimplePolicy memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.startDate, simplePolicy.startDate, "Start dates should match");
         assertEq(simplePolicyInfo.maturationDate, simplePolicy.maturationDate, "Maturation dates should match");
         assertEq(simplePolicyInfo.asset, simplePolicy.asset, "Assets should match");
@@ -466,7 +477,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
 
         stakeholders.roles = roles;
-        vm.expectRevert("stakeholders roles mismatch");
+        vm.expectRevert("too many commission receivers");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
@@ -474,7 +485,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        // todo: improve this error message when a premium is being created with the same premium ID
         vm.expectRevert("objectId is already being used by another object");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
@@ -560,10 +570,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         // events: 4 role assignments + 1 policy creation => we want event at index 4
-        assertEq(entries[5].topics.length, 2);
-        assertEq(entries[5].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
-        assertEq(entries[5].topics[1], policyId1);
-        bytes32 entityId = abi.decode(entries[5].data, (bytes32));
+        assertEq(entries[6].topics.length, 2);
+        assertEq(entries[6].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
+        assertEq(entries[6].topics[1], policyId1);
+        bytes32 entityId = abi.decode(entries[6].data, (bytes32));
         assertEq(entityId, entityId1);
     }
 
@@ -852,7 +862,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         assertEq(nayms.getLastOfferId(), 0);
 
-        vm.expectRevert("must be tokenizable");
+        vm.expectRevert(abi.encodeWithSelector(ObjectCannotBeTokenized.selector, entityId1));
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
         nayms.enableEntityTokenization(entityId1, "e1token", "e1token");
@@ -963,7 +973,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             "utilized capacity should change"
         );
 
-        SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
+        SimplePolicy memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.cancelled, true, "Simple policy should be cancelled");
 
         vm.expectRevert("Policy already cancelled");

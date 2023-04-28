@@ -50,11 +50,16 @@ contract InitDiamond {
 
         // Set Commissions (all are in basis points)
         s.tradingCommissionTotalBP = 30;
+        // From the tradingCommissionTotalBP, each of the following entities take their share.
         s.tradingCommissionNaymsLtdBP = 5000;
         s.tradingCommissionNDFBP = 2500;
         s.tradingCommissionSTMBP = 2500;
         s.tradingCommissionMakerBP; // init 0
 
+        // A percentage of the premium payments are taken as commission.
+        // The following entities take this percentage of premium payments (in basis points)
+        // The calculation for the commission is done in the following way:
+        // premium payment amount * entity commissions (in basis points) / 10000
         s.premiumCommissionNaymsLtdBP = 150;
         s.premiumCommissionNDFBP = 75;
         s.premiumCommissionSTMBP = 75;
