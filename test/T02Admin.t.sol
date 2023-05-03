@@ -263,8 +263,20 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.lockFunction(bytes4(0x12345678));
 
         changePrank(systemAdmin);
+
+        vm.recordLogs();
         // assert happy path
         nayms.lockFunction(bytes4(0x12345678));
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
+        (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
+
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = bytes4(0x12345678);
+
+        assertEq(s_functionSelectors[0], functionSelectors[0]);
 
         assertTrue(nayms.isFunctionLocked(bytes4(0x12345678)));
     }
@@ -290,7 +302,19 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.internalBalanceOf(systemAdminEntityId, wethId), 1 ether, "balance should stay the same");
 
+        vm.recordLogs();
+
         nayms.unlockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("FunctionsUnlocked(bytes4[])"));
+        (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
+
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
+
+        assertEq(s_functionSelectors[0], functionSelectors[0]);
 
         nayms.externalWithdrawFromEntity(systemAdminEntityId, systemAdmin, address(weth), 0.5 ether);
 

@@ -79,11 +79,19 @@ library LibAdmin {
     function _lockFunction(bytes4 functionSelector) internal {
         FunctionLockedStorage storage s = LibAppStorage.functionLockStorage();
         s.locked[functionSelector] = true;
+
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = functionSelector;
+        emit FunctionsLocked(functionSelectors);
     }
 
     function _unlockFunction(bytes4 functionSelector) internal {
         FunctionLockedStorage storage s = LibAppStorage.functionLockStorage();
         s.locked[functionSelector] = false;
+
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = functionSelector;
+        emit FunctionsUnlocked(functionSelectors);
     }
 
     function _isFunctionLocked(bytes4 functionSelector) internal view returns (bool) {
