@@ -105,7 +105,7 @@ library LibAdmin {
         s.locked[ITokenizedVaultFacet.wrapperInternalTransferFrom.selector] = true;
         s.locked[ITokenizedVaultFacet.withdrawDividend.selector] = true;
         s.locked[ITokenizedVaultFacet.withdrawAllDividends.selector] = true;
-        s.locked[ITokenizedVaultFacet.payDividendFromEntity.selector] = true;
+        s.locked[ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector] = true;
         s.locked[ITokenizedVaultIOFacet.externalDeposit.selector] = true;
 
         bytes4[] memory lockedFunctions = new bytes4[](14);
@@ -121,7 +121,7 @@ library LibAdmin {
         lockedFunctions[9] = ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
         lockedFunctions[10] = ITokenizedVaultFacet.withdrawDividend.selector;
         lockedFunctions[11] = ITokenizedVaultFacet.withdrawAllDividends.selector;
-        lockedFunctions[12] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[12] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = ITokenizedVaultIOFacet.externalDeposit.selector;
 
         emit FunctionsLocked(lockedFunctions);
@@ -141,7 +141,7 @@ library LibAdmin {
         s.locked[ITokenizedVaultFacet.wrapperInternalTransferFrom.selector] = false;
         s.locked[ITokenizedVaultFacet.withdrawDividend.selector] = false;
         s.locked[ITokenizedVaultFacet.withdrawAllDividends.selector] = false;
-        s.locked[ITokenizedVaultFacet.payDividendFromEntity.selector] = false;
+        s.locked[ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector] = false;
         s.locked[ITokenizedVaultIOFacet.externalDeposit.selector] = false;
 
         bytes4[] memory lockedFunctions = new bytes4[](14);
@@ -157,7 +157,7 @@ library LibAdmin {
         lockedFunctions[9] = ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
         lockedFunctions[10] = ITokenizedVaultFacet.withdrawDividend.selector;
         lockedFunctions[11] = ITokenizedVaultFacet.withdrawAllDividends.selector;
-        lockedFunctions[12] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[12] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = ITokenizedVaultIOFacet.externalDeposit.selector;
 
         emit FunctionsUnlocked(lockedFunctions);

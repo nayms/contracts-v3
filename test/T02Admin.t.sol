@@ -311,19 +311,19 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
         bytes4[] memory lockedFunctions = new bytes4[](14);
-        lockedFunctions[0] =  IEntityFacet.startTokenSale.selector;
-        lockedFunctions[1] =  ISimplePolicyFacet.paySimpleClaim.selector;
-        lockedFunctions[2] =  ISimplePolicyFacet.paySimplePremium.selector;
-        lockedFunctions[3] =  ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector;
-        lockedFunctions[4] =  IMarketFacet.cancelOffer.selector;
-        lockedFunctions[5] =  IMarketFacet.executeLimitOffer.selector;
-        lockedFunctions[6] =  ITokenizedVaultFacet.internalTransferFromEntity.selector;
-        lockedFunctions[7] =  ITokenizedVaultFacet.payDividendFromEntity.selector;
-        lockedFunctions[8] =  ITokenizedVaultFacet.internalBurn.selector;
-        lockedFunctions[9] =  ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
+        lockedFunctions[0] = IEntityFacet.startTokenSale.selector;
+        lockedFunctions[1] = ISimplePolicyFacet.paySimpleClaim.selector;
+        lockedFunctions[2] = ISimplePolicyFacet.paySimplePremium.selector;
+        lockedFunctions[3] = ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector;
+        lockedFunctions[4] = IMarketFacet.cancelOffer.selector;
+        lockedFunctions[5] = IMarketFacet.executeLimitOffer.selector;
+        lockedFunctions[6] = ITokenizedVaultFacet.internalTransferFromEntity.selector;
+        lockedFunctions[7] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[8] = ITokenizedVaultFacet.internalBurn.selector;
+        lockedFunctions[9] = ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
         lockedFunctions[10] = ITokenizedVaultFacet.withdrawDividend.selector;
         lockedFunctions[11] = ITokenizedVaultFacet.withdrawAllDividends.selector;
-        lockedFunctions[12] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[12] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = ITokenizedVaultIOFacet.externalDeposit.selector;
 
         for (uint256 i = 0; i < lockedFunctions.length; i++) {
@@ -367,7 +367,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.withdrawAllDividends(account0Id, wethId);
 
         vm.expectRevert("function is locked");
-        nayms.payDividendFromEntity(bytes32("0x11"), 1 ether);
+        nayms.externalWithdrawFromEntity(bytes32("0x11"), account0, wethAddress, 1 ether);
 
         vm.expectRevert("function is locked");
         nayms.externalDeposit(wethAddress, 1 ether);
@@ -386,7 +386,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.wrapperInternalTransferFrom.selector), "function wrapperInternalTransferFrom locked");
         assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.withdrawDividend.selector), "function withdrawDividend locked");
         assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.withdrawAllDividends.selector), "function withdrawAllDividends locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.payDividendFromEntity.selector), "function payDividendFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector), "function externalWithdrawFromEntity locked");
         assertFalse(nayms.isFunctionLocked(ITokenizedVaultIOFacet.externalDeposit.selector), "function externalDeposit locked");
     }
 }
