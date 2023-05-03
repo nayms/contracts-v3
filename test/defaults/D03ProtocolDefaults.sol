@@ -50,7 +50,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        changePrank(systemAdmin);
+        vm.startPrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({

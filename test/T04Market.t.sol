@@ -217,19 +217,16 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt);
-        vm.stopPrank();
 
         changePrank(signer3);
         writeTokenBalance(signer3, naymsAddress, wethAddress, dt.entity3ExternalDepositAmt);
         nayms.externalDeposit(wethAddress, dt.entity3ExternalDepositAmt);
-        vm.stopPrank();
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), wethId);
 
         changePrank(signer2);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
-        vm.stopPrank();
 
         assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
 
@@ -261,11 +258,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(signer2);
         nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1MintAndSaleAmt);
-        vm.stopPrank();
 
         changePrank(signer3);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
-        vm.stopPrank();
 
         assertEq(nayms.internalBalanceOf(entity2, wethId), e2WethBeforeTrade + dt.entity1MintAndSaleAmt, "Maker pays no commissions, on secondary market");
         assertEq(nayms.internalBalanceOf(entity3, wethId), e3WethBeforeTrade - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions, on secondary market");
@@ -297,7 +292,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(signer3);
         vm.expectRevert("only member of entity can cancel");
         nayms.cancelOffer(1);
-        vm.stopPrank();
 
         vm.recordLogs();
 
@@ -412,7 +406,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.startPrank(signer1);
             writeTokenBalance(signer1, naymsAddress, wethAddress, e1Balance);
             nayms.externalDeposit(wethAddress, e1Balance);
-            vm.stopPrank();
+
             assertEq(nayms.internalBalanceOf(entity1, LibHelpers._getIdForAddress(wethAddress)), e1Balance, "Entity1: invalid balance");
 
             changePrank(systemAdmin); // prob need to be system admin
@@ -543,8 +537,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 lastOfferId = nayms.getLastOfferId();
         nayms.cancelOffer(lastOfferId);
 
-        vm.stopPrank();
-
         changePrank(systemAdmin);
         nayms.enableEntityTokenization(entity2, "e2token", "e2token");
         nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
@@ -573,7 +565,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 2);
 
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt * 2);
-        vm.stopPrank();
 
         assertOfferPartiallyFilled(2, entity2, wethId, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2);
 
@@ -752,7 +743,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2balance);
         nayms.externalDeposit(wethAddress, e2balance);
         nayms.executeLimitOffer(wethId, offer2sell, entity1, offer2buy);
-        vm.stopPrank();
 
         // half should match so we should be left with offer 2 partially matched
         // 2000 WETH -> 2000 pTokens
@@ -801,7 +791,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         bytes32 policyId1 = "policy1";
         uint256 policyLimit = 85 ether;
 
-        changePrank(systemAdmin);
+        vm.startPrank(systemAdmin);
         (Stakeholders memory stakeholders, SimplePolicy memory policy) = initPolicyWithLimit(testPolicyDataHash, policyLimit);
         nayms.createSimplePolicy(policyId1, e1Id, stakeholders, policy, testPolicyDataHash);
 

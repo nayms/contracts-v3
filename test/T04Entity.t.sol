@@ -281,7 +281,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32[] memory entityIds = new bytes32[](3);
         entityIds[0] = eAlice;
         entityIds[1] = eBob;
-        entityIds[1] = "eEve";
+        entityIds[2] = "eEve";
 
         Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
 
@@ -807,7 +807,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             assertEq(nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, wethId), balanceBeforePremium - premiumAmount);
         }
 
-        changePrank(systemAdmin);
+        vm.startPrank(systemAdmin);
 
         simplePolicy.cancelled = true;
         updateSimplePolicy(policyId1, simplePolicy);
@@ -872,7 +872,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
         vm.stopPrank();
 
-        changePrank(systemAdmin);
+        vm.startPrank(systemAdmin);
         vm.expectRevert("mint amount must be > 0");
         nayms.startTokenSale(entityId1, 0, sellAtPrice);
 

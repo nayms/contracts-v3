@@ -264,7 +264,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 entity1WethInternalBalance = nayms.internalBalanceOf(entity1, nWETH);
         uint256 naymsWethInternalTokenSupply = nayms.internalTokenSupply(nWETH);
 
-        changePrank(signer1);
+        vm.prank(signer1);
         nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 100);
 
         assertEq(weth.balanceOf(account0), account0WethBalanceAccount0 + 100, "account0 got WETH");
@@ -396,7 +396,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         );
         nayms.internalBalanceOf(signer1Id, nWETH); // no change
 
-        changePrank(account0);
+        vm.startPrank(account0);
         nayms.withdrawDividend(acc0EntityId, nWETH, nWETH);
         nayms.withdrawAllDividends(account0Id, nWETH);
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 2 ether, "acc0EntityId nWETH balance should STAY THE SAME");
@@ -702,7 +702,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
-        changePrank(alice);
+        vm.startPrank(alice);
         nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
@@ -931,7 +931,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         // 5.  ---- distribute another round of dividends  ----
-        changePrank(account0);
+        vm.startPrank(account0);
         console2.log(nayms.internalBalanceOf(entity0Id, nWETH));
         bytes32 guid2 = bytes32("0xbEEf");
         nayms.payDividendFromEntity(guid2, _dividendAmount);
