@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { LibAdmin } from "./LibAdmin.sol";
 import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";

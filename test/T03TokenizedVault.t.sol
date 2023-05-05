@@ -278,7 +278,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.enableEntityTokenization(acc0EntityId, "E1", "E1");
         nayms.startTokenSale(acc0EntityId, 1 ether, 1 ether);
 
-        bytes32 acc9Id = LibHelpers._addressToBytes32(account9);
+        bytes32 acc9Id = LibHelpers._getIdForAddress(account9);
         nayms.setEntity(acc9Id, acc0EntityId);
 
         changePrank(account0);

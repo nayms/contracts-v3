@@ -30,16 +30,8 @@ contract T01LibHelpers is D03ProtocolDefaults {
         }
     }
 
-    function testAddressToBytes32Fuzz(address a) public {
-        assertEq(LibHelpers._addressToBytes32(a), LibHelpers._bytesToBytes32(abi.encode(a)));
-    }
-
     function testStringToBytes32Fuzz(string memory s) public {
         assertEq(LibHelpers._stringToBytes32(s), LibHelpers._bytesToBytes32(bytes(s)));
-    }
-
-    function testBytes32ToStringFuzz(bytes32 b32) public {
-        assertEq(LibHelpers._bytes32ToString(b32), string(LibHelpers._bytes32ToBytes(b32)));
     }
 
     function testBytesToBytes32Fuzz(bytes memory b) public {

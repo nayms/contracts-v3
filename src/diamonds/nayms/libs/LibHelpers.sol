@@ -42,16 +42,18 @@ library LibHelpers {
 
     // Conversion Utilities
 
-    function _addressToBytes32(address addr) internal pure returns (bytes32) {
-        return _bytesToBytes32(abi.encode(addr));
-    }
-
+    /**
+     * @dev Converts a string to a bytes32 representation.
+     *      No length check for the input string is performed in this function, as it is only
+     *      used with predefined string constants from LibConstants related to role names,
+     *      role group names, and special platform identifiers.
+     *      These critical string constants are verified to be 32 bytes or less off-chain
+     *      before being used, and can only be set by platform admins.
+     * @param strIn The input string to be converted
+     * @return The bytes32 representation of the input string
+     */
     function _stringToBytes32(string memory strIn) internal pure returns (bytes32) {
         return _bytesToBytes32(bytes(strIn));
-    }
-
-    function _bytes32ToString(bytes32 bytesIn) internal pure returns (string memory) {
-        return string(_bytes32ToBytes(bytesIn));
     }
 
     function _bytesToBytes32(bytes memory source) internal pure returns (bytes32 result) {
