@@ -388,7 +388,17 @@ docs: ## generate docs from natspec comments
 slither:	## run slither static analysis
 	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
 
-upgrade-hash-goerli: ## generate upgrade hash
+upgrade-hash-sepolia: ## generate SEPOLIA upgrade hash
+	@forge script SmartDeploy \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
+		--fork-url ${ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--ffi \
+		--silent \
+		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available"
+
+upgrade-hash-goerli: ## generate GOERLI upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_GOERLI_RPC_URL} \
@@ -398,7 +408,7 @@ upgrade-hash-goerli: ## generate upgrade hash
 		--silent \
 		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json
 
-upgrade-hash-mainnet: ## generate upgrade hash
+upgrade-hash-mainnet: ## generate MAINNET upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_MAINNET_RPC_URL} \
@@ -408,7 +418,7 @@ upgrade-hash-mainnet: ## generate upgrade hash
 		--silent \
 		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json
 
-upgrade-hash-anvil: ## generate upgrade hash
+upgrade-hash-anvil: ## generate ANVIL upgrade hash
 	forge script SmartDeploy \
 		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		--sender ${senderAddress} \

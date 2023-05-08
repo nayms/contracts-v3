@@ -77,6 +77,16 @@ jobs:
           ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: |
+          make upgrade-hash-mainnet
+          make upgrade-hash-goerli
+          make upgrade-hash-sepolia
+
           echo "### Upgrade hash" >> $GITHUB_STEP_SUMMARY
-          echo " - mainnet \`$(make upgrade-hash-mainnet)\`" >> $GITHUB_STEP_SUMMARY 
-          echo " - goerli \`$(make upgrade-hash-goerli)\`" >> $GITHUB_STEP_SUMMARY
+          echo " - mainnet \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY 
+          echo " - goerli \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo " - sepolia \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Upgrade cut" >> $GITHUB_STEP_SUMMARY
+          echo " - mainnet \`$(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY 
+          echo " - goerli \`$(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo " - sepolia \`$(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
