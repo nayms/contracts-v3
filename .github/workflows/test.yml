@@ -82,11 +82,11 @@ jobs:
           make upgrade-hash-sepolia
 
           echo "### Upgrade hash" >> $GITHUB_STEP_SUMMARY
-          echo " - mainnet \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY 
-          echo " - goerli \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
-          echo " - sepolia \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo " - mainnet \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo "> $(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")" >> $GITHUB_STEP_SUMMARY
 
-          echo "### Upgrade cut" >> $GITHUB_STEP_SUMMARY
-          echo " - mainnet \`$(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY 
-          echo " - goerli \`$(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
-          echo " - sepolia \`$(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo " - goerli \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo "> $(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")" >> $GITHUB_STEP_SUMMARY
+
+          echo " - sepolia \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
+          echo "> $(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available") >> $GITHUB_STEP_SUMMARY
