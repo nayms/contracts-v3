@@ -127,7 +127,7 @@ erc20-mainnet: ## deploy mock ERC20
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast \
@@ -141,8 +141,6 @@ erc20-mainnet-sim: ## simulate deploy mock ERC20
 		-f ${ETH_MAINNET_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
 		; node cli-tools/postproc-broadcasts.js
@@ -155,7 +153,7 @@ erc20g: ## deploy test ERC20 to Goerli
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		--broadcast \
 		--verify \
 		-vvvv
@@ -165,7 +163,7 @@ facetsToCutIn="[]"
 newDiamond=false
 initNewDiamond=false
 facetAction=1
-senderAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
+senderAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 deploymentSalt=0xdeffffffff
 owner=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdmin=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
@@ -177,11 +175,11 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--private-key ${OWNER_ACCOUNT_KEY} \
 		-vv \
 		--ffi \
 		--broadcast \
+		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
 deploy: ## smart deploy to goerli
@@ -192,7 +190,7 @@ deploy: ## smart deploy to goerli
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast \
@@ -207,7 +205,8 @@ deploy-mainnet: ## smart deploy to mainnet
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
+		--slow \
 		-vv \
 		--ffi \
 		--broadcast \
@@ -222,8 +221,6 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		-vv \
 		--ffi 
 
@@ -234,13 +231,11 @@ deploy-sim: ## simulate smart deploy to goerli
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		-vv \
 		--ffi
 
 anvil:	## run anvil with shared wallet
-	anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt --state anvil.json
+	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
 
 anvil-debug:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
@@ -255,7 +250,7 @@ anvil-deploy: ## smart deploy locally to anvil
 		--chain-id 31337 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast
@@ -267,7 +262,7 @@ anvil-upgrade: ## smart deploy locally to anvil
 		--chain-id 31337 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast
@@ -278,7 +273,7 @@ anvil-replace-dc: ## Replace diamondCut() with the 2-phase diamondCut() on anvil
 		--chain-id 31337 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast
@@ -290,7 +285,7 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 		--chain-id 31337 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast
@@ -302,7 +297,7 @@ anvil-add-supported-external-token: ## Add a supported external token (anvil)
 		--chain-id 31337 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--broadcast
 
@@ -312,7 +307,7 @@ goerli-replace-ownership: ## Replace transferOwnership()
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast \
@@ -325,7 +320,7 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		--chain-id 31337 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--broadcast
 
@@ -336,7 +331,7 @@ add-supported-external-token: ## Add a supported external token (goerli)
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--broadcast
 
@@ -347,7 +342,7 @@ update-commissions: ## update trading and premium commissions
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		-vv \
 		--broadcast
 
@@ -366,9 +361,6 @@ upgrade-hash-goerli: ## generate upgrade hash
 		--fork-url ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		--ffi \
 		--silent \
 		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json
@@ -379,9 +371,6 @@ upgrade-hash-mainnet: ## generate upgrade hash
 		--fork-url ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
 		--ffi \
 		--silent \
 		&& jq --raw-output '.returns.upgradeHash.value, .returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json
@@ -391,7 +380,7 @@ upgrade-hash-anvil: ## generate upgrade hash
 		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
+		--mnemonic-indexes 19 \
 		--ffi
 
 verify-dry-run:	## dry run verify script, prints out commands to be executed
@@ -407,5 +396,6 @@ update-e: ## update
 		--chain-id 5 \
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
-		-vvvv
+		--mnemonic-indexes 19 \
+		-vvvv \
+		--broadcast

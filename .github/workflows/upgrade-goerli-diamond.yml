@@ -11,7 +11,7 @@ jobs:
     permissions:
       id-token: write
       packages: read
-      contents: read
+      contents: write
       security-events: write
     timeout-minutes: 15
     container:
@@ -19,7 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: recursive
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update path
         run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
@@ -46,11 +47,12 @@ jobs:
         env:
           ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          OWNER_ACCOUNT_KEY: ${{ secrets.OWNER_ACCOUNT_KEY }}
         run: make schedule-upgrade-goerli
 
       - name: Set git identity
         run: |
-          git config --global user.email "nayms-engineering@nayms.com"
+          git config --global user.email "engineering@nayms.com"
           git config --global user.name "Nayms Engineering"
 
       - name: Commit broadcast files

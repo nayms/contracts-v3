@@ -12,6 +12,7 @@ import { PhasedDiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondC
 // solhint-disable no-empty-blocks
 // solhint-disable state-visibility
 // solhint-disable quotes
+// solhint-disable no-console
 
 /// @notice helper methods to deploy a diamond,
 
@@ -526,11 +527,11 @@ contract DeploymentHelpers is Test {
         string[] memory facetsToCutIn,
         FacetDeploymentAction facetDeploymentAction
     ) internal {
-        console2.log(StdStyle.underline("Upgrading"));
+        console2.log(StdStyle.underline("Upgrade stats:"));
 
         uint256 numFacets = cutS.length;
 
-        console2.log(StdStyle.underline("Number of facets being added/removed/replaced: "), cutS.length);
+        console2.log(StdStyle.underline("Number of facets being added/removed/replaced:"), cutS.length);
 
         uint256 addCount;
         uint256 replaceCount;
@@ -567,16 +568,16 @@ contract DeploymentHelpers is Test {
             console2.log("Number of facets being added/removed/replaced:", facetsToCutIn.length);
         }
 
-        console2.log("Number of facets being added: ", addCount);
-        console2.log("Number of facets being removed: ", removeCount);
-        console2.log("Number of facets being replaced: ", replaceCount);
+        console2.log("Number of facets being added:", addCount);
+        console2.log("Number of facets being removed:", removeCount);
+        console2.log("Number of facets being replaced:", replaceCount);
 
-        console2.log("Number of function selectors being added: ", totalAddCount);
-        console2.log("Number of function selectors being removed: ", totalRemoveCount);
-        console2.log("Number of function selectors being replaced: ", totalReplaceCount);
+        console2.log("Number of function selectors being added:", totalAddCount);
+        console2.log("Number of function selectors being removed:", totalRemoveCount);
+        console2.log("Number of function selectors being replaced:", totalReplaceCount);
 
         INayms nayms = INayms(diamondAddress);
-        console2.log("contract owner", nayms.owner());
+        console2.log("Contract owner:", nayms.owner());
     }
 
     function updateDeployOutputName(string memory outputName) public {
