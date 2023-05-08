@@ -57,6 +57,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     function testInitDiamond() public {
         InitDiamondFixture fixture = new InitDiamondFixture();
 
+        changePrank(owner);
         vm.recordLogs();
 
         fixture.initialize();
@@ -65,50 +66,15 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         Vm.Log memory entry = entries[entries.length - 1];
         assertEq(entry.topics.length, 1);
-        assertEq(entry.topics[0], keccak256("InitializeDiamond(address,bytes32)"));
-        (address a, bytes32 b) = abi.decode(entry.data, (address, bytes32));
-        assertEq(a, account0);
-        assertEq(b, account0Id);
+        assertEq(entry.topics[0], keccak256("InitializeDiamond(address)"));
+        address a = abi.decode(entry.data, (address));
+        assertEq(a, owner);
 
         // check storage
-
         assertEq(fixture.totalSupply(), 100_000_000e18);
         assertEq(fixture.balanceOf(account0), 100_000_000e18);
 
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_ENTITY_ADMINS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_ENTITY_MANAGERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_BROKERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_UNDERWRITERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_INSURED_PARTIES));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_CAPITAL_PROVIDERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_CLAIMS_ADMINS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_TRADER, LibConstants.GROUP_TRADERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SEGREGATED_ACCOUNTS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SERVICE_PROVIDERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_POLICY_HANDLERS));
-        assertTrue(fixture.isRoleInGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_POLICY_HANDLERS));
-
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SYSTEM_MANAGERS));
-        assertTrue(fixture.canGroupAssignRole(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS));
-
         assertTrue(fixture.isObject(0));
-        assertTrue(fixture.isObject(account0Id));
 
         assertEq(fixture.getMaxDividendDenominations(), 1);
 
@@ -135,6 +101,11 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
         INayms.FacetCut[] memory cut;
 
+        bytes32 upgradeHash = keccak256(abi.encode(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ())));
+
+        changePrank(systemAdmin);
+        nayms.createUpgrade(upgradeHash);
+        changePrank(owner);
         vm.expectRevert(abi.encodePacked(DiamondAlreadyInitialized.selector));
         nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
     }

@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity, SimplePolicy, SimplePolicyInfo, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
+import { Entity, SimplePolicy, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
@@ -20,7 +20,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _policyId Id of the simple policy
      * @param _amount Amount of the premium
      */
-    function paySimplePremium(bytes32 _policyId, uint256 _amount) external assertPolicyHandler(_policyId) {
+    function paySimplePremium(bytes32 _policyId, uint256 _amount) external notLocked(msg.sig) assertPolicyHandler(_policyId) {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         bytes32 payerEntityId = LibObject._getParent(senderId);
 
@@ -39,7 +39,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         bytes32 _policyId,
         bytes32 _insuredId,
         uint256 _amount
-    ) external assertSysMgr {
+    ) external notLocked(msg.sig) assertSysMgr {
         LibSimplePolicy._payClaim(_claimId, _policyId, _insuredId, _amount);
     }
 
@@ -48,19 +48,8 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _policyId Id of the simple policy
      * @return Simple policy metadata
      */
-    function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicyInfo memory) {
-        SimplePolicy memory p = LibSimplePolicy._getSimplePolicyInfo(_policyId);
-        return
-            SimplePolicyInfo({
-                startDate: p.startDate,
-                maturationDate: p.maturationDate,
-                asset: p.asset,
-                limit: p.limit,
-                fundsLocked: p.fundsLocked,
-                cancelled: p.cancelled,
-                claimsPaid: p.claimsPaid,
-                premiumsPaid: p.premiumsPaid
-            });
+    function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicy memory) {
+        return LibSimplePolicy._getSimplePolicyInfo(_policyId);
     }
 
     function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory bp) {
@@ -71,7 +60,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @dev Check and update simple policy state
      * @param _policyId Id of the simple policy
      */
-    function checkAndUpdateSimplePolicyState(bytes32 _policyId) external {
+    function checkAndUpdateSimplePolicyState(bytes32 _policyId) external notLocked(msg.sig) {
         LibSimplePolicy._checkAndUpdateState(_policyId);
     }
 

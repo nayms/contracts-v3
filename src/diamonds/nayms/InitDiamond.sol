@@ -28,7 +28,7 @@ import { IGovernanceFacet } from "../nayms/interfaces/IGovernanceFacet.sol";
 error DiamondAlreadyInitialized();
 
 contract InitDiamond {
-    event InitializeDiamond(address sender, bytes32 systemManager);
+    event InitializeDiamond(address sender);
 
     function initialize() external {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -45,51 +45,21 @@ contract InitDiamond {
         s.initialChainId = block.chainid;
         s.initialDomainSeparator = LibEIP712._computeDomainSeparator();
 
-        LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_ENTITY_ADMINS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_ENTITY_MANAGERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_BROKERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_UNDERWRITERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_INSURED_PARTIES, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_CAPITAL_PROVIDERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_CLAIMS_ADMINS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_TRADER, LibConstants.GROUP_TRADERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SEGREGATED_ACCOUNTS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SERVICE_PROVIDERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_POLICY_HANDLERS, true);
-        LibACL._updateRoleGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_POLICY_HANDLERS, true);
-
-        LibACL._updateRoleAssigner(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SYSTEM_MANAGERS);
-        LibACL._updateRoleAssigner(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS);
-
         // disallow creating an object with ID of 0
         s.existingObjects[0] = true;
 
-        // assign msg.sender as a Nayms System Admin
-        bytes32 userId = LibHelpers._getIdForAddress(msg.sender);
-        s.existingObjects[userId] = true;
-
-        LibACL._assignRole(userId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN));
-
         // Set Commissions (all are in basis points)
         s.tradingCommissionTotalBP = 30;
+        // From the tradingCommissionTotalBP, each of the following entities take their share.
         s.tradingCommissionNaymsLtdBP = 5000;
         s.tradingCommissionNDFBP = 2500;
         s.tradingCommissionSTMBP = 2500;
         s.tradingCommissionMakerBP; // init 0
 
+        // A percentage of the premium payments are taken as commission.
+        // The following entities take this percentage of premium payments (in basis points)
+        // The calculation for the commission is done in the following way:
+        // premium payment amount * entity commissions (in basis points) / 10000
         s.premiumCommissionNaymsLtdBP = 150;
         s.premiumCommissionNDFBP = 75;
         s.premiumCommissionSTMBP = 75;
@@ -97,8 +67,6 @@ contract InitDiamond {
         s.naymsTokenId = LibHelpers._getIdForAddress(address(this));
         s.naymsToken = address(this);
         s.maxDividendDenominations = 1;
-
-        s.upgradeExpiration = 7 days;
 
         // adding ERC165 data
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
@@ -121,6 +89,6 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IGovernanceFacet).interfaceId] = true;
 
         s.diamondInitialized = true;
-        emit InitializeDiamond(msg.sender, userId);
+        emit InitializeDiamond(msg.sender);
     }
 }

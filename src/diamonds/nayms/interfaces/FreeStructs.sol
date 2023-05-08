@@ -32,6 +32,14 @@ struct Entity {
     bool simplePolicyEnabled;
 }
 
+/// @dev Only pass in the fields that are allowed to be updated.
+/// @dev These are the variables of an entity that are allowed to be updated by the method updateEntity()
+struct UpdateEntityTypeCell {
+    uint256 collateralRatio;
+    uint256 maxCapacity;
+    bool simplePolicyEnabled;
+}
+
 struct SimplePolicy {
     uint256 startDate;
     uint256 maturationDate;
@@ -43,17 +51,6 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
-}
-
-struct SimplePolicyInfo {
-    uint256 startDate;
-    uint256 maturationDate;
-    bytes32 asset;
-    uint256 limit;
-    bool fundsLocked;
-    bool cancelled;
-    uint256 claimsPaid;
-    uint256 premiumsPaid;
 }
 
 struct PolicyCommissionsBasisPoints {

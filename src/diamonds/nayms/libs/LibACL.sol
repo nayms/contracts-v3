@@ -2,11 +2,12 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { LibDiamond } from "src/diamonds/shared/libs/LibDiamond.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
-import { RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { OwnerCannotBeSystemAdmin, RoleIsMissing, AssignerGroupIsMissing } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibACL {
     /**
@@ -16,7 +17,7 @@ library LibACL {
      * @param assignedRoleId The ID of the role which got (un)assigned. (empty ID when unassigned)
      * @param functionName The function performing the action
      */
-    event RoleUpdate(bytes32 indexed objectId, bytes32 contextId, bytes32 assignedRoleId, string functionName);
+    event RoleUpdated(bytes32 indexed objectId, bytes32 contextId, bytes32 assignedRoleId, string functionName);
     /**
      * @dev Emitted when a role group gets updated.
      * @param role The role name.
@@ -25,7 +26,7 @@ library LibACL {
      */
     event RoleGroupUpdated(string role, string group, bool roleInGroup);
     /**
-     * @dev Emitted when a role assigners gets updated.
+     * @dev Emitted when a role assigners get updated.
      * @param role The role name.
      * @param group the name of the group that can now assign this role.
      */
@@ -41,15 +42,27 @@ library LibACL {
         require(_contextId != "", "invalid context ID");
         require(_roleId != "", "invalid role ID");
 
-        s.roles[_objectId][_contextId] = _roleId;
-
-        if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
+        bytes32 oldRole = s.roles[_objectId][_contextId];
+        if (_contextId == LibAdmin._getSystemId() && oldRole == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN) && oldRole != _roleId) {
+            require(s.sysAdmins > 1, "must have at least one system admin");
             unchecked {
-                s.sysAdmins += 1;
+                s.sysAdmins -= 1;
             }
         }
 
-        emit RoleUpdate(_objectId, _contextId, _roleId, "_assignRole");
+        if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
+            if (LibDiamond.contractOwner() == LibHelpers._getAddressFromId(_objectId)) {
+                revert OwnerCannotBeSystemAdmin();
+            } else {
+                unchecked {
+                    s.sysAdmins += 1;
+                }
+            }
+        }
+
+        s.roles[_objectId][_contextId] = _roleId;
+
+        emit RoleUpdated(_objectId, _contextId, _roleId, "_assignRole");
     }
 
     function _unassignRole(bytes32 _objectId, bytes32 _contextId) internal {
@@ -63,7 +76,7 @@ library LibACL {
             }
         }
 
-        emit RoleUpdate(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
+        emit RoleUpdated(_objectId, _contextId, s.roles[_objectId][_contextId], "_unassignRole");
         delete s.roles[_objectId][_contextId];
     }
 
@@ -105,6 +118,7 @@ library LibACL {
      * @param _objectId ID of an object that is being assigned a role
      * @param _contextId ID of the context in which a role is being assigned
      * @param _roleId ID of a role being assigned
+     * @return  true if allowed false otherwise
      */
     function _canAssign(
         bytes32 _assignerId,

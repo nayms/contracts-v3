@@ -89,7 +89,7 @@ library LibSimplePolicy {
 
         LibObject._createObject(_claimId);
 
-        LibTokenizedVault._internalTransfer(LibObject._getParent(_policyId), _insuredEntityId, simplePolicy.asset, _amount);
+        LibTokenizedVault._internalTransfer(entityId, _insuredEntityId, simplePolicy.asset, _amount);
 
         emit SimplePolicyClaimPaid(_claimId, _policyId, _insuredEntityId, _amount);
     }

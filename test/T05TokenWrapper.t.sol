@@ -64,6 +64,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
         assertEq(wrapper.totalSupply(), tokenAmount, "token supply should match sale amount");
 
+        changePrank(account0);
         nayms.cancelOffer(1); // unlock tokens from market, to enable transfer
         nayms.internalTransferFromEntity(account0Id, entityId1, tokenAmount);
         assertEq(wrapper.balanceOf(account0), nayms.internalBalanceOf(account0Id, entityId1), "wrapper balance should match diamond");
@@ -79,7 +80,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.balanceOf(signer1), tokenAmount, "signer1 balance should increase");
         assertEq(wrapper.allowance(signer1, account0), 0, "allowance should be 0");
 
-        vm.startPrank(signer1);
+        changePrank(signer1);
         wrapper.approve(account0, tokenAmount);
         vm.stopPrank();
 
@@ -95,6 +96,23 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.balanceOf(account0), tokenAmount, "account0 balance should increase");
 
         assertEq(wrapper.allowance(signer1, account0), 0, "allowance should have decreased");
+
+        vm.startPrank(signer1);
+        wrapper.increaseAllowance(account0, type(uint256).max);
+        assertEq(wrapper.allowance(signer1, account0), type(uint256).max, "allowance should have increased");
+        
+        vm.expectRevert("ERC20: allowance overflow");
+        wrapper.increaseAllowance(account0, 1);
+        vm.stopPrank();
+
+        vm.startPrank(signer1);
+        wrapper.decreaseAllowance(account0, type(uint256).max);
+        assertEq(wrapper.allowance(signer1, account0), 0, "allowance should have decreased");
+        
+        vm.expectRevert("ERC20: decreased allowance below zero");
+        wrapper.decreaseAllowance(account0, 1);
+        vm.stopPrank();
+        
     }
 
     function testPermit() public {

@@ -74,6 +74,7 @@ struct AppStorage {
     mapping(bytes32 => uint256) upgradeScheduled; // id of the upgrade => the time that the upgrade is valid until.
     uint256 upgradeExpiration; // the period of time that an upgrade is valid until.
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
+    mapping(address => bytes32) objectTokenWrapperId; // reverse mapping token wrapper address to ID
 }
 
 struct FunctionLockedStorage {

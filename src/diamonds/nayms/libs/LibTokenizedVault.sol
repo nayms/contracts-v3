@@ -14,23 +14,23 @@ library LibTokenizedVault {
      * @param tokenId ID of token
      * @param newAmountOwned new amount owned
      * @param functionName Function name
-     * @param msgSender msg.sende
+     * @param msgSender msg.sender
      */
-    event InternalTokenBalanceUpdate(bytes32 indexed ownerId, bytes32 tokenId, uint256 newAmountOwned, string functionName, address msgSender);
+    event InternalTokenBalanceUpdate(bytes32 indexed ownerId, bytes32 tokenId, uint256 newAmountOwned, string functionName, address indexed msgSender);
 
     /**
      * @dev Emitted when a token supply gets updated.
      * @param tokenId ID of token
      * @param newTokenSupply New token supply
      * @param functionName Function name
-     * @param msgSender msg.sende
+     * @param msgSender msg.sender
      */
-    event InternalTokenSupplyUpdate(bytes32 indexed tokenId, uint256 newTokenSupply, string functionName, address msgSender);
+    event InternalTokenSupplyUpdate(bytes32 indexed tokenId, uint256 newTokenSupply, string functionName, address indexed msgSender);
 
     /**
      * @dev Emitted when a dividend gets payed out.
-     * @param guid divident distribution ID
-     * @param from distribution intiator
+     * @param guid dividend distribution ID
+     * @param from distribution initiator
      * @param to distribution receiver
      * @param amount distributed amount
      */
@@ -62,7 +62,7 @@ library LibTokenizedVault {
         s.tokenBalances[_tokenId][_from] -= _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
 
-        _normalizeDividends(_to, _tokenId, _amount, false);
+        _normalizeDividends(_from, _to, _tokenId, _amount, false);
 
         emit InternalTokenBalanceUpdate(_from, _tokenId, s.tokenBalances[_tokenId][_from], "_internalTransfer", msg.sender);
         emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalTransfer", msg.sender);
@@ -80,7 +80,7 @@ library LibTokenizedVault {
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        _normalizeDividends(_to, _tokenId, _amount, true);
+        _normalizeDividends(bytes32(0), _to, _tokenId, _amount, true);
 
         s.tokenSupply[_tokenId] += _amount;
         s.tokenBalances[_tokenId][_to] += _amount;
@@ -90,6 +90,7 @@ library LibTokenizedVault {
     }
 
     function _normalizeDividends(
+        bytes32 _from,
         bytes32 _to,
         bytes32 _tokenId,
         uint256 _amount,
@@ -99,7 +100,7 @@ library LibTokenizedVault {
         uint256 supply = _internalTokenSupply(_tokenId);
 
         // This must be done BEFORE the supply increases!!!
-        // This will calcualte the hypothetical dividends that would correspond to this number of shares.
+        // This will calculate the hypothetical dividends that would correspond to this number of shares.
         // It must be added to the withdrawn dividend for every denomination for the user who receives the minted tokens
         bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
 
@@ -112,6 +113,12 @@ library LibTokenizedVault {
 
             // Scale total dividends and withdrawn dividend for new owner
             s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_to] += dividendDeductionIssued;
+
+            // Scale total dividends for the previous owner, if applicable
+            if (_from != bytes32(0)) {
+                s.withdrawnDividendPerOwner[_tokenId][dividendDenominationId][_from] -= dividendDeductionIssued;
+            }
+
             if (_updateTotals) {
                 s.totalDividends[_tokenId][dividendDenominationId] += (s.totalDividends[_tokenId][dividendDenominationId] * _amount) / supply;
             }
@@ -141,22 +148,22 @@ library LibTokenizedVault {
     //
     // When a dividend is payed, you divide by the total supply and add it to the totalDividendPerToken
     // Dividends are held by the diamond contract at: LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER)
-    // When dividends are paid, they are transfered OUT of that same diamond contract ID.
+    // When dividends are paid, they are transferred OUT of that same diamond contract ID.
     //
-    // To calculate withdrawableDividiend = ownedTokens * totalDividendPerToken - totalWithdrawnDividendPerOwner
+    // To calculate withdrawableDividend = ownedTokens * totalDividendPerToken - totalWithdrawnDividendPerOwner
     //
     // When a dividend is collected you set the totalWithdrawnDividendPerOwner to the total amount the owner withdrew
     //
-    // When you trasnsfer, you pay out all dividends to previous owner first, then transfer ownership
+    // When you transfer, you pay out all dividends to previous owner first, then transfer ownership
     // !!!YOU ALSO TRANSFER totalWithdrawnDividendPerOwner for those shares!!!
-    // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesTransfered * totalDividendPerToken
-    // totalWithdrawnDividendPerOwner(for previous owner) -= numberOfSharesTransfered * totalDividendPerToken (can be optimized)
+    // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesTransferred * totalDividendPerToken
+    // totalWithdrawnDividendPerOwner(for previous owner) -= numberOfSharesTransferred * totalDividendPerToken (can be optimized)
     //
     // When minting
     // Add the token balance to the new owner
     // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesMinted * totalDividendPerToken
     //
-    // When doing the division theser will be dust. Leave the dust in the diamond!!!
+    // When doing the division these will be dust. Leave the dust in the diamond!!!
     function _withdrawDividend(
         bytes32 _ownerId,
         bytes32 _tokenId,
@@ -237,9 +244,9 @@ library LibTokenizedVault {
 
             // keep track of the dividend denominations
             // if dividend has not yet been issued in this token, add it to the list and update mappings
-            if (s.dividendDenominationIndex[_to][_dividendTokenId] == 0) {
+            if (s.dividendDenominationIndex[_to][_dividendTokenId] == 0 && s.dividendDenominationAtIndex[_to][0] != _dividendTokenId) {
                 // We must limit the number of different tokens dividends are paid in
-                if (s.dividendDenominations[_to].length > LibAdmin._getMaxDividendDenominations()) {
+                if (s.dividendDenominations[_to].length >= LibAdmin._getMaxDividendDenominations()) {
                     revert("exceeds max div denominations");
                 }
 
@@ -262,8 +269,7 @@ library LibTokenizedVault {
         uint256 _totalDividend,
         uint256 _withdrawnSoFar
     ) internal pure returns (uint256 _withdrawableDividend) {
-        // The holder dividend is: holderDividend = (totalDividend/tokenSupply) * _amount. The remainer (dust) is lost.
-        // To get a smaller remainder we re-arrange to: holderDividend = (totalDividend * _amount) / _supply
+        // The holder dividend is: holderDividend = (totalDividend/tokenSupply) * _amount. The remainder (dust) is lost.
         uint256 totalDividendTimesAmount = _totalDividend * _amount;
         uint256 holderDividend = _supply == 0 ? 0 : (totalDividendTimesAmount / _supply);
 

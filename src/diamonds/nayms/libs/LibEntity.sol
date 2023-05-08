@@ -11,7 +11,6 @@ import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
 import { LibSimplePolicy } from "./LibSimplePolicy.sol";
-import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
@@ -20,7 +19,7 @@ library LibEntity {
     using ECDSA for bytes32;
     /**
      * @notice New entity has been created
-     * @dev Thrown when entity is created
+     * @dev Emitted when entity is created
      * @param entityId Unique ID for the entity
      * @param entityAdmin Unique ID of the entity administrator
      */
@@ -33,7 +32,12 @@ library LibEntity {
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
-    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy calldata simplePolicy) internal view {
+
+    function _validateSimplePolicyCreation(
+        bytes32 _entityId,
+        SimplePolicy memory simplePolicy,
+        Stakeholders calldata _stakeholders
+    ) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
@@ -50,7 +54,6 @@ library LibEntity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         Entity memory entity = s.entities[_entityId];
 
-        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
@@ -61,24 +64,29 @@ library LibEntity {
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // The entity's balance must be >= to the updated capacity requirement
-        // todo: business only wants to count the entity's balance that was raised from the participation token sale and not its total balance
         require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
 
+        require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
+
+        // by default there are always 3 platform commission receivers: Nayms, NDF and STM
+        // policy-level receivers are also expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
-        require(commissionReceiversArrayLength > 0, "must have commission receivers");
+        require(commissionReceiversArrayLength > 3, "must have commission receivers");
+        require(commissionReceiversArrayLength <= 3 + _stakeholders.roles.length, "too many commission receivers");
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
-        require(commissionBasisPointsArrayLength > 0, "must have commission basis points");
-        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "commissions lengths !=");
+        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
 
         uint256 totalBP;
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
+
+        require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
     }
 
     function _createSimplePolicy(
@@ -98,7 +106,15 @@ library LibEntity {
         }
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
-        _validateSimplePolicyCreation(_entityId, _simplePolicy);
+        s.simplePolicies[_policyId] = _simplePolicy;
+        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER));
+        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER));
+        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER));
+        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNaymsLtdBP);
+        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNDFBP);
+        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionSTMBP);
+
+        _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
         Entity storage entity = s.entities[_entityId];
         uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
@@ -106,11 +122,10 @@ library LibEntity {
         entity.utilizedCapacity += factoredLimit;
         s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
 
-        // hash contents are implicitlly checked by making sure that resolved signer is the stakeholder entity's admin
+        // hash contents are implicitly checked by making sure that resolved signer is the stakeholder entity's admin
         bytes32 signingHash = LibSimplePolicy._getSigningHash(_simplePolicy.startDate, _simplePolicy.maturationDate, _simplePolicy.asset, _simplePolicy.limit, _offchainDataHash);
 
         LibObject._createObject(_policyId, _entityId, signingHash);
-        s.simplePolicies[_policyId] = _simplePolicy;
         s.simplePolicies[_policyId].fundsLocked = true;
 
         uint256 rolesCount = _stakeholders.roles.length;
@@ -152,7 +167,6 @@ library LibEntity {
     ) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
-        require(LibObject._isObjectTokenizable(_entityId), "must be tokenizable");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -177,7 +191,7 @@ library LibEntity {
     function _createEntity(
         bytes32 _entityId,
         bytes32 _entityAdmin,
-        Entity memory _entity,
+        Entity calldata _entity,
         bytes32 _dataHash
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -201,7 +215,9 @@ library LibEntity {
         emit EntityCreated(_entityId, _entityAdmin);
     }
 
-    function _updateEntity(bytes32 _entityId, Entity memory _entity) internal {
+    /// @dev This currently updates a non cell type entity and a cell type entity, but
+    /// we should consider splitting the functionality
+    function _updateEntity(bytes32 _entityId, Entity calldata _updateEntityStruct) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Cannot update a non-existing entity's metadata.
@@ -209,34 +225,40 @@ library LibEntity {
             revert EntityDoesNotExist(_entityId);
         }
 
-        validateEntity(_entity);
+        validateEntity(_updateEntityStruct);
 
         uint256 oldCollateralRatio = s.entities[_entityId].collateralRatio;
         uint256 oldUtilizedCapacity = s.entities[_entityId].utilizedCapacity;
+        bytes32 entityAssetId = s.entities[_entityId].assetId;
 
-        if (s.entities[_entityId].assetId != _entity.assetId) {
+        if (entityAssetId != _updateEntityStruct.assetId) {
             revert("assetId change not allowed");
         }
 
-        s.entities[_entityId] = _entity;
+        // can update max capacity and simplePolicyEnabled toggle first since it's not used in collateral ratio calculation below
+        s.entities[_entityId].maxCapacity = _updateEntityStruct.maxCapacity;
+        s.entities[_entityId].simplePolicyEnabled = _updateEntityStruct.simplePolicyEnabled;
 
         // if it's a cell, and collateral ratio changed
-        if (_entity.assetId != 0 && _entity.collateralRatio != oldCollateralRatio) {
-            uint256 newUtilizedCapacity = (oldUtilizedCapacity * _entity.collateralRatio) / oldCollateralRatio;
-            uint256 newLockedBalance = s.lockedBalances[_entityId][_entity.assetId] - oldUtilizedCapacity + newUtilizedCapacity;
+        if (entityAssetId != 0 && _updateEntityStruct.collateralRatio != oldCollateralRatio) {
+            uint256 newUtilizedCapacity = (oldUtilizedCapacity * _updateEntityStruct.collateralRatio) / oldCollateralRatio;
+            uint256 newLockedBalance = s.lockedBalances[_entityId][entityAssetId] - oldUtilizedCapacity + newUtilizedCapacity;
 
-            require(LibTokenizedVault._internalBalanceOf(_entityId, _entity.assetId) >= newLockedBalance, "collateral ratio invalid, not enough balance");
+            require(LibTokenizedVault._internalBalanceOf(_entityId, entityAssetId) >= newLockedBalance, "collateral ratio invalid, not enough balance");
+            require(newUtilizedCapacity <= _updateEntityStruct.maxCapacity, "max capacity must be >= utilized capacity");
 
+            s.entities[_entityId].collateralRatio = _updateEntityStruct.collateralRatio;
             s.entities[_entityId].utilizedCapacity = newUtilizedCapacity;
-            s.lockedBalances[_entityId][_entity.assetId] = newLockedBalance;
+            s.lockedBalances[_entityId][entityAssetId] = newLockedBalance;
 
-            emit CollateralRatioUpdated(_entityId, _entity.collateralRatio, s.entities[_entityId].utilizedCapacity);
+            emit CollateralRatioUpdated(_entityId, _updateEntityStruct.collateralRatio, newUtilizedCapacity);
         }
 
         emit EntityUpdated(_entityId);
     }
 
-    function validateEntity(Entity memory _entity) internal view {
+    function validateEntity(Entity calldata _entity) internal view {
+        // If a non cell type entity is converted into a cell type entity, then the following checks must be performed.
         if (_entity.assetId != 0) {
             // entity has an underlying asset, which means it's a cell
 

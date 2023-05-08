@@ -32,6 +32,8 @@ facetsdeployed.txt
 .vscode/targets.log
 .vscode/launch.json
 
+.history
+
 bin/
 .idea/.gitignore
 .idea/contracts-next.iml
