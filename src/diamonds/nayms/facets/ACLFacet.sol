@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
-import { LibDiamond } from "../../shared/libs/LibDiamond.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
 
@@ -47,7 +46,7 @@ contract ACLFacet is Modifiers, IACLFacet {
      * @notice Checks if an object belongs to `_group` group in given context
      * @dev Assigning a role to the object makes it a member of a corresponding role group
      * @param _objectId ID of an object that is being checked for role group membership
-     * @param _contextId Context in which memebership should be checked
+     * @param _contextId Context in which membership should be checked
      * @param _group name of the role group
      * @return true if object with given ID is a member, false otherwise
      */
@@ -78,11 +77,11 @@ contract ACLFacet is Modifiers, IACLFacet {
     /**
      * @notice Check whether a user can assign specific object to the `_role` role in given context
      * @dev Check permission to assign to a role
-     * @param _assignerId The object ID of the user who is assigning a role to  another object.
+     * @param _assignerId The object ID of the user who is assigning a role to another object.
      * @param _objectId ID of an object that is being checked for assigning rights
      * @param _contextId ID of the context in which permission is checked
      * @param _role name of the role to check
-     * @return true if user the right to assign, false otherwise
+     * @return true if user has the right to assign, false otherwise
      */
     function canAssign(
         bytes32 _assignerId,
@@ -136,8 +135,8 @@ contract ACLFacet is Modifiers, IACLFacet {
     }
 
     /**
-     * @notice Update role group memebership for `_role` role and `_group` group
-     * @dev Update role group memebership
+     * @notice Update role group membership for `_role` role and `_group` group
+     * @dev Update role group membership
      * @param _role name of the role
      * @param _group name of the group
      * @param _roleInGroup is member of

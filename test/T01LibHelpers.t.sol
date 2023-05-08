@@ -19,19 +19,19 @@ contract T01LibHelpers is D03ProtocolDefaults {
     }
 
     function testGetAddressFromIdFuzz(bytes32 id) public {
-        assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));
-    }
+        bytes32 mask = 0x0000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF;
+        bytes32 bottom12Bytes = id & mask;
 
-    function testAddressToBytes32Fuzz(address a) public {
-        assertEq(LibHelpers._addressToBytes32(a), LibHelpers._bytesToBytes32(abi.encode(a)));
+        if (bottom12Bytes != 0) {
+            vm.expectRevert("Invalid external token address");
+            assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));
+        } else {
+            assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));
+        }
     }
 
     function testStringToBytes32Fuzz(string memory s) public {
         assertEq(LibHelpers._stringToBytes32(s), LibHelpers._bytesToBytes32(bytes(s)));
-    }
-
-    function testBytes32ToStringFuzz(bytes32 b32) public {
-        assertEq(LibHelpers._bytes32ToString(b32), string(LibHelpers._bytes32ToBytes(b32)));
     }
 
     function testBytesToBytes32Fuzz(bytes memory b) public {

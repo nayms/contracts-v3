@@ -9,6 +9,15 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 import { IERC165 } from "../interfaces/IERC165.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
+import { IACLFacet } from "src/diamonds/nayms/interfaces/IACLFacet.sol";
+import { IGovernanceFacet } from "src/diamonds/nayms/interfaces/IGovernanceFacet.sol";
+import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
+import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
+
+error InitializationFunctionReverted(address _initializationContractAddress, bytes _calldata);
 
 library LibDiamond {
     bytes32 internal constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
@@ -30,14 +39,15 @@ library LibDiamond {
         address contractOwner;
     }
 
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event DiamondCut(IDiamondCut.FacetCut[] diamondCut, address init, bytes _calldata);
+
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
         bytes32 position = DIAMOND_STORAGE_POSITION;
         assembly {
             ds.slot := position
         }
     }
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     function setContractOwner(address _newOwner) internal {
         DiamondStorage storage ds = diamondStorage();
@@ -54,12 +64,60 @@ library LibDiamond {
         require(msg.sender == diamondStorage().contractOwner, "LibDiamond: Must be contract owner");
     }
 
+    function setRoleGroupsAndAssigners() internal {
+        LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_ENTITY_ADMINS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_ENTITY_MANAGERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_BROKERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_UNDERWRITERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_INSURED_PARTIES, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_CAPITAL_PROVIDERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_CLAIMS_ADMINS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_TRADER, LibConstants.GROUP_TRADERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SEGREGATED_ACCOUNTS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SERVICE_PROVIDERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_POLICY_HANDLERS, true);
+        LibACL._updateRoleGroup(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_POLICY_HANDLERS, true);
+
+        LibACL._updateRoleAssigner(LibConstants.ROLE_SYSTEM_ADMIN, LibConstants.GROUP_SYSTEM_ADMINS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_SYSTEM_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_ENTITY_MANAGER, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_UNDERWRITER, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_INSURED_PARTY, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_CAPITAL_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_CLAIMS_ADMIN, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_TRADER, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_SEGREGATED_ACCOUNT, LibConstants.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LibConstants.ROLE_SERVICE_PROVIDER, LibConstants.GROUP_SYSTEM_MANAGERS);
+    }
+
+    function setSystemAdmin(address _newSystemAdmin) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 userId = LibHelpers._getIdForAddress(_newSystemAdmin);
+        s.existingObjects[userId] = true;
+
+        LibACL._assignRole(userId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN));
+    }
+
+    function setUpgradeExpiration() internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        /// @dev We set the upgrade expiration to 7 days from now (604800 seconds)
+        s.upgradeExpiration = 1 weeks;
+    }
+
     function addDiamondFunctions(
         address _diamondCutFacet,
         address _diamondLoupeFacet,
-        address _ownershipFacet
+        address _ownershipFacet,
+        address _aclFacet,
+        address _governanceFacet
     ) internal {
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](3);
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](5);
         bytes4[] memory functionSelectors = new bytes4[](1);
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: _diamondCutFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
@@ -74,10 +132,28 @@ library LibDiamond {
         functionSelectors[0] = IERC173.transferOwnership.selector;
         functionSelectors[1] = IERC173.owner.selector;
         cut[2] = IDiamondCut.FacetCut({ facetAddress: _ownershipFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+        functionSelectors = new bytes4[](10);
+        functionSelectors[0] = IACLFacet.assignRole.selector;
+        functionSelectors[1] = IACLFacet.unassignRole.selector;
+        functionSelectors[2] = IACLFacet.isInGroup.selector;
+        functionSelectors[3] = IACLFacet.isParentInGroup.selector;
+        functionSelectors[4] = IACLFacet.canAssign.selector;
+        functionSelectors[5] = IACLFacet.getRoleInContext.selector;
+        functionSelectors[6] = IACLFacet.isRoleInGroup.selector;
+        functionSelectors[7] = IACLFacet.canGroupAssignRole.selector;
+        functionSelectors[8] = IACLFacet.updateRoleAssigner.selector;
+        functionSelectors[9] = IACLFacet.updateRoleGroup.selector;
+        cut[3] = IDiamondCut.FacetCut({ facetAddress: _aclFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+        functionSelectors = new bytes4[](6);
+        functionSelectors[0] = IGovernanceFacet.isDiamondInitialized.selector;
+        functionSelectors[1] = IGovernanceFacet.createUpgrade.selector;
+        functionSelectors[2] = IGovernanceFacet.updateUpgradeExpiration.selector;
+        functionSelectors[3] = IGovernanceFacet.cancelUpgrade.selector;
+        functionSelectors[4] = IGovernanceFacet.getUpgrade.selector;
+        functionSelectors[5] = IGovernanceFacet.getUpgradeExpiration.selector;
+        cut[4] = IDiamondCut.FacetCut({ facetAddress: _governanceFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
         diamondCut(cut, address(0), "");
     }
-
-    event DiamondCut(IDiamondCut.FacetCut[] diamondCut, address init, bytes _calldata);
 
     bytes32 internal constant CLEAR_ADDRESS_MASK = bytes32(uint256(0xffffffffffffffffffffffff));
     bytes32 internal constant CLEAR_SELECTOR_MASK = bytes32(uint256(0xffffffff << 224));
@@ -244,7 +320,7 @@ library LibDiamond {
                     // bubble up the error
                     revert(string(error));
                 } else {
-                    revert("LibDiamondCut: _init function reverted");
+                    revert InitializationFunctionReverted(_init, _calldata);
                 }
             }
         }

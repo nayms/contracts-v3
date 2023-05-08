@@ -32,7 +32,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      *
      * @param _offerId offer ID
      */
-    function cancelOffer(uint256 _offerId) external nonReentrant {
+    function cancelOffer(uint256 _offerId) external notLocked(msg.sig) nonReentrant {
         require(LibMarket._getOffer(_offerId).state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
         require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only member of entity can cancel");
@@ -57,6 +57,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         uint256 _buyAmount
     )
         external
+        notLocked(msg.sig)
         nonReentrant
         returns (
             uint256 offerId_,
@@ -83,8 +84,9 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      * @notice Get current best offer for given token pair.
      *
      * @dev This means finding the highest sellToken-per-buyToken price, i.e. price = sellToken / buyToken
-     *
-     * @return offerId, or 0 if no current best is available.
+     * @param _sellToken ID of the token being sold
+     * @param _buyToken ID of the token being bought
+     * @return offerId, or 0 if no offer exists for given pair
      */
     function getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) external view returns (uint256) {
         return LibMarket._getBestOfferId(_sellToken, _buyToken);

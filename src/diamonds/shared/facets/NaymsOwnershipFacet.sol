@@ -4,7 +4,6 @@ pragma solidity 0.8.17;
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
-import { LibDiamond } from "src/diamonds/shared/libs/LibDiamond.sol";
 import { OwnershipFacet } from "src/diamonds/shared/facets/OwnershipFacet.sol";
 import { Modifiers } from "src/diamonds/nayms/Modifiers.sol";
 

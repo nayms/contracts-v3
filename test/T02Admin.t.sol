@@ -2,10 +2,11 @@
 pragma solidity 0.8.17;
 
 import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut, ITokenizedVaultIOFacet } from "src/diamonds/nayms/INayms.sol";
+import { INayms, IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "src/diamonds/nayms/INayms.sol";
 import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
@@ -27,7 +28,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
     }
 
     function testGetSystemId() public {
@@ -39,7 +40,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSetMaxDividendDenominationsFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.setMaxDividendDenominations(100);
         vm.stopPrank();
@@ -71,7 +72,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
-        vm.startPrank(account1);
+        changePrank(account1);
         vm.expectRevert("not a system admin");
         nayms.addSupportedExternalToken(wethAddress);
         vm.stopPrank();
@@ -93,10 +94,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
-        address tok = abi.decode(entries[0].data, (address));
-        assertEq(tok, wbtcAddress);
+        assertEq(entries[1].topics.length, 2);
+        assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"), "SupportedTokenAdded: Invalid event signature");
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[1].topics[1]), (address)), wbtcAddress, "SupportedTokenAdded: Invalid token address");
     }
 
     function testIsSupportedToken() public {
@@ -130,11 +130,54 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(v[v.length - 1], wbtcAddress);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 1);
-        assertEq(entries[0].topics[0], keccak256("SupportedTokenAdded(address)"));
+        assertEq(entries[1].topics.length, 2);
+        assertEq(entries[1].topics[0], keccak256("SupportedTokenAdded(address)"));
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[1].topics[1]), (address)), wbtcAddress, "SupportedTokenAdded: Invalid token address");
+    }
+
+    function testAddSupportedExternalTokenIfWrapper() public {
+        bytes32 entityId1 = "0xe1";
+        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
+        nayms.enableEntityTokenization(entityId1, "E1", "E1 Token");
+        nayms.startTokenSale(entityId1, 100 ether, 100 ether);
+
+        vm.recordLogs();
+
+        nayms.wrapToken(entityId1);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertEq(entries[0].topics.length, 2, "TokenWrapped: topics length incorrect");
+        assertEq(entries[0].topics[0], keccak256("TokenWrapped(bytes32,address)"), "TokenWrapped: Invalid event signature");
+        assertEq(entries[0].topics[1], entityId1, "TokenWrapped: incorrect tokenID"); // assert entity token
+        address loggedWrapperAddress = abi.decode(entries[0].data, (address));
+
+        vm.expectRevert("cannot add participation token wrapper as external");
+        nayms.addSupportedExternalToken(loggedWrapperAddress);
     }
 
     function testSetTradingCommissionsBasisPoints() public {
+        // total must be > 0 and < 10_000
+        vm.expectRevert("invalid trading commission total");
+        nayms.setTradingCommissionsBasisPoints(
+            TradingCommissionsBasisPoints({
+                tradingCommissionTotalBP: 0,
+                tradingCommissionNaymsLtdBP: 5001,
+                tradingCommissionNDFBP: 2500,
+                tradingCommissionSTMBP: 2499,
+                tradingCommissionMakerBP: 1
+            })
+        );
+        vm.expectRevert("invalid trading commission total");
+        nayms.setTradingCommissionsBasisPoints(
+            TradingCommissionsBasisPoints({
+                tradingCommissionTotalBP: 10001,
+                tradingCommissionNaymsLtdBP: 5001,
+                tradingCommissionNDFBP: 2500,
+                tradingCommissionSTMBP: 2499,
+                tradingCommissionMakerBP: 1
+            })
+        );
+
         // must add up to 10000
         vm.expectRevert("trading commission BPs must sum up to 10000");
         nayms.setTradingCommissionsBasisPoints(
@@ -156,11 +199,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         });
 
         // must be sys admin
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system admin");
         nayms.setTradingCommissionsBasisPoints(s);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         // assert happy path
         nayms.setTradingCommissionsBasisPoints(s);
 
@@ -182,11 +225,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         });
 
         // must be sys admin
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system admin");
         nayms.setPolicyCommissionsBasisPoints(s);
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
         nayms.setPolicyCommissionsBasisPoints(s);
 
         PolicyCommissionsBasisPoints memory result = getPremiumCommissions();
@@ -204,7 +247,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {
         bytes32 userId = LibHelpers._getIdForAddress(userAddress);
-        vm.startPrank(userAddress);
+        changePrank(userAddress);
         if (nayms.isInGroup(userId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS)) {
             nayms.lockFunction(bytes4(0x12345678));
 
@@ -223,38 +266,159 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testLockFunction() public {
         // must be sys admin
-        vm.prank(account9);
+        changePrank(account9);
         vm.expectRevert("not a system admin");
         nayms.lockFunction(bytes4(0x12345678));
-        vm.stopPrank();
 
+        changePrank(systemAdmin);
+
+        vm.recordLogs();
         // assert happy path
         nayms.lockFunction(bytes4(0x12345678));
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
+        (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
+
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = bytes4(0x12345678);
+
+        assertEq(s_functionSelectors[0], functionSelectors[0]);
 
         assertTrue(nayms.isFunctionLocked(bytes4(0x12345678)));
     }
 
     function testLockFunctionExternalWithdrawFromEntity() public {
-        bytes32 nWETH = LibHelpers._getIdForAddress(wethAddress);
+        bytes32 wethId = LibHelpers._getIdForAddress(wethAddress);
+
+        Entity memory entityInfo = initEntity(wethId, 5000, 10000, false);
+        bytes32 systemAdminEntityId = 0xe011000000000000000000000000000000000000000000000000000000000000;
+        nayms.createEntity(systemAdminEntityId, systemAdminId, entityInfo, bytes32(0));
 
         // deposit
-        writeTokenBalance(account0, naymsAddress, wethAddress, 1 ether);
+        writeTokenBalance(systemAdmin, naymsAddress, wethAddress, 1 ether);
         nayms.externalDeposit(wethAddress, 1 ether);
 
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "entity1 lost internal WETH");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether);
+        assertEq(nayms.internalBalanceOf(systemAdminEntityId, wethId), 1 ether, "entity1 lost internal WETH");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether);
 
         nayms.lockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
 
         vm.expectRevert("function is locked");
-        nayms.externalWithdrawFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0, address(weth), 0.5 ether);
+        nayms.externalWithdrawFromEntity(systemAdminEntityId, systemAdmin, address(weth), 0.5 ether);
 
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 1 ether, "balance should stay the same");
+        assertEq(nayms.internalBalanceOf(systemAdminEntityId, wethId), 1 ether, "balance should stay the same");
+
+        vm.recordLogs();
 
         nayms.unlockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
 
-        nayms.externalWithdrawFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0, address(weth), 0.5 ether);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("FunctionsUnlocked(bytes4[])"));
+        (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
-        assertEq(nayms.internalBalanceOf(DEFAULT_ACCOUNT0_ENTITY_ID, nWETH), 0.5 ether, "half of balance should be withdrawn");
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
+
+        assertEq(s_functionSelectors[0], functionSelectors[0]);
+
+        nayms.externalWithdrawFromEntity(systemAdminEntityId, systemAdmin, address(weth), 0.5 ether);
+
+        assertEq(nayms.internalBalanceOf(systemAdminEntityId, wethId), 0.5 ether, "half of balance should be withdrawn");
+    }
+
+    bytes4[] internal s_functionSelectors;
+
+    // solhint-disable func-name-mixedcase
+    function test_lockUnlockAllFundTransferFunctions() public {
+        vm.recordLogs();
+
+        nayms.lockAllFundTransferFunctions();
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 1);
+        assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
+        (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
+
+        bytes4[] memory lockedFunctions = new bytes4[](14);
+        lockedFunctions[0] = IEntityFacet.startTokenSale.selector;
+        lockedFunctions[1] = ISimplePolicyFacet.paySimpleClaim.selector;
+        lockedFunctions[2] = ISimplePolicyFacet.paySimplePremium.selector;
+        lockedFunctions[3] = ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector;
+        lockedFunctions[4] = IMarketFacet.cancelOffer.selector;
+        lockedFunctions[5] = IMarketFacet.executeLimitOffer.selector;
+        lockedFunctions[6] = ITokenizedVaultFacet.internalTransferFromEntity.selector;
+        lockedFunctions[7] = ITokenizedVaultFacet.payDividendFromEntity.selector;
+        lockedFunctions[8] = ITokenizedVaultFacet.internalBurn.selector;
+        lockedFunctions[9] = ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
+        lockedFunctions[10] = ITokenizedVaultFacet.withdrawDividend.selector;
+        lockedFunctions[11] = ITokenizedVaultFacet.withdrawAllDividends.selector;
+        lockedFunctions[12] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
+        lockedFunctions[13] = ITokenizedVaultIOFacet.externalDeposit.selector;
+
+        for (uint256 i = 0; i < lockedFunctions.length; i++) {
+            assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
+            assertEq(s_functionSelectors[i], lockedFunctions[i]);
+        }
+        vm.expectRevert("function is locked");
+        nayms.startTokenSale(DEFAULT_ACCOUNT0_ENTITY_ID, 100, 100);
+
+        vm.expectRevert("function is locked");
+        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), 0x1100000000000000000000000000000000000000000000000000000000000000, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
+
+        vm.expectRevert("function is locked");
+        nayms.paySimplePremium(0x1100000000000000000000000000000000000000000000000000000000000000, 1000);
+
+        vm.expectRevert("function is locked");
+        nayms.checkAndUpdateSimplePolicyState(0x1100000000000000000000000000000000000000000000000000000000000000);
+
+        vm.expectRevert("function is locked");
+        nayms.cancelOffer(1);
+
+        vm.expectRevert("function is locked");
+        nayms.executeLimitOffer(wethId, 1 ether, account0Id, 100);
+
+        vm.expectRevert("function is locked");
+        nayms.internalTransferFromEntity(account0Id, wethId, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.payDividendFromEntity(account0Id, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.internalBurn(account0Id, wethId, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.wrapperInternalTransferFrom(account0Id, account0Id, wethId, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.withdrawDividend(account0Id, wethId, wethId);
+
+        vm.expectRevert("function is locked");
+        nayms.withdrawAllDividends(account0Id, wethId);
+
+        vm.expectRevert("function is locked");
+        nayms.externalWithdrawFromEntity(bytes32("0x11"), account0, wethAddress, 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.externalDeposit(wethAddress, 1 ether);
+
+        nayms.unlockAllFundTransferFunctions();
+
+        assertFalse(nayms.isFunctionLocked(IEntityFacet.startTokenSale.selector), "function startTokenSale locked");
+        assertFalse(nayms.isFunctionLocked(ISimplePolicyFacet.paySimpleClaim.selector), "function paySimpleClaim locked");
+        assertFalse(nayms.isFunctionLocked(ISimplePolicyFacet.paySimplePremium.selector), "function paySimplePremium locked");
+        assertFalse(nayms.isFunctionLocked(ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector), "function checkAndUpdateSimplePolicyState locked");
+        assertFalse(nayms.isFunctionLocked(IMarketFacet.cancelOffer.selector), "function cancelOffer locked");
+        assertFalse(nayms.isFunctionLocked(IMarketFacet.executeLimitOffer.selector), "function executeLimitOffer locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.internalTransferFromEntity.selector), "function internalTransferFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.payDividendFromEntity.selector), "function payDividendFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.internalBurn.selector), "function internalBurn locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.wrapperInternalTransferFrom.selector), "function wrapperInternalTransferFrom locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.withdrawDividend.selector), "function withdrawDividend locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.withdrawAllDividends.selector), "function withdrawAllDividends locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector), "function externalWithdrawFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(ITokenizedVaultIOFacet.externalDeposit.selector), "function externalDeposit locked");
     }
 }

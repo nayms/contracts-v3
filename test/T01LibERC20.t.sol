@@ -40,7 +40,7 @@ contract T01LibERC20 is D03ProtocolDefaults {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(fixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: funcSelectors });
 
-        nayms.diamondCut(cut, address(0), "");
+        scheduleAndUpgradeDiamond(cut);
     }
 
     function getDecimals(address _tokenAddress) internal returns (uint8) {
@@ -99,9 +99,10 @@ contract T01LibERC20 is D03ProtocolDefaults {
         assertEq(token.balanceOf(signer1), 100);
         assertEq(token.balanceOf(account0), 0);
 
-        vm.prank(signer1);
+        changePrank(signer1);
         token.approve(fixtureAddress, 200);
         assertEq(token.allowance(signer1, fixtureAddress), 200);
+        vm.stopPrank();
 
         vm.expectRevert("LibERC20: ERC20 token address has no code");
         fixture.transferFrom(address(0), signer1, account0, 1);

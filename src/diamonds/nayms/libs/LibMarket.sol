@@ -7,7 +7,6 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
-import { LibEntity } from "./LibEntity.sol";
 
 library LibMarket {
     struct MatchingOfferResult {
@@ -176,23 +175,13 @@ library LibMarket {
             uint256 makerBuyAmount = s.offers[bestOfferId].buyAmount;
             uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
 
-            // Check if best available price on the market is better or same,
-            // as the one taker is willing to pay, within error margin of ±1.
-            // This ugly hack is to work around rounding errors. Based on the idea that
-            // the furthest the amounts can stray from their "true" values is 1.
-            // Ergo the worst case has `sellAmount` and `makerSellAmount` at +1 away from
-            // their "correct" values and `makerBuyAmount` and `buyAmount` at -1.
-            // Since (c - 1) * (d - 1) > (a + 1) * (b + 1) is equivalent to
-            // c * d > a * b + a + b + c + d
-            // (For detailed breakdown see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
+            // (For a breakdown on the matching algorithm see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
             if (
-                makerBuyAmount * result.remainingBuyAmount >
-                result.remainingSellAmount * makerSellAmount + makerBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + makerSellAmount
+                // note: We have removed the "optimistic" matching.
+                makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount
             ) {
                 break; // no matching price, bail out
             }
-
-            // ^ The `rounding` parameter is a compromise borne of a couple days of discussion.
 
             // avoid stack-too-deep
             {

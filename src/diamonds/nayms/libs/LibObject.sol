@@ -3,15 +3,17 @@ pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { LibAdmin } from "./LibAdmin.sol";
 import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
+    event TokenizationEnabled(bytes32 objectId, string tokenSymbol, string tokenName);
     event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
     event TokenInfoUpdated(bytes32 indexed objectId, string symbol, string name);
+    event ObjectCreated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
+    event ObjectUpdated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
 
     function _createObject(
         bytes32 _objectId,
@@ -19,30 +21,27 @@ library LibObject {
         bytes32 _dataHash
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
-        // Check if the objectId is already being used by another object
-        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-
-        s.existingObjects[_objectId] = true;
+        _createObject(_objectId);
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
+
+        emit ObjectCreated(_objectId, _parentId, _dataHash);
     }
 
     function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
-        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-
-        s.existingObjects[_objectId] = true;
+        _createObject(_objectId);
         s.objectDataHashes[_objectId] = _dataHash;
+
+        emit ObjectCreated(_objectId, 0, _dataHash);
     }
 
     function _createObject(bytes32 _objectId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-
         s.existingObjects[_objectId] = true;
+
+        emit ObjectCreated(_objectId, 0, 0);
     }
 
     function _setDataHash(bytes32 _objectId, bytes32 _dataHash) internal {
@@ -50,6 +49,8 @@ library LibObject {
 
         require(s.existingObjects[_objectId], "setDataHash: object doesn't exist");
         s.objectDataHashes[_objectId] = _dataHash;
+
+        emit ObjectUpdated(_objectId, 0, _dataHash);
     }
 
     function _getDataHash(bytes32 _objectId) internal view returns (bytes32 objectDataHash) {
@@ -71,6 +72,8 @@ library LibObject {
     function _setParent(bytes32 _objectId, bytes32 _parentId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.objectParent[_objectId] = _parentId;
+
+        emit ObjectUpdated(_objectId, _parentId, 0);
     }
 
     function _isObjectTokenizable(bytes32 _objectId) internal view returns (bool) {
@@ -102,9 +105,13 @@ library LibObject {
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
         require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
 
+        require(bytes(_name).length > 0, "name must not be empty");
+
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
         s.tokenSymbolObjectId[_symbol] = _objectId;
+
+        emit TokenizationEnabled(_objectId, _symbol, _name);
     }
 
     function _updateTokenInfo(
@@ -141,6 +148,7 @@ library LibObject {
         address wrapperAddress = address(tokenWrapper);
 
         s.objectTokenWrapper[_entityId] = wrapperAddress;
+        s.objectTokenWrapperId[wrapperAddress] = _entityId;
 
         emit TokenWrapped(_entityId, wrapperAddress);
     }

@@ -3,15 +3,16 @@ pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+// solhint-disable no-console
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
 contract D03ProtocolDefaults is D02TestSetup {
-    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(address(this));
+    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
     bytes32 public naymsTokenId;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
@@ -49,6 +50,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
+        vm.startPrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
 
         Entity memory entity = Entity({
@@ -119,7 +121,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         commissions[2] = 10;
 
         policy.startDate = 1000;
-        policy.maturationDate = 10000;
+        policy.maturationDate = 1000 + 2 days;
         policy.asset = wethId;
         policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;

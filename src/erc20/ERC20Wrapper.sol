@@ -6,7 +6,6 @@ pragma solidity 0.8.17;
 import { IERC20 } from "./IERC20.sol";
 import { INayms } from "../diamonds/nayms/INayms.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
-import { LibConstants } from "../diamonds/nayms/libs/LibConstants.sol";
 import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 
 contract ERC20Wrapper is IERC20, ReentrancyGuard {
@@ -76,6 +75,23 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
 
     function approve(address spender, uint256 value) external returns (bool) {
         allowances[msg.sender][spender] = value;
+        return true;
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+        require(type(uint256).max - allowances[msg.sender][spender] >= addedValue, "ERC20: allowance overflow");
+        unchecked {
+            allowances[msg.sender][spender] += addedValue;
+        }
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+        uint256 currentAllowance = allowances[msg.sender][spender];
+        require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
+        unchecked {
+            allowances[msg.sender][spender] -= subtractedValue;
+        }
         return true;
     }
 

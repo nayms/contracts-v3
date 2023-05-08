@@ -39,7 +39,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         bytes32 objectId1 = "0x1";
 
         vm.expectRevert("not a system manager");
-        vm.prank(account1);
+        changePrank(account1);
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LibConstants.BP_FACTOR, true), "entity test hash");
     }
 

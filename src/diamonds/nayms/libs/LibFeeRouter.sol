@@ -10,7 +10,15 @@ import { PolicyCommissionsBasisPointsCannotBeGreaterThan10000 } from "src/diamon
 
 library LibFeeRouter {
     event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
+    event TradingCommissionsUpdated(
+        uint16 tradingCommissionTotalBP,
+        uint16 tradingCommissionNaymsLtdBP,
+        uint16 tradingCommissionNDFBP,
+        uint16 tradingCommissionSTMBP,
+        uint16 tradingCommissionMakerBP
+    );
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
+    event PremiumCommissionsUpdated(uint16 premiumCommissionNaymsLtdBP, uint16 premiumCommissionNDFBP, uint16 premiumCommissionSTMBP);
 
     function _payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -18,21 +26,14 @@ library LibFeeRouter {
         SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
+        uint256 premiumCommissionPaid;
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
+
         for (uint256 i = 0; i < commissionsCount; i++) {
             uint256 commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, commission);
+            premiumCommissionPaid += commission;
         }
-
-        uint256 commissionNaymsLtd = (_premiumPaid * s.premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
-        uint256 commissionNDF = (_premiumPaid * s.premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
-        uint256 commissionSTM = (_premiumPaid * s.premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
-
-        LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), simplePolicy.asset, commissionNaymsLtd);
-        LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), simplePolicy.asset, commissionNDF);
-        LibTokenizedVault._internalTransfer(policyEntityId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), simplePolicy.asset, commissionSTM);
-
-        uint256 premiumCommissionPaid = commissionNaymsLtd + commissionNDF + commissionSTM;
 
         emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
     }
@@ -75,6 +76,7 @@ library LibFeeRouter {
     function _updateTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata bp) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(0 < bp.tradingCommissionTotalBP && bp.tradingCommissionTotalBP < LibConstants.BP_FACTOR, "invalid trading commission total");
         require(
             bp.tradingCommissionNaymsLtdBP + bp.tradingCommissionNDFBP + bp.tradingCommissionSTMBP + bp.tradingCommissionMakerBP == LibConstants.BP_FACTOR,
             "trading commission BPs must sum up to 10000"
@@ -85,6 +87,14 @@ library LibFeeRouter {
         s.tradingCommissionNDFBP = bp.tradingCommissionNDFBP;
         s.tradingCommissionSTMBP = bp.tradingCommissionSTMBP;
         s.tradingCommissionMakerBP = bp.tradingCommissionMakerBP;
+
+        emit TradingCommissionsUpdated(
+            bp.tradingCommissionTotalBP,
+            bp.tradingCommissionNaymsLtdBP,
+            bp.tradingCommissionNDFBP,
+            bp.tradingCommissionSTMBP,
+            bp.tradingCommissionMakerBP
+        );
     }
 
     function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
@@ -96,6 +106,8 @@ library LibFeeRouter {
         s.premiumCommissionNaymsLtdBP = bp.premiumCommissionNaymsLtdBP;
         s.premiumCommissionNDFBP = bp.premiumCommissionNDFBP;
         s.premiumCommissionSTMBP = bp.premiumCommissionSTMBP;
+
+        emit PremiumCommissionsUpdated(bp.premiumCommissionNaymsLtdBP, bp.premiumCommissionNDFBP, bp.premiumCommissionSTMBP);
     }
 
     function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {

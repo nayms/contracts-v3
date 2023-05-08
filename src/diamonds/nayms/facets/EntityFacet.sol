@@ -85,13 +85,14 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external nonReentrant assertSysMgr {
+    ) external notLocked(msg.sig) nonReentrant assertSysMgr {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
     /**
      * @notice Check if an entity token is wrapped as ERC20
      * @param _entityId ID of the entity
+     * @return true if it is, false otherwise
      */
     function isTokenWrapped(bytes32 _entityId) external view returns (bool) {
         return LibObject._isObjectTokenWrapped(_entityId);
@@ -100,10 +101,10 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Update entity metadata
      * @param _entityId ID of the entity
-     * @param _entity metadata of the entity
+     * @param _updateEntity metadata of the entity that can be updated
      */
-    function updateEntity(bytes32 _entityId, Entity memory _entity) external assertSysMgr {
-        LibEntity._updateEntity(_entityId, _entity);
+    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertSysMgr {
+        LibEntity._updateEntity(_entityId, _updateEntity);
     }
 
     /**
