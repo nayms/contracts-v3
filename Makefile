@@ -391,8 +391,8 @@ slither:	## run slither static analysis
 upgrade-hash-sepolia: ## generate SEPOLIA upgrade hash
 	@forge script SmartDeploy \
 		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
-		--fork-url ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
+		--fork-url ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--ffi \
 		--silent \
