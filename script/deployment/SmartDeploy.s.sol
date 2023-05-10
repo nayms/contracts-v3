@@ -47,6 +47,13 @@ contract SmartDeploy is DeploymentHelpers {
         vm.stopBroadcast();
     }
 
+    function schedule(bytes32 upgradeHash) external {
+        INayms nayms = INayms(getDiamondAddressFromFile());
+        vm.startBroadcast(msg.sender);
+        nayms.createUpgrade(upgradeHash);
+        vm.stopBroadcast();
+    }
+
     function hash(
         bool deployNewDiamond,
         address _owner,

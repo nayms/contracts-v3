@@ -270,7 +270,7 @@ anvil-docker:	## run anvil in a container
 		ghcr.io/nayms/contracts-builder:latest \
 		-c "cd nayms && make anvil"
 
-anvil-debug:	## run anvil in debug mode with shared wallet
+anvil-dbg:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
 anvil-fork: ## fork goerli locally with anvil
@@ -284,6 +284,18 @@ anvil-deploy: ## smart deploy locally to anvil
 		--sender ${senderAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-schedule:	## schedule an upgrade
+	forge script SmartDeploy \
+		-s "schedule(bytes32)" ${upgradeHash} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${systemAdmin} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
 		--broadcast
