@@ -282,7 +282,7 @@ contract DeploymentHelpers is Test {
             cut = cutS;
         } else if (facetDeploymentAction == FacetDeploymentAction.UpgradeFacetsListedOnly) {
             // Deploy the facets listed in facetsToCutIn
-            require(facetsToCutIn.length > 0, "facetDeployment: did not provide any facet names to be manually deployed");
+            // require(facetsToCutIn.length > 0, "facetDeployment: did not provide any facet names to be manually deployed");
 
             for (uint256 i; i < facetsToCutIn.length; i++) {
                 dynamicFacetCutV1(diamondAddress, facetsToCutIn[i]);

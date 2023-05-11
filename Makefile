@@ -163,10 +163,13 @@ facetsToCutIn="[]"
 newDiamond=false
 initNewDiamond=false
 facetAction=1
-senderAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 deploymentSalt=0xdeffffffff
+senderAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 owner=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdmin=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
+# senderAddress=0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC # anvil acc02, deployer address
+# owner=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 # anvil acc00, owner address
+# systemAdmin=0x70997970C51812dc3A010C7d01b50e0d17dc79C8 # anvil acc01, system admin address
 
 schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 	@forge script SmartDeploy \
@@ -276,14 +279,60 @@ anvil-dbg:	## run anvil in debug mode with shared wallet
 anvil-fork: ## fork goerli locally with anvil
 	anvil -f ${ETH_GOERLI_RPC_URL}
 
+anvil-deploy-sim: ## Simulate smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${owner} ${systemAdmin} true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./mnemonic.txt \
+		--mnemonic-indexes 2 \
+		-vv \
+		--ffi
+
 anvil-deploy: ## smart deploy locally to anvil
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${owner} ${systemAdmin} true 0 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
+		--mnemonic-paths ./mnemonic.txt \
+		--mnemonic-indexes 2 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-deploy-diamond: ## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${owner} ${systemAdmin} false 2 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./mnemonic.txt \
+		--mnemonic-indexes 2 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-deploy-upgrade-sim: ## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${owner} \
+		--mnemonic-paths ./mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi
+
+anvil-deploy-upgrade: ## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${owner} \
+		--mnemonic-paths ./mnemonic.txt \
+		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
 		--broadcast
