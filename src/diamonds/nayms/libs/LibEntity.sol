@@ -143,19 +143,55 @@ library LibEntity {
             }
 
             if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
-                revert SimplePolicyStakeholderSignatureInvalid(
-                    signingHash,
-                    _stakeholders.signatures[i],
-                    LibHelpers._getIdForAddress(signer),
-                    LibObject._getParentFromAddress(signer),
-                    _stakeholders.entityIds[i]
-                );
+                // default implementation didn't match the signer
+                signer = getSignerLedgerFallback(signingHash, _stakeholders.signatures[i]); // fallback ledger implementation
+
+                if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
+                    revert SimplePolicyStakeholderSignatureInvalid(
+                        signingHash,
+                        _stakeholders.signatures[i],
+                        LibHelpers._getIdForAddress(signer),
+                        LibObject._getParentFromAddress(signer),
+                        _stakeholders.entityIds[i]
+                    );
+                }
             }
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 
         s.existingSimplePolicies[_policyId] = true;
         emit SimplePolicyCreated(_policyId, _entityId);
+    }
+
+    function getSignerLedgerFallback(bytes32 signingHash, bytes memory signature) private returns (address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        // ecrecover takes the signature parameters, and the only way to get them
+        if (signature.length == 65) {
+            // currently is to use assembly.
+            /// @solidity memory-safe-assembly
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+
+                switch v
+                // if v == 0, then v = 27
+                case 0 {
+                    v := 27
+                }
+                // if v == 1, then v = 28
+                case 1 {
+                    v := 28
+                }
+            }
+        }
+
+        (address signer, ) = ECDSA.tryRecover(ECDSA.toEthSignedMessageHash(signingHash), v, r, s);
+
+        return signer;
     }
 
     /// @param _amount the amount of entity token that is minted and put on sale

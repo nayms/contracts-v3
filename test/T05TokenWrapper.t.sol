@@ -100,7 +100,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         vm.startPrank(signer1);
         wrapper.increaseAllowance(account0, type(uint256).max);
         assertEq(wrapper.allowance(signer1, account0), type(uint256).max, "allowance should have increased");
-        
+
         vm.expectRevert("ERC20: allowance overflow");
         wrapper.increaseAllowance(account0, 1);
         vm.stopPrank();
@@ -108,11 +108,10 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         vm.startPrank(signer1);
         wrapper.decreaseAllowance(account0, type(uint256).max);
         assertEq(wrapper.allowance(signer1, account0), 0, "allowance should have decreased");
-        
+
         vm.expectRevert("ERC20: decreased allowance below zero");
         wrapper.decreaseAllowance(account0, 1);
         vm.stopPrank();
-        
     }
 
     function testPermit() public {
