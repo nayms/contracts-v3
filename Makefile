@@ -297,7 +297,7 @@ anvil-deploy-diamond: ## smart deploy locally to anvil
 
 anvil-upgrade-sim: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} false 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${ownerAddress} \
@@ -306,7 +306,7 @@ anvil-upgrade-sim: ## smart deploy locally to anvil
 
 anvil-upgrade: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} false 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${ownerAddress} \
