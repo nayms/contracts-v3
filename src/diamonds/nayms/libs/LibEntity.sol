@@ -176,23 +176,22 @@ library LibEntity {
                 r := mload(add(signature, 0x20))
                 s := mload(add(signature, 0x40))
                 v := byte(0, mload(add(signature, 0x60)))
+
+                switch v
+                // if v == 0, then v = 27
+                case 0 {
+                    v := 27
+                }
+                // if v == 1, then v = 28
+                case 1 {
+                    v := 28
+                }
             }
-            v = _adjustV(v);
         }
 
         (address signer, ) = ECDSA.tryRecover(ECDSA.toEthSignedMessageHash(signingHash), v, r, s);
 
         return signer;
-    }
-
-    function _adjustV(uint8 v) private returns (uint8) {
-        if (v == 0) {
-            return 27;
-        } else if (v == 1) {
-            return 28;
-        } else {
-            return v;
-        }
     }
 
     /// @param _amount the amount of entity token that is minted and put on sale
