@@ -18,12 +18,21 @@ contract SmartDeploy is DeploymentHelpers {
             // string[] memory facetsToCutIn
             address diamondAddress,
             address initDiamondAddress,
+            IDiamondCut.FacetCut[] memory cut,
             bytes32 upgradeHash
         )
     {
         vm.startBroadcast(msg.sender);
 
-        (diamondAddress, initDiamondAddress, upgradeHash) = smartDeployment(deployNewDiamond, _owner, _systemAdmin, initNewDiamond, facetDeploymentAction, facetsToCutIn, salt);
+        (diamondAddress, initDiamondAddress, cut, upgradeHash) = smartDeployment(
+            deployNewDiamond,
+            _owner,
+            _systemAdmin,
+            initNewDiamond,
+            facetDeploymentAction,
+            facetsToCutIn,
+            salt
+        );
 
         vm.stopBroadcast();
     }
