@@ -135,27 +135,23 @@ library LibEntity {
         for (uint256 i = 0; i < rolesCount; i++) {
             previousSigner = signer;
 
-            signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(signingHash), _stakeholders.signatures[i]);
+            signer = getSigner(signingHash, _stakeholders.signatures[i]);
+
+            if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
+                revert SimplePolicyStakeholderSignatureInvalid(
+                    signingHash,
+                    _stakeholders.signatures[i],
+                    LibHelpers._getIdForAddress(signer),
+                    LibObject._getParentFromAddress(signer),
+                    _stakeholders.entityIds[i]
+                );
+            }
 
             // Ensure there are no duplicate signers.
             if (previousSigner >= signer) {
                 revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
             }
 
-            if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
-                // default implementation didn't match the signer
-                signer = getSignerLedgerFallback(signingHash, _stakeholders.signatures[i]); // fallback ledger implementation
-
-                if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
-                    revert SimplePolicyStakeholderSignatureInvalid(
-                        signingHash,
-                        _stakeholders.signatures[i],
-                        LibHelpers._getIdForAddress(signer),
-                        LibObject._getParentFromAddress(signer),
-                        _stakeholders.entityIds[i]
-                    );
-                }
-            }
             LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
         }
 
@@ -163,7 +159,7 @@ library LibEntity {
         emit SimplePolicyCreated(_policyId, _entityId);
     }
 
-    function getSignerLedgerFallback(bytes32 signingHash, bytes memory signature) private returns (address) {
+    function getSigner(bytes32 signingHash, bytes memory signature) private returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;
