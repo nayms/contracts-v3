@@ -2,16 +2,24 @@
 # (-include to ignore error if it does not exist)
 -include .env
 
+# Deployment defaults
+facetsToCutIn="[]"
+newDiamond=false
+initNewDiamond=false
+facetAction=1
+deploymentSalt=0xdeffffffff
+ownerAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
+systemAdminAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
+
 .DEFAULT_GOAL := help
 
 .PHONY: help docs test
-
 help:		## display this help message
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 # inspiration from Patrick Collins: https://github.com/smartcontractkit/foundry-starter-kit/blob/main/Makefile
 # wip (don't use "all" yet)
-all: clean remove install update build
+all: clean update build
 
 clean: ## clean the repo
 	forge clean
@@ -125,7 +133,7 @@ erc20-mainnet: ## deploy mock ERC20
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -140,7 +148,7 @@ erc20-mainnet-sim: ## simulate deploy mock ERC20
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		-vv \
 		--ffi \
 		; node cli-tools/postproc-broadcasts.js
@@ -151,22 +159,12 @@ erc20g: ## deploy test ERC20 to Goerli
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		--broadcast \
 		--verify \
 		-vvvv
-
-# Deployment defaults
-facetsToCutIn="[]"
-newDiamond=false
-initNewDiamond=false
-facetAction=1
-senderAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
-deploymentSalt=0xdeffffffff
-owner=0x931c3aC09202650148Edb2316e97815f904CF4fa
-systemAdmin=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
 
 schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 	@forge script SmartDeploy \
@@ -174,7 +172,7 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--private-key ${OWNER_ACCOUNT_KEY} \
 		-vv \
 		--ffi \
@@ -184,11 +182,11 @@ schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
 
 deploy-goerli: ## smart deploy to goerli
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -199,21 +197,21 @@ deploy-goerli: ## smart deploy to goerli
 
 deploy-goerli-sim: ## simulate smart deploy to goerli
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		-vv \
 		--ffi
 
 deploy-sepolia: ## smart deploy to sepolia
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_SEPOLIA_RPC_URL} \
 		--chain-id 11155111 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -224,21 +222,21 @@ deploy-sepolia: ## smart deploy to sepolia
 
 deploy-sepolia-sim: ## simulate smart deploy to sepolia
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_SEPOLIA_RPC_URL} \
 		--chain-id 11155111 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		-vv \
 		--ffi
 
 deploy-mainnet: ## smart deploy to mainnet
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		--slow \
@@ -251,11 +249,11 @@ deploy-mainnet: ## smart deploy to mainnet
 
 deploy-mainnet-sim: ## simulate deploy to mainnet
 	@forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		-vv \
 		--ffi 
 
@@ -270,32 +268,62 @@ anvil-docker:	## run anvil in a container
 		ghcr.io/nayms/contracts-builder:latest \
 		-c "cd nayms && make anvil"
 
-anvil-debug:	## run anvil in debug mode with shared wallet
+anvil-dbg:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
 anvil-fork: ## fork goerli locally with anvil
 	anvil -f ${ETH_GOERLI_RPC_URL}
 
-anvil-deploy: ## smart deploy locally to anvil
+anvil-deploy-sim: ## Simulate smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${owner} ${systemAdmin} true 0 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${ownerAddress} ${systemAdminAddress} true 0 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
+		-vv \
+		--ffi
+
+anvil-deploy-diamond: ## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" true ${ownerAddress} ${systemAdminAddress} false 2 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast
 
-anvil-upgrade: ## smart deploy locally to anvil
+anvil-upgrade-sim: ## smart deploy locally to anvil
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} false 1 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} false 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
+		-vv \
+		--ffi
+
+anvil-upgrade: ## smart deploy locally to anvil
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} false 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-schedule:	## schedule an upgrade
+	forge script SmartDeploy \
+		-s "schedule(bytes32)" ${upgradeHash} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${systemAdminAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
 		-vv \
 		--ffi \
 		--broadcast
@@ -304,7 +332,7 @@ anvil-replace-dc: ## Replace diamondCut() with the 2-phase diamondCut() on anvil
 	forge script ReplaceDiamondCut \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -316,7 +344,7 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -328,9 +356,9 @@ anvil-add-supported-external-token: ## Add a supported external token (anvil)
 		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${systemAdminAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
+		--mnemonic-indexes 0 \
 		-vv \
 		--broadcast
 
@@ -338,7 +366,7 @@ goerli-replace-ownership: ## Replace transferOwnership()
 	forge script ReplaceOwnershipFacet \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -351,7 +379,7 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		-s "createAnEntity(address)" ${naymsDiamondAddress} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -362,7 +390,7 @@ add-supported-external-token: ## Add a supported external token (goerli)
 		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -373,7 +401,7 @@ update-commissions: ## update trading and premium commissions
 		-s "tradingAndPremium(address)" ${naymsDiamondAddress} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
@@ -390,7 +418,7 @@ slither:	## run slither static analysis
 
 upgrade-hash-sepolia: ## generate SEPOLIA upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_SEPOLIA_RPC_URL} \
 		--chain-id 11155111 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -400,7 +428,7 @@ upgrade-hash-sepolia: ## generate SEPOLIA upgrade hash
 
 upgrade-hash-goerli: ## generate GOERLI upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -410,7 +438,7 @@ upgrade-hash-goerli: ## generate GOERLI upgrade hash
 
 upgrade-hash-mainnet: ## generate MAINNET upgrade hash
 	@forge script SmartDeploy \
-		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
@@ -420,8 +448,8 @@ upgrade-hash-mainnet: ## generate MAINNET upgrade hash
 
 upgrade-hash-anvil: ## generate ANVIL upgrade hash
 	forge script SmartDeploy \
-		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		--sender ${senderAddress} \
+		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		--ffi
@@ -437,7 +465,7 @@ update-e: ## update
 	forge script UpdateEntity \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vvvv \

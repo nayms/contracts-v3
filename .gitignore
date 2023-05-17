@@ -31,6 +31,7 @@ facetsdeployed.txt
 .vscode/dryrun.log
 .vscode/targets.log
 .vscode/launch.json
+.vscode/slither-results.json
 
 .history
 
