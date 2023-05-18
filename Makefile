@@ -41,6 +41,9 @@ prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This exclud
 prep-build-all: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
 	node ./cli-tools/prep-build.js
 
+prep-upgrade: ## Generate upgrade script S03UpgradeDiamond.s.sol with cut information from broadcast json file. Pass in e.g. broadcastJson=broadcast/S01DeployContract.s.sol/31337/run-latest.json
+	node ./cli-tools/prep-upgrade.js ${broadcastJson}
+
 build: ## forge build
 	forge build --names --sizes
 b: build
@@ -48,8 +51,8 @@ b: build
 bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
-test: ## forge test local, alias t
-	forge test
+test: ## forge test local, alias t. Skip "one off" tests, For example a test created for a specific upgrade only. These tests are no longer relevant after the upgrade is complete.
+	forge test --no-match-test testReplaceDiamondCut
 t: test
 
 tt: ## forge test local -vv
@@ -234,6 +237,46 @@ deploy-sim: ## simulate smart deploy to goerli
 		-vv \
 		--ffi
 
+deploy-contract: ## deploy any contract to mainnet
+	forge script S01DeployContract \
+		-s "run(string calldata)" ${contractName} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+	
+schedule-upgrade: ## schedule upgrade
+	forge script S02ScheduleUpgrade \
+		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--sender ${systemAdmin} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
+diamond-cut: ## replace a facet
+	forge script S03UpgradeDiamond \
+		-s "run(address)" ${owner} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--sender ${owner} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
 anvil:	## run anvil with shared wallet
 	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
 
@@ -255,6 +298,18 @@ anvil-deploy: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
+anvil-deploy-contract: ## deploy contract to anvil
+	forge script S01DeployContract \
+		-s "run(string calldata)" ${contractName} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
+	
 anvil-upgrade: ## smart deploy locally to anvil
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${owner} ${systemAdmin} false 1 ${facetsToCutIn} ${deploymentSalt} \
@@ -267,14 +322,27 @@ anvil-upgrade: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
-anvil-replace-dc: ## Replace diamondCut() with the 2-phase diamondCut() on anvil
-	forge script ReplaceDiamondCut \
+anvil-schedule-upgrade: ## schedule upgrade to anvil diamond
+	forge script S02ScheduleUpgrade \
+		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
-		--sender ${senderAddress} \
+		--sender ${systemAdmin} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-diamond-cut: ## Uses S03UpgradeDiamond script to replace a facet on anvil
+	forge script S03UpgradeDiamond \
+		-s "run(address)" ${owner} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${owner} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
-		-vv \
+		-vvvv \
 		--ffi \
 		--broadcast
 
