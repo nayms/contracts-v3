@@ -11,11 +11,13 @@ import "script/utils/DeploymentHelpers.sol";
 contract S01DeployContract is DeploymentHelpers {
     function run(string calldata contractName) external returns (IDiamondCut.FacetCut[] memory cut, bytes32 upgradeHash, bytes32 upgradeHashOld) {
         address deployer = msg.sender;
+        vm.label(deployer, "S01DeployContract deployer");
         vm.startBroadcast(deployer);
         // Deploy contract based on the contract name from its artifact file.
         address contractAddress = deployContract(contractName);
         vm.stopBroadcast();
 
+        vm.label(contractAddress, string.concat("S01DeployContract ", contractName));
         console2.log(StdStyle.green("Deployed contract"), StdStyle.yellow(contractName), StdStyle.green("at address"), StdStyle.yellow(vm.toString(contractAddress)));
 
         // Get upgradeHash if we were to upgrade and replace matching functions.

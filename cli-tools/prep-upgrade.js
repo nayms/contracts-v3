@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-
-// Define the FacetCutAction enum
+const ethers = require("ethers");
 // Define the FacetCutAction enum
 const facetCutActionEnum = {
   0: "Add",
@@ -11,28 +10,43 @@ const facetCutActionEnum = {
 
 const filePath = process.argv[2]; // get the file path from CLI argument
 
+// The following parases the IDiamondCut.FacetCut[] struct from the JSON file. See test/mocks/data/facet-cut-struct-{i}.json for examples of this data structure.
 fs.readFile(filePath, "utf8", (err, data) => {
   if (err) {
     console.error(`Error reading file from disk: ${err}`);
   } else {
     // parse the JSON file to a JavaScript object
     const json = JSON.parse(data);
-
     let valueStr = json.returns.cut.value.slice(1, -1); // Remove the outer brackets
-    let tuplesStr = valueStr.split("), (");
+    let tuplesStr = valueStr.split("), ");
 
     let facetCuts = tuplesStr.map((tupleStr) => {
-      let tupleParts = tupleStr.slice(1, -1).split(", ");
+      let tupleParts = tupleStr.split(", [");
 
-      let facetAddress = tupleParts[0];
-      let action = facetCutActionEnum[parseInt(tupleParts[1])];
+      // Handle facetAddress and action
+      let facetActionParts = tupleParts[0].split(", ");
+      let facetAddress = ethers.getAddress(facetActionParts[0].slice(1)); // Remove leading "("
+      let action = facetCutActionEnum[parseInt(facetActionParts[1])];
 
-      // Remove the brackets from the bytes4 array string, then split it by ', ' to get the individual elements
-      let functionSelectorsStr = tupleParts[2].slice(1, -1);
+      // Handle functionSelectors
+      let functionSelectorsStr = tupleParts[1].slice(0, -1); // Remove trailing "]"
+      if (
+        functionSelectorsStr.charAt(functionSelectorsStr.length - 1) === ")"
+      ) {
+        functionSelectorsStr = functionSelectorsStr.slice(0, -1); // Remove trailing ")"
+      }
+
       let functionSelectors = functionSelectorsStr.split(", ");
-
+      // Remove any trailing "]" from the last functionSelector
+      let lastFunctionSelector =
+        functionSelectors[functionSelectors.length - 1];
+      if (lastFunctionSelector.endsWith("]")) {
+        functionSelectors[functionSelectors.length - 1] =
+          lastFunctionSelector.slice(0, -1);
+      }
       return { facetAddress, action, functionSelectors };
     });
+
     // start constructing the Solidity script
     let script = `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
@@ -73,13 +87,13 @@ contract S03UpgradeDiamond is DeploymentHelpers {
     facetCuts.forEach((facetCut, i) => {
       script += `
         bytes4[] memory f${i} = new bytes4[](${facetCut.functionSelectors.length});
-    `;
+`;
       facetCut.functionSelectors.forEach((selector, j) => {
-        script += `    f${i}[${j}] = ${selector};\n`;
+        script += `        f${i}[${j}] = ${selector};\n`;
       });
 
-      script += `        cut[${i}] = IDiamondCut.FacetCut({facetAddress: ${facetCut.facetAddress}, action: IDiamondCut.FacetCutAction.${facetCut.action}, functionSelectors: f${i}});
-    `;
+      script += `        cut[${i}] = IDiamondCut.FacetCut({ facetAddress: ${facetCut.facetAddress}, action: IDiamondCut.FacetCutAction.${facetCut.action}, functionSelectors: f${i} });
+`;
     });
 
     script += `

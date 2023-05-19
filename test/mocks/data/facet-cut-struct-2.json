@@ -1,0 +1,8 @@
+{
+  "returns": {
+    "cut": {
+      "internal_type": "struct IDiamondCut.FacetCut[]",
+      "value": "[(0x7041459fa01deace1eb86d1a3507c2f43b9051c5, 1, [0x9bda8678, 0x13b74760])]"
+    }
+  }
+}
