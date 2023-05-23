@@ -40,6 +40,10 @@ library LibHelpers {
         return address(bytes20(_id));
     }
 
+    function _isAddress(bytes32 _id) internal pure returns(bool) {
+        return _id & 0x0000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF == 0;
+    }
+
     // Conversion Utilities
 
     /**

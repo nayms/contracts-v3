@@ -365,9 +365,9 @@ library LibMarket {
         // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
 
         bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
-        bool isSellTokenASupportedExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool isSellTokenASupportedExternalToken = LibHelpers._isAddress(_sellToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
         bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
-        bool isBuyTokenASupportedExternalToken = s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool isBuyTokenASupportedExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
 
         _assertAmounts(_sellAmount, _buyAmount);
 
