@@ -24,11 +24,7 @@ interface ITokenizedVaultFacet {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function internalTransferFromEntity(
-        bytes32 to,
-        bytes32 tokenId,
-        uint256 amount
-    ) external;
+    function internalTransferFromEntity(bytes32 to, bytes32 tokenId, uint256 amount) external;
 
     /**
      * @notice Internal transfer of `amount` tokens `from` -> `to`
@@ -37,18 +33,9 @@ interface ITokenizedVaultFacet {
      * @param to token receiver
      * @param tokenId Internal ID of the token
      */
-    function wrapperInternalTransferFrom(
-        bytes32 from,
-        bytes32 to,
-        bytes32 tokenId,
-        uint256 amount
-    ) external;
+    function wrapperInternalTransferFrom(bytes32 from, bytes32 to, bytes32 tokenId, uint256 amount) external;
 
-    function internalBurn(
-        bytes32 from,
-        bytes32 tokenId,
-        uint256 amount
-    ) external;
+    function internalBurn(bytes32 from, bytes32 tokenId, uint256 amount) external;
 
     /**
      * @notice Get withdrawable dividend amount
@@ -58,11 +45,7 @@ interface ITokenizedVaultFacet {
      * @param _dividendTokenId Unique ID of dividend token
      * @return _entityPayout accumulated dividend
      */
-    function getWithdrawableDividend(
-        bytes32 _entityId,
-        bytes32 _tokenId,
-        bytes32 _dividendTokenId
-    ) external view returns (uint256 _entityPayout);
+    function getWithdrawableDividend(bytes32 _entityId, bytes32 _tokenId, bytes32 _dividendTokenId) external view returns (uint256 _entityPayout);
 
     /**
      * @notice Withdraw available dividend
@@ -71,11 +54,7 @@ interface ITokenizedVaultFacet {
      * @param tokenId Unique ID of token
      * @param dividendTokenId Unique ID of dividend token
      */
-    function withdrawDividend(
-        bytes32 ownerId,
-        bytes32 tokenId,
-        bytes32 dividendTokenId
-    ) external;
+    function withdrawDividend(bytes32 ownerId, bytes32 tokenId, bytes32 dividendTokenId) external;
 
     /**
      * @notice Withdraws a user's available dividends.
@@ -100,4 +79,6 @@ interface ITokenizedVaultFacet {
      * @return amount of tokens that the entity has for sale in the marketplace.
      */
     function getLockedBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount);
+
+    function internalTransferByEntityAdmin(bytes32 _fromEntityId, bytes32 _toEntityId, bytes32 _tokenId, uint256 _amount) external;
 }

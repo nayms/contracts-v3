@@ -64,20 +64,11 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param tokenId Internal ID of the token
      * @param amount being transferred
      */
-    function wrapperInternalTransferFrom(
-        bytes32 from,
-        bytes32 to,
-        bytes32 tokenId,
-        uint256 amount
-    ) external notLocked(msg.sig) nonReentrant assertERC20Wrapper(tokenId) {
+    function wrapperInternalTransferFrom(bytes32 from, bytes32 to, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) nonReentrant assertERC20Wrapper(tokenId) {
         LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
-    function internalBurn(
-        bytes32 from,
-        bytes32 tokenId,
-        uint256 amount
-    ) external notLocked(msg.sig) assertSysAdmin {
+    function internalBurn(bytes32 from, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) assertSysAdmin {
         LibTokenizedVault._internalBurn(from, tokenId, amount);
     }
 
@@ -89,11 +80,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param dividendTokenId Unique ID of dividend token
      * @return _entityPayout accumulated dividend
      */
-    function getWithdrawableDividend(
-        bytes32 ownerId,
-        bytes32 tokenId,
-        bytes32 dividendTokenId
-    ) external view returns (uint256) {
+    function getWithdrawableDividend(bytes32 ownerId, bytes32 tokenId, bytes32 dividendTokenId) external view returns (uint256) {
         return LibTokenizedVault._getWithdrawableDividend(ownerId, tokenId, dividendTokenId);
     }
 
@@ -104,11 +91,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param tokenId Unique ID of token
      * @param dividendTokenId Unique ID of dividend token
      */
-    function withdrawDividend(
-        bytes32 ownerId,
-        bytes32 tokenId,
-        bytes32 dividendTokenId
-    ) external notLocked(msg.sig) {
+    function withdrawDividend(bytes32 ownerId, bytes32 tokenId, bytes32 dividendTokenId) external notLocked(msg.sig) {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
@@ -151,5 +134,16 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      */
     function getLockedBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount) {
         amount = LibTokenizedVault._getLockedBalance(_entityId, _tokenId);
+    }
+
+    /**
+     * @notice An entity admin can transfer funds from an entity it is an entity admin of to another entity.
+     * @param _fromEntityId Unique platform ID of the entity. Caller must be an entity admin of this entity.
+     * @param _toEntityId The entity to transfer funds to.
+     * @param _tokenId The ID assigned to an external token.
+     * @param _amount The amount of internal tokens to transfer.
+     */
+    function internalTransferByEntityAdmin(bytes32 _fromEntityId, bytes32 _toEntityId, bytes32 _tokenId, uint256 _amount) external assertEntityAdmin(_fromEntityId) {
+        LibTokenizedVault._internalTransfer(_fromEntityId, _toEntityId, _tokenId, _amount);
     }
 }
