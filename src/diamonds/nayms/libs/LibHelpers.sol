@@ -15,7 +15,7 @@ library LibHelpers {
         return _getIdForAddress(msg.sender);
     }
 
-    function _checkBottom12BytesAreEmpty(bytes32 value) public pure returns (bool) {
+    function _checkBottom12BytesAreEmpty(bytes32 value) internal pure returns (bool) {
         bytes32 mask = 0x0000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF;
         bytes32 bottom12Bytes = value & mask;
 
@@ -40,7 +40,7 @@ library LibHelpers {
         return address(bytes20(_id));
     }
 
-    function _isAddress(bytes32 _id) internal pure returns(bool) {
+    function _isAddress(bytes32 _id) internal pure returns (bool) {
         return _id & 0x0000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF == 0;
     }
 
