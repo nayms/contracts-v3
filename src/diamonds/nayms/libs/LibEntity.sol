@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
-import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, CommissionReceiverInfo } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -81,10 +81,10 @@ library LibEntity {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
 
-        uint256 globalPolicyFeeReceiverCount = policyFeeStrategy[s.currentGlobalPolicyFeeStrategy].length;
-        CommissionReceiverInfo[] memory globalPolicyCommissionReceiverInfo = policyFeeStrategy[s.currentGlobalPolicyFeeStrategy];
+        CommissionReceiverInfo[] memory globalPolicyCommissionReceiverInfo = s.policyFeeStrategy[s.currentGlobalPolicyFeeStrategy];
+        uint256 globalPolicyFeeReceiverCount = globalPolicyCommissionReceiverInfo.length;
         for (uint256 i; i < globalPolicyFeeReceiverCount; ++i) {
-            totalBP += globalPolicyCommissionReceiverInfo.basisPoints[i];
+            totalBP += globalPolicyCommissionReceiverInfo[i].basisPoints;
         }
 
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");

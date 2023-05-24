@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage, SimplePolicy, CommissionReceiverInfo, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, SimplePolicy, CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -20,7 +20,7 @@ library LibFeeRouter {
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
     event PremiumCommissionsUpdated(uint16 premiumCommissionNaymsLtdBP, uint16 premiumCommissionNDFBP, uint16 premiumCommissionSTMBP);
 
-    function _payPremiumCommissions(uint256 _policyId, uint256 _premiumPaid) internal {
+    function _payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
@@ -54,8 +54,9 @@ library LibFeeRouter {
 
         require(s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy].tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
 
-        uint256 globalMarketplaceFeeReceiverCount = marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy].commissionReceiversInfo.length;
-        MarketplaceFeeStrategy[] memory globalMarketplaceFeeStrategy = marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy];
+        MarketplaceFeeStrategy memory globalMarketplaceFeeStrategy = s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy];
+        uint256 globalMarketplaceFeeReceiverCount = globalMarketplaceFeeStrategy.commissionReceiversInfo.length;
+        uint256 totalBP;
         for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
             totalBP += globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints;
         }
@@ -153,26 +154,56 @@ library LibFeeRouter {
         bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
     }
 
-    function _setGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) internal {
+    function _addGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Check to see that the total commission does not exceed 10000 basis points
         uint256 receiverCount = _commissionReceivers.length;
         uint256 totalBp;
-        for (uint i; i < receiverCount; ++i) {
+        for (uint256 i; i < receiverCount; ++i) {
             totalBp += _commissionReceivers[i].basisPoints;
         }
         if (totalBp > LibConstants.BP_FACTOR) {
             revert PolicyCommissionsBasisPointsCannotBeGreaterThan10000(totalBp);
         }
 
-        // todo replace exisiting strat
-        s.policyFeeStrategy[_strategyId] = _commissionReceivers;
+        for (uint256 i; i < receiverCount; ++i) {
+            s.policyFeeStrategy[_strategyId].push(_commissionReceivers[i]);
+        }
+    }
+
+    error CommissionsBasisPointsCannotBeGreaterThan10000(uint256 _totalBP);
+
+    // todo increment strategy id deterministically
+    function _addGlobalMarketplaceFeeStrategy(uint256 _strategyId, MarketplaceFeeStrategy calldata _marketplaceFeeStrategy) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        uint256 receiverCount = _marketplaceFeeStrategy.commissionReceiversInfo.length;
+        uint256 totalBp;
+        for (uint256 i; i < receiverCount; ++i) {
+            totalBp += _marketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints;
+        }
+
+        if (totalBp + _marketplaceFeeStrategy.tradingCommissionMakerBP > LibConstants.BP_FACTOR) {
+            revert CommissionsBasisPointsCannotBeGreaterThan10000(totalBp);
+        }
+
+        s.marketplaceFeeStrategy[_strategyId].tradingCommissionTotalBP = _marketplaceFeeStrategy.tradingCommissionTotalBP;
+        s.marketplaceFeeStrategy[_strategyId].tradingCommissionMakerBP = _marketplaceFeeStrategy.tradingCommissionMakerBP;
+        for (uint256 i; i < receiverCount; ++i) {
+            s.marketplaceFeeStrategy[_strategyId].commissionReceiversInfo.push(_marketplaceFeeStrategy.commissionReceiversInfo[i]);
+        }
     }
 
     function _changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         s.currentGlobalPolicyFeeStrategy = _strategyId;
+    }
+
+    function _changeGlobalMarketplaceCommissionsStrategy(uint256 _strategyId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        s.currentGlobalMarketplaceFeeStrategy = _strategyId;
     }
 }

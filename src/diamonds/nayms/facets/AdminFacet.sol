@@ -6,7 +6,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { CommissionReceiverInfo, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
+import { CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
 import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
 
 /**
