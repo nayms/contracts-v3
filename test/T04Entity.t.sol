@@ -17,9 +17,9 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
-    bytes32 internal entityId1 = "0xe1";
-    bytes32 internal policyId1 = "0xC0FFEE";
-    bytes32 public testPolicyDataHash = "test";
+    bytes32 internal entityId1 = 0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38;
+    bytes32 internal policyId1 = 0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869;
+    bytes32 public testPolicyDataHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
     bytes32 public policyHashedTypedData;
 
     SimplePolicyFixture internal simplePolicyFixture;
@@ -235,7 +235,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.getLockedBalance(entityId1, wethId), 0, "NO FUNDS should be locked");
 
         changePrank(systemAdmin);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, "test");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         uint256 expectedLockedBalance = (simplePolicy.limit * 5_000) / LibConstants.BP_FACTOR;
         assertEq(nayms.getLockedBalance(entityId1, wethId), expectedLockedBalance, "funds SHOULD BE locked");
 

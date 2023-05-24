@@ -446,6 +446,7 @@ contract DeploymentHelpers is Test {
         returns (
             address diamondAddress,
             address initDiamondAddress,
+            IDiamondCut.FacetCut[] memory cut,
             bytes32 upgradeHash
         )
     {
@@ -453,7 +454,7 @@ contract DeploymentHelpers is Test {
         diamondAddress = diamondDeployment(deployNewDiamond, _owner, _systemAdmin, salt);
 
         // deploys facets
-        IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
+        cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
 
         if (initNewDiamond) {
             IInitDiamond initDiamond = IInitDiamond(LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond"));
