@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { CommissionReceiverInfo, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+import { CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
 
 /**
  * @title Administration
@@ -98,4 +98,8 @@ interface IAdminFacet {
     function addGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) external;
 
     function changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) external;
+
+    function addGlobalMarketplaceFeeStrategy(uint256 _strategyId, MarketplaceFeeStrategy calldata _marketplaceFeeStrategy) external;
+
+    function changeGlobalMarketplaceCommissionsStrategy(uint256 _strategyId) external;
 }

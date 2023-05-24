@@ -52,31 +52,29 @@ library LibFeeRouter {
     function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _requestedBuyAmount) internal returns (uint256 commissionPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
-        require(
-            s.tradingCommissionNaymsLtdBP + s.tradingCommissionNDFBP + s.tradingCommissionSTMBP + s.tradingCommissionMakerBP <= LibConstants.BP_FACTOR,
-            "commissions sum over 10000 bp"
-        );
+        require(s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy].tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
 
-        TradingCommissions memory tc = _calculateTradingCommissions(_requestedBuyAmount);
-        // The rough commission deducted. The actual total might be different due to integer division
+        uint256 globalMarketplaceFeeReceiverCount = marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy].commissionReceiversInfo.length;
+        MarketplaceFeeStrategy[] memory globalMarketplaceFeeStrategy = marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy];
+        for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
+            totalBP += globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints;
+        }
+        require(totalBP <= LibConstants.BP_FACTOR, "commissions sum over 10000 bp");
 
-        // Pay Nayms, LTD commission
-        LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), _tokenId, tc.commissionNaymsLtd);
-
-        // Pay Nayms Discretionary Fund commission
-        LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), _tokenId, tc.commissionNDF);
-
-        // Pay Staking Mechanism commission
-        LibTokenizedVault._internalTransfer(_takerId, LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), _tokenId, tc.commissionSTM);
+        uint256 commission;
+        uint256 totalCommissionsPaid;
+        for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
+            commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
+            totalCommissionsPaid += commission;
+            LibTokenizedVault._internalTransfer(_takerId, globalMarketplaceFeeStrategy.commissionReceiversInfo[i].receiver, _tokenId, commission);
+        }
 
         // Pay market maker commission
-        LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, tc.commissionMaker);
+        commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
+        totalCommissionsPaid += commission; // Add the maker commission
+        LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, commission);
 
-        // Work it out again so the math is precise, ignoring remainders
-        commissionPaid_ = tc.totalCommissions;
-
-        emit TradingCommissionsPaid(_takerId, _tokenId, commissionPaid_);
+        emit TradingCommissionsPaid(_takerId, _tokenId, totalCommissionsPaid);
     }
 
     function _updateTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata bp) internal {
@@ -103,6 +101,7 @@ library LibFeeRouter {
         );
     }
 
+    // todo remove
     function _updatePolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata bp) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint256 totalBp = bp.premiumCommissionNaymsLtdBP + bp.premiumCommissionNDFBP + bp.premiumCommissionSTMBP;

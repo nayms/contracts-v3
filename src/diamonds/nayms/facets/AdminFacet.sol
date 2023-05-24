@@ -112,4 +112,12 @@ contract AdminFacet is IAdminFacet, Modifiers {
     function changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) external assertSysAdmin {
         LibFeeRouter._changeGlobalPolicyCommissionsStrategy(_strategyId);
     }
+
+    function addGlobalMarketplaceFeeStrategy(uint256 _strategyId, MarketplaceFeeStrategy calldata _marketplaceFeeStrategy) external assertSysAdmin {
+        LibFeeRouter._addGlobalMarketplaceFeeStrategy(_strategyId, _marketplaceFeeStrategy);
+    }
+
+    function changeGlobalMarketplaceCommissionsStrategy(uint256 _strategyId) external assertSysAdmin {
+        LibFeeRouter._changeGlobalMarketplaceCommissionsStrategy(_strategyId);
+    }
 }
