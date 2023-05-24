@@ -3,10 +3,12 @@ pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
 
-import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints, Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms } from "src/diamonds/nayms/INayms.sol";
+import { CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints, Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { INayms, IDiamondCut, IAdminFacet } from "src/diamonds/nayms/INayms.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+
+import { AdminFacet } from "src/diamonds/nayms/facets/AdminFacet.sol";
 
 contract UpdateFeesTestHelpers is Test {}
 
@@ -14,7 +16,11 @@ contract UpdateFeesTest is UpdateFeesTestHelpers {
     address public constant naymsAddress = 0x39e2f550fef9ee15b459d16bD4B243b04b1f60e5;
     INayms public nayms;
 
+    address public ownerAddress = 0xd5c10a9a09B072506C7f062E4f313Af29AdD9904;
     address public systemAdminAddress = 0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929;
+
+    bytes32 public ownerId = LibHelpers._getIdForAddress(ownerAddress);
+    bytes32 public systemAdminId = LibHelpers._getIdForAddress(systemAdminAddress);
 
     bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
     bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
@@ -103,5 +109,46 @@ contract UpdateFeesTest is UpdateFeesTestHelpers {
 
         changePrank(ssfAdminAddress);
         nayms.internalTransferFromEntity(NAYMS_LTD_IDENTIFIER, USDC_IDENTIFIER, nayms.internalBalanceOf(ssfAdminId, USDC_IDENTIFIER));
+    }
+
+    function test_addGlobalPolicyCommissionsStrategy() public {
+        AdminFacet adminFacet = new AdminFacet();
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+
+        bytes4[] memory f0 = new bytes4[](4);
+        f0[0] = IAdminFacet.addGlobalPolicyCommissionsStrategy.selector;
+        f0[1] = IAdminFacet.changeGlobalPolicyCommissionsStrategy.selector;
+        f0[2] = IAdminFacet.addGlobalMarketplaceFeeStrategy.selector;
+        f0[3] = IAdminFacet.changeGlobalMarketplaceCommissionsStrategy.selector;
+
+        // bytes4[] memory f1 = new bytes4[](18);
+
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(adminFacet), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
+        // cut[0] = IDiamondCut.FacetCut({ facetAddress: address(adminFacet), action: IDiamondCut.FacetCutAction.Replace, functionSelectors: f0 });
+        bytes32 upgradeHashOld = keccak256(abi.encode(cut));
+
+        vm.startPrank(systemAdminAddress);
+        nayms.createUpgrade(upgradeHashOld);
+
+        changePrank(ownerAddress);
+        nayms.diamondCut(cut, address(0), new bytes(0));
+
+        CommissionReceiverInfo[] memory commissionReceiversInfo = new CommissionReceiverInfo[](1);
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+
+        changePrank(systemAdminAddress);
+        nayms.addGlobalPolicyCommissionsStrategy(0, commissionReceiversInfo);
+
+        commissionReceiversInfo = new CommissionReceiverInfo[](1);
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 10000 });
+
+        MarketplaceFeeStrategy memory marketplaceFeeStrategy = MarketplaceFeeStrategy({
+            tradingCommissionTotalBP: 30,
+            tradingCommissionMakerBP: 0,
+            commissionReceiversInfo: commissionReceiversInfo
+        });
+
+        nayms.addGlobalMarketplaceFeeStrategy(0, marketplaceFeeStrategy);
     }
 }

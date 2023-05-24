@@ -49,7 +49,7 @@ library LibFeeRouter {
         emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
     }
 
-    function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _requestedBuyAmount) internal returns (uint256 commissionPaid_) {
+    function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _requestedBuyAmount) internal returns (uint256 totalCommissionsPaid) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy].tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
@@ -63,7 +63,6 @@ library LibFeeRouter {
         require(totalBP <= LibConstants.BP_FACTOR, "commissions sum over 10000 bp");
 
         uint256 commission;
-        uint256 totalCommissionsPaid;
         for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
             commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
             totalCommissionsPaid += commission;
