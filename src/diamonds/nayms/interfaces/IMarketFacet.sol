@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { MarketInfo, TradingCommissions, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+import { MarketInfo, MarketplaceFeeStrategy, TradingCommissions, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -25,13 +25,7 @@ interface IMarketFacet {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount
-    )
-        external
-        returns (
-            uint256 offerId_,
-            uint256 buyTokenCommissionsPaid_,
-            uint256 sellTokenCommissionsPaid_
-        );
+    ) external returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_);
 
     /**
      * @notice Cancel offer #`_offerId`. This will cancel the offer so that it's no longer active.
@@ -82,13 +76,16 @@ interface IMarketFacet {
     /**
      * @dev Calculate the trading commissions based on a buy amount.
      * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct with metadata regarding the trade commission payment amounts.
      */
-    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
+    function calculateTradingCommissions(uint256 buyAmount) external view;
+
+    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view;
 
     /**
-     * @notice Get the marketplace's trading commissions basis points.
-     * @return bp - TradingCommissionsBasisPoints struct containing the individual basis points set for each marketplace commission receiver.
+     * @notice Get the marketplace's trading commissions basis points information of the current marketplace fee strategy
+     * @return MarketplaceFeeStrategy struct containing the individual basis points set for each marketplace commission receiver.
      */
-    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp);
+    function getTradingCommissionsBasisPoints() external view returns (MarketplaceFeeStrategy memory);
+
+    function getTradingCommissionsBasisPoints(uint256 _feeStrategyId) external view returns (MarketplaceFeeStrategy memory);
 }

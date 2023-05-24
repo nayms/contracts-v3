@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { TradingCommissions, TradingCommissionsBasisPoints, MarketInfo } from "../AppStorage.sol";
+import { MarketplaceFeeStrategy, TradingCommissions, TradingCommissionsBasisPoints, MarketInfo } from "../AppStorage.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
@@ -55,16 +55,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount
-    )
-        external
-        notLocked(msg.sig)
-        nonReentrant
-        returns (
-            uint256 offerId_,
-            uint256 buyTokenCommissionsPaid_,
-            uint256 sellTokenCommissionsPaid_
-        )
-    {
+    ) external notLocked(msg.sig) nonReentrant returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
@@ -119,7 +110,15 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
     }
 
-    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp) {
-        bp = LibFeeRouter._getTradingCommissionsBasisPoints();
+    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (TradingCommissions memory tc) {
+        tc = LibFeeRouter._calculateTradingCommissions(_feeStrategyId, buyAmount);
+    }
+
+    function getTradingCommissionsBasisPoints() external view returns (MarketplaceFeeStrategy memory) {
+        return LibFeeRouter._getTradingCommissionsBasisPoints();
+    }
+
+    function getTradingCommissionsBasisPoints(uint256 _feeStrategyId) external view returns (MarketplaceFeeStrategy memory) {
+        return LibFeeRouter._getTradingCommissionsBasisPoints(_feeStrategyId);
     }
 }

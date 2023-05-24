@@ -118,6 +118,8 @@ library LibFeeRouter {
     function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        MarketplaceFeeStrategy memory marketplaceFeeStrategy = s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy];
+
         // The rough commission deducted. The actual total might be different due to integer division
         tc.roughCommissionPaid = (s.tradingCommissionTotalBP * buyAmount) / LibConstants.BP_FACTOR;
 
@@ -137,13 +139,10 @@ library LibFeeRouter {
         tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
     }
 
-    function _getTradingCommissionsBasisPoints() internal view returns (TradingCommissionsBasisPoints memory bp) {
+    function _getTradingCommissionsBasisPoints(uint256 _feeStrategyId) internal view returns (MarketplaceFeeStrategy memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bp.tradingCommissionTotalBP = s.tradingCommissionTotalBP;
-        bp.tradingCommissionNaymsLtdBP = s.tradingCommissionNaymsLtdBP;
-        bp.tradingCommissionNDFBP = s.tradingCommissionNDFBP;
-        bp.tradingCommissionSTMBP = s.tradingCommissionSTMBP;
-        bp.tradingCommissionMakerBP = s.tradingCommissionMakerBP;
+
+        return s.marketplaceFeeStrategy[_feeStrategyId];
     }
 
     function _getPremiumCommissionBasisPoints() internal view returns (PolicyCommissionsBasisPoints memory bp) {
