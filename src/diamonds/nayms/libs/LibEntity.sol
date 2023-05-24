@@ -33,11 +33,7 @@ library LibEntity {
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
 
-    function _validateSimplePolicyCreation(
-        bytes32 _entityId,
-        SimplePolicy memory simplePolicy,
-        Stakeholders calldata _stakeholders
-    ) internal view {
+    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy memory simplePolicy, Stakeholders calldata _stakeholders) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
@@ -84,6 +80,13 @@ library LibEntity {
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
+
+        uint256 globalPolicyFeeReceiverCount = policyFeeStrategy[s.currentGlobalPolicyFeeStrategy].length;
+        CommissionReceiverInfo[] memory globalPolicyCommissionReceiverInfo = policyFeeStrategy[s.currentGlobalPolicyFeeStrategy];
+        for (uint256 i; i < globalPolicyFeeReceiverCount; ++i) {
+            totalBP += globalPolicyCommissionReceiverInfo.basisPoints[i];
+        }
+
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
 
         require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
@@ -107,12 +110,9 @@ library LibEntity {
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         s.simplePolicies[_policyId] = _simplePolicy;
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNaymsLtdBP);
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNDFBP);
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionSTMBP);
+
+        // Set the policy's fee strategy ID to the currentGlobalPolicyFeeStrategy
+        s.simplePolicies[_policyId].feeStrategy = s.currentGlobalPolicyFeeStrategy;
 
         _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
@@ -192,11 +192,7 @@ library LibEntity {
 
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
-    function _startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) internal {
+    function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
@@ -220,12 +216,7 @@ library LibEntity {
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
-    function _createEntity(
-        bytes32 _entityId,
-        bytes32 _entityAdmin,
-        Entity calldata _entity,
-        bytes32 _dataHash
-    ) internal {
+    function _createEntity(bytes32 _entityId, bytes32 _entityAdmin, Entity calldata _entity, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.existingEntities[_entityId]) {

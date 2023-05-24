@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage, SimplePolicy, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, SimplePolicy, CommissionReceiverInfo, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -20,30 +20,36 @@ library LibFeeRouter {
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
     event PremiumCommissionsUpdated(uint16 premiumCommissionNaymsLtdBP, uint16 premiumCommissionNDFBP, uint16 premiumCommissionSTMBP);
 
-    function _payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal {
+    function _payPremiumCommissions(uint256 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
+
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
         uint256 premiumCommissionPaid;
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
 
-        for (uint256 i = 0; i < commissionsCount; i++) {
-            uint256 commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
+        uint256 commission;
+        for (uint256 i; i < commissionsCount; ++i) {
+            commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, commission);
+            premiumCommissionPaid += commission;
+        }
+
+        CommissionReceiverInfo[] memory policyFeeStrategy = s.policyFeeStrategy[simplePolicy.feeStrategy];
+        uint256 policyFeeStrategyCount = policyFeeStrategy.length;
+
+        for (uint256 i; i < policyFeeStrategyCount; ++i) {
+            commission = (_premiumPaid * policyFeeStrategy[i].basisPoints) / LibConstants.BP_FACTOR;
+            LibTokenizedVault._internalTransfer(policyEntityId, policyFeeStrategy[i].receiver, simplePolicy.asset, commission);
             premiumCommissionPaid += commission;
         }
 
         emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
     }
 
-    function _payTradingCommissions(
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _requestedBuyAmount
-    ) internal returns (uint256 commissionPaid_) {
+    function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _requestedBuyAmount) internal returns (uint256 commissionPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
@@ -146,5 +152,28 @@ library LibFeeRouter {
         bp.premiumCommissionNaymsLtdBP = s.premiumCommissionNaymsLtdBP;
         bp.premiumCommissionNDFBP = s.premiumCommissionNDFBP;
         bp.premiumCommissionSTMBP = s.premiumCommissionSTMBP;
+    }
+
+    function _setGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        // Check to see that the total commission does not exceed 10000 basis points
+        uint256 receiverCount = _commissionReceivers.length;
+        uint256 totalBp;
+        for (uint i; i < receiverCount; ++i) {
+            totalBp += _commissionReceivers[i].basisPoints;
+        }
+        if (totalBp > LibConstants.BP_FACTOR) {
+            revert PolicyCommissionsBasisPointsCannotBeGreaterThan10000(totalBp);
+        }
+
+        // todo replace exisiting strat
+        s.policyFeeStrategy[_strategyId] = _commissionReceivers;
+    }
+
+    function _changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        s.currentGlobalPolicyFeeStrategy = _strategyId;
     }
 }

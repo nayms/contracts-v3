@@ -40,6 +40,11 @@ struct UpdateEntityTypeCell {
     bool simplePolicyEnabled;
 }
 
+struct CommissionReceiverInfo {
+    bytes32 receiver;
+    uint256 basisPoints;
+}
+
 struct SimplePolicy {
     uint256 startDate;
     uint256 maturationDate;
@@ -51,6 +56,7 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
+    uint256 feeStrategy; // The policy fee strategy for this policy
 }
 
 struct SimplePolicyInfo {

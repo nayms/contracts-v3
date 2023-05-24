@@ -6,7 +6,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
+import { CommissionReceiverInfo, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "../interfaces/FreeStructs.sol";
 import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
 
 /**
@@ -103,5 +103,13 @@ contract AdminFacet is IAdminFacet, Modifiers {
 
     function unlockAllFundTransferFunctions() external assertSysAdmin {
         LibAdmin._unlockAllFundTransferFunctions();
+    }
+
+    function addGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) external assertSysAdmin {
+        LibFeeRouter._addGlobalPolicyCommissionsStrategy(_strategyId, _commissionReceivers);
+    }
+
+    function changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) external assertSysAdmin {
+        LibFeeRouter._changeGlobalPolicyCommissionsStrategy(_strategyId);
     }
 }

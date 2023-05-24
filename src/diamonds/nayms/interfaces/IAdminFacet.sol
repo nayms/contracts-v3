@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+import { CommissionReceiverInfo, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
 
 /**
  * @title Administration
@@ -94,4 +94,8 @@ interface IAdminFacet {
      * @notice Unlock all contract methods involving fund transfers
      */
     function unlockAllFundTransferFunctions() external;
+
+    function addGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) external;
+
+    function changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) external;
 }
