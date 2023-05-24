@@ -117,3 +117,9 @@ struct TradingCommissionsBasisPoints {
     uint16 tradingCommissionSTMBP;
     uint16 tradingCommissionMakerBP;
 }
+
+struct MarketplaceFeeStrategy {
+    uint256 tradingCommissionTotalBP; // The total % of fees taken
+    uint256 tradingCommissionMakerBP; // Of the total % of fees taken, the % that goes to the maker
+    CommissionReceiverInfo[] commissionReceiversInfo; // The list of additional receivers of the fees
+}
