@@ -4,11 +4,13 @@ pragma solidity 0.8.17;
 import "forge-std/Test.sol";
 
 import { CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints, Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut, IAdminFacet } from "src/diamonds/nayms/INayms.sol";
+import { INayms, IDiamondCut, IDiamondCut, IAdminFacet } from "src/diamonds/nayms/INayms.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 
 import { AdminFacet } from "src/diamonds/nayms/facets/AdminFacet.sol";
+
+import { TokenizedVaultFacet, ITokenizedVaultFacet } from "src/diamonds/nayms/facets/TokenizedVaultFacet.sol";
 
 contract UpdateFeesTestHelpers is Test {}
 
@@ -82,6 +84,7 @@ contract UpdateFeesTest is UpdateFeesTestHelpers {
     }
 
     function testCreateSpecialEntitiesAndTransferFunds() public {
+        vm.startPrank(systemAdminAddress);
         Entity memory entityData = Entity({ assetId: bytes32(0), collateralRatio: 0, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false });
 
         address naymsLtdAdminAddress = makeAddr("NAYMS LTD Admin");
@@ -116,11 +119,14 @@ contract UpdateFeesTest is UpdateFeesTestHelpers {
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
 
-        bytes4[] memory f0 = new bytes4[](4);
+        bytes4[] memory f0 = new bytes4[](7);
         f0[0] = IAdminFacet.addGlobalPolicyCommissionsStrategy.selector;
         f0[1] = IAdminFacet.changeGlobalPolicyCommissionsStrategy.selector;
         f0[2] = IAdminFacet.addGlobalMarketplaceFeeStrategy.selector;
         f0[3] = IAdminFacet.changeGlobalMarketplaceCommissionsStrategy.selector;
+        f0[4] = IAdminFacet.changeIndividualPolicyCommissionsStrategy.selector;
+        f0[5] = IAdminFacet.addCommissionsReceiverToIndividualPolicy.selector;
+        f0[6] = IAdminFacet.removeCommissionsReceiverFromIndividualPolicy.selector;
 
         // bytes4[] memory f1 = new bytes4[](18);
 
@@ -150,5 +156,33 @@ contract UpdateFeesTest is UpdateFeesTestHelpers {
         });
 
         nayms.addGlobalMarketplaceFeeStrategy(0, marketplaceFeeStrategy);
+    }
+
+    // note to implement - want to make an object id an entity admin of an entity id, then be able to transfer funds
+    function testTransferFromSpecialEntities() public {
+        vm.startPrank(systemAdminAddress);
+
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+
+        address newTokenizedVaultFacetAddress = address(new TokenizedVaultFacet());
+
+        bytes4[] memory f0 = new bytes4[](1);
+        f0[0] = TokenizedVaultFacet.internalTransferByEntityAdmin.selector;
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: newTokenizedVaultFacetAddress, action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
+
+        bytes32 upgradeHash = keccak256(abi.encode(cut));
+        nayms.createUpgrade(upgradeHash);
+
+        changePrank(ownerAddress);
+        nayms.diamondCut(cut, address(0), "");
+
+        changePrank(systemAdminAddress);
+        nayms.assignRole(systemAdminId, NDF_IDENTIFIER, LibConstants.ROLE_ENTITY_ADMIN);
+
+        // nayms.internalTransferFromEntity(NAYMS_LTD_IDENTIFIER, USDC_IDENTIFIER, nayms.internalBalanceOf(NDF_IDENTIFIER, USDC_IDENTIFIER));
+        nayms.internalTransferByEntityAdmin(NDF_IDENTIFIER, NAYMS_LTD_IDENTIFIER, USDC_IDENTIFIER, nayms.internalBalanceOf(NDF_IDENTIFIER, USDC_IDENTIFIER));
+
+        vm.expectRevert("not the entity's admin");
+        nayms.internalTransferByEntityAdmin(STM_IDENTIFIER, NAYMS_LTD_IDENTIFIER, USDC_IDENTIFIER, nayms.internalBalanceOf(NDF_IDENTIFIER, USDC_IDENTIFIER));
     }
 }

@@ -205,4 +205,33 @@ library LibFeeRouter {
 
         s.currentGlobalMarketplaceFeeStrategy = _strategyId;
     }
+
+    function _changeIndividualPolicyCommissionsStrategy(bytes32 _policyId, uint256 _strategyId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        s.simplePolicies[_policyId].feeStrategy = _strategyId;
+    }
+
+    function _addCommissionsReceiverToIndividualPolicy(bytes32 _policyId, CommissionReceiverInfo calldata _commissionReceiver) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        s.simplePolicies[_policyId].commissionReceivers.push(_commissionReceiver.receiver);
+        s.simplePolicies[_policyId].commissionBasisPoints.push(_commissionReceiver.basisPoints);
+    }
+
+    function _removeCommissionsReceiverFromIndividualPolicy(bytes32 _policyId, bytes32 _receiver) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
+        uint256 receiverCount = simplePolicy.commissionReceivers.length;
+        for (uint256 i; i < receiverCount; ++i) {
+            if (simplePolicy.commissionReceivers[i] == _receiver) {
+                // Move the last element to the position of the element to be removed
+                simplePolicy.commissionReceivers[i] = simplePolicy.commissionReceivers[receiverCount - 1];
+                // Pop off last element
+                simplePolicy.commissionReceivers.pop();
+                break;
+            }
+        }
+    }
 }

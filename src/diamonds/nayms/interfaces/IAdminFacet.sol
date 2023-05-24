@@ -99,6 +99,12 @@ interface IAdminFacet {
 
     function changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) external;
 
+    function changeIndividualPolicyCommissionsStrategy(bytes32 _policyId, uint256 _strategyId) external;
+
+    function addCommissionsReceiverToIndividualPolicy(bytes32 _policyId, CommissionReceiverInfo calldata _commissionReceiver) external;
+
+    function removeCommissionsReceiverFromIndividualPolicy(bytes32 _policyId, bytes32 _receiver) external;
+
     function addGlobalMarketplaceFeeStrategy(uint256 _strategyId, MarketplaceFeeStrategy calldata _marketplaceFeeStrategy) external;
 
     function changeGlobalMarketplaceCommissionsStrategy(uint256 _strategyId) external;
