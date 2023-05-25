@@ -1,7 +1,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { MarketInfo, MarketplaceFeeStrategy, TradingCommissions, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+/// @dev IMarketFacet at block 17334000, prior to fee updates
+
+struct MarketInfo {
+    bytes32 creator;
+    bytes32 sellToken;
+    uint256 sellAmount;
+    uint256 sellAmountInitial;
+    bytes32 buyToken;
+    uint256 buyAmount;
+    uint256 buyAmountInitial;
+    uint256 feeSchedule;
+    uint256 state;
+    uint256 rankNext;
+    uint256 rankPrev;
+}
+
+struct TradingCommissions {
+    uint256 roughCommissionPaid;
+    uint256 commissionNaymsLtd;
+    uint256 commissionNDF;
+    uint256 commissionSTM;
+    uint256 commissionMaker;
+    uint256 totalCommissions;
+}
+
+struct TradingCommissionsBasisPoints {
+    uint16 tradingCommissionTotalBP;
+    uint16 tradingCommissionNaymsLtdBP;
+    uint16 tradingCommissionNDFBP;
+    uint16 tradingCommissionSTMBP;
+    uint16 tradingCommissionMakerBP;
+}
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -76,16 +107,13 @@ interface IMarketFacet {
     /**
      * @dev Calculate the trading commissions based on a buy amount.
      * @param buyAmount The amount that the commissions payments are calculated from.
+     * @return tc TradingCommissions struct with metadata regarding the trade commission payment amounts.
      */
-    // function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
-
-    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (TradingCommissions memory tc);
+    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
 
     /**
-     * @notice Get the marketplace's trading commissions basis points information of the current marketplace fee strategy
-     * @return MarketplaceFeeStrategy struct containing the individual basis points set for each marketplace commission receiver.
+     * @notice Get the marketplace's trading commissions basis points.
+     * @return bp - TradingCommissionsBasisPoints struct containing the individual basis points set for each marketplace commission receiver.
      */
-    // function getTradingCommissionsBasisPoints() external view returns (MarketplaceFeeStrategy memory);
-
-    function getTradingCommissionsBasisPoints(uint256 _feeStrategyId) external view returns (MarketplaceFeeStrategy memory);
+    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp);
 }

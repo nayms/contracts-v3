@@ -101,13 +101,16 @@ struct FeeRatio {
     uint256 ndfShareRatio;
 }
 
+struct CommissionAllocation {
+    bytes32 receiverId; // The ID of the entity that receives the commission
+    uint256 commission; // The amount of commissions paid to the receiver
+}
+
 struct TradingCommissions {
-    uint256 roughCommissionPaid;
-    uint256 commissionNaymsLtd;
-    uint256 commissionNDF;
-    uint256 commissionSTM;
-    uint256 commissionMaker;
-    uint256 totalCommissions;
+    uint256 roughCommissionPaid; // The rough total amount of commissions paid on a market trade.
+    uint256 commissionMaker; // The amount of commissions paid to the maker of the trade.
+    uint256 totalCommissions; // The actual total amount of commissions paid on a market trade.
+    CommissionAllocation[] additionalAllocations; // The list of additional entities that receive a portion of the commissions.
 }
 
 struct TradingCommissionsBasisPoints {

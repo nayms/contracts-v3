@@ -106,17 +106,20 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      * @param buyAmount The amount that the commissions payments are calculated from.
      * @return tc TradingCommissions struct
      */
-    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
-        tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
-    }
+    // function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
+    //     AppStorage storage s = LibAppStorage.diamondStorage();
+    //     tc = LibFeeRouter._calculateTradingCommissions(s.currentGlobalMarketplaceFeeStrategy, buyAmount);
+    // }
 
     function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (TradingCommissions memory tc) {
         tc = LibFeeRouter._calculateTradingCommissions(_feeStrategyId, buyAmount);
     }
 
-    function getTradingCommissionsBasisPoints() external view returns (MarketplaceFeeStrategy memory) {
-        return LibFeeRouter._getTradingCommissionsBasisPoints();
-    }
+    // function getTradingCommissionsBasisPoints() external view returns (MarketplaceFeeStrategy memory) {
+    //     AppStorage storage s = LibAppStorage.diamondStorage();
+
+    //     return LibFeeRouter._getTradingCommissionsBasisPoints(s.currentGlobalMarketplaceFeeStrategy);
+    // }
 
     function getTradingCommissionsBasisPoints(uint256 _feeStrategyId) external view returns (MarketplaceFeeStrategy memory) {
         return LibFeeRouter._getTradingCommissionsBasisPoints(_feeStrategyId);

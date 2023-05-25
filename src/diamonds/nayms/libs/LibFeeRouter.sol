@@ -115,28 +115,26 @@ library LibFeeRouter {
         emit PremiumCommissionsUpdated(bp.premiumCommissionNaymsLtdBP, bp.premiumCommissionNDFBP, bp.premiumCommissionSTMBP);
     }
 
-    function _calculateTradingCommissions(uint256 buyAmount) internal view returns (TradingCommissions memory tc) {
+    function _calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) internal view returns (TradingCommissions memory tc) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        MarketplaceFeeStrategy memory marketplaceFeeStrategy = s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy];
+        MarketplaceFeeStrategy memory marketplaceFeeStrategy = s.marketplaceFeeStrategy[_feeStrategyId];
 
         // The rough commission deducted. The actual total might be different due to integer division
-        tc.roughCommissionPaid = (s.tradingCommissionTotalBP * buyAmount) / LibConstants.BP_FACTOR;
-
-        // Pay Nayms, LTD commission
-        tc.commissionNaymsLtd = (s.tradingCommissionNaymsLtdBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
-
-        // Pay Nayms Discretionary Fund commission
-        tc.commissionNDF = (s.tradingCommissionNDFBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
-
-        // Pay Staking Mechanism commission
-        tc.commissionSTM = (s.tradingCommissionSTMBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
+        tc.roughCommissionPaid = (marketplaceFeeStrategy.tradingCommissionTotalBP * buyAmount) / LibConstants.BP_FACTOR;
 
         // Pay market maker commission
-        tc.commissionMaker = (s.tradingCommissionMakerBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
+        tc.commissionMaker = (marketplaceFeeStrategy.tradingCommissionMakerBP * tc.roughCommissionPaid) / LibConstants.BP_FACTOR;
 
+        uint256 additionalCommissionReceiversCount = marketplaceFeeStrategy.commissionReceiversInfo.length;
+
+        uint256 commission;
+        for (uint256 i; i < additionalCommissionReceiversCount; ++i) {
+            commission = (buyAmount * marketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
+            tc.totalCommissions += commission;
+        }
         // Work it out again so the math is precise, ignoring remainders
-        tc.totalCommissions = tc.commissionNaymsLtd + tc.commissionNDF + tc.commissionSTM + tc.commissionMaker;
+        tc.totalCommissions += tc.commissionMaker;
     }
 
     function _getTradingCommissionsBasisPoints(uint256 _feeStrategyId) internal view returns (MarketplaceFeeStrategy memory) {
