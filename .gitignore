@@ -8,7 +8,7 @@ results.sarif
 anvil*.json
 
 # SECURITY
-nayms_mnemonic.txt
+*mnemonic*.txt
 
 # yarn v1, node
 node_modules
