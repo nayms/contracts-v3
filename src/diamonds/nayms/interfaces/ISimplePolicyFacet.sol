@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { SimplePolicyInfo, PolicyCommissionsBasisPoints } from "./FreeStructs.sol";
+import { SimplePolicyInfo, CalculatedCommissions, PolicyCommissionsBasisPoints } from "./FreeStructs.sol";
 
 /**
  * @title Simple Policies
@@ -61,5 +61,5 @@ interface ISimplePolicyFacet {
      */
     function cancelSimplePolicy(bytes32 _policyId) external;
 
-    function calculatePremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) external;
+    function calculatePremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedCommissions memory calculatedCommissions_);
 }

@@ -92,6 +92,6 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
     }
 
     function calculatePremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedCommissions memory calculatedCommissions_) {
-        LibSimplePolicy._calculatePremiumCommissions(_policyId, _premiumPaid);
+        calculatedCommissions_ = LibFeeRouter._calculatePremiumCommissions(_policyId, _premiumPaid);
     }
 }

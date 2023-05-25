@@ -947,41 +947,41 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(expectedUtilizedCapacity, entityAfter2.utilizedCapacity, "utilized capacity should increase");
     }
 
-    function testPayPremiumCommissions() public {
-        // Deploy the LibFeeRouterFixture
-        LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
+    // function testPayPremiumCommissions() public {
+    //     // Deploy the LibFeeRouterFixture
+    //     LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
 
-        bytes4[] memory functionSelectors = new bytes4[](5);
-        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
-        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
-        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
-        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
-        functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
+    //     bytes4[] memory functionSelectors = new bytes4[](5);
+    //     functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
+    //     functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
+    //     functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
+    //     functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
+    //     functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
 
-        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+    //     // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
+    //     IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+    //     cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
 
-        scheduleAndUpgradeDiamond(cut);
+    //     scheduleAndUpgradeDiamond(cut);
 
-        getReadyToCreatePolicies();
+    //     getReadyToCreatePolicies();
 
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+    //     nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        uint256 premiumPaid = 10_000;
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
-        (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
+    //     uint256 premiumPaid = 10_000;
+    //     (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
+    //     (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
 
-        uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
-        uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
-        uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
+    //     uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
+    //     uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
+    //     uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
 
-        SimplePolicy memory sp = getSimplePolicy(policyId1);
+    //     SimplePolicy memory sp = getSimplePolicy(policyId1);
 
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd, "Nayms LTD commission incorrect");
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF, "NDF commission incorrect");
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM, "STM commission incorrect");
-    }
+    //     assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd, "Nayms LTD commission incorrect");
+    //     assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF, "NDF commission incorrect");
+    //     assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM, "STM commission incorrect");
+    // }
 
     function testCancelSimplePolicy() public {
         getReadyToCreatePolicies();

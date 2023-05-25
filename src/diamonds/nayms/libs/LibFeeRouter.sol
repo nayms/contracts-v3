@@ -29,8 +29,6 @@ library LibFeeRouter {
 
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
 
-        uint256 totalCommissionReceivers = policyFeeStrategyCount + simplePolicy.commissionReceivers.length;
-
         uint256 commission;
         uint256 premiumCommissionsIndex;
         for (uint256 i; i < commissionsCount; ++i) {
@@ -49,6 +47,7 @@ library LibFeeRouter {
 
         CommissionReceiverInfo[] memory policyFeeStrategy = s.policyFeeStrategy[simplePolicy.feeStrategy];
         uint256 policyFeeStrategyCount = policyFeeStrategy.length;
+
         for (uint256 i; i < policyFeeStrategyCount; ++i) {
             commission = (_premiumPaid * policyFeeStrategy[i].basisPoints) / LibConstants.BP_FACTOR;
             calculatedCommissions_.totalBP += policyFeeStrategy[i].basisPoints;

@@ -107,7 +107,7 @@ struct CommissionAllocation {
     uint256 commission; // The amount of commissions paid to the receiver
 }
 struct CalculatedCommissions {
-    bytes32 totalCommissions; // total amount of commissions paid
+    uint256 totalCommissions; // total amount of commissions paid
     uint256 totalBP; // total basis points of commissions paid
     CommissionAllocation[] commissionAllocations; // The list of entities that receive a portion of the commissions.
 }
