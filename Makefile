@@ -299,10 +299,10 @@ schedule-upgrade: ## schedule upgrade
 
 diamond-cut: ## replace a facet
 	forge script S03UpgradeDiamond \
-		-s "run(address)" ${owner} \
+		-s "run(address)" ${ownerAddress} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
-		--sender ${owner} \
+		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
@@ -414,14 +414,15 @@ anvil-schedule:	## schedule an upgrade
 		--ffi \
 		--broadcast
 
-anvil-replace-dc: ## Replace diamondCut() with the 2-phase diamondCut() on anvil
-	forge script ReplaceDiamondCut \
+anvil-diamond-cut: ## replace a facet
+	forge script S03UpgradeDiamond \
+		-s "run(address)" ${ownerAddress} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
-		-vvvv \
+		-vv \
 		--ffi \
 		--broadcast
 

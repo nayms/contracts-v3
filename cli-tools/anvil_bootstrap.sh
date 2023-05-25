@@ -10,7 +10,7 @@ ACC2=0x4C9f9947491c72C668efAA09e033ffe03C976456
 ACC3=0x2328d0d782B9939a982997F2C3F35C2E0f069D86
 ACC4=0x9ADCcEb795F3DBffd66B0b2792225269794C2603
 
-echo " 🚢 [ ${GREEN}Deploying diamond${NC} ]"
+echo " 💎 [ ${GREEN}Deploying diamond${NC} ]"
 make anvil-deploy-diamond || exit 1
 
 echo " 🎯 [ ${GREEN}Initializing upgrade hash${NC} ]"
