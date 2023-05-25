@@ -242,7 +242,6 @@ deploy-mainnet: ## smart deploy to mainnet
 		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
-		--slow \
 		-vv \
 		--ffi \
 		--broadcast \
