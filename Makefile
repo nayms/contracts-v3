@@ -527,6 +527,9 @@ upgrade-hash-mainnet: ## generate MAINNET upgrade hash
 		-s "hash(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} 1 "[]" ${deploymentSalt} \
 		--fork-url ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
 		--ffi \
 		--silent \
