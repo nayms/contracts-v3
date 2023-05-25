@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage, SimplePolicy, CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, SimplePolicy, CalculatedCommissions, CommissionAllocation, CommissionReceiverInfo, MarketplaceFeeStrategy, PolicyCommissionsBasisPoints, TradingCommissions, TradingCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -20,6 +20,48 @@ library LibFeeRouter {
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
     event PremiumCommissionsUpdated(uint16 premiumCommissionNaymsLtdBP, uint16 premiumCommissionNDFBP, uint16 premiumCommissionSTMBP);
 
+    function _calculatePremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal returns (CalculatedCommissions memory calculatedCommissions_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
+
+        bytes32 policyEntityId = LibObject._getParent(_policyId);
+
+        uint256 commissionsCount = simplePolicy.commissionReceivers.length;
+
+        uint256 totalCommissionReceivers = policyFeeStrategyCount + simplePolicy.commissionReceivers.length;
+
+        uint256 commission;
+        uint256 premiumCommissionsIndex;
+        for (uint256 i; i < commissionsCount; ++i) {
+            commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
+            calculatedCommissions_.totalBP += simplePolicy.commissionBasisPoints[i];
+            calculatedCommissions_.totalCommissions += commission;
+
+            calculatedCommissions_.commissionAllocations[i] = CommissionAllocation({
+                receiverId: policyEntityId,
+                basisPoints: simplePolicy.commissionBasisPoints[i],
+                commission: commission
+            });
+
+            premiumCommissionsIndex++;
+        }
+
+        CommissionReceiverInfo[] memory policyFeeStrategy = s.policyFeeStrategy[simplePolicy.feeStrategy];
+        uint256 policyFeeStrategyCount = policyFeeStrategy.length;
+        for (uint256 i; i < policyFeeStrategyCount; ++i) {
+            commission = (_premiumPaid * policyFeeStrategy[i].basisPoints) / LibConstants.BP_FACTOR;
+            calculatedCommissions_.totalBP += policyFeeStrategy[i].basisPoints;
+            calculatedCommissions_.totalCommissions += commission;
+
+            calculatedCommissions_.commissionAllocations[premiumCommissionsIndex + i] = CommissionAllocation({
+                receiverId: policyFeeStrategy[i].receiver,
+                basisPoints: policyFeeStrategy[i].basisPoints,
+                commission: commission
+            });
+        }
+    }
+
     function _payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -27,14 +69,14 @@ library LibFeeRouter {
 
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
-        uint256 premiumCommissionPaid;
+        uint256 totalCommissionsPaid;
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
 
         uint256 commission;
         for (uint256 i; i < commissionsCount; ++i) {
             commission = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, commission);
-            premiumCommissionPaid += commission;
+            totalCommissionsPaid += commission;
         }
 
         CommissionReceiverInfo[] memory policyFeeStrategy = s.policyFeeStrategy[simplePolicy.feeStrategy];
@@ -43,10 +85,10 @@ library LibFeeRouter {
         for (uint256 i; i < policyFeeStrategyCount; ++i) {
             commission = (_premiumPaid * policyFeeStrategy[i].basisPoints) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(policyEntityId, policyFeeStrategy[i].receiver, simplePolicy.asset, commission);
-            premiumCommissionPaid += commission;
+            totalCommissionsPaid += commission;
         }
 
-        emit PremiumCommissionsPaid(_policyId, policyEntityId, premiumCommissionPaid);
+        emit PremiumCommissionsPaid(_policyId, policyEntityId, totalCommissionsPaid);
     }
 
     function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _requestedBuyAmount) internal returns (uint256 totalCommissionsPaid) {

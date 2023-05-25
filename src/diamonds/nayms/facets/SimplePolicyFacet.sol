@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity, SimplePolicy, SimplePolicyInfo, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
+import { Entity, SimplePolicy, SimplePolicyInfo, PolicyCommissionsBasisPoints, CalculatedCommissions } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
@@ -34,12 +34,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _insuredId Id of the insured party
      * @param _amount Amount of the claim
      */
-    function paySimpleClaim(
-        bytes32 _claimId,
-        bytes32 _policyId,
-        bytes32 _insuredId,
-        uint256 _amount
-    ) external notLocked(msg.sig) assertSysMgr {
+    function paySimpleClaim(bytes32 _claimId, bytes32 _policyId, bytes32 _insuredId, uint256 _amount) external notLocked(msg.sig) assertSysMgr {
         LibSimplePolicy._payClaim(_claimId, _policyId, _insuredId, _amount);
     }
 
@@ -92,13 +87,11 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _offchainDataHash Hash of all the important policy data stored offchain
      * @return signingHash_ hash for signing
      */
-    function getSigningHash(
-        uint256 _startDate,
-        uint256 _maturationDate,
-        bytes32 _asset,
-        uint256 _limit,
-        bytes32 _offchainDataHash
-    ) external view returns (bytes32 signingHash_) {
+    function getSigningHash(uint256 _startDate, uint256 _maturationDate, bytes32 _asset, uint256 _limit, bytes32 _offchainDataHash) external view returns (bytes32 signingHash_) {
         signingHash_ = LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
+    }
+
+    function calculatePremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedCommissions memory calculatedCommissions_) {
+        LibSimplePolicy._calculatePremiumCommissions(_policyId, _premiumPaid);
     }
 }
