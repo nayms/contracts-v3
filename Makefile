@@ -348,6 +348,27 @@ anvil-deploy-diamond: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
+anvil-upgrade-init-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} true 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
+		-vv \
+		--ffi
+
+anvil-upgrade-init: ## Anvil - upgrading a diamond WITH InitDiamond
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} true 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast
+
 anvil-deploy-contract: ## deploy contract to anvil
 	forge script S01DeployContract \
 		-s "run(string calldata)" ${contractName} \
