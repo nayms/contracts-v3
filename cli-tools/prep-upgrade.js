@@ -86,6 +86,7 @@ contract S03UpgradeDiamond is DeploymentHelpers {
     // add the facetCuts data to the script
     facetCuts.forEach((facetCut, i) => {
       script += `
+      {
         bytes4[] memory f${i} = new bytes4[](${facetCut.functionSelectors.length});
 `;
       facetCut.functionSelectors.forEach((selector, j) => {
@@ -93,6 +94,7 @@ contract S03UpgradeDiamond is DeploymentHelpers {
       });
 
       script += `        cut[${i}] = IDiamondCut.FacetCut({ facetAddress: ${facetCut.facetAddress}, action: IDiamondCut.FacetCutAction.${facetCut.action}, functionSelectors: f${i} });
+      }
 `;
     });
 

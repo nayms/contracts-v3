@@ -549,7 +549,6 @@ verify-dry-run:	## dry run verify script, prints out commands to be executed
 verify:	## verify contracts on chain (goerli)
 	node cli-tools/verify.js
 
-
 update-e: ## update
 	forge script UpdateEntity \
 		-f ${ETH_GOERLI_RPC_URL} \
