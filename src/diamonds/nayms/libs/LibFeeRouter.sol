@@ -103,16 +103,16 @@ library LibFeeRouter {
         }
         require(totalBP <= LibConstants.BP_FACTOR, "commissions sum over 10000 bp");
 
-        uint256 roughCommissionPaid = (globalMarketplaceFeeStrategy.tradingCommissionTotalBP * _requestedBuyAmount) / LibConstants.BP_FACTOR;
+        // uint256 roughCommissionPaid = (globalMarketplaceFeeStrategy.tradingCommissionTotalBP * _requestedBuyAmount) / LibConstants.BP_FACTOR;
         uint256 commission;
         for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
-            commission = (roughCommissionPaid * globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
+            commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
             totalCommissionsPaid += commission;
             LibTokenizedVault._internalTransfer(_takerId, globalMarketplaceFeeStrategy.commissionReceiversInfo[i].receiver, _tokenId, commission);
         }
 
         // Pay market maker commission
-        commission = (roughCommissionPaid * globalMarketplaceFeeStrategy.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
+        commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
         totalCommissionsPaid += commission; // Add the maker commission
         LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, commission);
 

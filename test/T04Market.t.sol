@@ -218,12 +218,17 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         CommissionReceiverInfo[] memory commissionReceiversInfo = new CommissionReceiverInfo[](3);
 
         commissionReceiversInfo = new CommissionReceiverInfo[](3);
-        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 5000 }); // 50%
-        commissionReceiversInfo[1] = CommissionReceiverInfo({ receiver: NDF_IDENTIFIER, basisPoints: 2500 }); // 25%
-        commissionReceiversInfo[2] = CommissionReceiverInfo({ receiver: STM_IDENTIFIER, basisPoints: 2500 }); // 25%
+        // commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 5000 }); // 50%
+        // commissionReceiversInfo[1] = CommissionReceiverInfo({ receiver: NDF_IDENTIFIER, basisPoints: 2500 }); // 25%
+        // commissionReceiversInfo[2] = CommissionReceiverInfo({ receiver: STM_IDENTIFIER, basisPoints: 2500 }); // 25%
+        // 1 bp == 0.01% when 10k
+        // 1 bp == 0.001% when 100k
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 150 }); // 0.15%
+        commissionReceiversInfo[1] = CommissionReceiverInfo({ receiver: NDF_IDENTIFIER, basisPoints: 75 }); // 0.075%
+        commissionReceiversInfo[2] = CommissionReceiverInfo({ receiver: STM_IDENTIFIER, basisPoints: 75 }); // 0.075%
 
         MarketplaceFeeStrategy memory marketplaceFeeStrategy = MarketplaceFeeStrategy({
-            tradingCommissionTotalBP: 30,
+            tradingCommissionTotalBP: 300,
             tradingCommissionMakerBP: 0,
             commissionReceiversInfo: commissionReceiversInfo
         });
@@ -255,9 +260,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 totalCommissions = (dt.entity1MintAndSaleAmt * marketplaceFeeStrategy.tradingCommissionTotalBP) / LibConstants.BP_FACTOR; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * commissionReceiversInfo[0].basisPoints) / LibConstants.BP_FACTOR);
-        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * commissionReceiversInfo[1].basisPoints) / LibConstants.BP_FACTOR);
-        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((totalCommissions * commissionReceiversInfo[2].basisPoints) / LibConstants.BP_FACTOR);
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * commissionReceiversInfo[0].basisPoints) / LibConstants.BP_FACTOR);
+        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * commissionReceiversInfo[1].basisPoints) / LibConstants.BP_FACTOR);
+        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * commissionReceiversInfo[2].basisPoints) / LibConstants.BP_FACTOR);
         assertEq(
             nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), wethId),
             naymsBalanceAfterTrade,

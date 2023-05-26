@@ -3,8 +3,7 @@ pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-
+import { Entity, SimplePolicy, Stakeholders, CommissionReceiverInfo, MarketplaceFeeStrategy } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 // solhint-disable no-console
@@ -33,6 +32,16 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
     bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
+
+    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
+    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
+    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER);
+    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER);
+
+    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+
+    address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
     function setUp() public virtual override {
         console2.log("\n Test SETUP:");
@@ -67,6 +76,24 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
+        // Setup commissions
+
+        CommissionReceiverInfo[] memory commissionReceiversInfo = new CommissionReceiverInfo[](1);
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 3000 });
+
+        nayms.addGlobalPolicyCommissionsStrategy(0, commissionReceiversInfo);
+
+        commissionReceiversInfo = new CommissionReceiverInfo[](1);
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+
+        MarketplaceFeeStrategy memory marketplaceFeeStrategy = MarketplaceFeeStrategy({
+            tradingCommissionTotalBP: 300,
+            tradingCommissionMakerBP: 0,
+            commissionReceiversInfo: commissionReceiversInfo
+        });
+
+        nayms.addGlobalMarketplaceFeeStrategy(0, marketplaceFeeStrategy);
+
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
 
@@ -80,12 +107,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         return entityId;
     }
 
-    function initEntity(
-        bytes32 _assetId,
-        uint256 _collateralRatio,
-        uint256 _maxCapacity,
-        bool _simplePolicyEnabled
-    ) public pure returns (Entity memory e) {
+    function initEntity(bytes32 _assetId, uint256 _collateralRatio, uint256 _maxCapacity, bool _simplePolicyEnabled) public pure returns (Entity memory e) {
         e.assetId = _assetId;
         e.collateralRatio = _collateralRatio;
         e.maxCapacity = _maxCapacity;
