@@ -299,10 +299,10 @@ deploy-contract-sepolia: ## deploy any contract to Sepolia
 
 schedule-upgrade-mainnet: ## schedule upgrade on mainnet
 	forge script S02ScheduleUpgrade \
-		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
+		-s "run(address, bytes32)" ${systemAdminAddress} ${upgradeHash} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
-		--sender ${systemAdmin} \
+		--sender ${systemAdminAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
