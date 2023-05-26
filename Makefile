@@ -6,7 +6,7 @@
 facetsToCutIn="[]"
 newDiamond=false
 initNewDiamond=false
-facetAction=1
+facetAction=1		# 0 - all, 1 - changed, 2 - listed
 deploymentSalt=0xdeffffffff
 ownerAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdminAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
@@ -283,7 +283,7 @@ deploy-contract: ## deploy any contract to mainnet
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 	
-schedule-upgrade: ## schedule upgrade
+schedule-upgrade-mainnet: ## schedule upgrade on mainnet
 	forge script S02ScheduleUpgrade \
 		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
 		-f ${ETH_MAINNET_RPC_URL} \
@@ -296,7 +296,20 @@ schedule-upgrade: ## schedule upgrade
 		--broadcast \
 		; node cli-tools/postproc-broadcasts.js
 
-diamond-cut: ## replace a facet
+schedule-upgrade-sepolia: ## schedule upgrade on sepolia
+	forge script S02ScheduleUpgrade \
+		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--sender ${systemAdmin} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
+diamond-cut-mainnet: ## replace a facet on mainnet
 	forge script S03UpgradeDiamond \
 		-s "run(address)" ${ownerAddress} \
 		-f ${ETH_MAINNET_RPC_URL} \
@@ -304,6 +317,19 @@ diamond-cut: ## replace a facet
 		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
+diamond-cut-sepolia: ## replace a facet on sepolia
+	forge script S03UpgradeDiamond \
+		-s "run(address)" ${ownerAddress} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
 		-vv \
 		--ffi \
 		--broadcast \
@@ -347,7 +373,7 @@ anvil-deploy-diamond: ## smart deploy locally to anvil
 		--ffi \
 		--broadcast
 
-anvil-upgrade-init-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond
+anvil-upgrade-init-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond to obtain the upgrade hash
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} true 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
