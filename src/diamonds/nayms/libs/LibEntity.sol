@@ -67,11 +67,15 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        // by default there are always 3 platform commission receivers: Nayms, NDF and STM
-        // policy-level receivers are also expected
+        // by default there must be at least one global policy commission receiver
+        CommissionReceiverInfo[] memory globalPolicyCommissionReceiverInfo = s.policyFeeStrategy[s.currentGlobalPolicyFeeStrategy];
+        uint256 globalPolicyFeeReceiverCount = globalPolicyCommissionReceiverInfo.length;
+
+        require(globalPolicyFeeReceiverCount > 0, "must have commission receivers"); // error there must be at least one global policy commission receiver
+
+        // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
-        require(commissionReceiversArrayLength > 3, "must have commission receivers");
-        require(commissionReceiversArrayLength <= 3 + _stakeholders.roles.length, "too many commission receivers");
+        require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
         require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
@@ -81,8 +85,6 @@ library LibEntity {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
 
-        CommissionReceiverInfo[] memory globalPolicyCommissionReceiverInfo = s.policyFeeStrategy[s.currentGlobalPolicyFeeStrategy];
-        uint256 globalPolicyFeeReceiverCount = globalPolicyCommissionReceiverInfo.length;
         for (uint256 i; i < globalPolicyFeeReceiverCount; ++i) {
             totalBP += globalPolicyCommissionReceiverInfo[i].basisPoints;
         }

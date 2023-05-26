@@ -454,12 +454,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.maturationDate = maturationDateOrig;
 
         // commission receivers
+        nayms.changeGlobalPolicyCommissionsStrategy(type(uint256).max); // change strat to one that does not have any commission receivers
         vm.expectRevert("must have commission receivers");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
         simplePolicy.commissionReceivers = new bytes32[](0);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
+        nayms.changeGlobalPolicyCommissionsStrategy(0); // change back to default strat
         // commission basis points
         vm.expectRevert("number of commissions don't match");
         uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;

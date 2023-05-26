@@ -93,9 +93,9 @@ library LibFeeRouter {
     function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _requestedBuyAmount) internal returns (uint256 totalCommissionsPaid) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy].tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
-
         MarketplaceFeeStrategy memory globalMarketplaceFeeStrategy = s.marketplaceFeeStrategy[s.currentGlobalMarketplaceFeeStrategy];
+        require(globalMarketplaceFeeStrategy.tradingCommissionTotalBP <= LibConstants.BP_FACTOR, "commission total must be<=10000bp");
+
         uint256 globalMarketplaceFeeReceiverCount = globalMarketplaceFeeStrategy.commissionReceiversInfo.length;
         uint256 totalBP;
         for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
@@ -103,15 +103,16 @@ library LibFeeRouter {
         }
         require(totalBP <= LibConstants.BP_FACTOR, "commissions sum over 10000 bp");
 
+        uint256 roughCommissionPaid = (globalMarketplaceFeeStrategy.tradingCommissionTotalBP * _requestedBuyAmount) / LibConstants.BP_FACTOR;
         uint256 commission;
         for (uint256 i; i < globalMarketplaceFeeReceiverCount; ++i) {
-            commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
+            commission = (roughCommissionPaid * globalMarketplaceFeeStrategy.commissionReceiversInfo[i].basisPoints) / LibConstants.BP_FACTOR;
             totalCommissionsPaid += commission;
             LibTokenizedVault._internalTransfer(_takerId, globalMarketplaceFeeStrategy.commissionReceiversInfo[i].receiver, _tokenId, commission);
         }
 
         // Pay market maker commission
-        commission = (_requestedBuyAmount * globalMarketplaceFeeStrategy.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
+        commission = (roughCommissionPaid * globalMarketplaceFeeStrategy.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
         totalCommissionsPaid += commission; // Add the maker commission
         LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, commission);
 
