@@ -25,7 +25,7 @@ fs.readFile(filePath, "utf8", (err, data) => {
 
       // Handle facetAddress and action
       let facetActionParts = tupleParts[0].split(", ");
-      let facetAddress = ethers.utils.getAddress(facetActionParts[0].slice(1)); // Remove leading "("
+      let facetAddress = ethers.getAddress(facetActionParts[0].slice(1)); // Remove leading "("
       let action = facetCutActionEnum[parseInt(facetActionParts[1])];
 
       // Handle functionSelectors
@@ -85,17 +85,18 @@ contract S03UpgradeDiamond is DeploymentHelpers {
 
     // add the facetCuts data to the script
     facetCuts.forEach((facetCut, i) => {
-      script += `
-      {
-        bytes4[] memory f${i} = new bytes4[](${facetCut.functionSelectors.length});
-`;
+      if (i === 0) {
+        script += `        bytes4[] memory f = new bytes4[](${facetCut.functionSelectors.length});\n`;
+      } else {
+        script += `       f = new bytes4[](${facetCut.functionSelectors.length});\n`;
+      }
+
       facetCut.functionSelectors.forEach((selector, j) => {
-        script += `        f${i}[${j}] = ${selector};\n`;
+        script += `        f[${j}] = ${selector};\n`;
       });
 
-      script += `        cut[${i}] = IDiamondCut.FacetCut({ facetAddress: ${facetCut.facetAddress}, action: IDiamondCut.FacetCutAction.${facetCut.action}, functionSelectors: f${i} });
-      }
-`;
+      script += `        cut[${i}] = IDiamondCut.FacetCut({ facetAddress: ${facetCut.facetAddress}, action: IDiamondCut.FacetCutAction.${facetCut.action}, functionSelectors: f });
+  `;
     });
 
     script += `
