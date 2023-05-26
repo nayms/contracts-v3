@@ -282,7 +282,21 @@ deploy-contract: ## deploy any contract to mainnet
 		--broadcast \
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
-	
+
+deploy-contract-sepolia: ## deploy any contract to Sepolia
+	forge script S01DeployContract \
+		-s "run(string calldata)" ${contractName} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 1 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+
 schedule-upgrade-mainnet: ## schedule upgrade on mainnet
 	forge script S02ScheduleUpgrade \
 		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
@@ -298,10 +312,10 @@ schedule-upgrade-mainnet: ## schedule upgrade on mainnet
 
 schedule-upgrade-sepolia: ## schedule upgrade on sepolia
 	forge script S02ScheduleUpgrade \
-		-s "run(address, bytes32)" ${systemAdmin} ${upgradeHash} \
+		-s "run(address, bytes32)" ${systemAdminAddress} ${upgradeHash} \
 		-f ${ETH_SEPOLIA_RPC_URL} \
 		--chain-id 11155111 \
-		--sender ${systemAdmin} \
+		--sender ${systemAdminAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 0 \
 		-vv \
