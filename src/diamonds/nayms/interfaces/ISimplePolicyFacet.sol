@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { SimplePolicyInfo, CalculatedCommissions, PolicyCommissionsBasisPoints } from "./FreeStructs.sol";
+import { SimplePolicyInfo, CalculatedCommissions } from "./FreeStructs.sol";
 
 /**
  * @title Simple Policies
@@ -42,12 +42,6 @@ interface ISimplePolicyFacet {
      * @return Simple policy metadata
      */
     function getSimplePolicyInfo(bytes32 _id) external view returns (SimplePolicyInfo memory);
-
-    /**
-     * @notice Get the policy premium commissions basis points.
-     * @return PolicyCommissionsBasisPoints struct containing the individual basis points set for each policy commission receiver.
-     */
-    function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory);
 
     /**
      * @dev Check and update simple policy state

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { MarketInfo, MarketplaceFeeStrategy, TradingCommissions, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+import { MarketInfo, MarketplaceFees, CalculatedCommissions } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -79,13 +79,5 @@ interface IMarketFacet {
      */
     // function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
 
-    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (TradingCommissions memory tc);
-
-    /**
-     * @notice Get the marketplace's trading commissions basis points information of the current marketplace fee strategy
-     * @return MarketplaceFeeStrategy struct containing the individual basis points set for each marketplace commission receiver.
-     */
-    // function getTradingCommissionsBasisPoints() external view returns (MarketplaceFeeStrategy memory);
-
-    function getTradingCommissionsBasisPoints(uint256 _feeStrategyId) external view returns (MarketplaceFeeStrategy memory);
+    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (CalculatedCommissions memory tc);
 }

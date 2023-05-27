@@ -67,7 +67,7 @@ library LibConstants {
     uint256 internal constant OFFER_STATE_FULFILLED = 3;
 
     uint256 internal constant DUST = 1;
-    uint256 internal constant BP_FACTOR = 100000;
+    uint256 internal constant BP_FACTOR = 10000;
 
     /*///////////////////////////////////////////////////////////////////////////
                         SIMPLE POLICY STATES

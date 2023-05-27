@@ -68,8 +68,8 @@ library LibEntity {
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
         // by default there must be at least one global policy commission receiver
-        CommissionReceiverInfo[] memory globalPolicyCommissionReceiverInfo = s.policyFeeStrategy[s.currentGlobalPolicyFeeStrategy];
-        uint256 globalPolicyFeeReceiverCount = globalPolicyCommissionReceiverInfo.length;
+        CommissionReceiverInfo[] memory policyFeeStrategy = s.policyFeeStrategies[s.currentGlobalPolicyFeeStrategy];
+        uint256 globalPolicyFeeReceiverCount = policyFeeStrategy.length;
 
         require(globalPolicyFeeReceiverCount > 0, "must have commission receivers"); // error there must be at least one global policy commission receiver
 
@@ -86,7 +86,7 @@ library LibEntity {
         }
 
         for (uint256 i; i < globalPolicyFeeReceiverCount; ++i) {
-            totalBP += globalPolicyCommissionReceiverInfo[i].basisPoints;
+            totalBP += policyFeeStrategy[i].basisPoints;
         }
 
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");

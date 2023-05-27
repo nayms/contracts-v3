@@ -40,11 +40,6 @@ struct UpdateEntityTypeCell {
     bool simplePolicyEnabled;
 }
 
-struct CommissionReceiverInfo {
-    bytes32 receiver;
-    uint256 basisPoints;
-}
-
 struct SimplePolicy {
     uint256 startDate;
     uint256 maturationDate;
@@ -70,12 +65,6 @@ struct SimplePolicyInfo {
     uint256 premiumsPaid;
 }
 
-struct PolicyCommissionsBasisPoints {
-    uint16 premiumCommissionNaymsLtdBP;
-    uint16 premiumCommissionNDFBP;
-    uint16 premiumCommissionSTMBP;
-}
-
 struct Stakeholders {
     bytes32[] roles;
     bytes32[] entityIds;
@@ -95,40 +84,24 @@ struct StakingCheckpoint {
     uint256 blk; // block number
 }
 
-struct FeeRatio {
-    uint256 brokerShareRatio;
-    uint256 naymsLtdShareRatio;
-    uint256 ndfShareRatio;
+struct CommissionReceiverInfo {
+    bytes32 receiver;
+    uint256 basisPoints;
 }
 
 struct CommissionAllocation {
     bytes32 receiverId; // The ID of the entity that receives the commission
-    uint256 basisPoints;
     uint256 commission; // The amount of commissions paid to the receiver
+    uint256 basisPoints;
 }
+
 struct CalculatedCommissions {
     uint256 totalCommissions; // total amount of commissions paid
     uint256 totalBP; // total basis points of commissions paid
     CommissionAllocation[] commissionAllocations; // The list of entities that receive a portion of the commissions.
 }
 
-struct TradingCommissions {
-    uint256 roughCommissionPaid; // The rough total amount of commissions paid on a market trade.
-    uint256 commissionMaker; // The amount of commissions paid to the maker of the trade.
-    uint256 totalCommissions; // The actual total amount of commissions paid on a market trade.
-    CommissionAllocation[] additionalAllocations; // The list of additional entities that receive a portion of the commissions.
-}
-
-struct TradingCommissionsBasisPoints {
-    uint16 tradingCommissionTotalBP;
-    uint16 tradingCommissionNaymsLtdBP;
-    uint16 tradingCommissionNDFBP;
-    uint16 tradingCommissionSTMBP;
+struct MarketplaceFees {
     uint16 tradingCommissionMakerBP;
-}
-
-struct MarketplaceFeeStrategy {
-    uint256 tradingCommissionTotalBP; // The total % of fees taken
-    uint256 tradingCommissionMakerBP; // Of the total % of fees taken, the % that goes to the maker
-    CommissionReceiverInfo[] commissionReceiversInfo; // The list of additional receivers of the fees
+    CommissionReceiverInfo[] commissionReceiversInfo;
 }

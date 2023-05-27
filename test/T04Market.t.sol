@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, FeeRatio, MarketInfo, CommissionReceiverInfo, MarketplaceFeeStrategy, TradingCommissions, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, CommissionReceiverInfo, MarketplaceFees, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
@@ -210,30 +210,22 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     function testCommissionsPayed() public {
         testStartTokenSale();
 
-        // scenario where marketplace fee strat is
-        // 50% to nayms
-        // 25% to ndf
-        // 25% to stm
+        // scenario where marketplace fee strat is (% external tokens bought or sold)
+        // 0.15% to nayms
+        // 0.075% to ndf
+        // 0.075% to stm
 
         CommissionReceiverInfo[] memory commissionReceiversInfo = new CommissionReceiverInfo[](3);
 
-        commissionReceiversInfo = new CommissionReceiverInfo[](3);
-        // commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 5000 }); // 50%
-        // commissionReceiversInfo[1] = CommissionReceiverInfo({ receiver: NDF_IDENTIFIER, basisPoints: 2500 }); // 25%
-        // commissionReceiversInfo[2] = CommissionReceiverInfo({ receiver: STM_IDENTIFIER, basisPoints: 2500 }); // 25%
         // 1 bp == 0.01% when 10k
         // 1 bp == 0.001% when 100k
         commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 150 }); // 0.15%
         commissionReceiversInfo[1] = CommissionReceiverInfo({ receiver: NDF_IDENTIFIER, basisPoints: 75 }); // 0.075%
         commissionReceiversInfo[2] = CommissionReceiverInfo({ receiver: STM_IDENTIFIER, basisPoints: 75 }); // 0.075%
 
-        MarketplaceFeeStrategy memory marketplaceFeeStrategy = MarketplaceFeeStrategy({
-            tradingCommissionTotalBP: 300,
-            tradingCommissionMakerBP: 0,
-            commissionReceiversInfo: commissionReceiversInfo
-        });
+        MarketplaceFees memory marketplaceFees = MarketplaceFees({ tradingCommissionMakerBP: 0, commissionReceiversInfo: commissionReceiversInfo });
 
-        nayms.addGlobalMarketplaceFeeStrategy(1, marketplaceFeeStrategy);
+        nayms.addGlobalMarketplaceFeeStrategy(1, marketplaceFees);
 
         nayms.changeGlobalMarketplaceCommissionsStrategy(1);
 
@@ -257,7 +249,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
 
         // assert trading commisions payed
-        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * marketplaceFeeStrategy.tradingCommissionTotalBP) / LibConstants.BP_FACTOR; // see AppStorage: 4 => s.tradingCommissionTotalBP
+        uint256 totalCommissions = (dt.entity1MintAndSaleAmt * 300) / LibConstants.BP_FACTOR; // see AppStorage: 4 => s.tradingCommissionTotalBP
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalCommissions, "Taker should pay commissions");
 
         uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * commissionReceiversInfo[0].basisPoints) / LibConstants.BP_FACTOR);

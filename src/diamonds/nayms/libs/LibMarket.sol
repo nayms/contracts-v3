@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { MarketInfo, TokenAmount, TradingCommissions } from "../AppStorage.sol";
+import { MarketInfo, TokenAmount } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -251,13 +251,7 @@ library LibMarket {
         return lastOfferId;
     }
 
-    function _takeOffer(
-        uint256 _offerId,
-        bytes32 _takerId,
-        uint256 _buyAmount,
-        uint256 _sellAmount,
-        bool _takeExternalToken
-    ) internal returns (uint256 commissionsPaid_) {
+    function _takeOffer(uint256 _offerId, bytes32 _takerId, uint256 _buyAmount, uint256 _sellAmount, bool _takeExternalToken) internal returns (uint256 commissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // check bounds and update balances
@@ -297,11 +291,7 @@ library LibMarket {
         );
     }
 
-    function _checkBoundsAndUpdateBalances(
-        uint256 _offerId,
-        uint256 _sellAmount,
-        uint256 _buyAmount
-    ) internal {
+    function _checkBoundsAndUpdateBalances(uint256 _offerId, uint256 _sellAmount, uint256 _buyAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
@@ -345,14 +335,7 @@ library LibMarket {
         require(_buyAmount > 0, "buy amount must be >0");
     }
 
-    function _assertValidOffer(
-        bytes32 _entityId,
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
-    ) internal view {
+    function _assertValidOffer(bytes32 _entityId, bytes32 _sellToken, uint256 _sellAmount, bytes32 _buyToken, uint256 _buyAmount, uint256 _feeSchedule) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // A valid offer can only be made by an existing entity.
@@ -404,14 +387,7 @@ library LibMarket {
         bytes32 _buyToken,
         uint256 _buyAmount,
         uint256 _feeSchedule
-    )
-        internal
-        returns (
-            uint256 offerId_,
-            uint256 buyTokenCommissionsPaid_,
-            uint256 sellTokenCommissionsPaid_
-        )
-    {
+    ) internal returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
         MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount);

@@ -79,8 +79,8 @@ struct AppStorage {
     mapping(string => bytes32) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
     uint256 currentGlobalPolicyFeeStrategy; // the ID of the current global policy fee strategy
     uint256 currentGlobalMarketplaceFeeStrategy; // the ID of the current global policy fee strategy
-    mapping(uint256 => CommissionReceiverInfo[]) policyFeeStrategy; // Global policy fee strategies => array of CommissionReceiverInfo struct
-    mapping(uint256 => MarketplaceFeeStrategy) marketplaceFeeStrategy; // Global markketplace fee strategies => array of CommissionReceiverInfo struct
+    mapping(uint256 => CommissionReceiverInfo[]) policyFeeStrategies; // strategy ID => array of CommissionReceiverInfo struct
+    mapping(uint256 => MarketplaceFees) marketplaceFeeStrategies; // strategy ID => array of CommissionReceiverInfo struct
 }
 
 struct FunctionLockedStorage {

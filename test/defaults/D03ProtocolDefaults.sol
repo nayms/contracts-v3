@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, Stakeholders, CommissionReceiverInfo, MarketplaceFeeStrategy } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, Stakeholders, CommissionReceiverInfo, MarketplaceFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 // solhint-disable no-console
@@ -79,20 +79,16 @@ contract D03ProtocolDefaults is D02TestSetup {
         // Setup commissions
 
         CommissionReceiverInfo[] memory commissionReceiversInfo = new CommissionReceiverInfo[](1);
-        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 3000 });
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
 
         nayms.addGlobalPolicyCommissionsStrategy(0, commissionReceiversInfo);
 
         commissionReceiversInfo = new CommissionReceiverInfo[](1);
-        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 30 });
 
-        MarketplaceFeeStrategy memory marketplaceFeeStrategy = MarketplaceFeeStrategy({
-            tradingCommissionTotalBP: 300,
-            tradingCommissionMakerBP: 0,
-            commissionReceiversInfo: commissionReceiversInfo
-        });
+        MarketplaceFees memory marketplaceFees = MarketplaceFees({ tradingCommissionMakerBP: 0, commissionReceiversInfo: commissionReceiversInfo });
 
-        nayms.addGlobalMarketplaceFeeStrategy(0, marketplaceFeeStrategy);
+        nayms.addGlobalMarketplaceFeeStrategy(0, marketplaceFees);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
@@ -102,7 +98,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
-        Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
+        Entity memory entity1 = initEntity(wethId, LibConstants.BP_FACTOR / 2, LibConstants.BP_FACTOR, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
         return entityId;
     }
@@ -116,7 +112,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        return initPolicyWithLimit(offchainDataHash, 10_000);
+        return initPolicyWithLimit(offchainDataHash, LibConstants.BP_FACTOR);
     }
 
     function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
