@@ -466,3 +466,27 @@ update-e: ## update
 		--mnemonic-indexes 19 \
 		-vvvv \
 		--broadcast
+
+compb: ## Compare bytecode
+	@forge script CheckBytecode \
+		-s "run(uint8)" ${checkBytecodeAction} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${senderAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-v \
+		--ffi
+
+checkf: ## Check if facet exists in a diamond
+	@forge script DiamondChecker \
+		-s "run(address, bytes4)" ${chkFacetAddress} ${selectorChk} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi
