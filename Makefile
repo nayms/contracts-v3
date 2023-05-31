@@ -323,7 +323,20 @@ schedule-upgrade-sepolia: ## schedule upgrade on sepolia
 		--broadcast \
 		; node cli-tools/postproc-broadcasts.js
 
-diamond-cut-mainnet: ## replace a facet on mainnet
+schedule-upgrade-sepolia: ## schedule upgrade
+	forge script S02ScheduleUpgrade \
+		-s "run(address, bytes32)" ${systemAdminAddress} ${upgradeHash} \
+		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--sender ${systemAdminAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
+diamond-cut: ## replace a facet
 	forge script S03UpgradeDiamond \
 		-s "run(address)" ${ownerAddress} \
 		-f ${ETH_MAINNET_RPC_URL} \
