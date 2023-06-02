@@ -269,7 +269,13 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 		--ffi 
 
 deploy-mainnet-fork: ## smart deploy to local mainnet fork
-	@forge script SmartDeploy \
+	@cast rpc anvil_impersonateAccount ${mainnetSysAdmin} && \
+	cast send ${diamondAddress} "transferOwnership(address)" \
+  	${ownerAddress} \
+  	--rpc-url http:\\127.0.0.1:8545 \
+  	--unlocked \
+  	--from ${mainnetSysAdmin} && \
+	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 1 \
