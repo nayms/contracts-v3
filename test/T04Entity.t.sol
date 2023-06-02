@@ -153,7 +153,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         string memory newTokenSymbol = "nTT";
         string memory newTokenName = "New Test Token";
-        
+
         changePrank(signer1);
         vm.expectRevert("not a system admin");
         nayms.updateEntityTokenInfo(entityId1, newTokenSymbol, newTokenName);
