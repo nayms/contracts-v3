@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
@@ -491,7 +491,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         // create it successfully
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        SimplePolicy memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
+        SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.startDate, simplePolicy.startDate, "Start dates should match");
         assertEq(simplePolicyInfo.maturationDate, simplePolicy.maturationDate, "Maturation dates should match");
         assertEq(simplePolicyInfo.asset, simplePolicy.asset, "Assets should match");
@@ -999,7 +999,7 @@ contract T04EntityTest is D03ProtocolDefaults {
             "utilized capacity should change"
         );
 
-        SimplePolicy memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
+        SimplePolicyInfo memory simplePolicyInfo = nayms.getSimplePolicyInfo(policyId1);
         assertEq(simplePolicyInfo.cancelled, true, "Simple policy should be cancelled");
 
         vm.expectRevert("Policy already cancelled");

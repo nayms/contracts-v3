@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity, SimplePolicy, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
+import { Entity, SimplePolicy, SimplePolicyInfo, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
@@ -48,8 +48,19 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _policyId Id of the simple policy
      * @return Simple policy metadata
      */
-    function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicy memory) {
-        return LibSimplePolicy._getSimplePolicyInfo(_policyId);
+    function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicyInfo memory) {
+        SimplePolicy memory p = LibSimplePolicy._getSimplePolicyInfo(_policyId);
+        return
+            SimplePolicyInfo({
+                startDate: p.startDate,
+                maturationDate: p.maturationDate,
+                asset: p.asset,
+                limit: p.limit,
+                fundsLocked: p.fundsLocked,
+                cancelled: p.cancelled,
+                claimsPaid: p.claimsPaid,
+                premiumsPaid: p.premiumsPaid
+            });
     }
 
     function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory bp) {
