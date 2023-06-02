@@ -1,0 +1,34 @@
+{
+  "transactions": [
+    {
+      "hash": "0x9413ccd62c31b575d0f7f2963dabd638175521985a035a9f132fd48d8bf53277",
+      "transactionType": "CALL",
+      "contractName": "Nayms",
+      "contractAddress": "0x7E5462DA297440D2a27fE27d1F291Cf67202302B",
+      "function": null,
+      "arguments": null,
+      "transaction": {
+        "type": "0x02",
+        "from": "0x2df0a6db2f0ef1269be777c856a7665eec00649f",
+        "to": "0x7e5462da297440d2a27fe27d1f291cf67202302b",
+        "gas": "0x14ae7",
+        "value": "0x0",
+        "data": "0x1d5102178781f709a1a5b2d189babd57fcff8be5b679bd06e37a9e0092c5afc6f3e916b1",
+        "nonce": "0x80",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0x9413ccd62c31b575d0f7f2963dabd638175521985a035a9f132fd48d8bf53277"
+  ],
+  "returns": {},
+  "timestamp": 1685735191,
+  "chain": 11155111,
+  "multi": false,
+  "commit": "b719120"
+}
