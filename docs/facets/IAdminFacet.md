@@ -150,3 +150,15 @@ This views FunctionLockedStorage.lock
 | --- | --- | --- |
 |`functionSelector` | bytes4 | the bytes4 function selector|
 <br></br>
+### lockAllFundTransferFunctions
+Lock all contract methods involving fund transfers
+```solidity
+  function lockAllFundTransferFunctions(
+  ) external
+```
+### unlockAllFundTransferFunctions
+Unlock all contract methods involving fund transfers
+```solidity
+  function unlockAllFundTransferFunctions(
+  ) external
+```

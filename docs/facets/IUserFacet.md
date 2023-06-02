@@ -1,4 +1,4 @@
-Manage user entity
+Utility functions for managing a user's entity.
 ## Functions
 ### getUserIdFromAddress
 Get the platform ID of `addr` account

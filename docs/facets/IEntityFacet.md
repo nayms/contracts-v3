@@ -103,7 +103,13 @@ Check if an entity token is wrapped as ERC20
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`_entityId` | bytes32 | ID of the entity|
+|`_entityId` | bytes32 | ID of the entity
+|
+<br></br>
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`true` | if it is, false otherwise|
 <br></br>
 ### updateEntity
 Update entity metadata

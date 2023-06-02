@@ -1,4 +1,11 @@
 ## Functions
+### isDiamondInitialized
+Check if the diamond has been initialized.
+This will get the value from AppStorage.diamondInitialized.
+```solidity
+  function isDiamondInitialized(
+  ) external returns (bool)
+```
 ### createUpgrade
 Approve the following upgrade hash: `id`
 The diamondCut() has been modified to check if the upgrade has been scheduled. This method needs to be called in order
@@ -53,3 +60,10 @@ This will get the value from AppStorage.upgradeScheduled  mapping.
 | --- | --- | --- |
 |`id` | bytes32 | This is the keccak256(abi.encode(cut)), where cut is the array of FacetCut struct, IDiamondCut.FacetCut[].|
 <br></br>
+### getUpgradeExpiration
+Get the upgrade expiration period.
+This will get the value from AppStorage.upgradeExpiration. AppStorage.upgradeExpiration is added to the block.timestamp to create the upgrade expiration date.
+```solidity
+  function getUpgradeExpiration(
+  ) external returns (uint256 upgradeExpiration)
+```
