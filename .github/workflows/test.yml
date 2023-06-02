@@ -45,10 +45,13 @@ jobs:
       - name: Tests - local
         env:
           ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
+          ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
           ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
         run: make test
 
       - name: Coverage report
+        env:
+          ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
         run: make coverage
 
       - name: Coveralls
