@@ -33,11 +33,6 @@ formatsol: ## run prettier on src, test and scripts
 lintsol: ## run prettier and solhint
 	yarn run lint
 
-devnet: ## run development node
-	anvil -f ${ETH_MAINNET_RPC_URL} \
-		--fork-block-number 15078000 \
-		-vvvv
-
 gen-i: ## generate solidity interfaces from facet implementations
 	forge script GenerateInterfaces \
 		-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
@@ -223,6 +218,20 @@ deploy-sepolia: ## smart deploy to sepolia
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
+deploy-sepolia-fork: ## smart deploy to local sepolia fork
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 11155111 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
 deploy-sepolia-sim: ## simulate smart deploy to sepolia
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
@@ -259,15 +268,20 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 		-vv \
 		--ffi 
 
-deploy-sim: ## simulate smart deploy to goerli
-	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${owner} ${systemAdmin} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
+deploy-mainnet-fork: ## smart deploy to local mainnet fork
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
 		-vv \
-		--ffi
+		--ffi \
+		--broadcast \
+		--slow \
+		; node cli-tools/postproc-broadcasts.js
 
 deploy-contract: ## deploy any contract to mainnet
 	forge script S01DeployContract \
@@ -310,10 +324,31 @@ schedule-upgrade-mainnet: ## schedule upgrade on mainnet
 		--broadcast \
 		; node cli-tools/postproc-broadcasts.js
 
+schedule-upgrade-mainnet-fork:	## schedule upgrade on local mainnet fork (with NaymsAdminB)
+	cast rpc anvil_impersonateAccount 0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929 && \
+	cast send 0x39e2f550fef9ee15b459d16bD4B243b04b1f60e5 "createUpgrade(bytes32)" \
+  	'${upgradeHash}' \
+  	--rpc-url http:\\127.0.0.1:8545 \
+  	--unlocked \
+  	--from 0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929
+
 schedule-upgrade-sepolia: ## schedule upgrade on sepolia
 	forge script S02ScheduleUpgrade \
 		-s "run(address, bytes32)" ${systemAdminAddress} ${upgradeHash} \
 		-f ${ETH_SEPOLIA_RPC_URL} \
+		--chain-id 11155111 \
+		--sender ${systemAdminAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
+schedule-upgrade-sepolia-fork: ## schedule upgrade on local sepolia fork
+	forge script S02ScheduleUpgrade \
+		-s "run(address, bytes32)" ${systemAdminAddress} ${upgradeHash} \
+		-f http:\\127.0.0.1:8545 \
 		--chain-id 11155111 \
 		--sender ${systemAdminAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
@@ -349,6 +384,19 @@ diamond-cut-sepolia: ## replace a facet on sepolia
 		--broadcast \
 		; node cli-tools/postproc-broadcasts.js
 
+diamond-cut-sepolia-fork: ## replace a facet on local sepolia fork
+	forge script S03UpgradeDiamond \
+		-s "run(address)" ${ownerAddress} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 11155111 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast \
+		; node cli-tools/postproc-broadcasts.js
+
 anvil:	## run anvil with shared wallet
 	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
 
@@ -363,8 +411,11 @@ anvil-docker:	## run anvil in a container
 anvil-dbg:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
-anvil-fork: ## fork goerli locally with anvil
-	anvil -f ${ETH_GOERLI_RPC_URL}
+anvil-fork-mainnet: ## fork mainnet locally with anvil
+	anvil -f ${ETH_MAINNET_RPC_URL}
+
+anvil-fork-sepolia: ## fork sepolia locally with anvil
+	anvil -f ${ETH_SEPOLIA_RPC_URL}
 
 anvil-deploy-sim: ## Simulate smart deploy locally to anvil
 	forge script SmartDeploy \
