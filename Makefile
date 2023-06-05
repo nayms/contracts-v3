@@ -164,20 +164,6 @@ erc20g: ## deploy test ERC20 to Goerli
 		--verify \
 		-vvvv
 
-schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
-	@forge script SmartDeploy \
-		-s "scheduleAndUpgradeDiamond()" \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${ownerAddress} \
-		--private-key ${OWNER_ACCOUNT_KEY} \
-		-vv \
-		--ffi \
-		--broadcast \
-		--verify --delay 30 --retries 10 \
-		; node cli-tools/postproc-broadcasts.js
-
 deploy-goerli: ## smart deploy to goerli
 	@forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
@@ -272,9 +258,10 @@ deploy-mainnet-fork: ## smart deploy to local mainnet fork
 	@cast rpc anvil_impersonateAccount ${mainnetSysAdmin} && \
 	cast send ${diamondAddress} "transferOwnership(address)" \
   	${ownerAddress} \
-  	--rpc-url http:\\127.0.0.1:8545 \
+  	-r http:\\127.0.0.1:8545 \
   	--unlocked \
   	--from ${mainnetSysAdmin} && \
+	cast rpc anvil_setBalance ${ownerAddress} 10000000000000000000 -r http:\\127.0.0.1:8545 && \
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
@@ -364,7 +351,21 @@ schedule-upgrade-sepolia-fork: ## schedule upgrade on local sepolia fork
 		--broadcast \
 		; node cli-tools/postproc-broadcasts.js
 
-diamond-cut: ## replace a facet
+schedule-upgrade-goerli: ## schedule upgrade to goerli diamond, then upgrade
+	@forge script SmartDeploy \
+		-s "scheduleAndUpgradeDiamond()" \
+		-f ${ETH_GOERLI_RPC_URL} \
+		--chain-id 5 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		--private-key ${OWNER_ACCOUNT_KEY} \
+		-vv \
+		--ffi \
+		--broadcast \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+
+diamond-cut-mainnet: ## replace a facet on mainnet
 	forge script S03UpgradeDiamond \
 		-s "run(address)" ${ownerAddress} \
 		-f ${ETH_MAINNET_RPC_URL} \
@@ -376,6 +377,18 @@ diamond-cut: ## replace a facet
 		--ffi \
 		--broadcast \
 		; node cli-tools/postproc-broadcasts.js
+
+diamond-cut-mainnet-fork: ## replace a facet on local mainnet fork
+	forge script S03UpgradeDiamond \
+		-s "run(address)" ${ownerAddress} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 1 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast
 
 diamond-cut-sepolia: ## replace a facet on sepolia
 	forge script S03UpgradeDiamond \
