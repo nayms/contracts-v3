@@ -12,10 +12,6 @@ if (process.argv.length != 4 && process.argv.length != 5) {
 
 const [operation, networkId, fork] = process.argv.slice(2);
 
-if (fork) {
-    console.log(`[ ${chalk.green("FORKING")} ]`);
-}
-
 const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RPC_URL`];
 const mnemonic = fs.readFileSync("nayms_mnemonic.txt").toString();
 
@@ -23,18 +19,18 @@ const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address;
 const systemAdminAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address;
 
 if (operation === "deploy") {
-    console.log(`[ ${chalk.green(networkId)} ] Deploying new diamond`);
+    console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] Deploying new diamond`);
 
-    console.log("\n>> deploying new diamond\n");
+    console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
     const deployNewDiamondCmd = deployDiamondCmd(rpcUrl, networkId, ownerAddress, systemAdminAddress);
     execute(deployNewDiamondCmd);
 
-    console.log("\n>> initializing upgrade\n");
+    console.log(`\n[ ${chalk.green("Initializing upgrade")} ]\n`);
     const initSimCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
     const result = execute(initSimCmd);
     const upgradeHash = getUpgradeHash(result);
 
-    console.log("\n>> scheduling upgrade\n");
+    console.log(`\n[ ${chalk.green("Scheduling upgrade")} ]\n`);
     const scheduleCommand = schedule({
         rpcUrl,
         networkId,
@@ -45,21 +41,21 @@ if (operation === "deploy") {
     });
     execute(scheduleCommand);
 
-    console.log("\n>> do upgrade\n");
+    console.log(`\n[ ${chalk.green("Doing upgrade")} ]\n`);
     const upgradeCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress);
     execute(upgradeCmd);
 } else if (operation === "upgrade") {
     const addressesRaw = fs.readFileSync("deployedAddresses.json");
     const addresses = JSON.parse(addressesRaw);
 
-    console.log(`[ ${chalk.green(networkId)} ] upgrade => ${chalk.greenBright(addresses[networkId])}`);
+    console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] upgrade => ${chalk.greenBright(addresses[networkId])}`);
 
-    console.log("\n>> deploy upgrade\n");
+    console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
     const upgradeCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
     const result = execute(upgradeCmd);
     const upgradeHash = getUpgradeHash(result);
 
-    console.log("\n>> scheduling upgrade\n");
+    console.log(`\n[ ${chalk.green("Scheduling upgrade")} ]\n`);
     const scheduleCommand = schedule({
         rpcUrl,
         networkId,
@@ -70,11 +66,11 @@ if (operation === "deploy") {
     });
     execute(scheduleCommand);
 
-    console.log("\n>> prep upgrade\n");
+    console.log(`\n[ ${chalk.green("Preparing upgrade")} ]\n`);
     const prepCmd = `node ./cli-tools/prep-upgrade.js broadcast/SmartDeploy.s.sol/${networkId}/smartDeploy-latest.json`;
     execute(prepCmd);
 
-    console.log("\n>> diamond cut\n");
+    console.log(`\n[ ${chalk.green("Diamond cut")} ]\n`);
     const diamondCutCmd = diamondCut({
         rpcUrl,
         networkId,
