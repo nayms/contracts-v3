@@ -2,7 +2,6 @@ const { Wallet } = require("ethers");
 const fs = require("fs");
 const chalk = require("chalk");
 const dotenv = require("dotenv");
-const { Readable } = require("stream");
 
 dotenv.config();
 
@@ -11,7 +10,7 @@ if (process.argv.length != 4) {
     process.exit(1);
 }
 
-const [op, networkId] = process.argv.slice(2);
+const [operation, networkId] = process.argv.slice(2);
 
 const rpcUrl = process.env[`ETH_${networkId}_RPC_URL`];
 const mnemonic = fs.readFileSync("nayms_mnemonic.txt").toString();
@@ -19,21 +18,19 @@ const mnemonic = fs.readFileSync("nayms_mnemonic.txt").toString();
 const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address;
 const systemAdminAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address;
 
-if (op === "deploy") {
+if (operation === "deploy") {
     console.log(`[ ${chalk.green(networkId)} ] Deploying new diamond`);
 
+    console.log("\n>> deploying new diamond\n");
     const deployNewDiamondCmd = deployDiamondCmd(rpcUrl, networkId, ownerAddress, systemAdminAddress);
     execute(deployNewDiamondCmd);
 
+    console.log("\n>> initializing upgrade\n");
     const initSimCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
     const result = execute(initSimCmd);
-    const hashLine = result
-        .split("\n")
-        .find((line) => line.includes("Upgrade is not scheduled for this hash"))
-        .trim()
-        .split(" ");
-    const upgradeHash = hashLine[hashLine.length - 1];
+    const upgradeHash = getUpgradeHash(result);
 
+    console.log("\n>> scheduling upgrade\n");
     const scheduleCommand = schedule({
         rpcUrl,
         networkId,
@@ -44,16 +41,57 @@ if (op === "deploy") {
     });
     execute(scheduleCommand);
 
-    const initCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress);
-    execute(initCmd);
-} else if (op === "upgrade") {
+    console.log("\n>> do upgrade\n");
+    const upgradeCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    execute(upgradeCmd);
+} else if (operation === "upgrade") {
     const addressesRaw = fs.readFileSync("deployedAddresses.json");
     const addresses = JSON.parse(addressesRaw);
 
     console.log(`[ ${chalk.green(networkId)} ] upgrade => ${chalk.greenBright(addresses[networkId])}`);
+
+    console.log("\n>> deploy upgrade\n");
+    const upgradeCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const result = execute(upgradeCmd);
+    const upgradeHash = getUpgradeHash(result);
+
+    console.log("\n>> scheduling upgrade\n");
+    const scheduleCommand = schedule({
+        rpcUrl,
+        networkId,
+        upgradeHash,
+        systemAdminAddress,
+        mnemonicFile: "./nayms_mnemonic.txt",
+        mnemonicIndex: 0,
+    });
+    execute(scheduleCommand);
+
+    console.log("\n>> prep upgrade\n");
+    const prepCmd = `node ./cli-tools/prep-upgrade.js broadcast/SmartDeploy.s.sol/${networkId}/smartDeploy-latest.json`;
+    execute(prepCmd);
+
+    console.log("\n>> diamond cut\n");
+    const diamondCutCmd = diamondCut({
+        rpcUrl,
+        networkId,
+        upgradeHash,
+        ownerAddress,
+        mnemonicFile: "./nayms_mnemonic.txt",
+        mnemonicIndex: 19,
+    });
+    execute(diamondCutCmd);
 } else {
     console.log(chalk.red("Supported operations are: 'deploy' and 'upgrade'!"));
     process.exit(1);
+}
+
+function getUpgradeHash(result) {
+    const hashLine = result
+        .split("\n")
+        .find((line) => line.includes("upgradeHash: bytes32"))
+        .trim()
+        .split(" ");
+    return hashLine[hashLine.length - 1];
 }
 
 function deployDiamondCmd(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
@@ -74,14 +112,14 @@ function deployDiamondCmd(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"
     });
 }
 
-function upgradeInit(rpcUrl, networkId, owner, sysAdmin, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function upgradeInit(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
         newDeploy: false,
         owner,
         sysAdmin,
-        initDiamond: true,
+        initDiamond,
         facetAction: 1,
         facetsToCutIn,
         salt,
@@ -127,16 +165,28 @@ function schedule(config) {
         --mnemonic-indexes ${config.mnemonicIndex} \\
         -vv \\
         --ffi \\
-        --broadcast
-    `;
+        --broadcast`;
+}
+
+function diamondCut(config) {
+    return `forge script S03UpgradeDiamond \
+        -s "run(address)" ${config.ownerAddress} \
+        -f ${config.rpcUrl} \\
+        --chain-id ${config.networkId} \\
+        --sender ${config.ownerAddress} \\
+        --mnemonic-paths ${config.mnemonicFile} \\
+        --mnemonic-indexes ${config.mnemonicIndex} \\
+        -vv \\
+        --ffi \\
+        --broadcast`;
 }
 
 function execute(cmd) {
     const { execSync } = require("child_process");
-    console.log("\n ==  Executing ==\n\n", cmd);
+    console.log(cmd);
 
     const result = execSync(cmd).toString();
-    console.log("\n == Result ==\n\n", result);
+    console.log("\n\n ------------------ \n\n", result);
 
     return result;
 }
