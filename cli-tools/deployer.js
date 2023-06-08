@@ -5,14 +5,18 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-if (process.argv.length != 4) {
+if (process.argv.length != 4 && process.argv.length != 5) {
     console.error(chalk.red(`Must provide deployment operation and target network!`));
     process.exit(1);
 }
 
-const [operation, networkId] = process.argv.slice(2);
+const [operation, networkId, fork] = process.argv.slice(2);
 
-const rpcUrl = process.env[`ETH_${networkId}_RPC_URL`];
+if (fork) {
+    console.log(`[ ${chalk.green("FORKING")} ]`);
+}
+
+const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RPC_URL`];
 const mnemonic = fs.readFileSync("nayms_mnemonic.txt").toString();
 
 const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address;
