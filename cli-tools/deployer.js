@@ -16,7 +16,10 @@ const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RP
 const mnemonic = fs.readFileSync("nayms_mnemonic.txt").toString();
 
 const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address;
-const systemAdminAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address;
+const systemAdminAddress =
+    networkId === "1"
+        ? "0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929" // mainnet sysAdminB
+        : Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address;
 
 if (operation === "deploy") {
     console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] Deploying new diamond`);
@@ -26,7 +29,7 @@ if (operation === "deploy") {
     execute(deployNewDiamondCmd);
 
     console.log(`\n[ ${chalk.green("Initializing upgrade")} ]\n`);
-    const initSimCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const initSimCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
     const result = execute(initSimCmd);
     const upgradeHash = getUpgradeHash(result);
 
@@ -42,16 +45,27 @@ if (operation === "deploy") {
     execute(scheduleCommand);
 
     console.log(`\n[ ${chalk.green("Doing upgrade")} ]\n`);
-    const upgradeCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress);
     execute(upgradeCmd);
 } else if (operation === "upgrade") {
     const addressesRaw = fs.readFileSync("deployedAddresses.json");
     const addresses = JSON.parse(addressesRaw);
 
-    console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] upgrade => ${chalk.greenBright(addresses[networkId])}`);
+    console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] upgrade => ${chalk.greenBright(addresses[networkId])}\n`);
+
+    if (networkId === "1" && fork) {
+        // transfer ownership
+        execute(`cast rpc anvil_impersonateAccount ${systemAdminAddress}`);
+        execute(`cast send ${addresses[networkId]} "transferOwnership(address)" \
+            ${ownerAddress} \
+            -r http:\\127.0.0.1:8545 \
+            --unlocked \
+            --from ${systemAdminAddress}`);
+        execute(`cast rpc anvil_setBalance ${ownerAddress} 10000000000000000000 -r http:\\127.0.0.1:8545`);
+    }
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
-    const upgradeCmd = upgradeInit(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
     const result = execute(upgradeCmd);
     const upgradeHash = getUpgradeHash(result);
 
@@ -63,6 +77,8 @@ if (operation === "deploy") {
         systemAdminAddress,
         mnemonicFile: "./nayms_mnemonic.txt",
         mnemonicIndex: 0,
+        fork,
+        diamondAddress: addresses[networkId],
     });
     execute(scheduleCommand);
 
@@ -112,7 +128,7 @@ function deployDiamondCmd(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"
     });
 }
 
-function upgradeInit(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function upgrade(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
@@ -156,16 +172,20 @@ function smartDeploy(config) {
 }
 
 function schedule(config) {
-    return `forge script SmartDeploy \\
-        -s "schedule(bytes32)" ${config.upgradeHash} \\
-        -f ${config.rpcUrl} \\
+    const isFork = config.networkId === "1" && config.fork;
+    const impersonateIfNeeded = isFork ? `cast rpc anvil_impersonateAccount ${config.systemAdminAddress} && ` : "";
+    const mnemonicIfNeeded = isFork
+        ? ""
+        : ` \\
         --chain-id ${config.networkId} \\
-        --sender ${config.systemAdminAddress} \\
-        --mnemonic-paths ${config.mnemonicFile} \\
-        --mnemonic-indexes ${config.mnemonicIndex} \\
-        -vv \\
-        --ffi \\
-        --broadcast`;
+        --mnemonic ${config.mnemonicFile} \\
+        --mnemonic-index ${config.mnemonicIndex}
+    `;
+
+    return `${impersonateIfNeeded} cast send ${config.diamondAddress} "createUpgrade(bytes32)" \
+        ${config.upgradeHash} \
+        --rpc-url ${config.rpcUrl} ${isFork ? "--unlocked" : ""} \
+        --from ${config.systemAdminAddress} ${mnemonicIfNeeded}`;
 }
 
 function diamondCut(config) {
