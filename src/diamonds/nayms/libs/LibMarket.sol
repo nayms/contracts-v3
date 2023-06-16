@@ -257,17 +257,15 @@ library LibMarket {
         // check bounds and update balances
         _checkBoundsAndUpdateBalances(_offerId, _buyAmount, _sellAmount);
 
-        // Check fee schedule, before paying commissions
-        if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
-            // Fees are always paid by the taker, maker pays no fees, also only in external token.
-            if (_takeExternalToken) {
-                // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-                commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
-            } else {
-                // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-                commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
-            }
+        if (_takeExternalToken) {
+            // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
+            commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+        } else {
+            // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
+            commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
         }
+
+        _buyAmount.unlockMarketSaleAmount(s.offers[_offerId].creator, s.offers[_offerId].sellToken);
 
         s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 
@@ -321,6 +319,11 @@ library LibMarket {
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
         }
 
+        /// @dev Burn the par tokens if this was an initial token sale (selling par tokens through startTokenSale())
+        if (marketInfo.feeSchedule == LibConstants.FEE_SCHEDULE_INITIAL_OFFER) {
+            LibTokenizedVault._internalBurn(s.offers[_offerId].sellToken, s.offers[_offerId].sellToken, marketInfo.sellAmount);
+        }
+
         // don't emit event stating market order is cancelled if the market order was executed and fulfilled
         if (marketInfo.state != LibConstants.OFFER_STATE_FULFILLED) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_CANCELLED;
@@ -368,7 +371,12 @@ library LibMarket {
         require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "insufficient balance available, funds locked");
 
         // must have a valid fee schedule
-        require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
+        require(
+            _feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION ||
+                _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD ||
+                _feeSchedule == LibConstants.FEE_SCHEDULE_INITIAL_OFFER,
+            "fee schedule invalid"
+        );
     }
 
     function _getOfferTokenAmounts(uint256 _offerId) internal view returns (TokenAmount memory sell_, TokenAmount memory buy_) {

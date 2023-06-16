@@ -90,10 +90,21 @@ library LibFeeRouter {
         emit PremiumCommissionsPaid(_policyId, policyEntityId, totalCommissionsPaid);
     }
 
-    function _payTradingCommissions(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _buyAmount) internal returns (uint256 totalCommissionsPaid) {
+    function _payTradingCommissions(
+        uint256 _feeSchedule,
+        bytes32 _makerId,
+        bytes32 _takerId,
+        bytes32 _tokenId,
+        uint256 _buyAmount
+    ) internal returns (uint256 totalCommissionsPaid) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        MarketplaceFees memory marketplaceFees = s.marketplaceFeeStrategies[s.currentGlobalMarketplaceFeeStrategy];
+        MarketplaceFees memory marketplaceFees;
+        if (_feeSchedule == LibConstants.FEE_SCHEDULE_INITIAL_OFFER) {
+            marketplaceFees = s.marketplaceFeeStrategies[LibConstants.FEE_SCHEDULE_INITIAL_OFFER];
+        } else {
+            marketplaceFees = s.marketplaceFeeStrategies[s.currentGlobalMarketplaceFeeStrategy];
+        }
 
         uint256 commission;
         uint256 totalBP;

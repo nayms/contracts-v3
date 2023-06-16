@@ -57,6 +57,8 @@ library LibConstants {
      * @dev Platform-initiated trade, e.g. token sale or buyback.
      */
     uint256 internal constant FEE_SCHEDULE_PLATFORM_ACTION = 2;
+    /// @dev Fee Schedule for the first sale of par tokens.
+    uint256 internal constant FEE_SCHEDULE_INITIAL_OFFER = 3;
 
     /*///////////////////////////////////////////////////////////////////////////
                         MARKET OFFER STATES
