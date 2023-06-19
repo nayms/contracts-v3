@@ -64,7 +64,7 @@ struct AppStorage {
     uint16 tradingCommissionNaymsLtdBP; // note DEPRECATED
     uint16 tradingCommissionNDFBP; // note DEPRECATED
     uint16 tradingCommissionSTMBP; // note DEPRECATED
-    uint16 tradingCommissionMakerBP; // note DEPRECATED
+    uint16 tradingCommissionMakerBP;
     // Premium Commissions
     uint16 premiumCommissionNaymsLtdBP; // note DEPRECATED
     uint16 premiumCommissionNDFBP; // note DEPRECATED
@@ -77,10 +77,8 @@ struct AppStorage {
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
     mapping(address => bytes32) objectTokenWrapperId; // reverse mapping token wrapper address => object ID
     mapping(string => bytes32) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
-    uint256 currentGlobalPolicyFeeStrategy; // the ID of the current global policy fee strategy
-    uint256 currentGlobalMarketplaceFeeStrategy; // the ID of the current global policy fee strategy
-    mapping(uint256 => CommissionReceiverInfo[]) policyFeeStrategies; // strategy ID => array of CommissionReceiverInfo struct
-    mapping(uint256 => MarketplaceFees) marketplaceFeeStrategies; // strategy ID => array of CommissionReceiverInfo struct
+    uint256 policyFeeSchedule; // the ID of the current policy fee schedule
+    mapping(uint256 => CommissionReceiverInfo[]) feeSchedules; // fee schedule ID => array of CommissionReceiverInfo struct
 }
 
 struct FunctionLockedStorage {

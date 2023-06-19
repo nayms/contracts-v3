@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { MarketplaceFees, CalculatedCommissions, MarketInfo } from "../AppStorage.sol";
+import { CalculatedCommissions, MarketInfo } from "../AppStorage.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
@@ -111,7 +111,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     //     tc = LibFeeRouter._calculateTradingCommissions(s.currentGlobalMarketplaceFeeStrategy, buyAmount);
     // }
 
-    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (CalculatedCommissions memory tc) {
-        tc = LibFeeRouter._calculateTradingCommissions(_feeStrategyId, buyAmount);
+    function calculateTradingCommissions(uint256 _feeScheduleId, uint256 buyAmount) external view returns (CalculatedCommissions memory tc) {
+        tc = LibFeeRouter._calculateTradingCommissions(_feeScheduleId, buyAmount);
     }
 }

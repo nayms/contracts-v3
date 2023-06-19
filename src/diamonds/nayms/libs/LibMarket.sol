@@ -257,15 +257,29 @@ library LibMarket {
         // check bounds and update balances
         _checkBoundsAndUpdateBalances(_offerId, _buyAmount, _sellAmount);
 
+        // _takeExternalToken == true means the creator is selling an external token
         if (_takeExternalToken) {
             // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-            commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+            commissionsPaid_ = LibFeeRouter._payTradingCommissions(
+                s.offers[_offerId].feeSchedule,
+                s.offers[_offerId].creator,
+                _takerId,
+                s.offers[_offerId].sellToken,
+                _buyAmount,
+                _takeExternalToken
+            );
         } else {
             // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-            commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
-        }
 
-        _buyAmount.unlockMarketSaleAmount(s.offers[_offerId].creator, s.offers[_offerId].sellToken);
+            commissionsPaid_ = LibFeeRouter._payTradingCommissions(
+                s.offers[_offerId].feeSchedule,
+                s.offers[_offerId].creator,
+                _takerId,
+                s.offers[_offerId].buyToken,
+                _sellAmount,
+                _takeExternalToken
+            );
+        }
 
         s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { MarketInfo, MarketplaceFees, CalculatedCommissions } from "./FreeStructs.sol";
+import { MarketInfo, CalculatedCommissions } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -79,5 +79,5 @@ interface IMarketFacet {
      */
     // function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
 
-    function calculateTradingCommissions(uint256 _feeStrategyId, uint256 buyAmount) external view returns (CalculatedCommissions memory tc);
+    function calculateTradingCommissions(uint256 _feeScheduleId, uint256 buyAmount) external view returns (CalculatedCommissions memory tc);
 }

@@ -51,7 +51,7 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
-    uint256 feeStrategy; // The policy fee strategy for this policy
+    uint256 feeSchedule; // The policy fee strategy for this policy
 }
 
 struct SimplePolicyInfo {
@@ -101,7 +101,7 @@ struct CalculatedCommissions {
     CommissionAllocation[] commissionAllocations; // The list of entities that receive a portion of the commissions.
 }
 
-struct MarketplaceFees {
-    uint16 tradingCommissionMakerBP;
-    CommissionReceiverInfo[] commissionReceiversInfo;
-}
+// struct MarketplaceFees {
+//     uint16 tradingCommissionMakerBP;
+//     CommissionReceiverInfo[] commissionReceiversInfo;
+// }

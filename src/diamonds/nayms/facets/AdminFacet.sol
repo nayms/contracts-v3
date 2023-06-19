@@ -6,7 +6,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { CommissionReceiverInfo, MarketplaceFees } from "../interfaces/FreeStructs.sol";
+import { CommissionReceiverInfo } from "../interfaces/FreeStructs.sol";
 import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
 
 /**
@@ -89,31 +89,19 @@ contract AdminFacet is IAdminFacet, Modifiers {
         LibAdmin._unlockAllFundTransferFunctions();
     }
 
-    function addGlobalPolicyCommissionsStrategy(uint256 _strategyId, CommissionReceiverInfo[] calldata _commissionReceivers) external assertSysAdmin {
-        LibFeeRouter._addGlobalPolicyCommissionsStrategy(_strategyId, _commissionReceivers);
+    function replaceMakerBP(uint16 _newMakerBP) external assertSysAdmin {
+        LibFeeRouter._replaceMakerBP(_newMakerBP);
     }
 
-    function changeGlobalPolicyCommissionsStrategy(uint256 _strategyId) external assertSysAdmin {
-        LibFeeRouter._changeGlobalPolicyCommissionsStrategy(_strategyId);
+    function addFeeSchedule(uint256 _feeScheduleId, CommissionReceiverInfo[] calldata _commissionReceivers) external assertSysAdmin {
+        LibFeeRouter._addFeeSchedule(_feeScheduleId, _commissionReceivers);
     }
 
-    function changeIndividualPolicyCommissionsStrategy(bytes32 _policyId, uint256 _strategyId) external assertSysAdmin {
-        LibFeeRouter._changeIndividualPolicyCommissionsStrategy(_policyId, _strategyId);
+    function changePolicyFeeSchedule(uint256 _feeScheduleId) external assertSysAdmin {
+        LibFeeRouter._changePolicyFeeSchedule(_feeScheduleId);
     }
 
-    function addCommissionsReceiverToIndividualPolicy(bytes32 _policyId, CommissionReceiverInfo calldata _commissionReceiver) external assertSysAdmin {
-        LibFeeRouter._addCommissionsReceiverToIndividualPolicy(_policyId, _commissionReceiver);
-    }
-
-    function removeCommissionsReceiverFromIndividualPolicy(bytes32 _policyId, bytes32 _receiver) external assertSysAdmin {
-        LibFeeRouter._removeCommissionsReceiverFromIndividualPolicy(_policyId, _receiver);
-    }
-
-    function addGlobalMarketplaceFeeStrategy(uint256 _strategyId, MarketplaceFees calldata _marketplaceFeeStrategy) external assertSysAdmin {
-        LibFeeRouter._addGlobalMarketplaceFeeStrategy(_strategyId, _marketplaceFeeStrategy);
-    }
-
-    function changeGlobalMarketplaceCommissionsStrategy(uint256 _strategyId) external assertSysAdmin {
-        LibFeeRouter._changeGlobalMarketplaceCommissionsStrategy(_strategyId);
-    }
+    // function changeIndividualPolicyCommissionsStrategy(bytes32 _policyId, uint256 _strategyId) external assertSysAdmin {
+    //     LibFeeRouter._changeIndividualPolicyCommissionsStrategy(_policyId, _strategyId);
+    // }
 }

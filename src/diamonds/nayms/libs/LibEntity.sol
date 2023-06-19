@@ -68,8 +68,8 @@ library LibEntity {
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
         // by default there must be at least one global policy commission receiver
-        CommissionReceiverInfo[] memory policyFeeStrategy = s.policyFeeStrategies[s.currentGlobalPolicyFeeStrategy];
-        uint256 globalPolicyFeeReceiverCount = policyFeeStrategy.length;
+        CommissionReceiverInfo[] memory policyFeeSchedule = s.feeSchedules[simplePolicy.feeSchedule];
+        uint256 globalPolicyFeeReceiverCount = policyFeeSchedule.length;
 
         require(globalPolicyFeeReceiverCount > 0, "must have commission receivers"); // error there must be at least one global policy commission receiver
 
@@ -86,7 +86,7 @@ library LibEntity {
         }
 
         for (uint256 i; i < globalPolicyFeeReceiverCount; ++i) {
-            totalBP += policyFeeStrategy[i].basisPoints;
+            totalBP += policyFeeSchedule[i].basisPoints;
         }
 
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
@@ -113,8 +113,8 @@ library LibEntity {
 
         s.simplePolicies[_policyId] = _simplePolicy;
 
-        // Set the policy's fee strategy ID to the currentGlobalPolicyFeeStrategy
-        s.simplePolicies[_policyId].feeStrategy = s.currentGlobalPolicyFeeStrategy;
+        // Set the policy's fee strategy ID to the policyFeeSchedule
+        s.simplePolicies[_policyId].feeSchedule = s.policyFeeSchedule;
 
         _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
