@@ -70,7 +70,7 @@ library LibEntity {
         FeeReceiver[] memory feeReceivers = s.feeSchedules[_getPremiumFeeScheduleId(_entityId)];
         uint256 feeReceiversCount = feeReceivers.length;
         // There must be at least one receiver from the fee schedule
-        require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one global policy commission receiver
+        require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
 
         // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;

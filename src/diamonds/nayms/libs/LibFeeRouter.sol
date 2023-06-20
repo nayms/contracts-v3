@@ -10,14 +10,14 @@ import { PolicyCommissionsBasisPointsCannotBeGreaterThan10000 } from "src/diamon
 import { LibEntity } from "./LibEntity.sol";
 
 library LibFeeRouter {
-    error CommissionsBasisPointsCannotBeGreaterThan5000(uint256 totalBp); // todo move
+    error FeeBasisPointsCannotBeGreaterThan5000(uint256 totalBp); // todo move
 
     event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
     event PolicyFeeScheduleUpdated(uint256 policyFeeSchedule);
-    event FeeScheduleAdded(FeeReceiver[] commissionReceivers);
+    event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] commissionReceivers);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal returns (CalculatedFees memory calculatedFees_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -179,26 +179,24 @@ library LibFeeRouter {
     function _addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 existingFeeScheduleCount = s.feeSchedules[_feeScheduleId].length;
-        for (uint256 i; i < existingFeeScheduleCount; ++i) {
-            s.feeSchedules[i].pop();
-        }
+        // Remove the fee schedule for this _feeScheduleId if it already exists
+        delete s.feeSchedules[_feeScheduleId];
 
-        // Check to see that the total fee does not exceed LibConstants.BP_FACTOR basis points
+        // Check to see that the total basis points does not exceed LibConstants.BP_FACTOR / 2 basis points
         uint256 receiverCount = _feeReceivers.length;
         uint256 totalBp;
         for (uint256 i; i < receiverCount; ++i) {
             totalBp += _feeReceivers[i].basisPoints;
         }
         if (totalBp > LibConstants.BP_FACTOR / 2) {
-            revert CommissionsBasisPointsCannotBeGreaterThan5000(totalBp);
+            revert FeeBasisPointsCannotBeGreaterThan5000(totalBp);
         }
 
         for (uint256 i; i < receiverCount; ++i) {
             s.feeSchedules[_feeScheduleId].push(_feeReceivers[i]);
         }
 
-        emit FeeScheduleAdded(s.feeSchedules[_feeScheduleId]);
+        emit FeeScheduleAdded(_feeScheduleId, s.feeSchedules[_feeScheduleId]);
     }
 
     function _getFeeSchedule(uint256 _feeScheduleId) internal view returns (FeeReceiver[] memory) {
