@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity, SimplePolicy, SimplePolicyInfo, CalculatedCommissions } from "../AppStorage.sol";
+import { Entity, SimplePolicy, SimplePolicyInfo, CalculatedFees } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
@@ -91,7 +91,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         signingHash_ = LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
     }
 
-    function calculatePremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedCommissions memory calculatedCommissions_) {
-        calculatedCommissions_ = LibFeeRouter._calculatePremiumCommissions(_policyId, _premiumPaid);
+    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedFees memory calculatedFees_) {
+        calculatedFees_ = LibFeeRouter._calculatePremiumFees(_policyId, _premiumPaid);
     }
 }

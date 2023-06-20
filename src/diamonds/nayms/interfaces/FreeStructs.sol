@@ -51,7 +51,6 @@ struct SimplePolicy {
     uint256 premiumsPaid;
     bytes32[] commissionReceivers;
     uint256[] commissionBasisPoints;
-    uint256 feeSchedule; // The policy fee strategy for this policy
 }
 
 struct SimplePolicyInfo {
@@ -84,24 +83,19 @@ struct StakingCheckpoint {
     uint256 blk; // block number
 }
 
-struct CommissionReceiverInfo {
+struct FeeReceiver {
     bytes32 receiver;
     uint256 basisPoints;
 }
 
-struct CommissionAllocation {
-    bytes32 receiverId; // The ID of the entity that receives the commission
-    uint256 commission; // The amount of commissions paid to the receiver
+struct FeeAllocation {
+    bytes32 receiver; // The ID of the entity that receives the fee
+    uint256 fee; // The amount of commissions paid to the receiver
     uint256 basisPoints;
 }
 
-struct CalculatedCommissions {
-    uint256 totalCommissions; // total amount of commissions paid
+struct CalculatedFees {
+    uint256 totalFees; // total amount of commissions paid
     uint256 totalBP; // total basis points of commissions paid
-    CommissionAllocation[] commissionAllocations; // The list of entities that receive a portion of the commissions.
+    FeeAllocation[] feeAllocations; // The list of entities that receive a portion of the commissions.
 }
-
-// struct MarketplaceFees {
-//     uint16 tradingCommissionMakerBP;
-//     CommissionReceiverInfo[] commissionReceiversInfo;
-// }

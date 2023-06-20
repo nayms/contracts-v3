@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { CommissionReceiverInfo } from "./FreeStructs.sol";
+import { FeeReceiver } from "./FreeStructs.sol";
 
 /**
  * @title Administration
@@ -85,7 +85,5 @@ interface IAdminFacet {
 
     function replaceMakerBP(uint16 _newMakerBP) external;
 
-    function addFeeSchedule(uint256 _feeScheduleId, CommissionReceiverInfo[] calldata _commissionReceivers) external;
-
-    function changePolicyFeeSchedule(uint256 _feeScheduleId) external;
+    function addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) external;
 }

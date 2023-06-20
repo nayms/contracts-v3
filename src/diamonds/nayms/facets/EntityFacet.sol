@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
+import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 
 /**
  * @title Entities
@@ -52,11 +53,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @param _symbol The symbol assigned to the entity token
      * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(
-        bytes32 _objectId,
-        string memory _symbol,
-        string memory _name
-    ) external assertSysAdmin {
+    function enableEntityTokenization(bytes32 _objectId, string memory _symbol, string memory _name) external assertSysAdmin {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
@@ -66,11 +63,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @param _symbol New entity token symbol
      * @param _name New entity token name
      */
-    function updateEntityTokenInfo(
-        bytes32 _entityId,
-        string memory _symbol,
-        string memory _name
-    ) external assertSysAdmin {
+    function updateEntityTokenInfo(bytes32 _entityId, string memory _symbol, string memory _name) external assertSysAdmin {
         LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
@@ -81,11 +74,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @param _amount amount of entity tokens to put on sale
      * @param _totalPrice total price of the tokens
      */
-    function startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertSysMgr {
+    function startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) external notLocked(msg.sig) nonReentrant assertSysMgr {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
@@ -114,5 +103,17 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory) {
         return LibEntity._getEntityInfo(_entityId);
+    }
+
+    function getFeeSchedule(uint256 _feeScheduleId) external view returns (FeeReceiver[] memory) {
+        return LibFeeRouter._getFeeSchedule(_feeScheduleId);
+    }
+
+    function getPremiumFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_) {
+        feeScheduleId_ = LibEntity._getPremiumFeeScheduleId(_entityId);
+    }
+
+    function getTradingFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_) {
+        feeScheduleId_ = LibEntity._getTradingFeeScheduleId(_entityId);
     }
 }

@@ -77,8 +77,7 @@ struct AppStorage {
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
     mapping(address => bytes32) objectTokenWrapperId; // reverse mapping token wrapper address => object ID
     mapping(string => bytes32) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
-    uint256 policyFeeSchedule; // the ID of the current policy fee schedule
-    mapping(uint256 => CommissionReceiverInfo[]) feeSchedules; // fee schedule ID => array of CommissionReceiverInfo struct
+    mapping(uint256 => FeeReceiver[]) feeSchedules; // fee schedule ID => array of FeeReceiver struct
 }
 
 struct FunctionLockedStorage {

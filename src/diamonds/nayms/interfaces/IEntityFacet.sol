@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
+import { FeeReceiver, SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
 
 /**
  * @title Entities
@@ -39,13 +39,7 @@ interface IEntityFacet {
      * @param _simplePolicy policy to create
      * @param _dataHash hash of the offchain data
      */
-    function createSimplePolicy(
-        bytes32 _policyId,
-        bytes32 _entityId,
-        Stakeholders calldata _stakeholders,
-        SimplePolicy calldata _simplePolicy,
-        bytes32 _dataHash
-    ) external;
+    function createSimplePolicy(bytes32 _policyId, bytes32 _entityId, Stakeholders calldata _stakeholders, SimplePolicy calldata _simplePolicy, bytes32 _dataHash) external;
 
     /**
      * @notice Enable an entity to be tokenized
@@ -53,11 +47,7 @@ interface IEntityFacet {
      * @param _symbol The symbol assigned to the entity token
      * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(
-        bytes32 _entityId,
-        string memory _symbol,
-        string memory _name
-    ) external;
+    function enableEntityTokenization(bytes32 _entityId, string memory _symbol, string memory _name) external;
 
     /**
      * @notice Update entity token name and symbol
@@ -65,11 +55,7 @@ interface IEntityFacet {
      * @param _symbol New entity token symbol
      * @param _name New entity token name
      */
-    function updateEntityTokenInfo(
-        bytes32 _entityId,
-        string memory _symbol,
-        string memory _name
-    ) external;
+    function updateEntityTokenInfo(bytes32 _entityId, string memory _symbol, string memory _name) external;
 
     /**
      * @notice Start token sale of `_amount` tokens for total price of `_totalPrice`
@@ -78,11 +64,7 @@ interface IEntityFacet {
      * @param _amount amount of entity tokens to put on sale
      * @param _totalPrice total price of the tokens
      */
-    function startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) external;
+    function startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) external;
 
     /**
      * @notice Check if an entity token is wrapped as ERC20
@@ -105,4 +87,10 @@ interface IEntityFacet {
      * @return Entity struct with metadata of the entity
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory);
+
+    function getFeeSchedule(uint256 _feeScheduleId) external view returns (FeeReceiver[] memory);
+
+    function getPremiumFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_);
+
+    function getTradingFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_);
 }

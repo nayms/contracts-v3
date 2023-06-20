@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
-import { Entity, SimplePolicy, Stakeholders, CommissionReceiverInfo } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -67,11 +67,10 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        // by default there must be at least one global policy commission receiver
-        CommissionReceiverInfo[] memory policyFeeSchedule = s.feeSchedules[simplePolicy.feeSchedule];
-        uint256 globalPolicyFeeReceiverCount = policyFeeSchedule.length;
-
-        require(globalPolicyFeeReceiverCount > 0, "must have commission receivers"); // error there must be at least one global policy commission receiver
+        FeeReceiver[] memory feeReceivers = s.feeSchedules[_getPremiumFeeScheduleId(_entityId)];
+        uint256 feeReceiversCount = feeReceivers.length;
+        // There must be at least one receiver from the fee schedule
+        require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one global policy commission receiver
 
         // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
@@ -85,8 +84,8 @@ library LibEntity {
             totalBP += simplePolicy.commissionBasisPoints[i];
         }
 
-        for (uint256 i; i < globalPolicyFeeReceiverCount; ++i) {
-            totalBP += policyFeeSchedule[i].basisPoints;
+        for (uint256 i; i < feeReceiversCount; ++i) {
+            totalBP += feeReceivers[i].basisPoints;
         }
 
         require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
@@ -112,9 +111,6 @@ library LibEntity {
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         s.simplePolicies[_policyId] = _simplePolicy;
-
-        // Set the policy's fee strategy ID to the policyFeeSchedule
-        s.simplePolicies[_policyId].feeSchedule = s.policyFeeSchedule;
 
         _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
@@ -213,7 +209,7 @@ library LibEntity {
         // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
-        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_INITIAL_OFFER);
+        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
 
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
@@ -319,5 +315,29 @@ library LibEntity {
     function _isEntity(bytes32 _entityId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.existingEntities[_entityId];
+    }
+
+    function _getPremiumFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        uint256 feeScheduleId = uint256(_entityId);
+
+        if (s.feeSchedules[feeScheduleId].length == 0) {
+            feeScheduleId_ = LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT;
+        } else {
+            feeScheduleId_ = feeScheduleId;
+        }
+    }
+
+    function _getTradingFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        uint256 feeScheduleId = uint256(_entityId) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES;
+
+        if (s.feeSchedules[feeScheduleId].length == 0) {
+            feeScheduleId_ = LibConstants.MARKET_FEE_SCHEDULE_DEFAULT;
+        } else {
+            feeScheduleId_ = feeScheduleId;
+        }
     }
 }

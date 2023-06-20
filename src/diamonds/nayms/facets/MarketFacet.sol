@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { CalculatedCommissions, MarketInfo } from "../AppStorage.sol";
+import { CalculatedFees, MarketInfo } from "../AppStorage.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
@@ -59,7 +59,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_SCHEDULE_STANDARD);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.MARKET_FEE_SCHEDULE_DEFAULT);
     }
 
     /**
@@ -102,16 +102,18 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @dev Calculate the trading commissions based on a buy amount.
-     * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct
+     * @dev Calculate the trading fees based on a buy amount.
+     * @param _buyAmount The amount that the fees payments are calculated from.
+     * @return tc CalculatedFees struct
      */
-    // function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
-    //     AppStorage storage s = LibAppStorage.diamondStorage();
-    //     tc = LibFeeRouter._calculateTradingCommissions(s.currentGlobalMarketplaceFeeStrategy, buyAmount);
-    // }
-
-    function calculateTradingCommissions(uint256 _feeScheduleId, uint256 buyAmount) external view returns (CalculatedCommissions memory tc) {
-        tc = LibFeeRouter._calculateTradingCommissions(_feeScheduleId, buyAmount);
+    function calculateTradingFees(
+        uint256 _feeScheduleId,
+        bytes32 _makerId,
+        bytes32 _takerId,
+        bytes32 _tokenId,
+        uint256 _buyAmount,
+        bool _takeExternalToken
+    ) external view returns (CalculatedFees memory tc) {
+        tc = LibFeeRouter._calculateTradingFees(_feeScheduleId, _makerId, _takerId, _tokenId, _buyAmount, _takeExternalToken);
     }
 }
