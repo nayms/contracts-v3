@@ -12,11 +12,10 @@ import { LibEntity } from "./LibEntity.sol";
 library LibFeeRouter {
     error FeeBasisPointsCannotBeGreaterThan5000(uint256 totalBp); // todo move
 
-    event TradingCommissionsPaid(bytes32 indexed takerId, bytes32 tokenId, uint256 amount);
-    event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount);
+    event TradingFeesPaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
+    event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount); // todo update
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
-    event PolicyFeeScheduleUpdated(uint256 policyFeeSchedule);
     event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] commissionReceivers);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal returns (CalculatedFees memory calculatedFees_) {
@@ -104,7 +103,7 @@ library LibFeeRouter {
             uint256 fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
 
-            emit TradingCommissionsPaid(_takerId, _tokenId, fee);
+            emit TradingFeesPaid(_takerId, _makerId, _tokenId, fee);
         }
 
         bytes32 buyer; // The entity that is buying par tokens and the one paying commissions if INITIAL_OFFER
@@ -129,12 +128,12 @@ library LibFeeRouter {
             }
 
             LibTokenizedVault._internalTransfer(buyer, feeSchedules[i].receiver, _tokenId, fee);
+
+            emit TradingFeesPaid(buyer, feeSchedules[i].receiver, _tokenId, fee);
         }
 
         require(LibConstants.BP_FACTOR > takerBP + s.tradingCommissionMakerBP, "taker commissions sum over 10000 bp");
         require(LibConstants.BP_FACTOR > makerBP, "maker commissions sum over 10000 bp");
-
-        emit TradingCommissionsPaid(buyer, _tokenId, totalFees);
     }
 
     function _calculateTradingFees(

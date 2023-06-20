@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
@@ -453,15 +453,24 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.maturationDate = maturationDateOrig;
 
-        // commission receivers
-        nayms.changeGlobalPolicyCommissionsStrategy(type(uint256).max); // change strat to one that does not have any commission receivers
-        vm.expectRevert("must have commission receivers");
+        // fee schedule receivers
+        // change fee schedule to one that does not have any receivers
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](0);
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        vm.expectRevert("must have fee schedule receivers");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        // add back fee receiver
+        feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+
+        vm.expectRevert("number of commissions don't match");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
         simplePolicy.commissionReceivers = new bytes32[](0);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
-        nayms.changeGlobalPolicyCommissionsStrategy(0); // change back to default strat
         // commission basis points
         vm.expectRevert("number of commissions don't match");
         uint256[] memory commissionBasisPointsOrig = simplePolicy.commissionBasisPoints;

@@ -14,16 +14,30 @@ import { LibSimplePolicy } from "src/diamonds/nayms/libs/LibSimplePolicy.sol";
 
 import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
 
+// import { DSILib } from "../utils/DSILib.sol";
+
 // import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
 contract D01Deployment is D00GlobalDefaults /*, DeploymentHelpers*/ {
+    struct NaymsAccount {
+        bytes32 id;
+        bytes32 entityId;
+        uint256 pk;
+        address addr;
+    }
+
+    function makeNaymsAcc(string memory name) public returns (NaymsAccount memory) {
+        (address addr, uint256 privateKey) = makeAddrAndKey(name);
+        return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: keccak256(bytes(name)), pk: privateKey, addr: addr });
+    }
+
+    Nayms public naymsContract;
     address public naymsAddress;
     InitDiamond public initDiamond;
 
     INayms public nayms;
-
     //// test constant variables ////
     bytes32 public immutable salt = keccak256(bytes("A salt!"));
 
@@ -47,14 +61,14 @@ contract D01Deployment is D00GlobalDefaults /*, DeploymentHelpers*/ {
 
         systemAdmin = makeAddr("System Admin 0");
         systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
-        // vm.label(systemAdmin, "System Admin");
-        nayms = INayms(address(new Nayms(owner, systemAdmin)));
+
+        naymsContract = new Nayms(owner, systemAdmin);
+        nayms = INayms(address(naymsContract));
 
         naymsAddress = address(nayms);
         // initialize the diamond as well as cut in all facets
         INayms.FacetCut[] memory cut = LibGeneratedNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
 
-        // vm.prank(msg.sender);
         nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
     }
 

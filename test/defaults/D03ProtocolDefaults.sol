@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, Stakeholders, CommissionReceiverInfo, MarketplaceFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 // solhint-disable no-console
@@ -76,19 +76,20 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
-        // Setup commissions
+        // Setup fee schedules
 
-        CommissionReceiverInfo[] memory commissionReceiversInfo = new CommissionReceiverInfo[](1);
-        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+        // For Premiums
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
 
-        nayms.addGlobalPolicyCommissionsStrategy(0, commissionReceiversInfo);
+        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT, feeReceivers);
 
-        commissionReceiversInfo = new CommissionReceiverInfo[](1);
-        commissionReceiversInfo[0] = CommissionReceiverInfo({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 30 });
+        // For Marketplace
+        feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 30 });
 
-        MarketplaceFees memory marketplaceFees = MarketplaceFees({ tradingCommissionMakerBP: 0, commissionReceiversInfo: commissionReceiversInfo });
-
-        nayms.addGlobalMarketplaceFeeStrategy(0, marketplaceFees);
+        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
