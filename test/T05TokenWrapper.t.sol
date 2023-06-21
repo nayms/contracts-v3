@@ -10,6 +10,7 @@ import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
+    bytes32 internal entityId2 = "0xe2";
 
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";
@@ -29,6 +30,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     function testWrapEntityToken() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
+        nayms.createEntity(entityId2, signer2Id, initEntity(wethId, 5_000, 30_000, true), "test");
 
         vm.expectRevert("must be tokenizable");
         nayms.wrapToken(entityId1);
@@ -64,8 +66,16 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
         assertEq(wrapper.totalSupply(), tokenAmount, "token supply should match sale amount");
 
-        changePrank(account0);
-        nayms.cancelOffer(1); // unlock tokens from market, to enable transfer
+        // fund signer2 
+        changePrank(signer2);
+        uint256 amountWithFees = tokenAmount + nayms.calculateTradingFees(entityId1, tokenAmount).totalFees;
+        writeTokenBalance(signer2, naymsAddress, wethAddress, amountWithFees);
+        nayms.externalDeposit(wethAddress, amountWithFees);
+
+        // signer2 buy p-tokens 
+        nayms.executeLimitOffer(wethId, tokenAmount, entityId1, tokenAmount);
+        
+        // signer2 transfer p-tokens to account0
         nayms.internalTransferFromEntity(account0Id, entityId1, tokenAmount);
         assertEq(wrapper.balanceOf(account0), nayms.internalBalanceOf(account0Id, entityId1), "wrapper balance should match diamond");
     }
@@ -75,6 +85,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         (, , , , address wrapperAddress) = nayms.getObjectMeta(entityId1);
         ERC20Wrapper wrapper = ERC20Wrapper(wrapperAddress);
 
+        changePrank(account0);
         wrapper.transfer(signer1, tokenAmount);
 
         assertEq(wrapper.balanceOf(signer1), tokenAmount, "signer1 balance should increase");

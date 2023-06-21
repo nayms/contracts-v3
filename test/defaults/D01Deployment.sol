@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+// solhint-disable no-console
+// solhint-disable no-global-import
+
 import "./D00GlobalDefaults.sol";
 
 import { InitDiamond } from "src/diamonds/nayms/InitDiamond.sol";
