@@ -106,14 +106,11 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      * @param _buyAmount The amount that the fees payments are calculated from.
      * @return tc CalculatedFees struct
      */
-    function calculateTradingFees(
-        uint256 _feeScheduleId,
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _buyAmount,
-        bool _takeExternalToken
-    ) external view returns (CalculatedFees memory tc) {
-        tc = LibFeeRouter._calculateTradingFees(_feeScheduleId, _makerId, _takerId, _tokenId, _buyAmount, _takeExternalToken);
+    function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory tc) {
+        tc = LibFeeRouter._calculateTradingFees(_buyer, _buyAmount);
+    }
+
+    function calculateTrade(bytes32 _buyToken, bytes32 _sellToken, uint256 _buyAmount, uint256 _feeSchedule) external view returns (CalculatedFees memory tc) {
+        tc = LibMarket._calculateTrade(_buyToken, _sellToken, _buyAmount, _feeSchedule);
     }
 }

@@ -89,13 +89,15 @@ struct FeeReceiver {
 }
 
 struct FeeAllocation {
-    bytes32 receiver; // The ID of the entity that receives the fee
-    uint256 fee; // The amount of commissions paid to the receiver
-    uint256 basisPoints;
+    bytes32 from; // The ID of the entity that paid the fee
+    bytes32 to; // The ID of the entity that receives the fee
+    bytes32 token; // The ID of the token that was used to pay the fee
+    uint256 fee; // The amount of fees paid to the receiver
+    uint256 basisPoints; // The basis points taken from the amount transacted
 }
 
 struct CalculatedFees {
-    uint256 totalFees; // total amount of commissions paid
-    uint256 totalBP; // total basis points of commissions paid
-    FeeAllocation[] feeAllocations; // The list of entities that receive a portion of the commissions.
+    uint256 totalFees; // total amount of fees paid
+    uint256 totalBP; // total basis points of fees paid
+    FeeAllocation[] feeAllocations; // The list of entities that receive a portion of the fees.
 }

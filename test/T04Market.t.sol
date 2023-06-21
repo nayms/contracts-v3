@@ -10,9 +10,6 @@ import { Entity, MarketInfo, FeeReceiver, SimplePolicy, Stakeholders } from "src
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
-import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
-import { TradingCommissionsFixture, TradingCommissionsConfig } from "test/fixtures/TradingCommissionsFixture.sol";
-
 /* 
     Terminology:
     wethId: bytes32 ID of WETH
@@ -55,8 +52,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     bytes32 public testPolicyDataHash = "test";
 
-    TradingCommissionsFixture internal tradingCommissionsFixture;
-
     TestInfo public dt =
         TestInfo({
             entity1StartingBal: 10_000 ether,
@@ -73,8 +68,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity3SalePrice: 1_000 ether
         });
 
-    TradingCommissionsConfig internal c;
-
     function setUp() public virtual override {
         super.setUp();
 
@@ -82,24 +75,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(wbtcAddress);
 
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
-
-        // setup trading commissions fixture
-        tradingCommissionsFixture = new TradingCommissionsFixture();
-        bytes4[] memory functionSelectors = new bytes4[](1);
-        functionSelectors[0] = tradingCommissionsFixture.getCommissionsConfig.selector;
-
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(tradingCommissionsFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
-
-        scheduleAndUpgradeDiamond(cut);
-
-        c = getCommissions();
-    }
-
-    function getCommissions() internal returns (TradingCommissionsConfig memory) {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(tradingCommissionsFixture.getCommissionsConfig.selector));
-        require(success, "Should get commissions from app storage");
-        return abi.decode(result, (TradingCommissionsConfig));
     }
 
     function testStartTokenSale() public {
@@ -351,7 +326,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR;
+            // todo double check this
+            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity2, 0).totalBP)) / LibConstants.BP_FACTOR;
 
             changePrank(signer2);
             writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
@@ -410,7 +386,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.stopPrank();
 
             // taker needs balance for trading commissions
-            uint256 e1Balance = ((salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR) - salePrice;
+            // todo double check this
+            uint256 e1Balance = ((salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR) - salePrice;
             vm.startPrank(signer1);
             writeTokenBalance(signer1, naymsAddress, wethAddress, e1Balance);
             nayms.externalDeposit(wethAddress, e1Balance);
@@ -765,7 +742,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
-        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + c.tradingCommissionTotalBP)) / LibConstants.BP_FACTOR;
+        // todo double check
+        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR;
 
         changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);

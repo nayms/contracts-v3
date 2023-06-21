@@ -2,9 +2,12 @@
 pragma solidity 0.8.17;
 
 import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
+import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+
+import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
 // solhint-disable no-console
 /// @notice Default test setup part 03
@@ -90,6 +93,14 @@ contract D03ProtocolDefaults is D02TestSetup {
 
         nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
         nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+
+        // Add helper functions
+        IDiamondCut.FacetCut[] memory _cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory selectors = new bytes4[](2);
+        selectors[0] = LibFeeRouterFixture.helper_getMakerBP.selector;
+        selectors[1] = LibFeeRouterFixture.helper_getFeeScheduleTotalBP.selector;
+        _cut[0] = IDiamondCut.FacetCut({ facetAddress: address(new LibFeeRouterFixture()), action: IDiamondCut.FacetCutAction.Add, functionSelectors: selectors });
+        scheduleAndUpgradeDiamond(_cut);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }

@@ -3,9 +3,9 @@ pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, SimplePolicy, Stakeholders, FeeReceiver, MarketInfo } from "../src/diamonds/nayms/AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, MarketInfo, FeeReceiver, FeeAllocation, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 
-import { DSILib } from "./utils/DSILib.sol";
+// import { DSILib } from "./utils/DSILib.sol";
 
 // todo test when the CR is changed for an entity
 
@@ -23,7 +23,7 @@ import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
 
 contract NewFeesTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
-    using DSILib for address;
+    // using DSILib for address;
     Entity entityInfo;
 
     NaymsAccount acc1 = makeNaymsAcc("acc1");
@@ -109,6 +109,15 @@ contract NewFeesTest is D03ProtocolDefaults {
         feeScheduleId = nayms.getTradingFeeScheduleId(entityWithCustom);
         assertEq(feeScheduleId, uint256(entityWithCustom) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES, "custom market fee schedule id is incorrect");
     }
+
+    // function test_calculateTradingFees() public {
+    //     // CalculatedFees memory cf = nayms.calculateTradingFees();
+    //     CalculatedFees memory cf = nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
+
+    //     nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
+
+    //     nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
+    // }
 
     function test_startTokenSale_FirstTokenSale() public {
         // acc1 is the par token seller

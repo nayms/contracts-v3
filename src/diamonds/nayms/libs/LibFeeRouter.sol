@@ -16,7 +16,7 @@ library LibFeeRouter {
     event PremiumCommissionsPaid(bytes32 indexed policyId, bytes32 indexed entityId, uint256 amount); // todo update
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
-    event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] commissionReceivers);
+    event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] feeReceivers);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal returns (CalculatedFees memory calculatedFees_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -29,26 +29,26 @@ library LibFeeRouter {
 
         uint256 fee;
         uint256 premiumCommissionsIndex;
-        for (uint256 i; i < commissionsCount; ++i) {
-            fee = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
-            calculatedFees_.totalBP += simplePolicy.commissionBasisPoints[i];
-            calculatedFees_.totalFees += fee;
+        // for (uint256 i; i < commissionsCount; ++i) {
+        //     fee = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
+        //     calculatedFees_.totalBP += simplePolicy.commissionBasisPoints[i];
+        //     calculatedFees_.totalFees += fee;
 
-            calculatedFees_.feeAllocations[i] = FeeAllocation({ receiver: policyEntityId, basisPoints: simplePolicy.commissionBasisPoints[i], fee: fee });
+        //     calculatedFees_.feeAllocations[i] = FeeAllocation({ receiver: policyEntityId, basisPoints: simplePolicy.commissionBasisPoints[i], fee: fee });
 
-            premiumCommissionsIndex++;
-        }
+        //     premiumCommissionsIndex++;
+        // }
 
-        FeeReceiver[] memory feeSchedule = s.feeSchedules[LibEntity._getPremiumFeeScheduleId(policyEntityId)];
-        uint256 policyFeeStrategyCount = feeSchedule.length;
+        // FeeReceiver[] memory feeSchedule = s.feeSchedules[LibEntity._getPremiumFeeScheduleId(policyEntityId)];
+        // uint256 policyFeeStrategyCount = feeSchedule.length;
 
-        for (uint256 i; i < policyFeeStrategyCount; ++i) {
-            fee = (_premiumPaid * feeSchedule[i].basisPoints) / LibConstants.BP_FACTOR;
-            calculatedFees_.totalBP += feeSchedule[i].basisPoints;
-            calculatedFees_.totalFees += fee;
+        // for (uint256 i; i < policyFeeStrategyCount; ++i) {
+        //     fee = (_premiumPaid * feeSchedule[i].basisPoints) / LibConstants.BP_FACTOR;
+        //     calculatedFees_.totalBP += feeSchedule[i].basisPoints;
+        //     calculatedFees_.totalFees += fee;
 
-            calculatedFees_.feeAllocations[premiumCommissionsIndex + i] = FeeAllocation({ receiver: feeSchedule[i].receiver, basisPoints: feeSchedule[i].basisPoints, fee: fee });
-        }
+        //     calculatedFees_.feeAllocations[premiumCommissionsIndex + i] = FeeAllocation({ receiver: feeSchedule[i].receiver, basisPoints: feeSchedule[i].basisPoints, fee: fee });
+        // }
     }
 
     function _payPremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal {
@@ -136,34 +136,34 @@ library LibFeeRouter {
         require(LibConstants.BP_FACTOR > makerBP, "maker commissions sum over 10000 bp");
     }
 
-    function _calculateTradingFees(
-        uint256 _feeSchedule,
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _buyAmount,
-        bool _takeExternalToken
-    ) internal view returns (CalculatedFees memory tc) {
+    function _calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) internal view returns (CalculatedFees memory tc) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        uint256 feeScheduleId = LibEntity._getTradingFeeScheduleId(_buyer);
         // Get the fee receivers for this _feeSchedule
-        FeeReceiver[] memory feeSchedules = s.feeSchedules[_feeSchedule];
+        FeeReceiver[] memory feeSchedules = s.feeSchedules[feeScheduleId];
 
+        uint256 receiverCount;
         // Calculate fees for the market maker
         if (s.tradingCommissionMakerBP > 0) {
-            uint256 fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
+            tc.feeAllocations[0].to = _buyer;
+            tc.feeAllocations[0].basisPoints = s.tradingCommissionMakerBP;
+            tc.feeAllocations[0].fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
 
-            tc.feeAllocations[0] = FeeAllocation({ receiver: _makerId, basisPoints: s.tradingCommissionMakerBP, fee: fee });
+            tc.totalFees += tc.feeAllocations[0].fee;
+            tc.totalBP += s.tradingCommissionMakerBP;
+
+            receiverCount++;
         }
 
         uint256 feeScheduleReceiversCount = feeSchedules.length;
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
-            tc.feeAllocations[feeScheduleReceiversCount + i].basisPoints = feeSchedules[i].basisPoints;
-            tc.feeAllocations[feeScheduleReceiversCount + i].fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
-            tc.totalFees += tc.feeAllocations[feeScheduleReceiversCount + i].fee;
-            tc.totalBP += feeSchedules[i].basisPoints;
+            tc.feeAllocations[receiverCount + i].to = feeSchedules[i].receiver;
+            tc.feeAllocations[receiverCount + i].basisPoints = feeSchedules[i].basisPoints;
+            tc.feeAllocations[receiverCount + i].fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
 
-            tc.feeAllocations[feeScheduleReceiversCount + i].receiver = feeSchedules[i].receiver;
+            tc.totalFees += tc.feeAllocations[receiverCount + i].fee;
+            tc.totalBP += feeSchedules[i].basisPoints;
         }
     }
 
@@ -201,5 +201,10 @@ library LibFeeRouter {
     function _getFeeSchedule(uint256 _feeScheduleId) internal view returns (FeeReceiver[] memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.feeSchedules[_feeScheduleId];
+    }
+
+    function _getMakerBP() internal view returns (uint16) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.tradingCommissionMakerBP;
     }
 }

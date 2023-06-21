@@ -77,12 +77,7 @@ interface IMarketFacet {
      * @dev Calculate the trading commissions based on a buy amount.
      * @param _buyAmount The amount that the commissions payments are calculated from.
      */
-    function calculateTradingFees(
-        uint256 _feeScheduleId,
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _buyAmount,
-        bool _takeExternalToken
-    ) external view returns (CalculatedFees memory tc);
+    function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory tc);
+
+    function calculateTrade(bytes32 _buyToken, bytes32 _sellToken, uint256 _buyAmount, uint256 _feeSchedule) external view returns (CalculatedFees memory tc);
 }
