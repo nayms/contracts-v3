@@ -2,7 +2,6 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage, SimplePolicy, CalculatedFees, FeeAllocation, FeeReceiver } from "../AppStorage.sol";
-import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
@@ -19,37 +18,43 @@ library LibFeeRouter {
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
     event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] feeReceivers);
 
-    function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal returns (CalculatedFees memory calculatedFees_) {
+    function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
-
-        bytes32 policyEntityId = LibObject._getParent(_policyId);
-
         uint256 commissionsCount = simplePolicy.commissionReceivers.length;
 
+        bytes32 policyEntityId = LibObject._getParent(_policyId);
+        FeeReceiver[] memory feeSchedule = s.feeSchedules[LibEntity._getPremiumFeeScheduleId(policyEntityId)];
+        uint256 feeScheduleReceiversCount = feeSchedule.length;
+
+        uint256 totalReceiverCount;
+        totalReceiverCount += feeScheduleReceiversCount + commissionsCount;
+
+        cf.feeAllocations = new FeeAllocation[](totalReceiverCount);
+
         uint256 fee;
-        uint256 premiumCommissionsIndex;
-        // for (uint256 i; i < commissionsCount; ++i) {
-        //     fee = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
-        //     calculatedFees_.totalBP += simplePolicy.commissionBasisPoints[i];
-        //     calculatedFees_.totalFees += fee;
+        for (uint256 i; i < commissionsCount; ++i) {
+            fee = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
 
-        //     calculatedFees_.feeAllocations[i] = FeeAllocation({ receiver: policyEntityId, basisPoints: simplePolicy.commissionBasisPoints[i], fee: fee });
+            cf.feeAllocations[i].to = simplePolicy.commissionReceivers[i];
+            cf.feeAllocations[i].basisPoints = simplePolicy.commissionBasisPoints[i];
+            cf.feeAllocations[i].fee = fee;
 
-        //     premiumCommissionsIndex++;
-        // }
+            cf.totalBP += simplePolicy.commissionBasisPoints[i];
+            cf.totalFees += fee;
+        }
 
-        // FeeReceiver[] memory feeSchedule = s.feeSchedules[LibEntity._getPremiumFeeScheduleId(policyEntityId)];
-        // uint256 policyFeeStrategyCount = feeSchedule.length;
+        for (uint256 i; i < feeScheduleReceiversCount; ++i) {
+            fee = (_premiumPaid * feeSchedule[i].basisPoints) / LibConstants.BP_FACTOR;
 
-        // for (uint256 i; i < policyFeeStrategyCount; ++i) {
-        //     fee = (_premiumPaid * feeSchedule[i].basisPoints) / LibConstants.BP_FACTOR;
-        //     calculatedFees_.totalBP += feeSchedule[i].basisPoints;
-        //     calculatedFees_.totalFees += fee;
+            cf.feeAllocations[i].to = feeSchedule[i].receiver;
+            cf.feeAllocations[i].basisPoints = feeSchedule[i].basisPoints;
+            cf.feeAllocations[i].fee = fee;
 
-        //     calculatedFees_.feeAllocations[premiumCommissionsIndex + i] = FeeAllocation({ receiver: feeSchedule[i].receiver, basisPoints: feeSchedule[i].basisPoints, fee: fee });
-        // }
+            cf.totalBP += feeSchedule[i].basisPoints;
+            cf.totalFees += fee;
+        }
     }
 
     function _payPremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal {

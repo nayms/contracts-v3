@@ -182,14 +182,67 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(cf.totalBP, totalBP, "total bp is incorrect");
     }
 
-    // function test_calculateTradingFees() public {
-    //     // CalculatedFees memory cf = nayms.calculateTradingFees();
+    // function test_calculateTrade() public {
     //     CalculatedFees memory cf = nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
 
     //     nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
 
     //     nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
     // }
+    function test_calculatePremiumFees_SingleReceiver() public {
+        bytes32 entityWithCustom = keccak256("entity with CUSTOM");
+        uint256 feeScheduleId = nayms.getPremiumFeeScheduleId(entityWithCustom);
+
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+
+        nayms.addFeeSchedule(uint256(entityWithCustom), feeReceivers);
+
+        uint256 _premiumPaid = 1e18;
+        CalculatedFees memory cf = nayms.calculatePremiumFees(entityWithCustom, _premiumPaid);
+
+        uint256 expectedValue = (_premiumPaid * feeReceivers[0].basisPoints) / LibConstants.BP_FACTOR;
+
+        assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
+        assertEq(cf.totalBP, feeReceivers[0].basisPoints, "total bp is incorrect");
+    }
+
+    function test_calculatePremiumFees_MultipleReceivers() public {
+        bytes32 entityWithCustom = keccak256("entity with CUSTOM");
+        uint256 startingFeeScheduleId = nayms.getPremiumFeeScheduleId(entityWithCustom);
+
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](3);
+
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 150 });
+        feeReceivers[1] = FeeReceiver({ receiver: NDF_IDENTIFIER, basisPoints: 75 });
+        feeReceivers[2] = FeeReceiver({ receiver: STM_IDENTIFIER, basisPoints: 75 });
+
+        nayms.addFeeSchedule(uint256(entityWithCustom), feeReceivers);
+
+        uint256 currentFeeScheduleId = nayms.getPremiumFeeScheduleId(entityWithCustom);
+
+        assertGt(currentFeeScheduleId, startingFeeScheduleId, "custom fee schedule ID should be greater than default fee schedule ID");
+
+        uint256 _premiumPaid = 1e18;
+        CalculatedFees memory cf = nayms.calculatePremiumFees(entityWithCustom, _premiumPaid);
+
+        uint256 expectedValue = (_premiumPaid * (feeReceivers[0].basisPoints + feeReceivers[1].basisPoints + feeReceivers[2].basisPoints)) / LibConstants.BP_FACTOR;
+
+        assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
+        assertEq(cf.totalBP, (feeReceivers[0].basisPoints + feeReceivers[1].basisPoints + feeReceivers[2].basisPoints), "total bp is incorrect");
+
+        // Update the same fee schedule: 3 receivers to 1 receiver
+        feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+
+        nayms.addFeeSchedule(uint256(entityWithCustom), feeReceivers);
+        cf = nayms.calculatePremiumFees(entityWithCustom, _premiumPaid);
+
+        expectedValue = (_premiumPaid * feeReceivers[0].basisPoints) / LibConstants.BP_FACTOR;
+
+        assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
+        assertEq(cf.totalBP, feeReceivers[0].basisPoints, "total bp is incorrect");
+    }
 
     function test_startTokenSale_FirstTokenSale() public {
         // acc1 is the par token seller
