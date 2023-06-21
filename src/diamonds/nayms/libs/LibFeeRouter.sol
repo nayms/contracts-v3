@@ -8,6 +8,7 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { PolicyCommissionsBasisPointsCannotBeGreaterThan10000 } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 import { LibEntity } from "./LibEntity.sol";
+import { console2 } from "forge-std/console2.sol";
 
 library LibFeeRouter {
     error FeeBasisPointsCannotBeGreaterThan5000(uint256 totalBp); // todo move
@@ -85,16 +86,16 @@ library LibFeeRouter {
         emit PremiumCommissionsPaid(_policyId, policyEntityId, totalFees);
     }
 
-    function _payTradingFees(
-        uint256 _feeSchedule,
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _buyAmount,
-        bool _takeExternalToken
-    ) internal returns (uint256 totalFees) {
+    event DebugPayTradingFees(bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _buyAmount);
+
+    event DebugTradingTransfer(bytes32 _from, bytes32 _to, bytes32 _tokenId, uint256 _amount);
+
+    event DebugBuyer(uint256 feeSchedule, bool _takeExternalToken, bytes32 buyer);
+
+    function _payTradingFees(uint256 _feeSchedule, bytes32 buyer, bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _buyAmount) internal returns (uint256 totalFees) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        emit DebugPayTradingFees(_makerId, _takerId, _tokenId, _buyAmount);
         // Get the fee receivers for this _feeSchedule
         FeeReceiver[] memory feeSchedules = s.feeSchedules[_feeSchedule];
 
@@ -104,14 +105,6 @@ library LibFeeRouter {
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
 
             emit TradingFeesPaid(_takerId, _makerId, _tokenId, fee);
-        }
-
-        bytes32 buyer; // The entity that is buying par tokens and the one paying commissions if INITIAL_OFFER
-        // bytes32 seller; // The entity that is selling par tokens and the one receiving commissions if INITIAL_OFFER
-        if (_feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER && !_takeExternalToken) {
-            buyer = _takerId;
-        } else {
-            buyer = _makerId;
         }
 
         uint256 takerBP;
@@ -143,6 +136,16 @@ library LibFeeRouter {
         // Get the fee receivers for this _feeSchedule
         FeeReceiver[] memory feeSchedules = s.feeSchedules[feeScheduleId];
 
+        uint256 totalReceiverCount;
+        if (s.tradingCommissionMakerBP > 0) {
+            totalReceiverCount++;
+        }
+
+        uint256 feeScheduleReceiversCount = feeSchedules.length;
+        totalReceiverCount += feeScheduleReceiversCount;
+
+        tc.feeAllocations = new FeeAllocation[](totalReceiverCount);
+
         uint256 receiverCount;
         // Calculate fees for the market maker
         if (s.tradingCommissionMakerBP > 0) {
@@ -156,7 +159,6 @@ library LibFeeRouter {
             receiverCount++;
         }
 
-        uint256 feeScheduleReceiversCount = feeSchedules.length;
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
             tc.feeAllocations[receiverCount + i].to = feeSchedules[i].receiver;
             tc.feeAllocations[receiverCount + i].basisPoints = feeSchedules[i].basisPoints;

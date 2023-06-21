@@ -200,7 +200,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
 
-        // init and fund taker entity todo
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         changePrank(signer2);
@@ -242,17 +241,21 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
 
         // test commission payed by taker on "secondary market"
-        uint256 e2WethBeforeTrade = nayms.internalBalanceOf(entity2, wethId);
-        uint256 e3WethBeforeTrade = nayms.internalBalanceOf(entity3, wethId);
+        uint256 e2WethBeforeTrade = nayms.internalBalanceOf(entity2, wethId); // 9.7e20
+        uint256 e3WethBeforeTrade = nayms.internalBalanceOf(entity3, wethId); // 3e21
 
         changePrank(signer2);
-        nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1MintAndSaleAmt);
+        nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1MintAndSaleAmt); // 1e21
 
         changePrank(signer3);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         assertEq(nayms.internalBalanceOf(entity2, wethId), e2WethBeforeTrade + dt.entity1MintAndSaleAmt, "Maker pays no commissions, on secondary market");
-        assertEq(nayms.internalBalanceOf(entity3, wethId), e3WethBeforeTrade - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions, on secondary market");
+        assertEq(
+            nayms.internalBalanceOf(entity3, wethId),
+            e3WethBeforeTrade - dt.entity1MintAndSaleAmt - nayms.calculateTradingFees(entity3, dt.entity1MintAndSaleAmt).totalFees,
+            "Taker should pay commissions, on secondary market"
+        );
     }
 
     function testMatchMakerPriceWithTakerBuyAmount() public {

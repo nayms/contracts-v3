@@ -113,4 +113,8 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     function calculateTrade(bytes32 _buyToken, bytes32 _sellToken, uint256 _buyAmount, uint256 _feeSchedule) external view returns (CalculatedFees memory tc) {
         tc = LibMarket._calculateTrade(_buyToken, _sellToken, _buyAmount, _feeSchedule);
     }
+
+    function getMakerBP() external view returns (uint16) {
+        return LibFeeRouter._getMakerBP();
+    }
 }

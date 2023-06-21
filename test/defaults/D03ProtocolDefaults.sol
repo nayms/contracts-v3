@@ -36,6 +36,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
 
+    // 0x4e61796d73204c74640000000000000000000000000000000000000000000000
     bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
     bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
     bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER);
@@ -85,14 +86,14 @@ contract D03ProtocolDefaults is D02TestSetup {
         FeeReceiver[] memory feeReceivers = new FeeReceiver[](1);
         feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
 
-        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
 
         // For Marketplace
         feeReceivers = new FeeReceiver[](1);
         feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 30 });
 
+        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT, feeReceivers);
         nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
-        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
 
         // Add helper functions
         IDiamondCut.FacetCut[] memory _cut = new IDiamondCut.FacetCut[](1);

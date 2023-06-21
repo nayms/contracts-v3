@@ -798,7 +798,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 15_000);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 85_000);
 
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 0);
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), 0, "eBob's nWETH balance should be 0");
 
         changePrank(systemAdmin);
         nayms.internalBurn(eBob, eAlice, 3_000);

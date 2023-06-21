@@ -253,6 +253,9 @@ library LibMarket {
         return lastOfferId;
     }
 
+    event DebugTakeOffer(uint256 _offerId, bytes32 _takerId, bytes32 creator, bytes32 sellToken, bytes32 buyToken, uint256 feeSchedule);
+    event DebugBuyer(uint256 feeSchedule, bool _takeExternalToken, bytes32 buyer);
+
     function _takeOffer(
         uint256 _feeSchedule,
         uint256 _offerId,
@@ -275,13 +278,26 @@ library LibMarket {
             } else {
                 feeSchedule = s.offers[_offerId].feeSchedule;
             }
+
+            bytes32 buyer;
+            if (feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER && s.offers[_offerId].creator != s.offers[_offerId].sellToken) {
+                buyer = s.offers[_offerId].creator;
+            } else {
+                buyer = _takerId;
+            }
+            emit DebugBuyer(feeSchedule, _takeExternalToken, buyer);
+
+            emit DebugTakeOffer(_offerId, _takerId, s.offers[_offerId].creator, s.offers[_offerId].sellToken, s.offers[_offerId].buyToken, feeSchedule);
+
             // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
                 // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount, _takeExternalToken);
+                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+                // commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount, _takeExternalToken);
             } else {
                 // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount, _takeExternalToken);
+                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
+                // commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount, _takeExternalToken);
             }
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 
@@ -336,15 +352,15 @@ library LibMarket {
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= marketInfo.sellAmount;
         }
 
-        /// @dev Burn the par tokens if this was an initial token sale (selling par tokens through startTokenSale())
-        if (marketInfo.feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
-            LibTokenizedVault._internalBurn(s.offers[_offerId].sellToken, s.offers[_offerId].sellToken, marketInfo.sellAmount);
-        }
-
         // don't emit event stating market order is cancelled if the market order was executed and fulfilled
         if (marketInfo.state != LibConstants.OFFER_STATE_FULFILLED) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_CANCELLED;
             emit OrderCancelled(_offerId, marketInfo.creator, marketInfo.sellToken);
+        }
+
+        /// @dev Burn the par tokens if this was an initial token sale (selling par tokens through startTokenSale())
+        if (marketInfo.feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
+            LibTokenizedVault._internalBurn(s.offers[_offerId].sellToken, s.offers[_offerId].sellToken, marketInfo.sellAmount);
         }
     }
 

@@ -110,6 +110,24 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(feeScheduleId, uint256(entityWithCustom) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES, "custom market fee schedule id is incorrect");
     }
 
+    function test_calculateTradingFees() public {
+        bytes32 entityWithCustom = keccak256("entity with CUSTOM");
+        uint256 feeScheduleId = nayms.getTradingFeeScheduleId(entityWithCustom);
+
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+
+        nayms.addFeeSchedule(uint256(entityWithCustom) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES, feeReceivers);
+
+        uint256 _buyAmount = 1e18;
+        CalculatedFees memory cf = nayms.calculateTradingFees(entityWithCustom, _buyAmount);
+
+        uint256 expectedValue = (_buyAmount * feeReceivers[0].basisPoints) / LibConstants.BP_FACTOR;
+
+        assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
+        assertEq(cf.totalBP, feeReceivers[0].basisPoints, "total bp is incorrect");
+    }
+
     // function test_calculateTradingFees() public {
     //     // CalculatedFees memory cf = nayms.calculateTradingFees();
     //     CalculatedFees memory cf = nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
