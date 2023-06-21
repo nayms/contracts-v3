@@ -192,8 +192,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         FeeReceiver[] memory feeReceivers = new FeeReceiver[](3);
 
-        // 1 bp == 0.01% when 10k
-        // 1 bp == 0.001% when 100k
         feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 150 }); // 0.15%
         feeReceivers[1] = FeeReceiver({ receiver: NDF_IDENTIFIER, basisPoints: 75 }); // 0.075%
         feeReceivers[2] = FeeReceiver({ receiver: STM_IDENTIFIER, basisPoints: 75 }); // 0.075%
@@ -386,18 +384,17 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             // buy x nENTITY1 for y WETH
 
             nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
-            vm.stopPrank();
 
-            // taker needs balance for trading commissions
-            // todo double check this
-            uint256 e1Balance = ((salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR) - salePrice;
-            vm.startPrank(signer1);
-            writeTokenBalance(signer1, naymsAddress, wethAddress, e1Balance);
-            nayms.externalDeposit(wethAddress, e1Balance);
+            // the BUYER of the first time par tokens needs balance for trading fees
+            uint256 feeAmount = ((salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR) - salePrice;
+            writeTokenBalance(signer2, naymsAddress, wethAddress, feeAmount);
+            nayms.externalDeposit(wethAddress, feeAmount);
 
-            assertEq(nayms.internalBalanceOf(entity1, LibHelpers._getIdForAddress(wethAddress)), e1Balance, "Entity1: invalid balance");
+            assertEq(nayms.internalBalanceOf(entity2, LibHelpers._getIdForAddress(wethAddress)), salePrice + feeAmount, "Entity2: invalid balance");
 
-            changePrank(systemAdmin); // prob need to be system admin
+            changePrank(systemAdmin);
+            // note: entity2 pays for the trading fees since this is a first time par token sale by entity1,
+
             // sell x nENTITY1 for y WETH
             nayms.startTokenSale(entity1, saleAmount, salePrice);
 
