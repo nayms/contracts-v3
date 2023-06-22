@@ -3,12 +3,10 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
-import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
-import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "forge-std/Test.sol";
+import { StdStorage, stdStorage } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
@@ -45,13 +45,6 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         }
 
         nayms.facetAddresses();
-    }
-
-    function testFork() public {
-        string memory mainnetUrl = vm.rpcUrl("mainnet");
-        string memory goerliUrl = vm.rpcUrl("goerli");
-        uint256 mainnetFork = vm.createSelectFork(mainnetUrl, MAINNET_FORK_BLOCK_NUMBER);
-        uint256 goerliFork = vm.createSelectFork(goerliUrl, GOERLI_FORK_BLOCK_NUMBER);
     }
 
     function testInitDiamond() public {

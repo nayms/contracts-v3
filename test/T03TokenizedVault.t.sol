@@ -2,17 +2,14 @@
 pragma solidity 0.8.17;
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, CalculatedFees } from "src/diamonds/nayms/AppStorage.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
-import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
 // solhint-disable max-states-count
 // solhint-disable no-console
 contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
-    using FixedPointMathLib for uint256;
-
     bytes32 internal nWETH;
     bytes32 internal nWBTC;
     bytes32 internal dividendBankId;

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { INayms } from "src/diamonds/nayms/INayms.sol";
 import { Entity } from "src/diamonds/nayms/AppStorage.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 

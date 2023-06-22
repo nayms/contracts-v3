@@ -9,17 +9,13 @@ import "./D00GlobalDefaults.sol";
 import { InitDiamond } from "src/diamonds/nayms/InitDiamond.sol";
 import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { Nayms } from "src/diamonds/nayms/Nayms.sol";
-import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
-import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
-import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
-import { LibSimplePolicy } from "src/diamonds/nayms/libs/LibSimplePolicy.sol";
 
 import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
 
 // import { DSILib } from "../utils/DSILib.sol";
 
-// import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
+// import {DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform

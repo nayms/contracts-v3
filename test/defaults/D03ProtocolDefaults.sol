@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
+import { D02TestSetup, LibHelpers, console2 } from "./D02TestSetup.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
+
+import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
 
 // solhint-disable no-console
 /// @notice Default test setup part 03

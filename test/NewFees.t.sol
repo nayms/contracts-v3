@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, SimplePolicy, Stakeholders, MarketInfo, FeeReceiver, FeeAllocation, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
+import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { Entity, FeeReceiver, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 
 contract NewFeesTest is D03ProtocolDefaults {
     Entity entityInfo;
