@@ -7,8 +7,6 @@ import { Vm } from "forge-std/Vm.sol";
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
 import { Entity, MarketInfo, FeeReceiver, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-import { IERC20 } from "src/erc20/IERC20.sol";
 
 /* 
     Terminology:
@@ -327,7 +325,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(wethAddress, salePrice);
         } else {
-            // todo double check this
             uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity2, 0).totalBP)) / LibConstants.BP_FACTOR;
 
             changePrank(signer2);
@@ -491,10 +488,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, 1_000 ether);
 
         vm.expectRevert("sell amount exceeds uint128 limit");
-        nayms.executeLimitOffer(wethId, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt);
+        nayms.executeLimitOffer(wethId, 2 ** 128 + 1000, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("buy amount exceeds uint128 limit");
-        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000);
+        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, 2 ** 128 + 1000);
 
         vm.expectRevert("sell amount must be >0");
         nayms.executeLimitOffer(wethId, 0, entity1, dt.entity1MintAndSaleAmt);
@@ -616,14 +613,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getBestOfferId(wethId, entity1), 0, "invalid best offer ID");
     }
 
-    function assertOfferFilled(
-        uint256 offerId,
-        bytes32 creator,
-        bytes32 sellToken,
-        uint256 initSellAmount,
-        bytes32 buyToken,
-        uint256 initBuyAmount
-    ) private {
+    function assertOfferFilled(uint256 offerId, bytes32 creator, bytes32 sellToken, uint256 initSellAmount, bytes32 buyToken, uint256 initBuyAmount) private {
         MarketInfo memory offer = nayms.getOffer(offerId);
         assertEq(offer.creator, creator, "offer creator invalid");
         assertEq(offer.sellToken, sellToken, "invalid sell token");
@@ -655,46 +645,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
         assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "invalid state");
     }
-
-    // todo
-    // function testLibFeeRouter() public {
-    //     // Deploy the LibFeeRouterFixture
-    //     LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
-    //     IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-    //     bytes4[] memory functionSelectors = new bytes4[](4);
-    //     functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
-    //     functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
-    //     functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
-    //     functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
-
-    //     // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
-    //     cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
-
-    //     scheduleAndUpgradeDiamond(cut);
-
-    //     (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.calculateTradingCommissionsFixture.selector, 10_000));
-
-    //     TradingCommissions memory tc = nayms.calculateTradingFees(10_000);
-
-    //     testStartTokenSale();
-    //     bytes32 makerId = account0Id;
-    //     bytes32 takerId = entity1;
-    //     bytes32 tokenId = wethId;
-    //     uint256 requestedBuyAmount = 10_000;
-
-    //     (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payTradingCommissions.selector, makerId, takerId, tokenId, requestedBuyAmount));
-    //     assertTrue(success);
-
-    //     bytes32 naymsLtdId = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
-    //     bytes32 ndfId = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
-    //     bytes32 stakingId = LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER);
-
-    //     assertEq(nayms.internalBalanceOf(naymsLtdId, wethId), tc.commissionNaymsLtd, "balance of naymsLtd should have INCREASED (trading commissions)");
-    //     assertEq(nayms.internalBalanceOf(ndfId, wethId), tc.commissionNDF, "balance of ndfId should have INCREASED (trading commissions)");
-    //     assertEq(nayms.internalBalanceOf(stakingId, wethId), tc.commissionSTM, "balance of stakingId should have INCREASED (trading commissions)");
-
-    //     (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector));
-    // }
 
     function testQSP2() public {
         // maker:   sell 2 WETH    buy 2 pToken   => price = 1    ETH/pToken
@@ -749,7 +699,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
-        // todo double check
         uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR;
 
         changePrank(signer2);
