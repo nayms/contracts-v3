@@ -34,7 +34,11 @@ library LibEntity {
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
 
-    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy memory simplePolicy, Stakeholders calldata _stakeholders) internal view {
+    function _validateSimplePolicyCreation(
+        bytes32 _entityId,
+        SimplePolicy memory simplePolicy,
+        Stakeholders calldata _stakeholders
+    ) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
@@ -191,7 +195,11 @@ library LibEntity {
 
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
-    function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
+    function _startTokenSale(
+        bytes32 _entityId,
+        uint256 _amount,
+        uint256 _totalPrice
+    ) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
@@ -215,7 +223,12 @@ library LibEntity {
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
-    function _createEntity(bytes32 _entityId, bytes32 _entityAdmin, Entity calldata _entity, bytes32 _dataHash) internal {
+    function _createEntity(
+        bytes32 _entityId,
+        bytes32 _entityAdmin,
+        Entity calldata _entity,
+        bytes32 _dataHash
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.existingEntities[_entityId]) {

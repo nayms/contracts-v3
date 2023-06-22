@@ -130,7 +130,14 @@ library LibFeeRouter {
         }
     }
 
-    function _payTradingFees(uint256 _feeSchedule, bytes32 buyer, bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _buyAmount) internal returns (uint256 totalFees) {
+    function _payTradingFees(
+        uint256 _feeSchedule,
+        bytes32 buyer,
+        bytes32 _makerId,
+        bytes32 _takerId,
+        bytes32 _tokenId,
+        uint256 _buyAmount
+    ) internal returns (uint256 totalFees) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Get the fee receivers for this _feeSchedule

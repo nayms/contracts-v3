@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, MarketInfo, FeeReceiver, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, FeeReceiver, SimplePolicy, Stakeholders, CalculatedFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 /* 
     Terminology:
@@ -244,6 +244,31 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             e3WethBeforeTrade - dt.entity1MintAndSaleAmt - nayms.calculateTradingFees(entity3, dt.entity1MintAndSaleAmt).totalFees,
             "Taker should pay commissions, on secondary market"
         );
+
+        // Use a custom fee schedule for entity3 (taker)
+        feeReceivers[0] = FeeReceiver({ receiver: keccak256("RANDOM FEE RECEIVER"), basisPoints: 150 });
+        feeReceivers[1] = FeeReceiver({ receiver: keccak256("RANDOM FEE RECEIVER 2"), basisPoints: 75 });
+        feeReceivers[2] = FeeReceiver({ receiver: keccak256("RANDOM FEE RECEIVER 3"), basisPoints: 75 });
+
+        changePrank(systemAdmin);
+        nayms.addFeeSchedule(uint256(entity2) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES, feeReceivers);
+
+        // Signer3 place an order with to sell the par tokens purchased from signer1
+        changePrank(signer3);
+        nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1MintAndSaleAmt);
+
+        changePrank(signer2);
+        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
+
+        CalculatedFees memory cf = nayms.calculateTradingFees(entity2, dt.entity1MintAndSaleAmt);
+
+        for (uint256 i; i < cf.feeAllocations.length; ++i) {
+            assertEq(
+                nayms.internalBalanceOf(cf.feeAllocations[i].to, wethId),
+                cf.feeAllocations[i].fee,
+                string.concat(vm.toString(cf.feeAllocations[i].to), " balance should have INCREASED (trading fees)")
+            );
+        }
     }
 
     function testMatchMakerPriceWithTakerBuyAmount() public {
@@ -480,10 +505,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, 1_000 ether);
 
         vm.expectRevert("sell amount exceeds uint128 limit");
-        nayms.executeLimitOffer(wethId, 2 ** 128 + 1000, entity1, dt.entity1MintAndSaleAmt);
+        nayms.executeLimitOffer(wethId, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("buy amount exceeds uint128 limit");
-        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, 2 ** 128 + 1000);
+        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000);
 
         vm.expectRevert("sell amount must be >0");
         nayms.executeLimitOffer(wethId, 0, entity1, dt.entity1MintAndSaleAmt);
@@ -605,7 +630,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getBestOfferId(wethId, entity1), 0, "invalid best offer ID");
     }
 
-    function assertOfferFilled(uint256 offerId, bytes32 creator, bytes32 sellToken, uint256 initSellAmount, bytes32 buyToken, uint256 initBuyAmount) private {
+    function assertOfferFilled(
+        uint256 offerId,
+        bytes32 creator,
+        bytes32 sellToken,
+        uint256 initSellAmount,
+        bytes32 buyToken,
+        uint256 initBuyAmount
+    ) private {
         MarketInfo memory offer = nayms.getOffer(offerId);
         assertEq(offer.creator, creator, "offer creator invalid");
         assertEq(offer.sellToken, sellToken, "invalid sell token");
