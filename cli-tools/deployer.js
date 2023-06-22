@@ -5,15 +5,18 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-if (process.argv.length != 4 && process.argv.length != 5) {
+if (process.argv.length <= 3) {
     console.error(chalk.red(`Must provide deployment operation and target network!`));
     process.exit(1);
 }
 
-const [operation, networkId, fork] = process.argv.slice(2);
+const [operation, networkId, ...otherArgs] = process.argv.slice(2);
+
+const fork = otherArgs.includes("--fork");
+const dryRun = otherArgs.includes("--dry-run");
 
 const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RPC_URL`];
-const mnemonic = fs.readFileSync("nayms_mnemonic.txt").toString();
+const mnemonic = networkId === "1" ? fs.readFileSync("nayms_mnemonic.txt").toString() : fs.readFileSync("nayms_mnemonic_mainnet.txt").toString();
 
 const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address;
 const systemAdminAddress =
@@ -202,11 +205,13 @@ function diamondCut(config) {
 }
 
 function execute(cmd) {
-    const { execSync } = require("child_process");
     console.log(cmd);
 
-    const result = execSync(cmd).toString();
-    console.log("\n\n ------------------ \n\n", result);
+    if (!dryRun) {
+        const { execSync } = require("child_process");
 
-    return result;
+        const result = execSync(cmd).toString();
+        console.log("\n\n ------------------ \n\n", result);
+        return result;
+    }
 }
