@@ -1,48 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "forge-std/Test.sol";
 import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, SimplePolicy, Stakeholders, MarketInfo, FeeReceiver, FeeAllocation, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 
-// import { DSILib } from "./utils/DSILib.sol";
-
-// todo test when the CR is changed for an entity
-
-import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
-
-// contract Getters {
-//     function getFirstLockedAmount(bytes32 id, bytes32 tokenId) public view returns (uint256) {
-//         AppStorage storage s = LibAppStorage.diamondStorage();
-//         FirstSaleAmount lockedFirstBalance = s.lockedFirstBalances[id][tokenId];
-
-//         return abi.decode(abi.encodePacked(lockedFirstBalance), (uint256));
-//     }
-// }
-
 contract NewFeesTest is D03ProtocolDefaults {
-    using stdStorage for StdStorage;
-    // using DSILib for address;
     Entity entityInfo;
 
     NaymsAccount acc1 = makeNaymsAcc("acc1");
     NaymsAccount acc2 = makeNaymsAcc("acc2");
+    NaymsAccount acc3 = makeNaymsAcc("acc3");
 
     function setUp() public virtual override {
         super.setUp();
 
         entityInfo = Entity({ assetId: wethId, collateralRatio: LibConstants.BP_FACTOR, maxCapacity: 1 ether, utilizedCapacity: 0, simplePolicyEnabled: true });
 
-        // IDiamondCut.FacetCut[] memory _cut = new IDiamondCut.FacetCut[](1);
-        // bytes4[] memory selectors = new bytes4[](1);
-        // selectors[0] = Getters.getFirstLockedAmount.selector;
-        // _cut[0] = IDiamondCut.FacetCut({ facetAddress: address(new Getters()), action: IDiamondCut.FacetCutAction.Add, functionSelectors: selectors });
-        // scheduleAndUpgradeDiamond(_cut);
-
         changePrank(systemAdmin);
         nayms.createEntity(acc1.entityId, acc1.id, entityInfo, "entity test hash");
         nayms.createEntity(acc2.entityId, acc2.id, entityInfo, "entity test hash");
+        nayms.createEntity(acc3.entityId, acc3.id, entityInfo, "entity test hash");
         nayms.enableEntityTokenization(acc1.entityId, "ESPT", "Entity Selling Par Tokens");
     }
 
@@ -119,6 +96,8 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         nayms.addFeeSchedule(uint256(entityWithCustom) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES, feeReceivers);
 
+        assertGt(nayms.getTradingFeeScheduleId(entityWithCustom), feeScheduleId, "custom fee schedule ID should be greater than default fee schedule ID");
+
         uint256 _buyAmount = 1e18;
         CalculatedFees memory cf = nayms.calculateTradingFees(entityWithCustom, _buyAmount);
 
@@ -182,13 +161,6 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(cf.totalBP, totalBP, "total bp is incorrect");
     }
 
-    // function test_calculateTrade() public {
-    //     CalculatedFees memory cf = nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
-
-    //     nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
-
-    //     nayms.calculateTrade(acc1.entityId, wethId, 1 ether, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
-    // }
     function test_calculatePremiumFees_SingleReceiver() public {
         bytes32 entityWithCustom = keccak256("entity with CUSTOM");
         uint256 feeScheduleId = nayms.getPremiumFeeScheduleId(entityWithCustom);
@@ -197,6 +169,8 @@ contract NewFeesTest is D03ProtocolDefaults {
         feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
 
         nayms.addFeeSchedule(uint256(entityWithCustom), feeReceivers);
+
+        assertGt(feeScheduleId, nayms.getTradingFeeScheduleId(entityWithCustom), "custom fee schedule ID should be greater than default fee schedule ID");
 
         uint256 _premiumPaid = 1e18;
         CalculatedFees memory cf = nayms.calculatePremiumFees(entityWithCustom, _premiumPaid);
@@ -297,22 +271,32 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
     }
 
-    function test_startTokenSale_LockedBalancesAfterUpdatingCollateralRatio() public {
-        nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
-
-        deal(address(weth), acc2.addr, 1 ether);
+    function test_startTokenSale_StartingWithMultipleExecuteLimitOffers() public {
+        CalculatedFees memory cf = nayms.calculateTradingFees(acc2.entityId, 2 ether);
+        deal(address(weth), acc2.addr, 2 ether + cf.totalFees);
         changePrank(acc2.addr);
-        weth.approve(address(nayms), 1 ether);
-        nayms.externalDeposit(address(weth), 1 ether);
+        weth.approve(address(nayms), 2 ether + cf.totalFees);
+        nayms.externalDeposit(address(weth), 2 ether + cf.totalFees);
+
+        nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
         nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
 
-        Entity memory entityInfo = nayms.getEntityInfo(acc1.entityId);
-        entityInfo.collateralRatio = LibConstants.BP_FACTOR / 2; // Can
         changePrank(systemAdmin);
-        nayms.updateEntity(acc1.entityId, entityInfo);
+        nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
+        changePrank(acc2.addr);
+        nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
 
-        nayms.getLockedBalance(acc1.entityId, acc1.entityId);
+        changePrank(systemAdmin);
+        nayms.assignRole(acc3.id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+
+        // Switch up who starts the token sale
+        changePrank(acc3.addr);
+        nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
+
+        changePrank(acc2.addr);
+        nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
+
+        assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), 2 ether, "acc2 should have all of the 2e18 par tokens");
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 0, "acc2 should have spent all their weth");
     }
-
-    function test_startTokenSale_TwoFirstTokenSales() public {}
 }

@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { MarketInfo, TokenAmount, FeeReceiver, FeeAllocation, CalculatedFees } from "../AppStorage.sol";
+import { MarketInfo, TokenAmount, FeeReceiver, CalculatedFees } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -253,9 +253,6 @@ library LibMarket {
         return lastOfferId;
     }
 
-    event DebugTakeOffer(uint256 _offerId, bytes32 _takerId, bytes32 creator, bytes32 sellToken, bytes32 buyToken, uint256 feeSchedule);
-    event DebugBuyer(uint256 feeSchedule, bool _takeExternalToken, bytes32 buyer);
-
     function _takeOffer(
         uint256 _feeSchedule,
         uint256 _offerId,
@@ -285,19 +282,14 @@ library LibMarket {
             } else {
                 buyer = _takerId;
             }
-            emit DebugBuyer(feeSchedule, _takeExternalToken, buyer);
-
-            emit DebugTakeOffer(_offerId, _takerId, s.offers[_offerId].creator, s.offers[_offerId].sellToken, s.offers[_offerId].buyToken, feeSchedule);
 
             // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
                 // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
                 commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
-                // commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount, _takeExternalToken);
             } else {
                 // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
                 commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
-                // commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount, _takeExternalToken);
             }
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 
@@ -322,11 +314,7 @@ library LibMarket {
         );
     }
 
-    function _checkBoundsAndUpdateBalances(
-        uint256 _offerId,
-        uint256 _sellAmount,
-        uint256 _buyAmount
-    ) internal {
+    function _checkBoundsAndUpdateBalances(uint256 _offerId, uint256 _sellAmount, uint256 _buyAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
@@ -375,14 +363,7 @@ library LibMarket {
         require(_buyAmount > 0, "buy amount must be >0");
     }
 
-    function _assertValidOffer(
-        bytes32 _entityId,
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
-    ) internal view {
+    function _assertValidOffer(bytes32 _entityId, bytes32 _sellToken, uint256 _sellAmount, bytes32 _buyToken, uint256 _buyAmount, uint256 _feeSchedule) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // A valid offer can only be made by an existing entity.
@@ -439,14 +420,7 @@ library LibMarket {
         bytes32 _buyToken,
         uint256 _buyAmount,
         uint256 _feeSchedule
-    )
-        internal
-        returns (
-            uint256 offerId_,
-            uint256 buyTokenCommissionsPaid_,
-            uint256 sellTokenCommissionsPaid_
-        )
-    {
+    ) internal returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
         MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
@@ -478,12 +452,7 @@ library LibMarket {
         return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
     }
 
-    function _calculateTrade(
-        bytes32 _buyToken,
-        bytes32 _sellToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
-    ) internal view returns (CalculatedFees memory tc) {
+    function _calculateTrade(bytes32 _buyToken, bytes32 _sellToken, uint256 _buyAmount, uint256 _feeSchedule) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         // assume caller is buyer todo
         bytes32 _takerId = LibHelpers._getIdForAddress(address(msg.sender));
@@ -527,12 +496,12 @@ library LibMarket {
                     currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
-                    tc = _takeOfferSim(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    cf = _takeOfferSim(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     // result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-                    tc = _takeOfferSim(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    cf = _takeOfferSim(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     // result.sellTokenCommissionsPaid += commissionsPaid;
                 }
                 // calculate how much is left to buy/sell
@@ -549,7 +518,7 @@ library LibMarket {
         uint256 _buyAmount,
         uint256 _sellAmount,
         bool _takeExternalToken
-    ) internal view returns (CalculatedFees memory tc) {
+    ) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // check bounds and update balances
@@ -569,10 +538,10 @@ library LibMarket {
             // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
                 // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-                tc = _payTradingFees(feeSchedule, marketOffer.creator, _takerId, marketOffer.sellToken, _buyAmount, _takeExternalToken);
+                cf = _payTradingFees(feeSchedule, marketOffer.creator, _takerId, marketOffer.sellToken, _buyAmount, _takeExternalToken);
             } else {
                 // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-                tc = _payTradingFees(feeSchedule, marketOffer.creator, _takerId, marketOffer.buyToken, _sellAmount, _takeExternalToken);
+                cf = _payTradingFees(feeSchedule, marketOffer.creator, _takerId, marketOffer.buyToken, _sellAmount, _takeExternalToken);
             }
         }
 
@@ -587,7 +556,7 @@ library LibMarket {
         bytes32 _tokenId,
         uint256 _buyAmount,
         bool _takeExternalToken
-    ) internal view returns (CalculatedFees memory tc) {
+    ) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Get the fee receivers for this _feeSchedule
@@ -597,14 +566,14 @@ library LibMarket {
         // Calculate fees for the market maker
         if (s.tradingCommissionMakerBP > 0) {
             countFeeReceivers++;
-            tc.feeAllocations[0].from = _takerId;
-            tc.feeAllocations[0].to = _makerId;
-            tc.feeAllocations[0].token = _tokenId;
-            tc.feeAllocations[0].basisPoints = s.tradingCommissionMakerBP;
-            tc.feeAllocations[0].fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
+            cf.feeAllocations[0].from = _takerId;
+            cf.feeAllocations[0].to = _makerId;
+            cf.feeAllocations[0].token = _tokenId;
+            cf.feeAllocations[0].basisPoints = s.tradingCommissionMakerBP;
+            cf.feeAllocations[0].fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
 
-            tc.totalFees += tc.feeAllocations[0].fee;
-            tc.totalBP += s.tradingCommissionMakerBP;
+            cf.totalFees += cf.feeAllocations[0].fee;
+            cf.totalBP += s.tradingCommissionMakerBP;
         }
 
         bytes32 buyer; // The entity that is buying par tokens and the one paying commissions if INITIAL_OFFER
@@ -617,14 +586,14 @@ library LibMarket {
 
         uint256 feeScheduleReceiversCount = feeSchedules.length;
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
-            tc.feeAllocations[countFeeReceivers + i].from = buyer;
-            tc.feeAllocations[countFeeReceivers + i].to = feeSchedules[i].receiver;
-            tc.feeAllocations[countFeeReceivers + i].token = _tokenId;
-            tc.feeAllocations[countFeeReceivers + i].basisPoints = feeSchedules[i].basisPoints;
-            tc.feeAllocations[countFeeReceivers + i].fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
+            cf.feeAllocations[countFeeReceivers + i].from = buyer;
+            cf.feeAllocations[countFeeReceivers + i].to = feeSchedules[i].receiver;
+            cf.feeAllocations[countFeeReceivers + i].token = _tokenId;
+            cf.feeAllocations[countFeeReceivers + i].basisPoints = feeSchedules[i].basisPoints;
+            cf.feeAllocations[countFeeReceivers + i].fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
 
-            tc.totalFees += tc.feeAllocations[countFeeReceivers + i].fee;
-            tc.totalBP += feeSchedules[i].basisPoints;
+            cf.totalFees += cf.feeAllocations[countFeeReceivers + i].fee;
+            cf.totalBP += feeSchedules[i].basisPoints;
         }
     }
 }

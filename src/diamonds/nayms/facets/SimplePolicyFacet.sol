@@ -63,10 +63,6 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
             });
     }
 
-    // function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory bp) {
-    //     bp = LibFeeRouter._getPremiumCommissionBasisPoints();
-    // }
-
     /**
      * @dev Check and update simple policy state
      * @param _policyId Id of the simple policy
@@ -102,7 +98,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         signingHash_ = LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
     }
 
-    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedFees memory calculatedFees_) {
-        calculatedFees_ = LibFeeRouter._calculatePremiumFees(_policyId, _premiumPaid);
+    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedFees memory cf) {
+        cf = LibFeeRouter._calculatePremiumFees(_policyId, _premiumPaid);
     }
 }

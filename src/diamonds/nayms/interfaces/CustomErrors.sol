@@ -42,6 +42,12 @@ error PolicyIdCannotBeZero();
 /// @dev Policy commissions among commission receivers cannot sum to be greater than 10_000 basis points.
 error PolicyCommissionsBasisPointsCannotBeGreaterThan10000(uint256 calculatedTotalBp);
 
+error FeeBasisPointsExceedHalfMax(uint256 actual, uint256 expected);
+error FeeBasisPointsExceedMax(uint256 actual, uint256 expected);
+
+error TakerFeeBasisPointsExceedMax(uint256 actual, uint256 expected);
+error MakerFeeBasisPointsExceedMax(uint256 actual, uint256 expected);
+
 /// @dev When validating an entity, the utilized capacity cannot be greater than the max capacity.
 error UtilizedCapacityGreaterThanMaxCapacity(uint256 utilizedCapacity, uint256 maxCapacity);
 
