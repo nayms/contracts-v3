@@ -85,12 +85,5 @@ interface IMarketFacet {
      */
     function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory cf);
 
-    function calculateTrade(
-        bytes32 _buyToken,
-        bytes32 _sellToken,
-        uint256 _buyAmount,
-        uint256 _feeSchedule
-    ) external view returns (CalculatedFees memory cf);
-
     function getMakerBP() external view returns (uint16);
 }
