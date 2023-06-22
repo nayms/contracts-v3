@@ -172,7 +172,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         cf = nayms.calculateTradingFees(entityWithCustom, _buyAmount);
 
         uint256 totalBP;
-        for (uint i; i < nayms.getFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT).length; ++i) {
+        for (uint256 i; i < nayms.getFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT).length; ++i) {
             totalBP += nayms.getFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT)[i].basisPoints;
         }
 

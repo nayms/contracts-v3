@@ -18,7 +18,13 @@ interface ISimplePolicyFacet {
      * @param _offchainDataHash Hash of all the important policy data stored offchain
      * @return signingHash_ hash for signing
      */
-    function getSigningHash(uint256 _startDate, uint256 _maturationDate, bytes32 _asset, uint256 _limit, bytes32 _offchainDataHash) external view returns (bytes32 signingHash_);
+    function getSigningHash(
+        uint256 _startDate,
+        uint256 _maturationDate,
+        bytes32 _asset,
+        uint256 _limit,
+        bytes32 _offchainDataHash
+    ) external view returns (bytes32 signingHash_);
 
     /**
      * @dev Pay a premium of `_amount` on simple policy
@@ -34,7 +40,12 @@ interface ISimplePolicyFacet {
      * @param _insuredId Id of the insured party
      * @param _amount Amount of the claim
      */
-    function paySimpleClaim(bytes32 _claimId, bytes32 _policyId, bytes32 _insuredId, uint256 _amount) external;
+    function paySimpleClaim(
+        bytes32 _claimId,
+        bytes32 _policyId,
+        bytes32 _insuredId,
+        uint256 _amount
+    ) external;
 
     /**
      * @dev Get simple policy info

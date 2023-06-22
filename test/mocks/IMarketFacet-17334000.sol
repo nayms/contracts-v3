@@ -56,7 +56,13 @@ interface IMarketFacet {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount
-    ) external returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_);
+    )
+        external
+        returns (
+            uint256 offerId_,
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
+        );
 
     /**
      * @notice Cancel offer #`_offerId`. This will cancel the offer so that it's no longer active.

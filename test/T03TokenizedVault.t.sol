@@ -87,7 +87,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         scheduleAndUpgradeDiamond(cut);
     }
 
-    function externalDepositDirect(bytes32 to, address token, uint256 amount) internal {
+    function externalDepositDirect(
+        bytes32 to,
+        address token,
+        uint256 amount
+    ) internal {
         (bool success, ) = address(nayms).call(abi.encodeWithSelector(tokenizedVaultFixture.externalDepositDirect.selector, to, token, amount));
         require(success, "Should get commissions from app storage");
     }
@@ -154,7 +158,13 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     // note: when creating entities for another userId, e.g. Alice is creating an entity for Bob, Alice needs to make sure they create the internal Nayms Id of Bob correctly.
-    function testFuzzSingleExternalDeposit(bytes32 _entity1, bytes32 _entity2, address _signer1, address _signer2, uint256 _depositAmount) public {
+    function testFuzzSingleExternalDeposit(
+        bytes32 _entity1,
+        bytes32 _entity2,
+        address _signer1,
+        address _signer2,
+        uint256 _depositAmount
+    ) public {
         vm.assume(_entity1 > 0 && _entity2 > 0 && _entity1 != _entity2); // else revert: object already exists
         vm.assume(!nayms.isObject(_entity1) && !nayms.isObject(_entity2));
         vm.assume(_depositAmount > 5); // else revert: _internalMint: mint zero tokens, note: > 5 to ensure the externalDepositAmount isn't 0, see code below
@@ -375,7 +385,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 2 ether, "acc0EntityId nWETH balance should STAY THE SAME");
 
         CalculatedFees memory cf = nayms.calculateTradingFees(acc0EntityId, takerBuyAmount);
-        for (uint i; i < cf.feeAllocations.length; ++i) {
+        for (uint256 i; i < cf.feeAllocations.length; ++i) {
             assertEq(
                 nayms.internalBalanceOf(cf.feeAllocations[i].to, nWETH),
                 cf.feeAllocations[i].fee,
@@ -812,11 +822,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         scopeTo(_input, 1_000, type(uint128).max);
     }
 
-    function scopeTo(uint256 _input, uint256 _min, uint256 _max) internal {
+    function scopeTo(
+        uint256 _input,
+        uint256 _min,
+        uint256 _max
+    ) internal {
         vm.assume(_min <= _input && _input <= _max);
     }
 
-    function testFuzzWithdrawableDividends(uint256 _parTokenSupply, uint256 _holdersShare, uint256 _dividendAmount) public {
+    function testFuzzWithdrawableDividends(
+        uint256 _parTokenSupply,
+        uint256 _holdersShare,
+        uint256 _dividendAmount
+    ) public {
         // -- Test Case -----------------------------
         // 1. start token sale
         // 2. distribute dividends

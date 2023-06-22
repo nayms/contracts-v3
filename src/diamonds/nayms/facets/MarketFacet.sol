@@ -55,7 +55,16 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount
-    ) external notLocked(msg.sig) nonReentrant returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
+    )
+        external
+        notLocked(msg.sig)
+        nonReentrant
+        returns (
+            uint256 offerId_,
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
+        )
+    {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
@@ -110,7 +119,12 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         tc = LibFeeRouter._calculateTradingFees(_buyer, _buyAmount);
     }
 
-    function calculateTrade(bytes32 _buyToken, bytes32 _sellToken, uint256 _buyAmount, uint256 _feeSchedule) external view returns (CalculatedFees memory tc) {
+    function calculateTrade(
+        bytes32 _buyToken,
+        bytes32 _sellToken,
+        uint256 _buyAmount,
+        uint256 _feeSchedule
+    ) external view returns (CalculatedFees memory tc) {
         tc = LibMarket._calculateTrade(_buyToken, _sellToken, _buyAmount, _feeSchedule);
     }
 

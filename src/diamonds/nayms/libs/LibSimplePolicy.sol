@@ -37,7 +37,11 @@ library LibSimplePolicy {
         }
     }
 
-    function _payPremium(bytes32 _payerEntityId, bytes32 _policyId, uint256 _amount) internal {
+    function _payPremium(
+        bytes32 _payerEntityId,
+        bytes32 _policyId,
+        uint256 _amount
+    ) internal {
         require(_amount > 0, "invalid premium amount");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -59,7 +63,12 @@ library LibSimplePolicy {
         emit SimplePolicyPremiumPaid(_policyId, _amount);
     }
 
-    function _payClaim(bytes32 _claimId, bytes32 _policyId, bytes32 _insuredEntityId, uint256 _amount) internal {
+    function _payClaim(
+        bytes32 _claimId,
+        bytes32 _policyId,
+        bytes32 _insuredEntityId,
+        uint256 _amount
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(_amount > 0, "invalid claim amount");
@@ -110,7 +119,13 @@ library LibSimplePolicy {
         simplePolicy.fundsLocked = false;
     }
 
-    function _getSigningHash(uint256 _startDate, uint256 _maturationDate, bytes32 _asset, uint256 _limit, bytes32 _offchainDataHash) internal view returns (bytes32) {
+    function _getSigningHash(
+        uint256 _startDate,
+        uint256 _maturationDate,
+        bytes32 _asset,
+        uint256 _limit,
+        bytes32 _offchainDataHash
+    ) internal view returns (bytes32) {
         return
             LibEIP712._hashTypedDataV4(
                 keccak256(

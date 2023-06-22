@@ -25,7 +25,13 @@ interface IMarketFacet {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount
-    ) external returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_);
+    )
+        external
+        returns (
+            uint256 offerId_,
+            uint256 buyTokenCommissionsPaid_,
+            uint256 sellTokenCommissionsPaid_
+        );
 
     /**
      * @notice Cancel offer #`_offerId`. This will cancel the offer so that it's no longer active.
@@ -79,7 +85,12 @@ interface IMarketFacet {
      */
     function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory tc);
 
-    function calculateTrade(bytes32 _buyToken, bytes32 _sellToken, uint256 _buyAmount, uint256 _feeSchedule) external view returns (CalculatedFees memory tc);
+    function calculateTrade(
+        bytes32 _buyToken,
+        bytes32 _sellToken,
+        uint256 _buyAmount,
+        uint256 _feeSchedule
+    ) external view returns (CalculatedFees memory tc);
 
     function getMakerBP() external view returns (uint16);
 }

@@ -116,7 +116,12 @@ contract D03ProtocolDefaults is D02TestSetup {
         return entityId;
     }
 
-    function initEntity(bytes32 _assetId, uint256 _collateralRatio, uint256 _maxCapacity, bool _simplePolicyEnabled) public pure returns (Entity memory e) {
+    function initEntity(
+        bytes32 _assetId,
+        uint256 _collateralRatio,
+        uint256 _maxCapacity,
+        bool _simplePolicyEnabled
+    ) public pure returns (Entity memory e) {
         e.assetId = _assetId;
         e.collateralRatio = _collateralRatio;
         e.maxCapacity = _maxCapacity;

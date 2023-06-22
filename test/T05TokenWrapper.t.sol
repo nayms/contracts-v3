@@ -66,15 +66,15 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
         assertEq(wrapper.totalSupply(), tokenAmount, "token supply should match sale amount");
 
-        // fund signer2 
+        // fund signer2
         changePrank(signer2);
         uint256 amountWithFees = tokenAmount + nayms.calculateTradingFees(entityId1, tokenAmount).totalFees;
         writeTokenBalance(signer2, naymsAddress, wethAddress, amountWithFees);
         nayms.externalDeposit(wethAddress, amountWithFees);
 
-        // signer2 buy p-tokens 
+        // signer2 buy p-tokens
         nayms.executeLimitOffer(wethId, tokenAmount, entityId1, tokenAmount);
-        
+
         // signer2 transfer p-tokens to account0
         nayms.internalTransferFromEntity(account0Id, entityId1, tokenAmount);
         assertEq(wrapper.balanceOf(account0), nayms.internalBalanceOf(account0Id, entityId1), "wrapper balance should match diamond");

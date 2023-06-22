@@ -97,7 +97,14 @@ library LibFeeRouter {
 
     event DebugBuyer(uint256 feeSchedule, bool _takeExternalToken, bytes32 buyer);
 
-    function _payTradingFees(uint256 _feeSchedule, bytes32 buyer, bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _buyAmount) internal returns (uint256 totalFees) {
+    function _payTradingFees(
+        uint256 _feeSchedule,
+        bytes32 buyer,
+        bytes32 _makerId,
+        bytes32 _takerId,
+        bytes32 _tokenId,
+        uint256 _buyAmount
+    ) internal returns (uint256 totalFees) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         emit DebugPayTradingFees(_makerId, _takerId, _tokenId, _buyAmount);

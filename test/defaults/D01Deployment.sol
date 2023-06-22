@@ -23,7 +23,9 @@ import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFac
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
-contract D01Deployment is D00GlobalDefaults /*, DeploymentHelpers*/ {
+contract D01Deployment is
+    D00GlobalDefaults /*, DeploymentHelpers*/
+{
     struct NaymsAccount {
         bytes32 id;
         bytes32 entityId;
@@ -90,7 +92,11 @@ contract D01Deployment is D00GlobalDefaults /*, DeploymentHelpers*/ {
         }
     }
 
-    function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut, address _init, bytes memory _calldata) internal {
+    function scheduleAndUpgradeDiamond(
+        IDiamondCut.FacetCut[] memory _cut,
+        address _init,
+        bytes memory _calldata
+    ) internal {
         // 1. schedule upgrade
         // 2. upgrade
         bytes32 upgradeHash = keccak256(abi.encode(_cut, _init, _calldata));

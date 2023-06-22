@@ -14,7 +14,7 @@ contract LibFeeRouterFixture {
         FeeReceiver[] memory feeReceivers = LibFeeRouter._getFeeSchedule(_feeScheduleId);
 
         uint256 feeReceiversCount = feeReceivers.length;
-        for (uint i; i < feeReceiversCount; ++i) {
+        for (uint256 i; i < feeReceiversCount; ++i) {
             totalBP += feeReceivers[i].basisPoints;
         }
     }
