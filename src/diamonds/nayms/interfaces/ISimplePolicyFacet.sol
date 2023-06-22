@@ -66,5 +66,10 @@ interface ISimplePolicyFacet {
      */
     function cancelSimplePolicy(bytes32 _policyId) external;
 
-    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external returns (CalculatedFees memory cf);
+    /**
+     * @dev Calculate the policy premium fees based on a buy amount.
+     * @param _premiumPaid The amount that the fees payments are calculated from.
+     * @return cf CalculatedFees struct
+     */
+    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external view returns (CalculatedFees memory cf);
 }

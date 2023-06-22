@@ -170,7 +170,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         nayms.addFeeSchedule(uint256(entityWithCustom), feeReceivers);
 
-        assertGt(feeScheduleId, nayms.getTradingFeeScheduleId(entityWithCustom), "custom fee schedule ID should be greater than default fee schedule ID");
+        assertGt(nayms.getPremiumFeeScheduleId(entityWithCustom), feeScheduleId, "custom fee schedule ID should be greater than default fee schedule ID");
 
         uint256 _premiumPaid = 1e18;
         CalculatedFees memory cf = nayms.calculatePremiumFees(entityWithCustom, _premiumPaid);
@@ -216,6 +216,37 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
         assertEq(cf.totalBP, feeReceivers[0].basisPoints, "total bp is incorrect");
+    }
+
+    function test_replaceMakerBP() public {
+        uint16 makerBP = 10;
+        nayms.replaceMakerBP(makerBP);
+
+        assertEq(nayms.getMakerBP(), makerBP);
+        makerBP = 5001;
+        vm.expectRevert();
+        nayms.replaceMakerBP(makerBP);
+    }
+
+    function test_payTradingFees_MarketMakerFees() public {
+        uint16 makerBP = 10;
+        nayms.replaceMakerBP(makerBP);
+
+        nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
+
+        deal(address(weth), acc2.addr, 1 ether);
+        changePrank(acc2.addr);
+        weth.approve(address(nayms), 1 ether);
+        nayms.externalDeposit(address(weth), 1 ether);
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 1 ether, "entity's weth balance is incorrect");
+
+        nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
+
+        CalculatedFees memory cf = nayms.calculateTradingFees(acc2.entityId, 0.5 ether);
+
+        assertEq(makerBP, cf.feeAllocations[0].basisPoints, "maker bp is incorrect");
+
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 0.5 ether - cf.totalFees, "entity's weth balance is incorrect");
     }
 
     function test_startTokenSale_FirstTokenSale() public {

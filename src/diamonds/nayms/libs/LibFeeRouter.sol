@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage, SimplePolicy, CalculatedFees, FeeAllocation, FeeReceiver } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeReceiver } from "../AppStorage.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
@@ -18,8 +18,9 @@ library LibFeeRouter {
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
-        uint256 commissionsCount = simplePolicy.commissionReceivers.length;
+        bytes32[] memory commissionReceivers = s.simplePolicies[_policyId].commissionReceivers;
+        uint256[] memory commissionBasisPoints = s.simplePolicies[_policyId].commissionBasisPoints;
+        uint256 commissionsCount = commissionReceivers.length;
 
         bytes32 policyEntityId = LibObject._getParent(_policyId);
         FeeReceiver[] memory feeSchedule = s.feeSchedules[_getPremiumFeeScheduleId(policyEntityId)];
@@ -32,13 +33,13 @@ library LibFeeRouter {
 
         uint256 fee;
         for (uint256 i; i < commissionsCount; ++i) {
-            fee = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
+            fee = (_premiumPaid * commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
 
-            cf.feeAllocations[i].to = simplePolicy.commissionReceivers[i];
-            cf.feeAllocations[i].basisPoints = simplePolicy.commissionBasisPoints[i];
+            cf.feeAllocations[i].to = commissionReceivers[i];
+            cf.feeAllocations[i].basisPoints = commissionBasisPoints[i];
             cf.feeAllocations[i].fee = fee;
 
-            cf.totalBP += simplePolicy.commissionBasisPoints[i];
+            cf.totalBP += commissionBasisPoints[i];
             cf.totalFees += fee;
         }
 
@@ -57,21 +58,23 @@ library LibFeeRouter {
     function _payPremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        SimplePolicy memory simplePolicy = s.simplePolicies[_policyId];
+        bytes32[] memory commissionReceivers = s.simplePolicies[_policyId].commissionReceivers;
+        uint256[] memory commissionBasisPoints = s.simplePolicies[_policyId].commissionBasisPoints;
+        uint256 commissionsCount = commissionReceivers.length;
 
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
         uint256 totalBP;
         uint256 totalFees;
-        uint256 commissionsCount = simplePolicy.commissionReceivers.length;
 
+        bytes32 asset = s.simplePolicies[_policyId].asset;
         uint256 fee;
         for (uint256 i; i < commissionsCount; ++i) {
-            totalBP += simplePolicy.commissionBasisPoints[i];
-            fee = (_premiumPaid * simplePolicy.commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
+            totalBP += commissionBasisPoints[i];
+            fee = (_premiumPaid * commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
             totalFees += fee;
-            emit PremiumFeePaid(_policyId, policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, fee);
-            LibTokenizedVault._internalTransfer(policyEntityId, simplePolicy.commissionReceivers[i], simplePolicy.asset, fee);
+            emit PremiumFeePaid(_policyId, policyEntityId, commissionReceivers[i], asset, fee);
+            LibTokenizedVault._internalTransfer(policyEntityId, commissionReceivers[i], asset, fee);
         }
 
         FeeReceiver[] memory feeSchedule = s.feeSchedules[_getPremiumFeeScheduleId(policyEntityId)];
@@ -81,8 +84,8 @@ library LibFeeRouter {
             totalBP += feeSchedule[i].basisPoints;
             fee = (_premiumPaid * feeSchedule[i].basisPoints) / LibConstants.BP_FACTOR;
             totalFees += fee;
-            emit PremiumFeePaid(_policyId, policyEntityId, feeSchedule[i].receiver, simplePolicy.asset, fee);
-            LibTokenizedVault._internalTransfer(policyEntityId, feeSchedule[i].receiver, simplePolicy.asset, fee);
+            emit PremiumFeePaid(_policyId, policyEntityId, feeSchedule[i].receiver, asset, fee);
+            LibTokenizedVault._internalTransfer(policyEntityId, feeSchedule[i].receiver, asset, fee);
         }
 
         if (totalBP > LibConstants.BP_FACTOR) {
