@@ -54,8 +54,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         return abi.decode(result, (SimplePolicy));
     }
 
-    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory simplePolicy) internal {
-        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, simplePolicy));
+    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory _simplePolicy) internal {
+        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, _simplePolicy));
         require(success, "Should update simple policy in app storage");
     }
 
@@ -310,11 +310,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[1] = eBob;
         entityIds[2] = "eEve";
 
-        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        Stakeholders memory stakeholders2 = Stakeholders(roles, entityIds, signatures);
 
         changePrank(systemAdmin);
         vm.expectRevert(abi.encodeWithSelector(DuplicateSignerCreatingSimplePolicy.selector, alice, bob));
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders2, simplePolicy, testPolicyDataHash);
     }
 
     function testSignatureWhenCreatingSimplePolicy() public {
@@ -360,10 +360,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[1] = eBob;
         entityIds[2] = eEve;
 
-        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        Stakeholders memory stakeholders2 = Stakeholders(roles, entityIds, signatures);
 
         changePrank(systemAdmin);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders2, simplePolicy, testPolicyDataHash);
     }
 
     function testCreateSimplePolicyValidation() public {

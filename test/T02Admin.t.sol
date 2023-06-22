@@ -15,20 +15,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function setUp() public virtual override {
         super.setUp();
-
-        // libFeeRouterFixture = new LibFeeRouterFixture();
-        // IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        // bytes4[] memory functionSelectors = new bytes4[](5);
-        // functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
-        // functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
-        // functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
-        // functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
-        // functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
-
-        // // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
-        // cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
-
-        // scheduleAndUpgradeDiamond(cut);
     }
 
     function testGetSystemId() public {
@@ -113,7 +99,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         bytes32 entityId = createTestEntity(account0Id);
         nayms.enableEntityTokenization(entityId, "WBTC", "Entity1 Token");
 
-        bytes32 wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
         vm.expectRevert("token symbol already in use");
         nayms.addSupportedExternalToken(wbtcAddress);
     }

@@ -178,10 +178,8 @@ library LibMarket {
                 uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
 
                 // (For a breakdown on the matching algorithm see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
-                if (
-                    // note: We have removed the "optimistic" matching.
-                    makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount
-                ) {
+                // note: We have removed the "optimistic" matching.
+                if (makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount) {
                     break; // no matching price, bail out
                 }
             }
@@ -192,22 +190,20 @@ library LibMarket {
                 uint256 currentBuyAmount;
 
                 if (buyExternalToken) {
-                    // the amount to be sold is todo fix comments
-                    // if the amount that wants to be purchased is less than the remaining amount, then the amount to be sold is the amount that is desired to be purchased.
-                    // otherwise, it's the amount that is remaining to be sold
+                    // if the maker's buy amount is less than the remaining sell amount, then we sell only the maker's buy amount. Else, we sell the remaining sell amount
                     currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
-                    //
                     uint256 commissionsPaid = _takeOffer(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
+                    // Similar operations, but for the non-external token case (the fee is always paid in external tokens)
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
                     uint256 commissionsPaid = _takeOffer(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
-                // calculate how much is left to buy/sell
+                // Update how much is left to buy/sell
                 result.remainingSellAmount -= currentSellAmount;
                 result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
             }
@@ -407,7 +403,7 @@ library LibMarket {
         require(s.tokenBalances[_sellToken][_entityId] >= _sellAmount, "insufficient balance");
         require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "insufficient balance available, funds locked");
 
-        // must have a valid fee schedule todo
+        // must have a valid fee schedule
         require(
             _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_PLATFORM_ACTION ||
                 _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_DEFAULT ||

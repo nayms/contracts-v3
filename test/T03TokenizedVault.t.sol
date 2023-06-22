@@ -815,7 +815,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 85_000);
     }
 
-    function scopeToDefaults(uint256 _input) internal {
+    function scopeToDefaults(uint256 _input) internal pure {
         scopeTo(_input, 1_000, type(uint128).max);
     }
 
@@ -823,7 +823,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 _input,
         uint256 _min,
         uint256 _max
-    ) internal {
+    ) internal pure {
         vm.assume(_min <= _input && _input <= _max);
     }
 
