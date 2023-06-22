@@ -11,6 +11,7 @@ import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
 import { LibSimplePolicy } from "./LibSimplePolicy.sol";
+import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
@@ -33,11 +34,7 @@ library LibEntity {
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
 
-    function _validateSimplePolicyCreation(
-        bytes32 _entityId,
-        SimplePolicy memory simplePolicy,
-        Stakeholders calldata _stakeholders
-    ) internal view {
+    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy memory simplePolicy, Stakeholders calldata _stakeholders) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
@@ -71,7 +68,7 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        FeeReceiver[] memory feeReceivers = s.feeSchedules[_getPremiumFeeScheduleId(_entityId)];
+        FeeReceiver[] memory feeReceivers = s.feeSchedules[LibFeeRouter._getPremiumFeeScheduleId(_entityId)];
         uint256 feeReceiversCount = feeReceivers.length;
         // There must be at least one receiver from the fee schedule
         require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
@@ -194,11 +191,7 @@ library LibEntity {
 
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
-    function _startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) internal {
+    function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
@@ -222,12 +215,7 @@ library LibEntity {
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
-    function _createEntity(
-        bytes32 _entityId,
-        bytes32 _entityAdmin,
-        Entity calldata _entity,
-        bytes32 _dataHash
-    ) internal {
+    function _createEntity(bytes32 _entityId, bytes32 _entityAdmin, Entity calldata _entity, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.existingEntities[_entityId]) {
@@ -328,29 +316,5 @@ library LibEntity {
     function _isEntity(bytes32 _entityId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.existingEntities[_entityId];
-    }
-
-    function _getPremiumFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        uint256 feeScheduleId = uint256(_entityId);
-
-        if (s.feeSchedules[feeScheduleId].length == 0) {
-            feeScheduleId_ = LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT;
-        } else {
-            feeScheduleId_ = feeScheduleId;
-        }
-    }
-
-    function _getTradingFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        uint256 feeScheduleId = uint256(_entityId) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES;
-
-        if (s.feeSchedules[feeScheduleId].length == 0) {
-            feeScheduleId_ = LibConstants.MARKET_FEE_SCHEDULE_DEFAULT;
-        } else {
-            feeScheduleId_ = feeScheduleId;
-        }
     }
 }

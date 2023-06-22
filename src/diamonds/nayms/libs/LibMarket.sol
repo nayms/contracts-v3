@@ -268,12 +268,13 @@ library LibMarket {
 
         /// Check to see if the fee schedule from the new order (`startTokenSale()`) is the initial offer fee schedule or not
         /// Use the initial offer fee schedule if it is, otherwise use the fee schedule from the original order placed
+
         {
             uint256 feeSchedule;
-            if (_feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
-                feeSchedule = _feeSchedule;
+            if (s.offers[_offerId].feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER || _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
+                feeSchedule = LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER;
             } else {
-                feeSchedule = s.offers[_offerId].feeSchedule;
+                feeSchedule = LibFeeRouter._getTradingFeeScheduleId(_takerId);
             }
 
             bytes32 buyer;
@@ -395,7 +396,7 @@ library LibMarket {
         require(s.tokenBalances[_sellToken][_entityId] >= _sellAmount, "insufficient balance");
         require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "insufficient balance available, funds locked");
 
-        // must have a valid fee schedule
+        // must have a valid fee schedule todo
         require(
             _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_PLATFORM_ACTION ||
                 _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_DEFAULT ||
@@ -425,7 +426,7 @@ library LibMarket {
 
         MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
         buyTokenCommissionsPaid_ = result.buyTokenCommissionsPaid;
-        sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid; // todo these aren't actually used
+        sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
         offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
 
@@ -533,7 +534,7 @@ library LibMarket {
             if (_feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
                 feeSchedule = _feeSchedule;
             } else {
-                feeSchedule = marketOffer.feeSchedule;
+                feeSchedule = LibFeeRouter._getTradingFeeScheduleId(_takerId);
             }
             // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
