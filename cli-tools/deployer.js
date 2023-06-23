@@ -16,19 +16,20 @@ const fork = otherArgs.includes("--fork");
 const dryRun = otherArgs.includes("--dry-run");
 
 const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RPC_URL`];
-const mnemonic = networkId === "1" ? fs.readFileSync("nayms_mnemonic.txt").toString() : fs.readFileSync("nayms_mnemonic_mainnet.txt").toString();
+const mnemonicFile = networkId === "1" ? "nayms_mnemonic_mainnet.txt" : "nayms_mnemonic.txt";
+const mnemonic = fs.readFileSync(mnemonicFile).toString();
 
-const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address;
+const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address; // acc20
 const systemAdminAddress =
     networkId === "1"
         ? "0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929" // mainnet sysAdminB
-        : Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address;
+        : Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address; // acc1
 
 if (operation === "deploy") {
     console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] Deploying new diamond`);
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
-    const deployNewDiamondCmd = deployDiamondCmd(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    const deployNewDiamondCmd = deployDiamond(rpcUrl, networkId, ownerAddress, systemAdminAddress);
     execute(deployNewDiamondCmd);
 
     console.log(`\n[ ${chalk.green("Initializing upgrade")} ]\n`);
@@ -37,12 +38,12 @@ if (operation === "deploy") {
     const upgradeHash = getUpgradeHash(result);
 
     console.log(`\n[ ${chalk.green("Scheduling upgrade")} ]\n`);
-    const scheduleCommand = schedule({
+    const scheduleCommand = scheduleUpgrade({
         rpcUrl,
         networkId,
         upgradeHash,
         systemAdminAddress,
-        mnemonicFile: "./nayms_mnemonic.txt",
+        mnemonicFile: mnemonicFile,
         mnemonicIndex: 0,
     });
     execute(scheduleCommand);
@@ -57,7 +58,7 @@ if (operation === "deploy") {
     console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] upgrade => ${chalk.greenBright(addresses[networkId])}\n`);
 
     if (networkId === "1" && fork) {
-        // transfer ownership
+        // transfer ownership to non-mainnet account
         execute(`cast rpc anvil_impersonateAccount ${systemAdminAddress}`);
         execute(`cast send ${addresses[networkId]} "transferOwnership(address)" \
             ${ownerAddress} \
@@ -72,18 +73,22 @@ if (operation === "deploy") {
     const result = execute(upgradeCmd);
     const upgradeHash = getUpgradeHash(result);
 
-    console.log(`\n[ ${chalk.green("Scheduling upgrade")} ]\n`);
-    const scheduleCommand = schedule({
-        rpcUrl,
-        networkId,
-        upgradeHash,
-        systemAdminAddress,
-        mnemonicFile: "./nayms_mnemonic.txt",
-        mnemonicIndex: 0,
-        fork,
-        diamondAddress: addresses[networkId],
-    });
-    execute(scheduleCommand);
+    if (networkId === "1" && !fork) {
+        console.log(`Please get the following upgrade hash approved: ${chalk.green(upgradeHash)}`);
+    } else {
+        console.log(`\n[ ${chalk.green("Scheduling upgrade")} ]\n`);
+        const scheduleCommand = scheduleUpgrade({
+            rpcUrl,
+            networkId,
+            upgradeHash,
+            systemAdminAddress,
+            mnemonicFile: mnemonicFile,
+            mnemonicIndex: 0,
+            fork,
+            diamondAddress: addresses[networkId],
+        });
+        execute(scheduleCommand);
+    }
 
     console.log(`\n[ ${chalk.green("Preparing upgrade")} ]\n`);
     const prepCmd = `node ./cli-tools/prep-upgrade.js broadcast/SmartDeploy.s.sol/${networkId}/smartDeploy-latest.json`;
@@ -95,16 +100,24 @@ if (operation === "deploy") {
         networkId,
         upgradeHash,
         ownerAddress,
-        mnemonicFile: "./nayms_mnemonic.txt",
-        mnemonicIndex: 19,
+        mnemonicFile: mnemonicFile,
+        mnemonicIndex: networkId === "1" ? 1 : 19,
     });
-    execute(diamondCutCmd);
+    if (networkId === "1" && !fork) {
+        console.log("Execute the following command to cut in the facets, once the upgrade hash is approved");
+        console.log(chalk.blue(diamondCutCmd));
+    } else {
+        execute(diamondCutCmd);
+    }
 } else {
     console.log(chalk.red("Supported operations are: 'deploy' and 'upgrade'!"));
     process.exit(1);
 }
 
 function getUpgradeHash(result) {
+    if (!result) {
+        return "not found";
+    }
     const hashLine = result
         .split("\n")
         .find((line) => line.includes("upgradeHash: bytes32"))
@@ -113,7 +126,7 @@ function getUpgradeHash(result) {
     return hashLine[hashLine.length - 1];
 }
 
-function deployDiamondCmd(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function deployDiamond(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
@@ -174,7 +187,7 @@ function smartDeploy(config) {
     return command;
 }
 
-function schedule(config) {
+function scheduleUpgrade(config) {
     const isFork = config.networkId === "1" && config.fork;
     const impersonateIfNeeded = isFork ? `cast rpc anvil_impersonateAccount ${config.systemAdminAddress} && ` : "";
     const mnemonicIfNeeded = isFork
@@ -192,8 +205,8 @@ function schedule(config) {
 }
 
 function diamondCut(config) {
-    return `forge script S03UpgradeDiamond \
-        -s "run(address)" ${config.ownerAddress} \
+    return `forge script S03UpgradeDiamond \\
+        -s "run(address)" ${config.ownerAddress} \\
         -f ${config.rpcUrl} \\
         --chain-id ${config.networkId} \\
         --sender ${config.ownerAddress} \\
