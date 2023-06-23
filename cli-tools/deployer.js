@@ -5,12 +5,20 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-if (process.argv.length <= 3) {
-    console.error(chalk.red(`Must provide deployment operation and target network!`));
+
+if (process.argv.length < 4) {
+    console.error(chalk.red(`Must provide deployment action and target network!`));
+    console.log(`Allowed actions are: ${chalk.green("deploy")} and ${chalk.green("upgrade")}`);
     process.exit(1);
 }
 
-const [operation, networkId, ...otherArgs] = process.argv.slice(2);
+const [action, networkId, ...otherArgs] = process.argv.slice(2);
+
+const flags = new Set(["--fork", "--dry-run"]);
+if (!otherArgs.every((a) => flags.has(a))) {
+    console.log(`Allowed flags are only: ${chalk.green("--fork")} and ${chalk.green("--dry-run")}`);
+    process.exit(1);
+}
 
 const fork = otherArgs.includes("--fork");
 const dryRun = otherArgs.includes("--dry-run");
@@ -25,7 +33,7 @@ const systemAdminAddress =
         ? "0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929" // mainnet sysAdminB
         : Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address; // acc1
 
-if (operation === "deploy") {
+if (action === "deploy") {
     console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] Deploying new diamond`);
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
@@ -51,7 +59,7 @@ if (operation === "deploy") {
     console.log(`\n[ ${chalk.green("Doing upgrade")} ]\n`);
     const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress);
     execute(upgradeCmd);
-} else if (operation === "upgrade") {
+} else if (action === "upgrade") {
     const addressesRaw = fs.readFileSync("deployedAddresses.json");
     const addresses = JSON.parse(addressesRaw);
 
@@ -110,7 +118,7 @@ if (operation === "deploy") {
         execute(diamondCutCmd);
     }
 } else {
-    console.log(chalk.red("Supported operations are: 'deploy' and 'upgrade'!"));
+    console.log(chalk.red("Supported actions are: 'deploy' and 'upgrade'!"));
     process.exit(1);
 }
 
