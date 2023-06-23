@@ -112,11 +112,12 @@ coverage: ## coverage report (lcov), filtered for CI
 lcov: ## coverage report (lcov)
 	forge coverage --report lcov --via-ir
 
-lcov-fork: ## coverage report (lcov) for mainnet fork
-	forge coverage --report lcov \
-		-f ${ETH_MAINNET_RPC_URL} \
-		--fork-block-number 15078000 \
-		--via-ir
+gencov: ## generate html coverage report
+	forge coverage --report lcov && genhtml -o cov-html --branch-coverage lcov.info
+
+gencovf: ## generate filtered html coverage report 
+	forge coverage --report lcov && node ./cli-tools/filter-lcov.js && genhtml -o cov-html --branch-coverage lcov-filtered.info
+
 
 # solidity scripts
 erc20: ## deploy test ERC20
