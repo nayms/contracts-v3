@@ -5,7 +5,7 @@ import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeReceiver }
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
-import { FeeBasisPointsExceedMax, FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
     event TradingFeePaid(uint256 feeScheduleId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
@@ -54,6 +54,7 @@ library LibFeeRouter {
         }
     }
 
+    /// @dev The total bp for a policy premium fee schedule cannot exceed LibConstants.BP_FACTOR since the policy's additional fee receivers and fee schedule are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.
     function _payPremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -63,15 +64,11 @@ library LibFeeRouter {
 
         bytes32 policyEntityId = LibObject._getParent(_policyId);
 
-        uint256 totalBP;
-        uint256 totalFees;
-
         bytes32 asset = s.simplePolicies[_policyId].asset;
         uint256 fee;
         for (uint256 i; i < commissionsCount; ++i) {
-            totalBP += commissionBasisPoints[i];
             fee = (_premiumPaid * commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
-            totalFees += fee;
+
             emit PremiumFeePaid(_policyId, policyEntityId, commissionReceivers[i], asset, fee);
             LibTokenizedVault._internalTransfer(policyEntityId, commissionReceivers[i], asset, fee);
         }
@@ -80,15 +77,10 @@ library LibFeeRouter {
 
         uint256 feeScheduleReceiversCount = feeSchedule.length;
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
-            totalBP += feeSchedule[i].basisPoints;
             fee = (_premiumPaid * feeSchedule[i].basisPoints) / LibConstants.BP_FACTOR;
-            totalFees += fee;
+
             emit PremiumFeePaid(_policyId, policyEntityId, feeSchedule[i].receiver, asset, fee);
             LibTokenizedVault._internalTransfer(policyEntityId, feeSchedule[i].receiver, asset, fee);
-        }
-
-        if (totalBP > LibConstants.BP_FACTOR) {
-            revert FeeBasisPointsExceedMax(totalBP, LibConstants.BP_FACTOR);
         }
     }
 
@@ -132,6 +124,7 @@ library LibFeeRouter {
         }
     }
 
+    /// @dev The total bp for a marketplace fee schedule cannot exceed LibConstants.BP_FACTOR since the maker BP and fee schedules are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.
     function _payTradingFees(
         uint256 _feeSchedule,
         bytes32 buyer,
