@@ -7,12 +7,9 @@ import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "src/diamonds/nayms/INayms.sol";
-import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
-    LibFeeRouterFixture internal libFeeRouterFixture = new LibFeeRouterFixture();
-
     function setUp() public virtual override {
         super.setUp();
     }

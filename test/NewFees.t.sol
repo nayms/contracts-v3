@@ -4,6 +4,8 @@ pragma solidity 0.8.17;
 import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeReceiver, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 
+import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
+
 contract NewFeesTest is D03ProtocolDefaults {
     Entity entityInfo;
 
@@ -329,5 +331,13 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), 2 ether, "acc2 should have all of the 2e18 par tokens");
         assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 0, "acc2 should have spent all their weth");
+    }
+
+    function test_cov_LibFeeRouterFixture() public {
+        // just for coverage sigh.
+        LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
+        libFeeRouterFixture.exposed_calculatePremiumFees(bytes32("policy11"), 1e17);
+
+        libFeeRouterFixture.exposed_payPremiumFees(bytes32("policy11"), 1e17);
     }
 }
