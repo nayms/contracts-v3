@@ -51,4 +51,4 @@ NaymsDiamond.json
 broadcast/**/dry-run
 
 # coverage report
-report
+cov-html
