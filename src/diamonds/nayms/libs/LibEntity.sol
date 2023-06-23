@@ -14,7 +14,7 @@ import { LibSimplePolicy } from "./LibSimplePolicy.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -84,16 +84,14 @@ library LibEntity {
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
         require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
 
-        uint256 totalBP;
+        uint256 commissionReceiversTotalBP;
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
-            totalBP += simplePolicy.commissionBasisPoints[i];
+            commissionReceiversTotalBP += simplePolicy.commissionBasisPoints[i];
         }
 
-        for (uint256 i; i < feeReceiversCount; ++i) {
-            totalBP += feeReceivers[i].basisPoints;
+        if (commissionReceiversTotalBP > LibConstants.BP_FACTOR / 2) {
+            revert FeeBasisPointsExceedHalfMax(commissionReceiversTotalBP, LibConstants.BP_FACTOR / 2);
         }
-
-        require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
 
         require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
     }

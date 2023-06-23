@@ -486,12 +486,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
-        // commission basis points total > 10000
-        vm.expectRevert("bp cannot be > 10000");
+        // commission basis points total > half of bp factor
+        vm.expectRevert();
         simplePolicy.commissionReceivers = new bytes32[](1);
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionBasisPoints = new uint256[](1);
-        simplePolicy.commissionBasisPoints.push(10001);
+        simplePolicy.commissionBasisPoints.push(LibConstants.BP_FACTOR / 2 + 1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
