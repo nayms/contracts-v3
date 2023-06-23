@@ -5,11 +5,10 @@ import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeReceiver }
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
-import { FeeBasisPointsExceedMax, FeeBasisPointsExceedHalfMax, TakerFeeBasisPointsExceedMax, MakerFeeBasisPointsExceedMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { FeeBasisPointsExceedMax, FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
-    event TradingFeePaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
-    // event TradingFeePaid(uint256 feeScheduleId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
+    event TradingFeePaid(uint256 feeScheduleId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
     event PremiumFeePaid(bytes32 indexed policyId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
@@ -140,7 +139,7 @@ library LibFeeRouter {
         bytes32 _takerId,
         bytes32 _tokenId,
         uint256 _buyAmount
-    ) internal returns (uint256 totalFees) {
+    ) internal returns (uint256 totalFees_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Get the fee receivers for this _feeSchedule
@@ -151,32 +150,17 @@ library LibFeeRouter {
         if (s.tradingCommissionMakerBP > 0) {
             fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
 
-            // emit TradingFeePaid(_feeSchedule, _takerId, _makerId, _tokenId, fee);
+            emit TradingFeePaid(_feeSchedule, _takerId, _makerId, _tokenId, fee);
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
         }
 
-        uint256 takerBP;
-        uint256 makerBP;
         uint256 feeScheduleReceiversCount = feeSchedules.length;
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
             fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
-            totalFees += fee;
-            if (buyer == _takerId) {
-                takerBP += feeSchedules[i].basisPoints;
-            } else if (buyer == _makerId) {
-                makerBP += feeSchedules[i].basisPoints;
-            }
-            // emit TradingFeePaid(_feeSchedule, buyer, feeSchedules[i].receiver, _tokenId, fee);
-            emit TradingFeePaid(buyer, feeSchedules[i].receiver, _tokenId, fee);
+            totalFees_ += fee;
+
+            emit TradingFeePaid(_feeSchedule, buyer, feeSchedules[i].receiver, _tokenId, fee);
             LibTokenizedVault._internalTransfer(buyer, feeSchedules[i].receiver, _tokenId, fee);
-        }
-
-        if (takerBP + s.tradingCommissionMakerBP > LibConstants.BP_FACTOR) {
-            revert TakerFeeBasisPointsExceedMax(takerBP + s.tradingCommissionMakerBP, LibConstants.BP_FACTOR);
-        }
-
-        if (makerBP > LibConstants.BP_FACTOR) {
-            revert MakerFeeBasisPointsExceedMax(makerBP, LibConstants.BP_FACTOR);
         }
     }
 
