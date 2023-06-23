@@ -46,17 +46,21 @@ library LibConstants {
     string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
 
     /*///////////////////////////////////////////////////////////////////////////
-                        Market Fee Schedules
+                        Market and Premium Fee Schedules
     ///////////////////////////////////////////////////////////////////////////*/
 
-    /**
-     * @dev Standard fee is charged.
-     */
-    uint256 internal constant FEE_SCHEDULE_STANDARD = 1;
-    /**
-     * @dev Platform-initiated trade, e.g. token sale or buyback.
-     */
-    uint256 internal constant FEE_SCHEDULE_PLATFORM_ACTION = 2;
+    /// @dev Marketplace default fee is charged.
+    uint256 internal constant MARKET_FEE_SCHEDULE_DEFAULT = 1;
+    /// @dev Marketplace Platform-initiated trade, e.g. token sale or buyback. (No fees)
+    uint256 internal constant MARKET_FEE_SCHEDULE_PLATFORM_ACTION = 2;
+    /// @dev Marketplace Fee Schedule for the first sale of par tokens.
+    uint256 internal constant MARKET_FEE_SCHEDULE_INITIAL_OFFER = 3;
+    /// @dev Default Premium Fee Schedule ID
+    uint256 internal constant PREMIUM_FEE_SCHEDULE_DEFAULT = 4;
+
+    /// @dev The value used to derive the storage slot for the custom market fees schedule ID.
+    /// note: The custom premium fee schedule ID is stored in the slot equal to the policy's parent ID without any offset.
+    uint256 internal constant STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES = 1;
 
     /*///////////////////////////////////////////////////////////////////////////
                         MARKET OFFER STATES

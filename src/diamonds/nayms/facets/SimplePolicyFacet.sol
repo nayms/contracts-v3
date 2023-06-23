@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { Entity, SimplePolicy, SimplePolicyInfo, PolicyCommissionsBasisPoints } from "../AppStorage.sol";
+import { SimplePolicyInfo, CalculatedFees } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
@@ -49,22 +49,17 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @return Simple policy metadata
      */
     function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicyInfo memory) {
-        SimplePolicy memory p = LibSimplePolicy._getSimplePolicyInfo(_policyId);
         return
             SimplePolicyInfo({
-                startDate: p.startDate,
-                maturationDate: p.maturationDate,
-                asset: p.asset,
-                limit: p.limit,
-                fundsLocked: p.fundsLocked,
-                cancelled: p.cancelled,
-                claimsPaid: p.claimsPaid,
-                premiumsPaid: p.premiumsPaid
+                startDate: LibSimplePolicy._getSimplePolicyInfo(_policyId).startDate,
+                maturationDate: LibSimplePolicy._getSimplePolicyInfo(_policyId).maturationDate,
+                asset: LibSimplePolicy._getSimplePolicyInfo(_policyId).asset,
+                limit: LibSimplePolicy._getSimplePolicyInfo(_policyId).limit,
+                fundsLocked: LibSimplePolicy._getSimplePolicyInfo(_policyId).fundsLocked,
+                cancelled: LibSimplePolicy._getSimplePolicyInfo(_policyId).cancelled,
+                claimsPaid: LibSimplePolicy._getSimplePolicyInfo(_policyId).claimsPaid,
+                premiumsPaid: LibSimplePolicy._getSimplePolicyInfo(_policyId).premiumsPaid
             });
-    }
-
-    function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory bp) {
-        bp = LibFeeRouter._getPremiumCommissionBasisPoints();
     }
 
     /**
@@ -100,5 +95,14 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         bytes32 _offchainDataHash
     ) external view returns (bytes32 signingHash_) {
         signingHash_ = LibSimplePolicy._getSigningHash(_startDate, _maturationDate, _asset, _limit, _offchainDataHash);
+    }
+
+    /**
+     * @dev Calculate the policy premium fees based on a buy amount.
+     * @param _premiumPaid The amount that the fees payments are calculated from.
+     * @return cf CalculatedFees struct
+     */
+    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external view returns (CalculatedFees memory cf) {
+        cf = LibFeeRouter._calculatePremiumFees(_policyId, _premiumPaid);
     }
 }

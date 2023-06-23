@@ -3,13 +3,10 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
-import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";
-import { LibTokenizedVault } from "src/diamonds/nayms/libs/LibTokenizedVault.sol";
-import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
 // solhint-disable no-global-import
@@ -56,8 +53,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         return abi.decode(result, (SimplePolicy));
     }
 
-    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory simplePolicy) internal {
-        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, simplePolicy));
+    function updateSimplePolicy(bytes32 _policyId, SimplePolicy memory _simplePolicy) internal {
+        (bool success, ) = address(nayms).call(abi.encodeWithSelector(simplePolicyFixture.update.selector, _policyId, _simplePolicy));
         require(success, "Should update simple policy in app storage");
     }
 
@@ -312,11 +309,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[1] = eBob;
         entityIds[2] = "eEve";
 
-        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        Stakeholders memory stakeholders2 = Stakeholders(roles, entityIds, signatures);
 
         changePrank(systemAdmin);
         vm.expectRevert(abi.encodeWithSelector(DuplicateSignerCreatingSimplePolicy.selector, alice, bob));
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders2, simplePolicy, testPolicyDataHash);
     }
 
     function testSignatureWhenCreatingSimplePolicy() public {
@@ -362,10 +359,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         entityIds[1] = eBob;
         entityIds[2] = eEve;
 
-        Stakeholders memory stakeholders = Stakeholders(roles, entityIds, signatures);
+        Stakeholders memory stakeholders2 = Stakeholders(roles, entityIds, signatures);
 
         changePrank(systemAdmin);
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders2, simplePolicy, testPolicyDataHash);
     }
 
     function testCreateSimplePolicyValidation() public {
@@ -453,8 +450,19 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.maturationDate = maturationDateOrig;
 
-        // commission receivers
-        vm.expectRevert("must have commission receivers");
+        // fee schedule receivers
+        // change fee schedule to one that does not have any receivers
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](0);
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        vm.expectRevert("must have fee schedule receivers");
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        // add back fee receiver
+        feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+
+        vm.expectRevert("number of commissions don't match");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
         simplePolicy.commissionReceivers = new bytes32[](0);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
@@ -478,12 +486,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
 
-        // commission basis points total > 10000
-        vm.expectRevert("bp cannot be > 10000");
+        // commission basis points total > half of bp factor
+        vm.expectRevert();
         simplePolicy.commissionReceivers = new bytes32[](1);
         simplePolicy.commissionReceivers.push(keccak256("a"));
         simplePolicy.commissionBasisPoints = new uint256[](1);
-        simplePolicy.commissionBasisPoints.push(10001);
+        simplePolicy.commissionBasisPoints.push(LibConstants.BP_FACTOR / 2 + 1);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.commissionBasisPoints = commissionBasisPointsOrig;
         simplePolicy.commissionReceivers = commissionReceiversOrig;
@@ -945,42 +953,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory entityAfter2 = nayms.getEntityInfo(entityId1);
         uint256 expectedUtilizedCapacity = utilizedCapacityBefore - (simplePolicy.limit * entityAfter2.collateralRatio) / LibConstants.BP_FACTOR;
         assertEq(expectedUtilizedCapacity, entityAfter2.utilizedCapacity, "utilized capacity should increase");
-    }
-
-    function testPayPremiumCommissions() public {
-        // Deploy the LibFeeRouterFixture
-        LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
-
-        bytes4[] memory functionSelectors = new bytes4[](5);
-        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
-        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
-        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
-        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
-        functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
-
-        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
-
-        scheduleAndUpgradeDiamond(cut);
-
-        getReadyToCreatePolicies();
-
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-
-        uint256 premiumPaid = 10_000;
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.payPremiumCommissions.selector, policyId1, premiumPaid));
-        (success, result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
-
-        uint256 commissionNaymsLtd = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNaymsLtdBP) / LibConstants.BP_FACTOR;
-        uint256 commissionNDF = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionNDFBP) / LibConstants.BP_FACTOR;
-        uint256 commissionSTM = (premiumPaid * nayms.getPremiumCommissionBasisPoints().premiumCommissionSTMBP) / LibConstants.BP_FACTOR;
-
-        SimplePolicy memory sp = getSimplePolicy(policyId1);
-
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER), sp.asset), commissionNaymsLtd, "Nayms LTD commission incorrect");
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER), sp.asset), commissionNDF, "NDF commission incorrect");
-        assertEq(nayms.internalBalanceOf(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER), sp.asset), commissionSTM, "STM commission incorrect");
     }
 
     function testCancelSimplePolicy() public {

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
-import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-
+import { D02TestSetup, LibHelpers, console2 } from "./D02TestSetup.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+
+import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 
 // solhint-disable no-console
 /// @notice Default test setup part 03
@@ -33,6 +34,17 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
     bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
+
+    // 0x4e61796d73204c74640000000000000000000000000000000000000000000000
+    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
+    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
+    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER);
+    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER);
+
+    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+
+    address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
     function setUp() public virtual override {
         console2.log("\n Test SETUP:");
@@ -67,6 +79,21 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
+        // Setup fee schedules
+
+        // For Premiums
+        FeeReceiver[] memory feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
+
+        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+
+        // For Marketplace
+        feeReceivers = new FeeReceiver[](1);
+        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 30 });
+
+        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
+
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
 
@@ -75,7 +102,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
-        Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
+        Entity memory entity1 = initEntity(wethId, LibConstants.BP_FACTOR / 2, LibConstants.BP_FACTOR, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
         return entityId;
     }
@@ -94,7 +121,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        return initPolicyWithLimit(offchainDataHash, 10_000);
+        return initPolicyWithLimit(offchainDataHash, LibConstants.BP_FACTOR);
     }
 
     function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {

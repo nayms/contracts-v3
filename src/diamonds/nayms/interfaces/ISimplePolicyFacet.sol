@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { SimplePolicyInfo, PolicyCommissionsBasisPoints } from "./FreeStructs.sol";
+import { SimplePolicyInfo, CalculatedFees } from "./FreeStructs.sol";
 
 /**
  * @title Simple Policies
@@ -55,12 +55,6 @@ interface ISimplePolicyFacet {
     function getSimplePolicyInfo(bytes32 _id) external view returns (SimplePolicyInfo memory);
 
     /**
-     * @notice Get the policy premium commissions basis points.
-     * @return PolicyCommissionsBasisPoints struct containing the individual basis points set for each policy commission receiver.
-     */
-    function getPremiumCommissionBasisPoints() external view returns (PolicyCommissionsBasisPoints memory);
-
-    /**
      * @dev Check and update simple policy state
      * @param _id Id of the simple policy
      */
@@ -71,4 +65,11 @@ interface ISimplePolicyFacet {
      * @param _policyId Id of the simple policy
      */
     function cancelSimplePolicy(bytes32 _policyId) external;
+
+    /**
+     * @dev Calculate the policy premium fees based on a buy amount.
+     * @param _premiumPaid The amount that the fees payments are calculated from.
+     * @return cf CalculatedFees struct
+     */
+    function calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external view returns (CalculatedFees memory cf);
 }

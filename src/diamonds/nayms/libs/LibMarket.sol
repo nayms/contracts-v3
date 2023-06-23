@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { MarketInfo, TokenAmount, TradingCommissions } from "../AppStorage.sol";
+import { MarketInfo, TokenAmount, FeeReceiver, CalculatedFees } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -151,7 +151,8 @@ library LibMarket {
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
-        uint256 _buyAmount
+        uint256 _buyAmount,
+        uint256 _feeSchedule
     ) internal returns (MatchingOfferResult memory result) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -172,17 +173,16 @@ library LibMarket {
                 break; // no market liquidity, bail out
             }
 
-            uint256 makerBuyAmount = s.offers[bestOfferId].buyAmount;
-            uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
+            {
+                uint256 makerBuyAmount = s.offers[bestOfferId].buyAmount;
+                uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
 
-            // (For a breakdown on the matching algorithm see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
-            if (
+                // (For a breakdown on the matching algorithm see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
                 // note: We have removed the "optimistic" matching.
-                makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount
-            ) {
-                break; // no matching price, bail out
+                if (makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount) {
+                    break; // no matching price, bail out
+                }
             }
-
             // avoid stack-too-deep
             {
                 // take the offer
@@ -190,22 +190,20 @@ library LibMarket {
                 uint256 currentBuyAmount;
 
                 if (buyExternalToken) {
-                    // the amount to be sold is
-                    // if the amount that wants to be purchased is less than the remaining amount, then the amount to be sold is the amount that is desired to be purchased.
-                    // otherwise, it's the amount that is remaining to be sold
+                    // if the maker's buy amount is less than the remaining sell amount, then we sell only the maker's buy amount. Else, we sell the remaining sell amount
                     currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
-                    //
-                    uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    uint256 commissionsPaid = _takeOffer(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
+                    // Similar operations, but for the non-external token case (the fee is always paid in external tokens)
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-                    uint256 commissionsPaid = _takeOffer(bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    uint256 commissionsPaid = _takeOffer(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
-                // calculate how much is left to buy/sell
+                // Update how much is left to buy/sell
                 result.remainingSellAmount -= currentSellAmount;
                 result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
             }
@@ -252,6 +250,7 @@ library LibMarket {
     }
 
     function _takeOffer(
+        uint256 _feeSchedule,
         uint256 _offerId,
         bytes32 _takerId,
         uint256 _buyAmount,
@@ -263,22 +262,37 @@ library LibMarket {
         // check bounds and update balances
         _checkBoundsAndUpdateBalances(_offerId, _buyAmount, _sellAmount);
 
-        // Check fee schedule, before paying commissions
-        if (s.offers[_offerId].feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD) {
-            // Fees are always paid by the taker, maker pays no fees, also only in external token.
+        /// Check to see if the fee schedule from the new order (`startTokenSale()`) is the initial offer fee schedule or not
+        /// Use the initial offer fee schedule if it is, otherwise use the fee schedule from the original order placed
+
+        {
+            uint256 feeSchedule;
+            if (s.offers[_offerId].feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER || _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
+                feeSchedule = LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER;
+            } else {
+                feeSchedule = LibFeeRouter._getTradingFeeScheduleId(_takerId);
+            }
+
+            bytes32 buyer;
+            if (feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER && s.offers[_offerId].creator != s.offers[_offerId].sellToken) {
+                buyer = s.offers[_offerId].creator;
+            } else {
+                buyer = _takerId;
+            }
+
+            // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
                 // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-                commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
             } else {
                 // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-                commissionsPaid_ = LibFeeRouter._payTradingCommissions(s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
+                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
             }
+            s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
+
+            LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+            LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _sellAmount);
         }
-
-        s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
-
-        LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
-        LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _sellAmount);
 
         // close offer if it has become dust
         if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
@@ -336,6 +350,11 @@ library LibMarket {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_CANCELLED;
             emit OrderCancelled(_offerId, marketInfo.creator, marketInfo.sellToken);
         }
+
+        /// @dev Burn the par tokens if this was an initial token sale (selling par tokens through startTokenSale())
+        if (marketInfo.feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
+            LibTokenizedVault._internalBurn(s.offers[_offerId].sellToken, s.offers[_offerId].sellToken, marketInfo.sellAmount);
+        }
     }
 
     function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
@@ -385,7 +404,12 @@ library LibMarket {
         require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "insufficient balance available, funds locked");
 
         // must have a valid fee schedule
-        require(_feeSchedule == LibConstants.FEE_SCHEDULE_PLATFORM_ACTION || _feeSchedule == LibConstants.FEE_SCHEDULE_STANDARD, "fee schedule invalid");
+        require(
+            _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_PLATFORM_ACTION ||
+                _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_DEFAULT ||
+                _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER,
+            "fee schedule invalid"
+        );
     }
 
     function _getOfferTokenAmounts(uint256 _offerId) internal view returns (TokenAmount memory sell_, TokenAmount memory buy_) {
@@ -414,7 +438,7 @@ library LibMarket {
     {
         _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
 
-        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount);
+        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
         buyTokenCommissionsPaid_ = result.buyTokenCommissionsPaid;
         sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
+import { FeeReceiver, SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
 
 /**
  * @title Entities
@@ -105,4 +105,10 @@ interface IEntityFacet {
      * @return Entity struct with metadata of the entity
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory);
+
+    function getFeeSchedule(uint256 _feeScheduleId) external view returns (FeeReceiver[] memory);
+
+    function getPremiumFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_);
+
+    function getTradingFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_);
 }

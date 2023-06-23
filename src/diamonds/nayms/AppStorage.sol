@@ -59,16 +59,16 @@ struct AppStorage {
     address naymsToken; // represents the address key for this NAYMS token in AppStorage
     bytes32 naymsTokenId; // represents the bytes32 key for this NAYMS token in AppStorage
     /// Trading Commissions (all in basis points) ///
-    uint16 tradingCommissionTotalBP; // the total amount that is deducted for trading commissions (BP)
+    uint16 tradingCommissionTotalBP; // note DEPRECATED // the total amount that is deducted for trading commissions (BP)
     // The total commission above is further divided as follows:
-    uint16 tradingCommissionNaymsLtdBP;
-    uint16 tradingCommissionNDFBP;
-    uint16 tradingCommissionSTMBP;
+    uint16 tradingCommissionNaymsLtdBP; // note DEPRECATED
+    uint16 tradingCommissionNDFBP; // note DEPRECATED
+    uint16 tradingCommissionSTMBP; // note DEPRECATED
     uint16 tradingCommissionMakerBP;
     // Premium Commissions
-    uint16 premiumCommissionNaymsLtdBP;
-    uint16 premiumCommissionNDFBP;
-    uint16 premiumCommissionSTMBP;
+    uint16 premiumCommissionNaymsLtdBP; // note DEPRECATED
+    uint16 premiumCommissionNDFBP; // note DEPRECATED
+    uint16 premiumCommissionSTMBP; // note DEPRECATED
     // A policy can pay out additional commissions on premiums to entities having a variety of roles on the policy
     mapping(bytes32 => mapping(bytes32 => uint256)) lockedBalances; // keep track of token balance that is locked, ownerId => tokenId => lockedAmount
     /// Simple two phase upgrade scheme
@@ -77,6 +77,7 @@ struct AppStorage {
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
     mapping(address => bytes32) objectTokenWrapperId; // reverse mapping token wrapper address => object ID
     mapping(string => bytes32) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
+    mapping(uint256 => FeeReceiver[]) feeSchedules; // fee schedule ID => array of FeeReceiver struct
 }
 
 struct FunctionLockedStorage {

@@ -1,7 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { FeeReceiver } from "./FreeStructs.sol";
+/// @dev IAdminFacet used during mainnet block 17276760
+
+struct PolicyCommissionsBasisPoints {
+    uint16 premiumCommissionNaymsLtdBP;
+    uint16 premiumCommissionNDFBP;
+    uint16 premiumCommissionSTMBP;
+}
+
+struct TradingCommissionsBasisPoints {
+    uint16 tradingCommissionTotalBP;
+    uint16 tradingCommissionNaymsLtdBP;
+    uint16 tradingCommissionNDFBP;
+    uint16 tradingCommissionSTMBP;
+    uint16 tradingCommissionMakerBP;
+}
 
 /**
  * @title Administration
@@ -14,6 +28,18 @@ interface IAdminFacet {
      * @param _newMax new value to be used.
      */
     function setMaxDividendDenominations(uint8 _newMax) external;
+
+    /**
+     * @notice Update policy commission basis points configuration.
+     * @param _policyCommissions policy commissions configuration to set
+     */
+    function setPolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata _policyCommissions) external;
+
+    /**
+     * @notice Update trading commission basis points configuration.
+     * @param _tradingCommissions trading commissions configuration to set
+     */
+    function setTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata _tradingCommissions) external;
 
     /**
      * @notice Get the max dividend denominations value
@@ -82,8 +108,4 @@ interface IAdminFacet {
      * @notice Unlock all contract methods involving fund transfers
      */
     function unlockAllFundTransferFunctions() external;
-
-    function replaceMakerBP(uint16 _newMakerBP) external;
-
-    function addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) external;
 }

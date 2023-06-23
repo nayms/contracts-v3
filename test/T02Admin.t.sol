@@ -1,34 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "../src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "src/diamonds/nayms/INayms.sol";
-import { LibFeeRouterFixture } from "./fixtures/LibFeeRouterFixture.sol";
+import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "src/diamonds/nayms/INayms.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
-    LibFeeRouterFixture internal libFeeRouterFixture = new LibFeeRouterFixture();
-
     function setUp() public virtual override {
         super.setUp();
-
-        libFeeRouterFixture = new LibFeeRouterFixture();
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        bytes4[] memory functionSelectors = new bytes4[](5);
-        functionSelectors[0] = libFeeRouterFixture.payPremiumCommissions.selector;
-        functionSelectors[1] = libFeeRouterFixture.payTradingCommissions.selector;
-        functionSelectors[2] = libFeeRouterFixture.calculateTradingCommissionsFixture.selector;
-        functionSelectors[3] = libFeeRouterFixture.getTradingCommissionsBasisPointsFixture.selector;
-        functionSelectors[4] = libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector;
-
-        // Diamond cut this fixture contract into our nayms diamond in order to test against the diamond
-        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(libFeeRouterFixture), action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
-
-        scheduleAndUpgradeDiamond(cut);
     }
 
     function testGetSystemId() public {
@@ -113,7 +96,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         bytes32 entityId = createTestEntity(account0Id);
         nayms.enableEntityTokenization(entityId, "WBTC", "Entity1 Token");
 
-        bytes32 wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
         vm.expectRevert("token symbol already in use");
         nayms.addSupportedExternalToken(wbtcAddress);
     }
@@ -153,96 +135,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.expectRevert("cannot add participation token wrapper as external");
         nayms.addSupportedExternalToken(loggedWrapperAddress);
-    }
-
-    function testSetTradingCommissionsBasisPoints() public {
-        // total must be > 0 and < 10_000
-        vm.expectRevert("invalid trading commission total");
-        nayms.setTradingCommissionsBasisPoints(
-            TradingCommissionsBasisPoints({
-                tradingCommissionTotalBP: 0,
-                tradingCommissionNaymsLtdBP: 5001,
-                tradingCommissionNDFBP: 2500,
-                tradingCommissionSTMBP: 2499,
-                tradingCommissionMakerBP: 1
-            })
-        );
-        vm.expectRevert("invalid trading commission total");
-        nayms.setTradingCommissionsBasisPoints(
-            TradingCommissionsBasisPoints({
-                tradingCommissionTotalBP: 10001,
-                tradingCommissionNaymsLtdBP: 5001,
-                tradingCommissionNDFBP: 2500,
-                tradingCommissionSTMBP: 2499,
-                tradingCommissionMakerBP: 1
-            })
-        );
-
-        // must add up to 10000
-        vm.expectRevert("trading commission BPs must sum up to 10000");
-        nayms.setTradingCommissionsBasisPoints(
-            TradingCommissionsBasisPoints({
-                tradingCommissionTotalBP: 41,
-                tradingCommissionNaymsLtdBP: 5001,
-                tradingCommissionNDFBP: 2500,
-                tradingCommissionSTMBP: 2499,
-                tradingCommissionMakerBP: 1
-            })
-        );
-
-        TradingCommissionsBasisPoints memory s = TradingCommissionsBasisPoints({
-            tradingCommissionTotalBP: 41,
-            tradingCommissionNaymsLtdBP: 5001,
-            tradingCommissionNDFBP: 2499,
-            tradingCommissionSTMBP: 2499,
-            tradingCommissionMakerBP: 1
-        });
-
-        // must be sys admin
-        changePrank(account9);
-        vm.expectRevert("not a system admin");
-        nayms.setTradingCommissionsBasisPoints(s);
-
-        changePrank(systemAdmin);
-        // assert happy path
-        nayms.setTradingCommissionsBasisPoints(s);
-
-        TradingCommissionsBasisPoints memory result = nayms.getTradingCommissionsBasisPoints();
-
-        assertEq(s.tradingCommissionTotalBP, result.tradingCommissionTotalBP, "tradingCommissionTotalBP not matched");
-        assertEq(s.tradingCommissionNaymsLtdBP, result.tradingCommissionNaymsLtdBP, "tradingCommissionNaymsLtdBP not matched");
-        assertEq(s.tradingCommissionNDFBP, result.tradingCommissionNDFBP, "tradingCommissionNDFBP not matched");
-        assertEq(s.tradingCommissionSTMBP, result.tradingCommissionSTMBP, "tradingCommissionSTMBP not matched");
-        assertEq(s.tradingCommissionMakerBP, result.tradingCommissionMakerBP, "tradingCommissionMakerBP not matched");
-    }
-
-    function testSetPremiumCommissionsBasisPoints() public {
-        // prettier-ignore
-        PolicyCommissionsBasisPoints memory s = PolicyCommissionsBasisPoints({ 
-            premiumCommissionNaymsLtdBP: 42, 
-            premiumCommissionNDFBP: 42, 
-            premiumCommissionSTMBP: 42 
-        });
-
-        // must be sys admin
-        changePrank(account9);
-        vm.expectRevert("not a system admin");
-        nayms.setPolicyCommissionsBasisPoints(s);
-
-        changePrank(systemAdmin);
-        nayms.setPolicyCommissionsBasisPoints(s);
-
-        PolicyCommissionsBasisPoints memory result = getPremiumCommissions();
-
-        assertEq(s.premiumCommissionNaymsLtdBP, result.premiumCommissionNaymsLtdBP, "premiumCommissionNaymsLtdBP not matched");
-        assertEq(s.premiumCommissionNDFBP, result.premiumCommissionNDFBP, "premiumCommissionNDFBP not matched");
-        assertEq(s.premiumCommissionSTMBP, result.premiumCommissionSTMBP, "premiumCommissionSTMBP not matched");
-    }
-
-    function getPremiumCommissions() internal returns (PolicyCommissionsBasisPoints memory) {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(libFeeRouterFixture.getPremiumCommissionBasisPointsFixture.selector));
-        require(success, "Should get commissions from app storage");
-        return abi.decode(result, (PolicyCommissionsBasisPoints));
     }
 
     function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {

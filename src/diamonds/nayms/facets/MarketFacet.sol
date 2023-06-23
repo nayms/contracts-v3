@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { TradingCommissions, TradingCommissionsBasisPoints, MarketInfo } from "../AppStorage.sol";
+import { CalculatedFees, MarketInfo } from "../AppStorage.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
@@ -68,7 +68,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_SCHEDULE_STANDARD);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.MARKET_FEE_SCHEDULE_DEFAULT);
     }
 
     /**
@@ -111,15 +111,15 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @dev Calculate the trading commissions based on a buy amount.
-     * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct
+     * @dev Calculate the trading fees based on a buy amount.
+     * @param _buyAmount The amount that the fees payments are calculated from.
+     * @return cf CalculatedFees struct
      */
-    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
-        tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
+    function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory cf) {
+        cf = LibFeeRouter._calculateTradingFees(_buyer, _buyAmount);
     }
 
-    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp) {
-        bp = LibFeeRouter._getTradingCommissionsBasisPoints();
+    function getMakerBP() external view returns (uint16) {
+        return LibFeeRouter._getMakerBP();
     }
 }

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
+import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 
 /**
  * @title Entities
@@ -114,5 +115,17 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory) {
         return LibEntity._getEntityInfo(_entityId);
+    }
+
+    function getFeeSchedule(uint256 _feeScheduleId) external view returns (FeeReceiver[] memory) {
+        return LibFeeRouter._getFeeSchedule(_feeScheduleId);
+    }
+
+    function getPremiumFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_) {
+        feeScheduleId_ = LibFeeRouter._getPremiumFeeScheduleId(_entityId);
+    }
+
+    function getTradingFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_) {
+        feeScheduleId_ = LibFeeRouter._getTradingFeeScheduleId(_entityId);
     }
 }

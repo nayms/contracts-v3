@@ -64,12 +64,6 @@ struct SimplePolicyInfo {
     uint256 premiumsPaid;
 }
 
-struct PolicyCommissionsBasisPoints {
-    uint16 premiumCommissionNaymsLtdBP;
-    uint16 premiumCommissionNDFBP;
-    uint16 premiumCommissionSTMBP;
-}
-
 struct Stakeholders {
     bytes32[] roles;
     bytes32[] entityIds;
@@ -89,25 +83,21 @@ struct StakingCheckpoint {
     uint256 blk; // block number
 }
 
-struct FeeRatio {
-    uint256 brokerShareRatio;
-    uint256 naymsLtdShareRatio;
-    uint256 ndfShareRatio;
+struct FeeReceiver {
+    bytes32 receiver;
+    uint256 basisPoints;
 }
 
-struct TradingCommissions {
-    uint256 roughCommissionPaid;
-    uint256 commissionNaymsLtd;
-    uint256 commissionNDF;
-    uint256 commissionSTM;
-    uint256 commissionMaker;
-    uint256 totalCommissions;
+struct FeeAllocation {
+    bytes32 from; // The ID of the entity that paid the fee
+    bytes32 to; // The ID of the entity that receives the fee
+    bytes32 token; // The ID of the token that was used to pay the fee
+    uint256 fee; // The amount of fees paid to the receiver
+    uint256 basisPoints; // The basis points taken from the amount transacted
 }
 
-struct TradingCommissionsBasisPoints {
-    uint16 tradingCommissionTotalBP;
-    uint16 tradingCommissionNaymsLtdBP;
-    uint16 tradingCommissionNDFBP;
-    uint16 tradingCommissionSTMBP;
-    uint16 tradingCommissionMakerBP;
+struct CalculatedFees {
+    uint256 totalFees; // total amount of fees paid
+    uint256 totalBP; // total basis points of fees paid
+    FeeAllocation[] feeAllocations; // The list of entities that receive a portion of the fees.
 }

@@ -2,9 +2,8 @@
 pragma solidity 0.8.17;
 
 // solhint-disable no-global-import
-import "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { BadToken } from "./utils/BadToken.sol";
 import { LibERC20Fixture } from "./fixtures/LibERC20Fixture.sol";

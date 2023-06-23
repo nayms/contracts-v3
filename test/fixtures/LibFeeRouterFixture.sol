@@ -1,33 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { LibFeeRouter, TradingCommissions, TradingCommissionsBasisPoints, PolicyCommissionsBasisPoints } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
+import { LibFeeRouter, CalculatedFees, FeeAllocation, FeeReceiver } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 
 /// Create a fixture to test the library LibFeeRouter
 
 contract LibFeeRouterFixture {
-    function payPremiumCommissions(bytes32 _policyId, uint256 _premiumPaid) public {
-        LibFeeRouter._payPremiumCommissions(_policyId, _premiumPaid);
+    function helper_getFeeScheduleTotalBP(uint256 _feeScheduleId) public view returns (uint256 totalBP) {
+        FeeReceiver[] memory feeReceivers = LibFeeRouter._getFeeSchedule(_feeScheduleId);
+
+        uint256 feeReceiversCount = feeReceivers.length;
+        for (uint256 i; i < feeReceiversCount; ++i) {
+            totalBP += feeReceivers[i].basisPoints;
+        }
     }
 
-    function payTradingCommissions(
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _requestedBuyAmount
-    ) public returns (uint256 commissionPaid_) {
-        commissionPaid_ = LibFeeRouter._payTradingCommissions(_makerId, _takerId, _tokenId, _requestedBuyAmount);
+    function exposed_calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) external view returns (CalculatedFees memory cf) {
+        cf = LibFeeRouter._calculatePremiumFees(_policyId, _premiumPaid);
     }
 
-    function calculateTradingCommissionsFixture(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
-        tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
-    }
-
-    function getPremiumCommissionBasisPointsFixture() external view returns (PolicyCommissionsBasisPoints memory bp) {
-        bp = LibFeeRouter._getPremiumCommissionBasisPoints();
-    }
-
-    function getTradingCommissionsBasisPointsFixture() external view returns (TradingCommissionsBasisPoints memory bp) {
-        bp = LibFeeRouter._getTradingCommissionsBasisPoints();
+    function exposed_payPremiumFees(bytes32 _policyId, uint256 _premiumPaid) external {
+        LibFeeRouter._payPremiumFees(_policyId, _premiumPaid);
     }
 }

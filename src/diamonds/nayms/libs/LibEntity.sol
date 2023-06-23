@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
-import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -11,9 +11,10 @@ import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
 import { LibSimplePolicy } from "./LibSimplePolicy.sol";
+import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -71,20 +72,26 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        // by default there are always 3 platform commission receivers: Nayms, NDF and STM
-        // policy-level receivers are also expected
+        FeeReceiver[] memory feeReceivers = s.feeSchedules[LibFeeRouter._getPremiumFeeScheduleId(_entityId)];
+        uint256 feeReceiversCount = feeReceivers.length;
+        // There must be at least one receiver from the fee schedule
+        require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
+
+        // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
-        require(commissionReceiversArrayLength > 3, "must have commission receivers");
-        require(commissionReceiversArrayLength <= 3 + _stakeholders.roles.length, "too many commission receivers");
+        require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
         require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
 
-        uint256 totalBP;
+        uint256 commissionReceiversTotalBP;
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
-            totalBP += simplePolicy.commissionBasisPoints[i];
+            commissionReceiversTotalBP += simplePolicy.commissionBasisPoints[i];
         }
-        require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
+
+        if (commissionReceiversTotalBP > LibConstants.BP_FACTOR / 2) {
+            revert FeeBasisPointsExceedHalfMax(commissionReceiversTotalBP, LibConstants.BP_FACTOR / 2);
+        }
 
         require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
     }
@@ -107,12 +114,6 @@ library LibEntity {
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         s.simplePolicies[_policyId] = _simplePolicy;
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNaymsLtdBP);
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNDFBP);
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionSTMBP);
 
         _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
@@ -215,7 +216,7 @@ library LibEntity {
         // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
-        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
+        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
 
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }

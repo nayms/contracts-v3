@@ -42,6 +42,13 @@ error PolicyIdCannotBeZero();
 /// @dev Policy commissions among commission receivers cannot sum to be greater than 10_000 basis points.
 error PolicyCommissionsBasisPointsCannotBeGreaterThan10000(uint256 calculatedTotalBp);
 
+/// @dev The total basis points for a fee schedule, policy fee receivers at policy creation, or maker bp cannot be greater than half of LibConstants.BP_FACTOR.
+///     This is to prevent the total basis points of a fee schedule with additional fee receivers (policy fee receivers for fee payments on premiums) from being greater than 100%.
+error FeeBasisPointsExceedHalfMax(uint256 actual, uint256 expected);
+
+/// @dev The total fees can never exceed the premium payment or the marketplace trade.
+error FeeBasisPointsExceedMax(uint256 actual, uint256 expected);
+
 /// @dev When validating an entity, the utilized capacity cannot be greater than the max capacity.
 error UtilizedCapacityGreaterThanMaxCapacity(uint256 utilizedCapacity, uint256 maxCapacity);
 
