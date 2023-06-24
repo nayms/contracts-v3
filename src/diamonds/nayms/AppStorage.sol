@@ -78,6 +78,8 @@ struct AppStorage {
     mapping(address => bytes32) objectTokenWrapperId; // reverse mapping token wrapper address => object ID
     mapping(string => bytes32) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
     mapping(uint256 => FeeReceiver[]) feeSchedules; // fee schedule ID => array of FeeReceiver struct
+    mapping(bytes32 => uint256) customPremiumFeeScheduleId; // entity ID => custom policy premium fee schedule ID
+    mapping(bytes32 => uint256) customMarketFeeScheduleId; // entity ID => custom market premium fee schedule ID
 }
 
 struct FunctionLockedStorage {

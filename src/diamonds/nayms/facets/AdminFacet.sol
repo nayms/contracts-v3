@@ -96,4 +96,12 @@ contract AdminFacet is IAdminFacet, Modifiers {
     function addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) external assertSysAdmin {
         LibFeeRouter._addFeeSchedule(_feeScheduleId, _feeReceivers);
     }
+
+    function setCustomPremiumFeeScheduleIdForEntity(bytes32 _entityId, uint256 _feeScheduleId) external assertSysAdmin {
+        LibFeeRouter._setCustomPremiumFeeScheduleIdForEntity(_entityId, _feeScheduleId);
+    }
+
+    function setCustomMarketFeeScheduleIdForEntity(bytes32 _entityId, uint256 _feeScheduleId) external assertSysAdmin {
+        LibFeeRouter._setCustomMarketFeeScheduleIdForEntity(_entityId, _feeScheduleId);
+    }
 }

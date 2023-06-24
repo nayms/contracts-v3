@@ -13,6 +13,8 @@ library LibFeeRouter {
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
     event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] feeReceivers);
+    event CustomPremiumFeeScheduleAssigned(bytes32 entityId, uint256 customPremiumFeecheduleId);
+    event CustomMarketFeeScheduleAssigned(bytes32 entityId, uint256 customMarketFeecheduleId);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -201,27 +203,38 @@ library LibFeeRouter {
         return s.tradingCommissionMakerBP;
     }
 
+    function _setCustomPremiumFeeScheduleIdForEntity(bytes32 _entityId, uint256 _feeScheduleId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.customPremiumFeeScheduleId[_entityId] = _feeScheduleId;
+
+        emit CustomPremiumFeeScheduleAssigned(_entityId, _feeScheduleId);
+    }
+
+    function _setCustomMarketFeeScheduleIdForEntity(bytes32 _entityId, uint256 _feeScheduleId) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.customMarketFeeScheduleId[_entityId] = _feeScheduleId;
+        emit CustomMarketFeeScheduleAssigned(_entityId, _feeScheduleId);
+    }
+
     function _getPremiumFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 feeScheduleId = uint256(_entityId);
-
-        if (s.feeSchedules[feeScheduleId].length == 0) {
+        uint256 customFeeScheduleId = s.customPremiumFeeScheduleId[_entityId];
+        if (customFeeScheduleId == 0) {
             feeScheduleId_ = LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT;
         } else {
-            feeScheduleId_ = feeScheduleId;
+            feeScheduleId_ = customFeeScheduleId;
         }
     }
 
     function _getTradingFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 feeScheduleId = uint256(_entityId) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES;
-
-        if (s.feeSchedules[feeScheduleId].length == 0) {
+        uint256 customFeeScheduleId = s.customPremiumFeeScheduleId[_entityId];
+        if (customFeeScheduleId == 0) {
             feeScheduleId_ = LibConstants.MARKET_FEE_SCHEDULE_DEFAULT;
         } else {
-            feeScheduleId_ = feeScheduleId;
+            feeScheduleId_ = customFeeScheduleId;
         }
     }
 }
