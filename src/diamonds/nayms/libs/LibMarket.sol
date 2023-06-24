@@ -270,7 +270,7 @@ library LibMarket {
             if (s.offers[_offerId].feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER || _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
                 feeSchedule = LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER;
             } else {
-                feeSchedule = LibFeeRouter._getTradingFeeScheduleId(_takerId);
+                feeSchedule = LibFeeRouter._getMarketFeeScheduleId(_takerId);
             }
 
             bytes32 buyer;
@@ -283,10 +283,10 @@ library LibMarket {
             // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
                 // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+                commissionsPaid_ = LibFeeRouter._payMarketFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
             } else {
                 // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
+                commissionsPaid_ = LibFeeRouter._payMarketFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
             }
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 

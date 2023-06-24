@@ -126,6 +126,6 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     }
 
     function getTradingFeeScheduleId(bytes32 _entityId) external view returns (uint256 feeScheduleId_) {
-        feeScheduleId_ = LibFeeRouter._getTradingFeeScheduleId(_entityId);
+        feeScheduleId_ = LibFeeRouter._getMarketFeeScheduleId(_entityId);
     }
 }

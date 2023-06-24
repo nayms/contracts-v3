@@ -116,7 +116,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      * @return cf CalculatedFees struct
      */
     function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory cf) {
-        cf = LibFeeRouter._calculateTradingFees(_buyer, _buyAmount);
+        cf = LibFeeRouter._calculateMarketFees(_buyer, _buyAmount);
     }
 
     function getMakerBP() external view returns (uint16) {

@@ -8,13 +8,13 @@ import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
-    event TradingFeePaid(uint256 feeScheduleId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
+    event MarketFeePaid(uint256 feeScheduleId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
     event PremiumFeePaid(bytes32 indexed policyId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
     event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] feeReceivers);
-    event CustomPremiumFeeScheduleAssigned(bytes32 entityId, uint256 customPremiumFeecheduleId);
-    event CustomMarketFeeScheduleAssigned(bytes32 entityId, uint256 customMarketFeecheduleId);
+    event CustomMarketFeeScheduleIdAssigned(bytes32 entityId, uint256 customMarketFeescheduleId);
+    event CustomPremiumFeeScheduleIdAssigned(bytes32 entityId, uint256 customPremiumFeescheduleId);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -86,10 +86,10 @@ library LibFeeRouter {
         }
     }
 
-    function _calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) internal view returns (CalculatedFees memory cf) {
+    function _calculateMarketFees(bytes32 _buyer, uint256 _buyAmount) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 feeScheduleId = _getTradingFeeScheduleId(_buyer);
+        uint256 feeScheduleId = _getMarketFeeScheduleId(_buyer);
         // Get the fee receivers for this _feeSchedule
         FeeReceiver[] memory feeSchedules = s.feeSchedules[feeScheduleId];
 
@@ -127,7 +127,7 @@ library LibFeeRouter {
     }
 
     /// @dev The total bp for a marketplace fee schedule cannot exceed LibConstants.BP_FACTOR since the maker BP and fee schedules are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.
-    function _payTradingFees(
+    function _payMarketFees(
         uint256 _feeSchedule,
         bytes32 buyer,
         bytes32 _makerId,
@@ -145,7 +145,7 @@ library LibFeeRouter {
         if (s.tradingCommissionMakerBP > 0) {
             fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
 
-            emit TradingFeePaid(_feeSchedule, _takerId, _makerId, _tokenId, fee);
+            emit MarketFeePaid(_feeSchedule, _takerId, _makerId, _tokenId, fee);
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
         }
 
@@ -154,7 +154,7 @@ library LibFeeRouter {
             fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
             totalFees_ += fee;
 
-            emit TradingFeePaid(_feeSchedule, buyer, feeSchedules[i].receiver, _tokenId, fee);
+            emit MarketFeePaid(_feeSchedule, buyer, feeSchedules[i].receiver, _tokenId, fee);
             LibTokenizedVault._internalTransfer(buyer, feeSchedules[i].receiver, _tokenId, fee);
         }
     }
@@ -207,13 +207,13 @@ library LibFeeRouter {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.customPremiumFeeScheduleId[_entityId] = _feeScheduleId;
 
-        emit CustomPremiumFeeScheduleAssigned(_entityId, _feeScheduleId);
+        emit CustomPremiumFeeScheduleIdAssigned(_entityId, _feeScheduleId);
     }
 
     function _setCustomMarketFeeScheduleIdForEntity(bytes32 _entityId, uint256 _feeScheduleId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.customMarketFeeScheduleId[_entityId] = _feeScheduleId;
-        emit CustomMarketFeeScheduleAssigned(_entityId, _feeScheduleId);
+        emit CustomMarketFeeScheduleIdAssigned(_entityId, _feeScheduleId);
     }
 
     function _getPremiumFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
@@ -227,7 +227,7 @@ library LibFeeRouter {
         }
     }
 
-    function _getTradingFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
+    function _getMarketFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint256 customFeeScheduleId = s.customPremiumFeeScheduleId[_entityId];
