@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
-import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -72,8 +72,8 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        FeeReceiver[] memory feeReceivers = s.feeSchedules[LibFeeRouter._getPremiumFeeScheduleId(_entityId)];
-        uint256 feeReceiversCount = feeReceivers.length;
+        FeeSchedule memory feeSchedule = getPremiumFeeSchedule(_entityId);
+        uint256 feeReceiversCount = feeSchedule.receiver.length;
         // There must be at least one receiver from the fee schedule
         require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
 
@@ -216,7 +216,7 @@ library LibEntity {
         // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
-        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER);
+        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_TYPE_INITIAL_SALE);
 
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }

@@ -6,7 +6,7 @@ import { Modifiers } from "../Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { FeeReceiver } from "../interfaces/FreeStructs.sol";
+import { FeeSchedule } from "../interfaces/FreeStructs.sol";
 import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
 
 /**
@@ -93,7 +93,7 @@ contract AdminFacet is IAdminFacet, Modifiers {
         LibFeeRouter._replaceMakerBP(_newMakerBP);
     }
 
-    function addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) external assertSysAdmin {
-        LibFeeRouter._addFeeSchedule(_feeScheduleId, _feeReceivers);
+    function addFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType, FeeSchedule calldata _feeSchedule) external assertSysAdmin {
+        LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _feeSchedule);
     }
 }

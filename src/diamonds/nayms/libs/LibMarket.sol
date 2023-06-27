@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
-import { MarketInfo, TokenAmount, FeeReceiver, CalculatedFees } from "../AppStorage.sol";
+import { MarketInfo, TokenAmount, CalculatedFees } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
@@ -152,7 +152,7 @@ library LibMarket {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount,
-        uint256 _feeSchedule
+        uint256 _feeScheduleType
     ) internal returns (MatchingOfferResult memory result) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -194,13 +194,13 @@ library LibMarket {
                     currentSellAmount = s.offers[bestOfferId].buyAmount < result.remainingSellAmount ? s.offers[bestOfferId].buyAmount : result.remainingSellAmount;
                     currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
 
-                    uint256 commissionsPaid = _takeOffer(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.buyTokenCommissionsPaid += commissionsPaid;
                 } else {
                     // Similar operations, but for the non-external token case (the fee is always paid in external tokens)
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
-                    uint256 commissionsPaid = _takeOffer(_feeSchedule, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
+                    uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
                 // Update how much is left to buy/sell
@@ -218,7 +218,7 @@ library LibMarket {
         bytes32 _buyToken,
         uint256 _buyAmount,
         uint256 _buyAmountInitial,
-        uint256 _feeSchedule
+        uint256 _feeScheduleType
     ) internal returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -232,7 +232,7 @@ library LibMarket {
         marketInfo.buyToken = _buyToken;
         marketInfo.buyAmount = _buyAmount;
         marketInfo.buyAmountInitial = _buyAmountInitial;
-        marketInfo.feeSchedule = _feeSchedule;
+        marketInfo.feeSchedule = _feeScheduleType;
 
         if (_buyAmount < LibConstants.DUST || _sellAmount < LibConstants.DUST) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
@@ -250,7 +250,7 @@ library LibMarket {
     }
 
     function _takeOffer(
-        uint256 _feeSchedule,
+        uint256 _feeScheduleType,
         uint256 _offerId,
         bytes32 _takerId,
         uint256 _buyAmount,
@@ -266,15 +266,15 @@ library LibMarket {
         /// Use the initial offer fee schedule if it is, otherwise use the fee schedule from the original order placed
 
         {
-            uint256 feeSchedule;
-            if (s.offers[_offerId].feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER || _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
-                feeSchedule = LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER;
+            uint256 feeScheduleType;
+            if (s.offers[_offerId].feeSchedule == LibConstants.FEE_TYPE_INITIAL_SALE || _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE) {
+                feeScheduleType = LibConstants.FEE_TYPE_INITIAL_SALE;
             } else {
-                feeSchedule = LibFeeRouter._getTradingFeeScheduleId(_takerId);
+                feeScheduleType = LibConstants.FEE_TYPE_TRADING;
             }
 
             bytes32 buyer;
-            if (feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER && s.offers[_offerId].creator != s.offers[_offerId].sellToken) {
+            if (feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE && s.offers[_offerId].creator != s.offers[_offerId].sellToken) {
                 buyer = s.offers[_offerId].creator;
             } else {
                 buyer = _takerId;
@@ -283,10 +283,10 @@ library LibMarket {
             // _takeExternalToken == true means the creator is selling an external token
             if (_takeExternalToken) {
                 // sellToken is external supported token, commissions are paid on top of _buyAmount in sellToken
-                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
+                commissionsPaid_ = LibFeeRouter._payTradingFees(feeScheduleType, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
             } else {
                 // sellToken is internal/participation token, commissions are paid from _sellAmount in buyToken
-                commissionsPaid_ = LibFeeRouter._payTradingFees(feeSchedule, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
+                commissionsPaid_ = LibFeeRouter._payTradingFees(feeScheduleType, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
             }
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
 
@@ -370,7 +370,7 @@ library LibMarket {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount,
-        uint256 _feeSchedule
+        uint256 _feeScheduleType
     ) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -405,10 +405,10 @@ library LibMarket {
 
         // must have a valid fee schedule
         require(
-            _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_PLATFORM_ACTION ||
-                _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_DEFAULT ||
-                _feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER,
-            "fee schedule invalid"
+            _feeScheduleType == LibConstants.FEE_TYPE_PREMIUM ||
+                _feeScheduleType == LibConstants.FEE_TYPE_TRADING ||
+                _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE,
+            "fee type invalid"
         );
     }
 
@@ -427,7 +427,7 @@ library LibMarket {
         uint256 _sellAmount,
         bytes32 _buyToken,
         uint256 _buyAmount,
-        uint256 _feeSchedule
+        uint256 _feeScheduleType
     )
         internal
         returns (
@@ -436,13 +436,13 @@ library LibMarket {
             uint256 sellTokenCommissionsPaid_
         )
     {
-        _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
+        _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
 
-        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeSchedule);
+        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
         buyTokenCommissionsPaid_ = result.buyTokenCommissionsPaid;
         sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
-        offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeSchedule);
+        offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeScheduleType);
 
         // if still some left
         AppStorage storage s = LibAppStorage.diamondStorage();

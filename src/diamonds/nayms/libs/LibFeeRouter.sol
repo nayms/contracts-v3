@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeReceiver } from "../AppStorage.sol";
+import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeSchedule } from "../AppStorage.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
-    event TradingFeePaid(uint256 feeScheduleId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
+    event TradingFeePaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
     event PremiumFeePaid(bytes32 indexed policyId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
-    event FeeScheduleAdded(uint256 feeScheduleId, FeeReceiver[] feeReceivers);
+    event FeeScheduleAdded(bytes32 _entityId, uint256 _feeType, FeeSchedule feeSchedule);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -21,8 +21,8 @@ library LibFeeRouter {
         uint256[] memory commissionBasisPoints = s.simplePolicies[_policyId].commissionBasisPoints;
         uint256 commissionsCount = commissionReceivers.length;
 
-        bytes32 policyEntityId = LibObject._getParent(_policyId);
-        FeeReceiver[] memory feeSchedule = s.feeSchedules[_getPremiumFeeScheduleId(policyEntityId)];
+        bytes32 parentEntityId = LibObject._getParent(_policyId);
+        FeeSchedule memory feeSchedule = s.feeSchedules[parentEntityId][LibConstants.FEE_TYPE_PREMIUM];
         uint256 feeScheduleReceiversCount = feeSchedule.length;
 
         uint256 totalReceiverCount;
@@ -126,8 +126,8 @@ library LibFeeRouter {
 
     /// @dev The total bp for a marketplace fee schedule cannot exceed LibConstants.BP_FACTOR since the maker BP and fee schedules are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.
     function _payTradingFees(
-        uint256 _feeSchedule,
-        bytes32 buyer,
+        uint256 _feeScheduleType,
+        bytes32 _buyer,
         bytes32 _makerId,
         bytes32 _takerId,
         bytes32 _tokenId,
@@ -135,25 +135,25 @@ library LibFeeRouter {
     ) internal returns (uint256 totalFees_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // Get the fee receivers for this _feeSchedule
-        FeeReceiver[] memory feeSchedules = s.feeSchedules[_feeSchedule];
+        // Get the fee receivers for this _feeScheduleType
+        FeeSchedule memory feeSchedule = s.feeSchedules[_buyer][_feeScheduleType];
 
         uint256 fee;
         // Calculate fees for the market maker
         if (s.tradingCommissionMakerBP > 0) {
             fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
 
-            emit TradingFeePaid(_feeSchedule, _takerId, _makerId, _tokenId, fee);
+            emit TradingFeePaid(_takerId, _makerId, _tokenId, fee);
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
         }
 
-        uint256 feeScheduleReceiversCount = feeSchedules.length;
+        uint256 feeScheduleReceiversCount = feeSchedule.receiver.length;
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
-            fee = (_buyAmount * feeSchedules[i].basisPoints) / LibConstants.BP_FACTOR;
+            fee = (_buyAmount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
             totalFees_ += fee;
 
-            emit TradingFeePaid(_feeSchedule, buyer, feeSchedules[i].receiver, _tokenId, fee);
-            LibTokenizedVault._internalTransfer(buyer, feeSchedules[i].receiver, _tokenId, fee);
+            emit TradingFeePaid(_buyer, feeSchedules.receiver[i], _tokenId, fee);
+            LibTokenizedVault._internalTransfer(_buyer, feeSchedules.receiver[i], _tokenId, fee);
         }
     }
 
@@ -168,32 +168,44 @@ library LibFeeRouter {
         emit MakerBasisPointsUpdated(tradingCommissionMakerBP);
     }
 
-    function _addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) internal {
+    function _addFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType, FeeSchedule calldata _feeSchedule) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // Remove the fee schedule for this _feeScheduleId if it already exists
-        delete s.feeSchedules[_feeScheduleId];
+        // Remove the fee schedule for this _entityId/_feeScheduleType if it already exists
+        delete s.feeSchedules[_entityId][_feeScheduleType];
 
         // Check to see that the total basis points does not exceed LibConstants.BP_FACTOR / 2 basis points
-        uint256 receiverCount = _feeReceivers.length;
+        uint256 receiverCount = _feeSchedule.length;
         uint256 totalBp;
         for (uint256 i; i < receiverCount; ++i) {
-            totalBp += _feeReceivers[i].basisPoints;
+            totalBp += _feeSchedule.basisPoints[i];
         }
         if (totalBp > LibConstants.BP_FACTOR / 2) {
             revert FeeBasisPointsExceedHalfMax(totalBp, LibConstants.BP_FACTOR / 2);
         }
 
-        for (uint256 i; i < receiverCount; ++i) {
-            s.feeSchedules[_feeScheduleId].push(_feeReceivers[i]);
-        }
+        s.feeSchedules[_entityId][_feeScheduleType] = _feeSchedule;
 
-        emit FeeScheduleAdded(_feeScheduleId, s.feeSchedules[_feeScheduleId]);
+        emit FeeScheduleAdded(_entityId, _feeScheduleType, _feeSchedule);
     }
 
-    function _getFeeSchedule(uint256 _feeScheduleId) internal view returns (FeeReceiver[] memory) {
+    function _getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal view returns (FeeSchedule memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.feeSchedules[_feeScheduleId];
+        FeeSchedule memory feeSchedule = s.feeSchedules[_entityId][_feeScheduleType];
+        
+        if(feeSchedule.receiver.length == 0 || feeSchedule.receiver.length != feeSchedule.basisPoints.length) {
+            // return default fee schedule
+            if(_feeScheduleType == LibConstants.FEE_TYPE_TRADING) {
+                feeSchedule = s.feeSchedules[DEFAULT_TRADING_FEE_SCHEDULE][_feeScheduleType];
+            } else if (_feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE) {
+                feeSchedule = s.feeSchedules[DEFAULT_INITIAL_SALE_FEE_SCHEDULE][_feeScheduleType];
+            } else if (_feeScheduleType == LibConstants.FEE_TYPE_PREMIUM) {
+                feeSchedule = s.feeSchedules[DEFAULT_PREMIUM_FEE_SCHEDULE][_feeScheduleType];
+            } else {
+                revert("invalid fee schedule type");
+            }
+        }
+        return feeSchedule;
     }
 
     function _getMakerBP() internal view returns (uint16) {
@@ -201,27 +213,4 @@ library LibFeeRouter {
         return s.tradingCommissionMakerBP;
     }
 
-    function _getPremiumFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        uint256 feeScheduleId = uint256(_entityId);
-
-        if (s.feeSchedules[feeScheduleId].length == 0) {
-            feeScheduleId_ = LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT;
-        } else {
-            feeScheduleId_ = feeScheduleId;
-        }
-    }
-
-    function _getTradingFeeScheduleId(bytes32 _entityId) internal view returns (uint256 feeScheduleId_) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        uint256 feeScheduleId = uint256(_entityId) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES;
-
-        if (s.feeSchedules[feeScheduleId].length == 0) {
-            feeScheduleId_ = LibConstants.MARKET_FEE_SCHEDULE_DEFAULT;
-        } else {
-            feeScheduleId_ = feeScheduleId;
-        }
-    }
 }

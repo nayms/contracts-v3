@@ -76,4 +76,7 @@ library LibHelpers {
         }
         return b;
     }
+
+    // TODO: bytes32 to uint256
+    // TODO: uint256 to bytes32
 }
