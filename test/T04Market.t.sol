@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, MarketInfo, FeeReceiver, SimplePolicy, Stakeholders, CalculatedFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 /* 
     Terminology:
@@ -188,13 +188,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // 0.075% to ndf
         // 0.075% to stm
 
-        FeeReceiver[] memory feeReceivers = new FeeReceiver[](3);
-
-        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 150 }); // 0.15%
-        feeReceivers[1] = FeeReceiver({ receiver: NDF_IDENTIFIER, basisPoints: 75 }); // 0.075%
-        feeReceivers[2] = FeeReceiver({ receiver: STM_IDENTIFIER, basisPoints: 75 }); // 0.075%
-
-        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
+        FeeSchedule memory feeSchedule = feeSched3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER, 150, 75, 75);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, feeSchedule);
 
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
@@ -218,9 +213,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LibConstants.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * feeReceivers[0].basisPoints) / LibConstants.BP_FACTOR);
-        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * feeReceivers[1].basisPoints) / LibConstants.BP_FACTOR);
-        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * feeReceivers[2].basisPoints) / LibConstants.BP_FACTOR);
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * feeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR);
+        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * feeSchedule.basisPoints[1]) / LibConstants.BP_FACTOR);
+        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * feeSchedule.basisPoints[2]) / LibConstants.BP_FACTOR);
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), naymsBalanceAfterTrade, "Nayms should receive half of trading commissions");
         assertEq(nayms.internalBalanceOf(NDF_IDENTIFIER, wethId), ndfBalanceAfterTrade, "NDF should get a trading commission");
         assertEq(nayms.internalBalanceOf(STM_IDENTIFIER, wethId), stmBalanceAfterTrade, "Staking mechanism should get a trading commission");
@@ -246,12 +241,16 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         );
 
         // Use a custom fee schedule for entity3 (taker)
-        feeReceivers[0] = FeeReceiver({ receiver: keccak256("RANDOM FEE RECEIVER"), basisPoints: 150 });
-        feeReceivers[1] = FeeReceiver({ receiver: keccak256("RANDOM FEE RECEIVER 2"), basisPoints: 75 });
-        feeReceivers[2] = FeeReceiver({ receiver: keccak256("RANDOM FEE RECEIVER 3"), basisPoints: 75 });
+        // prettier-ignore
+        feeSchedule = feeSched3(
+            keccak256("RANDOM FEE RECEIVER"), 
+            keccak256("RANDOM FEE RECEIVER 2"), 
+            keccak256("RANDOM FEE RECEIVER 3"), 
+            150, 75, 75
+        );
 
         changePrank(systemAdmin);
-        nayms.addFeeSchedule(uint256(entity2) - LibConstants.STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES, feeReceivers);
+        nayms.addFeeSchedule(entity2, LibConstants.FEE_TYPE_TRADING, feeSchedule);
 
         // Signer3 place an order with to sell the par tokens purchased from signer1
         changePrank(signer3);

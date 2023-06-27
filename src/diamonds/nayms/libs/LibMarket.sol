@@ -352,7 +352,7 @@ library LibMarket {
         }
 
         /// @dev Burn the par tokens if this was an initial token sale (selling par tokens through startTokenSale())
-        if (marketInfo.feeSchedule == LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER) {
+        if (marketInfo.feeSchedule == LibConstants.FEE_TYPE_INITIAL_SALE) {
             LibTokenizedVault._internalBurn(s.offers[_offerId].sellToken, s.offers[_offerId].sellToken, marketInfo.sellAmount);
         }
     }
@@ -405,9 +405,7 @@ library LibMarket {
 
         // must have a valid fee schedule
         require(
-            _feeScheduleType == LibConstants.FEE_TYPE_PREMIUM ||
-                _feeScheduleType == LibConstants.FEE_TYPE_TRADING ||
-                _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE,
+            _feeScheduleType == LibConstants.FEE_TYPE_PREMIUM || _feeScheduleType == LibConstants.FEE_TYPE_TRADING || _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE,
             "fee type invalid"
         );
     }

@@ -125,4 +125,8 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     function getTradingFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory) {
         return LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_TRADING);
     }
+
+    function getInitialSaleFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory) {
+        return LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_INITIAL_SALE);
+    }
 }

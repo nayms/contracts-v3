@@ -72,7 +72,7 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        FeeSchedule memory feeSchedule = getPremiumFeeSchedule(_entityId);
+        FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_PREMIUM);
         uint256 feeReceiversCount = feeSchedule.receiver.length;
         // There must be at least one receiver from the fee schedule
         require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule

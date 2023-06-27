@@ -223,7 +223,6 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     bytes4[] internal s_functionSelectors;
 
-    // solhint-disable func-name-mixedcase
     function test_lockUnlockAllFundTransferFunctions() public {
         vm.recordLogs();
 
