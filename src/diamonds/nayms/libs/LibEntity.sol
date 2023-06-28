@@ -160,7 +160,7 @@ library LibEntity {
         emit SimplePolicyCreated(_policyId, _entityId);
     }
 
-    function getSigner(bytes32 signingHash, bytes memory signature) private returns (address) {
+    function getSigner(bytes32 signingHash, bytes memory signature) private pure returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;
