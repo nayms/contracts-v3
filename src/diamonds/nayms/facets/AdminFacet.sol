@@ -97,9 +97,10 @@ contract AdminFacet is IAdminFacet, Modifiers {
     function addFeeSchedule(
         bytes32 _entityId,
         uint256 _feeScheduleType,
-        FeeSchedule calldata _feeSchedule
+        bytes32[] calldata _receiver,
+        uint256[] calldata _basisPoints
     ) external assertSysAdmin {
-        LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _feeSchedule);
+        LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _receiver, _basisPoints);
     }
 
     function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertSysAdmin {

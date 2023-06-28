@@ -48,6 +48,10 @@ contract D03ProtocolDefaults is D02TestSetup {
     address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
+    bytes32[] public defaultFeeRecepients;
+    uint256[] public defaultPremiumFeeBPs;
+    uint256[] public defaultTradingFeeBPs;
+
     FeeSchedule premiumFeeScheduleDefault;
     FeeSchedule tradingFeeScheduleDefault;
 
@@ -85,48 +89,65 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
         // Setup fee schedules
+        defaultFeeRecepients = b32Array1(NAYMS_LTD_IDENTIFIER);
+        defaultPremiumFeeBPs = u256Array1(300);
+        defaultTradingFeeBPs = u256Array1(30);
+
         premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
         tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
 
         // For Premiums
-        nayms.addFeeSchedule(LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, premiumFeeScheduleDefault);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecepients, defaultPremiumFeeBPs);
 
         // For Marketplace
-        nayms.addFeeSchedule(LibConstants.DEFAULT_TRADING_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, tradingFeeScheduleDefault);
-        nayms.addFeeSchedule(LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, tradingFeeScheduleDefault);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_TRADING_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, defaultFeeRecepients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, defaultFeeRecepients, defaultTradingFeeBPs);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
 
-    function feeSched1(bytes32 _receiver, uint256 _basisPoints) public pure returns (FeeSchedule memory) {
-        bytes32[] memory receiver_ = new bytes32[](1);
-        receiver_[0] = _receiver;
-
-        uint256[] memory basisPoints_ = new uint256[](1);
-        basisPoints_[0] = _basisPoints;
-
-        return FeeSchedule({ receiver: receiver_, basisPoints: basisPoints_ });
+    function b32Array1(bytes32 _value) internal pure returns (bytes32[] memory) {
+        bytes32[] memory arr = new bytes32[](1);
+        arr[0] = _value;
+        return arr;
     }
 
-    function feeSched3(
-        bytes32 _receiver1,
-        bytes32 _receiver2,
-        bytes32 _receiver3,
-        uint256 _basisPoints1,
-        uint256 _basisPoints2,
-        uint256 _basisPoints3
-    ) public pure returns (FeeSchedule memory) {
-        bytes32[] memory receiver_ = new bytes32[](3);
-        receiver_[0] = _receiver1;
-        receiver_[1] = _receiver2;
-        receiver_[2] = _receiver3;
+    function b32Array3(
+        bytes32 _value1,
+        bytes32 _value2,
+        bytes32 _value3
+    ) internal pure returns (bytes32[] memory) {
+        bytes32[] memory arr_ = new bytes32[](3);
+        arr_[0] = _value1;
+        arr_[1] = _value2;
+        arr_[2] = _value3;
+        return arr_;
+    }
 
-        uint256[] memory basisPoints_ = new uint256[](3);
-        basisPoints_[0] = _basisPoints1;
-        basisPoints_[1] = _basisPoints2;
-        basisPoints_[2] = _basisPoints3;
+    function u256Array1(uint256 _value) internal pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](1);
+        arr[0] = _value;
+        return arr;
+    }
 
-        return FeeSchedule({ receiver: receiver_, basisPoints: basisPoints_ });
+    function u256Array3(
+        uint256 _value1,
+        uint256 _value2,
+        uint256 _value3
+    ) internal pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](3);
+        arr[0] = _value1;
+        arr[1] = _value2;
+        arr[2] = _value3;
+        return arr;
+    }
+
+    function feeSched1(bytes32 _receiver, uint256 _basisPoints) internal pure returns (FeeSchedule memory) {
+        return FeeSchedule({ receiver: b32Array1(_receiver), basisPoints: u256Array1(_basisPoints) });
+    }
+
+    function feeSched(bytes32[] memory _receiver, uint256[] memory _basisPoints) internal pure returns (FeeSchedule memory) {
+        return FeeSchedule({ receiver: _receiver, basisPoints: _basisPoints });
     }
 
     function createTestEntity(bytes32 adminId) internal returns (bytes32) {

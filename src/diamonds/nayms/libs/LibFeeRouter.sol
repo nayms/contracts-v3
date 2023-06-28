@@ -165,26 +165,29 @@ library LibFeeRouter {
     function _addFeeSchedule(
         bytes32 _entityId,
         uint256 _feeScheduleType,
-        FeeSchedule calldata _feeSchedule
+        bytes32[] calldata _receiver,
+        uint256[] calldata _basisPoints
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Remove the fee schedule for this _entityId/_feeScheduleType if it already exists
         delete s.feeSchedules[_entityId][_feeScheduleType];
 
+        FeeSchedule memory feeSchedule = FeeSchedule({ receiver: _receiver, basisPoints: _basisPoints });
+
         // Check to see that the total basis points does not exceed LibConstants.BP_FACTOR / 2 basis points
-        uint256 receiverCount = _feeSchedule.receiver.length;
+        uint256 receiverCount = feeSchedule.receiver.length;
         uint256 totalBp;
         for (uint256 i; i < receiverCount; ++i) {
-            totalBp += _feeSchedule.basisPoints[i];
+            totalBp += feeSchedule.basisPoints[i];
         }
         if (totalBp > LibConstants.BP_FACTOR / 2) {
             revert FeeBasisPointsExceedHalfMax(totalBp, LibConstants.BP_FACTOR / 2);
         }
 
-        s.feeSchedules[_entityId][_feeScheduleType] = _feeSchedule;
+        s.feeSchedules[_entityId][_feeScheduleType] = feeSchedule;
 
-        emit FeeScheduleAdded(_entityId, _feeScheduleType, _feeSchedule);
+        emit FeeScheduleAdded(_entityId, _feeScheduleType, feeSchedule);
     }
 
     function _getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal view returns (FeeSchedule memory) {

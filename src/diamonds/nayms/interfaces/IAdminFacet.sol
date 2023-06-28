@@ -88,7 +88,8 @@ interface IAdminFacet {
     function addFeeSchedule(
         bytes32 entityId,
         uint256 _feeScheduleType,
-        FeeSchedule calldata _feeSchedule
+        bytes32[] calldata _receiver,
+        uint256[] calldata _basisPoints
     ) external;
 
     function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external;
