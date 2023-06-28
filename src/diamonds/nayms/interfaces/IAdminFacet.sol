@@ -85,5 +85,9 @@ interface IAdminFacet {
 
     function replaceMakerBP(uint16 _newMakerBP) external;
 
-    function addFeeSchedule(bytes32 entityId, uint256 _feeScheduleType, FeeSchedule calldata _feeSchedule) external;
+    function addFeeSchedule(
+        bytes32 entityId,
+        uint256 _feeScheduleType,
+        FeeSchedule calldata _feeSchedule
+    ) external;
 }

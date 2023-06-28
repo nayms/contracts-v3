@@ -215,7 +215,8 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(makerBP, cf.feeAllocations[0].basisPoints, "maker bp is incorrect");
 
-        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 0.5 ether - cf.totalFees, "entity's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), 0.5 ether + ((0.5 ether * makerBP) / LibConstants.BP_FACTOR), "makers's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), (0.5 ether - cf.totalFees), "taker's weth balance is incorrect");
     }
 
     function test_startTokenSale_FirstTokenSale() public {

@@ -89,13 +89,8 @@ library LibFeeRouter {
 
         FeeSchedule memory feeSchedule = _getFeeSchedule(_buyer, LibConstants.FEE_TYPE_TRADING);
 
-        uint256 totalReceiverCount;
-        if (s.tradingCommissionMakerBP > 0) {
-            totalReceiverCount++;
-        }
-
         uint256 feeScheduleReceiversCount = feeSchedule.receiver.length;
-        totalReceiverCount += feeScheduleReceiversCount;
+        uint256 totalReceiverCount = (s.tradingCommissionMakerBP > 0) ? feeScheduleReceiversCount + 1 : feeScheduleReceiversCount;
 
         cf.feeAllocations = new FeeAllocation[](totalReceiverCount);
 
@@ -112,7 +107,7 @@ library LibFeeRouter {
             receiverCount++;
         }
 
-        for (uint256 i; i < feeScheduleReceiversCount; ++i) {
+        for (uint256 i; i < feeScheduleReceiversCount; i++) {
             cf.feeAllocations[receiverCount + i].to = feeSchedule.receiver[i];
             cf.feeAllocations[receiverCount + i].basisPoints = feeSchedule.basisPoints[i];
             cf.feeAllocations[receiverCount + i].fee = (_buyAmount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
@@ -134,19 +129,20 @@ library LibFeeRouter {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Get the fee receivers for this _feeScheduleType
-        FeeSchedule memory feeSchedule = s.feeSchedules[_buyer][_feeScheduleType];
+        FeeSchedule memory feeSchedule = _getFeeSchedule(_buyer, _feeScheduleType);
 
         uint256 fee;
         // Calculate fees for the market maker
         if (s.tradingCommissionMakerBP > 0) {
             fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
+            totalFees_ += fee;
 
             emit TradingFeePaid(_takerId, _makerId, _tokenId, fee);
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
         }
 
         uint256 feeScheduleReceiversCount = feeSchedule.receiver.length;
-        for (uint256 i; i < feeScheduleReceiversCount; ++i) {
+        for (uint256 i; i < feeScheduleReceiversCount; i++) {
             fee = (_buyAmount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
             totalFees_ += fee;
 
