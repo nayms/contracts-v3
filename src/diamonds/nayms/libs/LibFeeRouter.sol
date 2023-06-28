@@ -206,6 +206,15 @@ library LibFeeRouter {
         return feeSchedule;
     }
 
+    function _removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal {
+        require(_entityId != LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE || _feeScheduleType != LibConstants.FEE_TYPE_PREMIUM, "cannot remove default premium fees");
+        require(_entityId != LibConstants.DEFAULT_TRADING_FEE_SCHEDULE || _feeScheduleType != LibConstants.FEE_TYPE_TRADING, "cannot remove default trading fees");
+        require(_entityId != LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE || _feeScheduleType != LibConstants.FEE_TYPE_INITIAL_SALE, "cannot remove default initial sale fees");
+
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        delete s.feeSchedules[_entityId][_feeScheduleType];
+    }
+
     function _getMakerBP() internal view returns (uint16) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.tradingCommissionMakerBP;

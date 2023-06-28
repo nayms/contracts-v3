@@ -90,4 +90,6 @@ interface IAdminFacet {
         uint256 _feeScheduleType,
         FeeSchedule calldata _feeSchedule
     ) external;
+
+    function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external;
 }

@@ -5,6 +5,7 @@ import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
+import { LibConstants } from "../libs/LibConstants.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { FeeSchedule } from "../interfaces/FreeStructs.sol";
 import { IAdminFacet } from "../interfaces/IAdminFacet.sol";
@@ -99,5 +100,9 @@ contract AdminFacet is IAdminFacet, Modifiers {
         FeeSchedule calldata _feeSchedule
     ) external assertSysAdmin {
         LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _feeSchedule);
+    }
+
+    function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertSysAdmin {
+        LibFeeRouter._removeFeeSchedule(_entityId, _feeScheduleType);
     }
 }
