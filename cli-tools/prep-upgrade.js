@@ -25,7 +25,7 @@ fs.readFile(filePath, "utf8", (err, data) => {
 
       // Handle facetAddress and action
       let facetActionParts = tupleParts[0].split(", ");
-      let facetAddress = ethers.getAddress(facetActionParts[0].slice(1)); // Remove leading "("
+      let facetAddress = ethers.utils.getAddress(facetActionParts[0].slice(1)); // Remove leading "("
       let action = facetCutActionEnum[parseInt(facetActionParts[1])];
 
       // Handle functionSelectors
