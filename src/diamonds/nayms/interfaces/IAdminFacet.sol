@@ -83,6 +83,10 @@ interface IAdminFacet {
      */
     function unlockAllFundTransferFunctions() external;
 
+    /**
+     * @notice Update market maker fee basis points
+     * @param _newMakerBP new maker fee value
+     */
     function replaceMakerBP(uint16 _newMakerBP) external;
 
     function addFeeSchedule(
