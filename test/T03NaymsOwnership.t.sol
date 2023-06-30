@@ -44,7 +44,6 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isInGroup(signer2Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
-    // solhint-disable func-name-mixedcase
     function testFuzz_TransferOwnership(
         address newOwner,
         address notSysAdmin,

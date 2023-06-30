@@ -49,18 +49,11 @@ library LibConstants {
                         Market and Premium Fee Schedules
     ///////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Marketplace default fee is charged.
-    uint256 internal constant MARKET_FEE_SCHEDULE_DEFAULT = 1;
-    /// @dev Marketplace Platform-initiated trade, e.g. token sale or buyback. (No fees)
-    uint256 internal constant MARKET_FEE_SCHEDULE_PLATFORM_ACTION = 2;
-    /// @dev Marketplace Fee Schedule for the first sale of par tokens.
-    uint256 internal constant MARKET_FEE_SCHEDULE_INITIAL_OFFER = 3;
-    /// @dev Default Premium Fee Schedule ID
-    uint256 internal constant PREMIUM_FEE_SCHEDULE_DEFAULT = 4;
+    uint256 internal constant FEE_TYPE_PREMIUM = 1;
+    uint256 internal constant FEE_TYPE_TRADING = 2;
+    uint256 internal constant FEE_TYPE_INITIAL_SALE = 3;
 
-    /// @dev The value used to derive the storage slot for the custom market fees schedule ID.
-    /// note: The custom premium fee schedule ID is stored in the slot equal to the policy's parent ID without any offset.
-    uint256 internal constant STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES = 1;
+    bytes32 internal constant DEFAULT_FEE_SCHEDULE = 0;
 
     /*///////////////////////////////////////////////////////////////////////////
                         MARKET OFFER STATES

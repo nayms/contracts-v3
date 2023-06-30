@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { FeeReceiver } from "./FreeStructs.sol";
+import { FeeSchedule } from "./FreeStructs.sol";
 
 /**
  * @title Administration
@@ -83,7 +83,18 @@ interface IAdminFacet {
      */
     function unlockAllFundTransferFunctions() external;
 
+    /**
+     * @notice Update market maker fee basis points
+     * @param _newMakerBP new maker fee value
+     */
     function replaceMakerBP(uint16 _newMakerBP) external;
 
-    function addFeeSchedule(uint256 _feeScheduleId, FeeReceiver[] calldata _feeReceivers) external;
+    function addFeeSchedule(
+        bytes32 entityId,
+        uint256 _feeScheduleType,
+        bytes32[] calldata _receiver,
+        uint256[] calldata _basisPoints
+    ) external;
+
+    function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external;
 }

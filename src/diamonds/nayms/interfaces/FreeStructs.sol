@@ -21,7 +21,7 @@ struct TokenAmount {
 }
 
 /**
- * @param maxCapacity Maxmimum allowable amount of capacity that an entity is given. Denominated by assetId.
+ * @param maxCapacity Maximum allowable amount of capacity that an entity is given. Denominated by assetId.
  * @param utilizedCapacity The utilized capacity of the entity. Denominated by assetId.
  */
 struct Entity {
@@ -83,9 +83,9 @@ struct StakingCheckpoint {
     uint256 blk; // block number
 }
 
-struct FeeReceiver {
-    bytes32 receiver;
-    uint256 basisPoints;
+struct FeeSchedule {
+    bytes32[] receiver;
+    uint256[] basisPoints;
 }
 
 struct FeeAllocation {

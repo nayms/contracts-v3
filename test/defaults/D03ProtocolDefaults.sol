@@ -2,13 +2,15 @@
 pragma solidity 0.8.17;
 
 import { D02TestSetup, LibHelpers, console2 } from "./D02TestSetup.sol";
-import { Entity, SimplePolicy, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
 
 // solhint-disable no-console
+// solhint-disable state-visibility
+
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
@@ -46,6 +48,13 @@ contract D03ProtocolDefaults is D02TestSetup {
     address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
+    bytes32[] public defaultFeeRecipients;
+    uint256[] public defaultPremiumFeeBPs;
+    uint256[] public defaultTradingFeeBPs;
+
+    FeeSchedule premiumFeeScheduleDefault;
+    FeeSchedule tradingFeeScheduleDefault;
+
     function setUp() public virtual override {
         console2.log("\n Test SETUP:");
         super.setUp();
@@ -80,21 +89,65 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
         // Setup fee schedules
+        defaultFeeRecipients = b32Array1(NAYMS_LTD_IDENTIFIER);
+        defaultPremiumFeeBPs = u256Array1(300);
+        defaultTradingFeeBPs = u256Array1(30);
+
+        premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
+        tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
 
         // For Premiums
-        FeeReceiver[] memory feeReceivers = new FeeReceiver[](1);
-        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
-
-        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
 
         // For Marketplace
-        feeReceivers = new FeeReceiver[](1);
-        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 30 });
-
-        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_DEFAULT, feeReceivers);
-        nayms.addFeeSchedule(LibConstants.MARKET_FEE_SCHEDULE_INITIAL_OFFER, feeReceivers);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
+    }
+
+    function b32Array1(bytes32 _value) internal pure returns (bytes32[] memory) {
+        bytes32[] memory arr = new bytes32[](1);
+        arr[0] = _value;
+        return arr;
+    }
+
+    function b32Array3(
+        bytes32 _value1,
+        bytes32 _value2,
+        bytes32 _value3
+    ) internal pure returns (bytes32[] memory) {
+        bytes32[] memory arr_ = new bytes32[](3);
+        arr_[0] = _value1;
+        arr_[1] = _value2;
+        arr_[2] = _value3;
+        return arr_;
+    }
+
+    function u256Array1(uint256 _value) internal pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](1);
+        arr[0] = _value;
+        return arr;
+    }
+
+    function u256Array3(
+        uint256 _value1,
+        uint256 _value2,
+        uint256 _value3
+    ) internal pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](3);
+        arr[0] = _value1;
+        arr[1] = _value2;
+        arr[2] = _value3;
+        return arr;
+    }
+
+    function feeSched1(bytes32 _receiver, uint256 _basisPoints) internal pure returns (FeeSchedule memory) {
+        return FeeSchedule({ receiver: b32Array1(_receiver), basisPoints: u256Array1(_basisPoints) });
+    }
+
+    function feeSched(bytes32[] memory _receiver, uint256[] memory _basisPoints) internal pure returns (FeeSchedule memory) {
+        return FeeSchedule({ receiver: _receiver, basisPoints: _basisPoints });
     }
 
     function createTestEntity(bytes32 adminId) internal returns (bytes32) {

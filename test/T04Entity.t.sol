@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, FeeReceiver } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
@@ -452,15 +452,17 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // fee schedule receivers
         // change fee schedule to one that does not have any receivers
-        FeeReceiver[] memory feeReceivers = new FeeReceiver[](0);
-        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        bytes32[] memory r;
+        uint256[] memory bp;
+
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
         vm.expectRevert("must have fee schedule receivers");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // add back fee receiver
-        feeReceivers = new FeeReceiver[](1);
-        feeReceivers[0] = FeeReceiver({ receiver: NAYMS_LTD_IDENTIFIER, basisPoints: 300 });
-        nayms.addFeeSchedule(LibConstants.PREMIUM_FEE_SCHEDULE_DEFAULT, feeReceivers);
+        r = b32Array1(NAYMS_LTD_IDENTIFIER);
+        bp = u256Array1(300);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
 
         vm.expectRevert("number of commissions don't match");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;

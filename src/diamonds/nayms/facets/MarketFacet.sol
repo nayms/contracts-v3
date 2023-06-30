@@ -68,7 +68,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.MARKET_FEE_SCHEDULE_DEFAULT);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_TYPE_TRADING);
     }
 
     /**

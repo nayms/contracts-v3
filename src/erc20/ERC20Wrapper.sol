@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-// solhint-disable func-name-mixedcase
-
 import { IERC20 } from "./IERC20.sol";
 import { INayms } from "../diamonds/nayms/INayms.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
