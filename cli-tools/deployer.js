@@ -172,24 +172,24 @@ function upgrade(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadca
 
 function smartDeploy(config) {
     let command = `forge script SmartDeploy \\
-    -s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${config.newDeploy} ${config.owner} ${config.sysAdmin} ${config.initDiamond} ${config.facetAction} ${config.facetsToCutIn} ${config.salt} \\
-    -f ${config.rpcUrl} \\
-    --chain-id ${config.networkId}`;
+        -s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${config.newDeploy} ${config.owner} ${config.sysAdmin} ${config.initDiamond} ${config.facetAction} ${config.facetsToCutIn} ${config.salt} \\
+        -f ${config.rpcUrl} \\
+        --chain-id ${config.networkId}`;
 
     if (config.broadcast) {
         command += ` \\
-    --sender ${config.sender} \\
-    --mnemonic-paths ${config.mnemonicFile} \\
-    --mnemonic-indexes ${config.mnemonicIndex}`;
+        --sender ${config.sender} \\
+        --mnemonic-paths ${config.mnemonicFile} \\
+        --mnemonic-indexes ${config.mnemonicIndex}`;
     }
 
     command += ` \\
-    -vv \\
-    --ffi`;
+        -vv \\
+        --ffi`;
 
     if (config.broadcast) {
         command += ` \\
-    --broadcast`;
+        --broadcast`;
     }
 
     return command;
@@ -206,9 +206,9 @@ function scheduleUpgrade(config) {
         --mnemonic-index ${config.mnemonicIndex}
     `;
 
-    return `${impersonateIfNeeded} cast send ${config.diamondAddress} "createUpgrade(bytes32)" \
-        ${config.upgradeHash} \
-        --rpc-url ${config.rpcUrl} ${isFork ? "--unlocked" : ""} \
+    return `${impersonateIfNeeded} cast send ${config.diamondAddress} "createUpgrade(bytes32)" \\
+        ${config.upgradeHash} \\
+        --rpc-url ${config.rpcUrl} ${isFork ? "--unlocked" : ""} \\
         --from ${config.systemAdminAddress} ${mnemonicIfNeeded}`;
 }
 
