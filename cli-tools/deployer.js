@@ -24,7 +24,7 @@ const fork = otherArgs.includes("--fork");
 const dryRun = otherArgs.includes("--dry-run");
 
 const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RPC_URL`];
-const mnemonicFile = networkId === "1" ? "nayms_mnemonic_mainnet.txt" : "nayms_mnemonic.txt";
+const mnemonicFile = networkId === "1" && !fork ? "nayms_mnemonic_mainnet.txt" : "nayms_mnemonic.txt";
 const mnemonic = fs.readFileSync(mnemonicFile).toString();
 
 const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address; // acc20
@@ -68,10 +68,10 @@ if (action === "deploy") {
     if (networkId === "1" && fork) {
         // transfer ownership to non-mainnet account
         execute(`cast rpc anvil_impersonateAccount ${systemAdminAddress}`);
-        execute(`cast send ${addresses[networkId]} "transferOwnership(address)" \
-            ${ownerAddress} \
-            -r http:\\127.0.0.1:8545 \
-            --unlocked \
+        execute(`cast send ${addresses[networkId]} "transferOwnership(address)" \\
+            ${ownerAddress} \\
+            -r http:\\127.0.0.1:8545 \\
+            --unlocked \\
             --from ${systemAdminAddress}`);
         execute(`cast rpc anvil_setBalance ${ownerAddress} 10000000000000000000 -r http:\\127.0.0.1:8545`);
     }
@@ -109,7 +109,7 @@ if (action === "deploy") {
         upgradeHash,
         ownerAddress,
         mnemonicFile: mnemonicFile,
-        mnemonicIndex: networkId === "1" ? 1 : 19,
+        mnemonicIndex: networkId === "1" && !fork ? 1 : 19,
     });
     if (networkId === "1" && !fork) {
         console.log("Execute the following command to cut in the facets, once the upgrade hash is approved");
