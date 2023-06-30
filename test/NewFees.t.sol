@@ -337,8 +337,9 @@ contract NewFeesTest is D03ProtocolDefaults {
 
     function assertEq(FeeSchedule memory feeSchedule, FeeSchedule memory feeScheduleTarget) private {
         assertEq(feeSchedule.receiver.length, feeScheduleTarget.receiver.length, "fee schedule receivers count don't match");
-        assertEq(feeSchedule.receiver[0], feeScheduleTarget.receiver[0], "fee schedule receivers don't match");
-        assertEq(feeSchedule.basisPoints.length, feeScheduleTarget.basisPoints.length, "fee schedule basisPoints count don't match");
-        assertEq(feeSchedule.basisPoints[0], feeScheduleTarget.basisPoints[0], "fee schedule basisPoints don't match");
+        for (uint256 i; i < feeSchedule.receiver.length; i++) {
+            assertEq(feeSchedule.receiver[i], feeScheduleTarget.receiver[i], "fee schedule receivers don't match");
+            assertEq(feeSchedule.basisPoints[i], feeScheduleTarget.basisPoints[i], "fee schedule basisPoints don't match");
+        }
     }
 }
