@@ -8,8 +8,7 @@ import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibFeeRouter {
-    event TradingFeePaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
-    event PremiumFeePaid(bytes32 indexed policyId, bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount);
+    event FeePaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount, uint256 feeType);
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
     event FeeScheduleAdded(bytes32 _entityId, uint256 _feeType, FeeSchedule feeSchedule);
@@ -69,7 +68,7 @@ library LibFeeRouter {
         for (uint256 i; i < commissionsCount; ++i) {
             fee = (_premiumPaid * commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
 
-            emit PremiumFeePaid(_policyId, parentEntityId, commissionReceivers[i], asset, fee);
+            emit FeePaid(parentEntityId, commissionReceivers[i], asset, fee, LibConstants.FEE_TYPE_PREMIUM);
             LibTokenizedVault._internalTransfer(parentEntityId, commissionReceivers[i], asset, fee);
         }
 
@@ -79,7 +78,7 @@ library LibFeeRouter {
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
             fee = (_premiumPaid * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
 
-            emit PremiumFeePaid(_policyId, parentEntityId, feeSchedule.receiver[i], asset, fee);
+            emit FeePaid(parentEntityId, feeSchedule.receiver[i], asset, fee, LibConstants.FEE_TYPE_PREMIUM);
             LibTokenizedVault._internalTransfer(parentEntityId, feeSchedule.receiver[i], asset, fee);
         }
     }
@@ -137,7 +136,7 @@ library LibFeeRouter {
             fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
             totalFees_ += fee;
 
-            emit TradingFeePaid(_takerId, _makerId, _tokenId, fee);
+            emit FeePaid(_takerId, _makerId, _tokenId, fee, LibConstants.FEE_TYPE_TRADING);
             LibTokenizedVault._internalTransfer(_takerId, _makerId, _tokenId, fee);
         }
 
@@ -146,7 +145,7 @@ library LibFeeRouter {
             fee = (_buyAmount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
             totalFees_ += fee;
 
-            emit TradingFeePaid(_buyer, feeSchedule.receiver[i], _tokenId, fee);
+            emit FeePaid(_buyer, feeSchedule.receiver[i], _tokenId, fee, LibConstants.FEE_TYPE_TRADING);
             LibTokenizedVault._internalTransfer(_buyer, feeSchedule.receiver[i], _tokenId, fee);
         }
     }
