@@ -404,10 +404,7 @@ library LibMarket {
         require(s.tokenBalances[_sellToken][_entityId] - s.lockedBalances[_entityId][_sellToken] >= _sellAmount, "insufficient balance available, funds locked");
 
         // must have a valid fee schedule
-        require(
-            _feeScheduleType == LibConstants.FEE_TYPE_TRADING || _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE,
-            "fee type invalid"
-        );
+        require(_feeScheduleType == LibConstants.FEE_TYPE_TRADING || _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE, "fee type invalid");
     }
 
     function _getOfferTokenAmounts(uint256 _offerId) internal view returns (TokenAmount memory sell_, TokenAmount memory buy_) {
