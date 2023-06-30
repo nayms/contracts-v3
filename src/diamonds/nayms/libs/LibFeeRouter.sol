@@ -170,6 +170,8 @@ library LibFeeRouter {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(_receiver.length == _basisPoints.length, "receivers and basis points mismatch");
+
         // Remove the fee schedule for this _entityId/_feeScheduleType if it already exists
         delete s.feeSchedules[_entityId][_feeScheduleType];
 
@@ -190,30 +192,20 @@ library LibFeeRouter {
         emit FeeScheduleAdded(_entityId, _feeScheduleType, feeSchedule);
     }
 
+    /// @dev VERY IMPORTANT always use this method to fetch the fee schedule because of fallback to default schedule!
     function _getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal view returns (FeeSchedule memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         FeeSchedule memory feeSchedule = s.feeSchedules[_entityId][_feeScheduleType];
 
         if (feeSchedule.receiver.length == 0 || feeSchedule.receiver.length != feeSchedule.basisPoints.length) {
             // return default fee schedule
-            if (_feeScheduleType == LibConstants.FEE_TYPE_TRADING) {
-                feeSchedule = s.feeSchedules[LibConstants.DEFAULT_TRADING_FEE_SCHEDULE][_feeScheduleType];
-            } else if (_feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE) {
-                feeSchedule = s.feeSchedules[LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE][_feeScheduleType];
-            } else if (_feeScheduleType == LibConstants.FEE_TYPE_PREMIUM) {
-                feeSchedule = s.feeSchedules[LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE][_feeScheduleType];
-            } else {
-                revert("invalid fee schedule type");
-            }
+            feeSchedule = s.feeSchedules[LibConstants.DEFAULT_FEE_SCHEDULE][_feeScheduleType];
         }
         return feeSchedule;
     }
 
     function _removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal {
-        require(_entityId != LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE || _feeScheduleType != LibConstants.FEE_TYPE_PREMIUM, "cannot remove default premium fees");
-        require(_entityId != LibConstants.DEFAULT_TRADING_FEE_SCHEDULE || _feeScheduleType != LibConstants.FEE_TYPE_TRADING, "cannot remove default trading fees");
-        require(_entityId != LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE || _feeScheduleType != LibConstants.FEE_TYPE_INITIAL_SALE, "cannot remove default initial sale fees");
-
+        require(_entityId != LibConstants.DEFAULT_FEE_SCHEDULE, "cannot remove default fees");
         AppStorage storage s = LibAppStorage.diamondStorage();
         delete s.feeSchedules[_entityId][_feeScheduleType];
     }

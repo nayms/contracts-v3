@@ -31,20 +31,20 @@ contract NewFeesTest is D03ProtocolDefaults {
         changePrank(address(0xdead));
 
         vm.expectRevert("not a system admin");
-        nayms.addFeeSchedule(LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecepients, defaultPremiumFeeBPs);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
     }
 
     function test_removeFeeSchedule() public {
         bytes32 entityId = "anything";
         FeeSchedule memory defaultFeeSchedule = nayms.getPremiumFeeSchedule(entityId);
 
-        bytes32[] memory customRecepient = b32Array1("recepient");
+        bytes32[] memory customRecipient = b32Array1("recipient");
         uint256[] memory customFeeBP = u256Array1(42);
 
-        nayms.addFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM, customRecepient, customFeeBP);
+        nayms.addFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         FeeSchedule memory storedFeeSchedule = nayms.getPremiumFeeSchedule(entityId);
-        assertEq(storedFeeSchedule.receiver[0], customRecepient[0], "fee receiver is not custom");
+        assertEq(storedFeeSchedule.receiver[0], customRecipient[0], "fee receiver is not custom");
         assertEq(storedFeeSchedule.basisPoints[0], customFeeBP[0], "fee basis points not custom");
 
         nayms.removeFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM);

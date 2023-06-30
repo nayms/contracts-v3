@@ -53,13 +53,7 @@ library LibConstants {
     uint256 internal constant FEE_TYPE_TRADING = 2;
     uint256 internal constant FEE_TYPE_INITIAL_SALE = 3;
 
-    bytes32 internal constant DEFAULT_PREMIUM_FEE_SCHEDULE = "default premium fees";
-    bytes32 internal constant DEFAULT_TRADING_FEE_SCHEDULE = "default trading fees";
-    bytes32 internal constant DEFAULT_INITIAL_SALE_FEE_SCHEDULE = "default initial sale fees";
-
-    /// @dev The value used to derive the storage slot for the custom market fees schedule ID.
-    /// note: The custom premium fee schedule ID is stored in the slot equal to the policy's parent ID without any offset.
-    uint256 internal constant STORAGE_OFFSET_FOR_CUSTOM_MARKET_FEES = 1;
+    bytes32 internal constant DEFAULT_FEE_SCHEDULE = 0;
 
     /*///////////////////////////////////////////////////////////////////////////
                         MARKET OFFER STATES

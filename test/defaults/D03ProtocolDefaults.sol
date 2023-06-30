@@ -48,7 +48,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
-    bytes32[] public defaultFeeRecepients;
+    bytes32[] public defaultFeeRecipients;
     uint256[] public defaultPremiumFeeBPs;
     uint256[] public defaultTradingFeeBPs;
 
@@ -89,7 +89,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
         // Setup fee schedules
-        defaultFeeRecepients = b32Array1(NAYMS_LTD_IDENTIFIER);
+        defaultFeeRecipients = b32Array1(NAYMS_LTD_IDENTIFIER);
         defaultPremiumFeeBPs = u256Array1(300);
         defaultTradingFeeBPs = u256Array1(30);
 
@@ -97,11 +97,11 @@ contract D03ProtocolDefaults is D02TestSetup {
         tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
 
         // For Premiums
-        nayms.addFeeSchedule(LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecepients, defaultPremiumFeeBPs);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
 
         // For Marketplace
-        nayms.addFeeSchedule(LibConstants.DEFAULT_TRADING_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, defaultFeeRecepients, defaultTradingFeeBPs);
-        nayms.addFeeSchedule(LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, defaultFeeRecepients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }

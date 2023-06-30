@@ -191,7 +191,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         bytes32[] memory customReceivers = b32Array3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER);
         uint256[] memory customBasisPoints = u256Array3(150, 75, 75);
 
-        nayms.addFeeSchedule(LibConstants.DEFAULT_INITIAL_SALE_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, customReceivers, customBasisPoints);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, customReceivers, customBasisPoints);
 
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");

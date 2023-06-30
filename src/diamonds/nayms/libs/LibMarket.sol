@@ -405,7 +405,7 @@ library LibMarket {
 
         // must have a valid fee schedule
         require(
-            _feeScheduleType == LibConstants.FEE_TYPE_PREMIUM || _feeScheduleType == LibConstants.FEE_TYPE_TRADING || _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE,
+            _feeScheduleType == LibConstants.FEE_TYPE_TRADING || _feeScheduleType == LibConstants.FEE_TYPE_INITIAL_SALE,
             "fee type invalid"
         );
     }

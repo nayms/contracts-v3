@@ -453,16 +453,16 @@ contract T04EntityTest is D03ProtocolDefaults {
         // fee schedule receivers
         // change fee schedule to one that does not have any receivers
         bytes32[] memory r;
-        uint256[] memory bp = u256Array1(300);
+        uint256[] memory bp;
 
-        nayms.addFeeSchedule(LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
         vm.expectRevert("must have fee schedule receivers");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // add back fee receiver
         r = b32Array1(NAYMS_LTD_IDENTIFIER);
         bp = u256Array1(300);
-        nayms.addFeeSchedule(LibConstants.DEFAULT_PREMIUM_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
 
         vm.expectRevert("number of commissions don't match");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
