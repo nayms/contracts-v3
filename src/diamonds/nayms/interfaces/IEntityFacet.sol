@@ -106,9 +106,6 @@ interface IEntityFacet {
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory);
 
-    function getPremiumFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory);
+    function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory);
 
-    function getTradingFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory);
-
-    function getInitialSaleFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory);
 }

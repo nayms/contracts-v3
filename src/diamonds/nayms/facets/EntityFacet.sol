@@ -110,7 +110,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @notice Get the the data for entity with ID: `_entityId`
+     * @notice Get the data for entity with ID: `_entityId`
      * @dev Get the Entity data for a given entityId
      * @param _entityId ID of the entity
      */
@@ -118,15 +118,14 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         return LibEntity._getEntityInfo(_entityId);
     }
 
-    function getPremiumFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory) {
-        return LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_PREMIUM);
+    /**
+     * @notice Get the fee schedule
+     * @param _entityId ID of the entity
+     * @param __feeScheduleType fee schedule type
+     * @returns FeeSchedule of given type for the entity
+     */
+    function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory) {
+        return LibFeeRouter._getFeeSchedule(_entityId, _feeScheduleType);
     }
 
-    function getTradingFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory) {
-        return LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_TRADING);
-    }
-
-    function getInitialSaleFeeSchedule(bytes32 _entityId) external view returns (FeeSchedule memory) {
-        return LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_INITIAL_SALE);
-    }
 }
