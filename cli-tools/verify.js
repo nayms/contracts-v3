@@ -1,14 +1,15 @@
 const fs = require("fs");
 const https = require("https");
 
+const networkId = '11155111';
+const networkName = 'sepolia';
+
 if (process.argv.length > 3) {
   console.error("Invalid arguments, only `--dry-run` or no args allowed");
   return;
 }
 
-let raw = fs.readFileSync(
-  "broadcast/SmartDeploy.s.sol/5/smartDeploy-latest.json"
-);
+let raw = fs.readFileSync(`broadcast/SmartDeploy.s.sol/${networkId}/smartDeploy-latest.json`);
 let json = JSON.parse(raw);
 
 json.transactions
@@ -25,7 +26,7 @@ json.transactions
           // r.status: 0 not verified, 1 verified
           if (r.status == 0) {
             // do verification!
-            let cmd = `forge v ${element.contractAddress} src/diamonds/nayms/facets/${element.contractName}.sol:${element.contractName} --etherscan-api-key $ETHERSCAN_API_KEY --chain goerli --watch`;
+            let cmd = `forge v ${element.contractAddress} src/diamonds/nayms/facets/${element.contractName}.sol:${element.contractName} --etherscan-api-key $ETHERSCAN_API_KEY --chain ${networkName} --watch`;
 
             if (process.argv.length === 3 && process.argv[2] === "--dry-run") {
               console.log(cmd);
