@@ -127,5 +127,4 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory) {
         return LibFeeRouter._getFeeSchedule(_entityId, _feeScheduleType);
     }
-
 }
