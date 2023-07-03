@@ -121,8 +121,8 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
     /**
      * @notice Get the fee schedule
      * @param _entityId ID of the entity
-     * @param __feeScheduleType fee schedule type
-     * @returns FeeSchedule of given type for the entity
+     * @param _feeScheduleType fee schedule type
+     * @return FeeSchedule of given type for the entity
      */
     function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory) {
         return LibFeeRouter._getFeeSchedule(_entityId, _feeScheduleType);
