@@ -191,7 +191,7 @@ library LibFeeRouter {
         emit FeeScheduleAdded(_entityId, _feeScheduleType, feeSchedule);
     }
 
-    /// @dev VERY IMPORTANT always use this method to fetch the fee schedule because of fallback to default schedule!
+    /// @dev VERY IMPORTANT: always use this method to fetch the fee schedule because of fallback to default one!
     function _getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal view returns (FeeSchedule memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         FeeSchedule memory feeSchedule = s.feeSchedules[_entityId][_feeScheduleType];
