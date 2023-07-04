@@ -330,9 +330,18 @@ contract NewFeesTest is D03ProtocolDefaults {
     function test_cov_LibFeeRouterFixture() public {
         // just for coverage sigh.
         LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
+        
         libFeeRouterFixture.exposed_calculatePremiumFees(bytes32("policy11"), 1e17);
-
         libFeeRouterFixture.exposed_payPremiumFees(bytes32("policy11"), 1e17);
+
+        libFeeRouterFixture.exposed_calculateTradingFees(bytes32("entity11"), 1e17);
+        libFeeRouterFixture.exposed_payTradingFees(
+            bytes32("entity11"), 
+            bytes32("entity11"), 
+            bytes32("entity21"), 
+            bytes32("entity21"), 
+            1e17
+        );
     }
 
     function assertEq(FeeSchedule memory feeSchedule, FeeSchedule memory feeScheduleTarget) private {
