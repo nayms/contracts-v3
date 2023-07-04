@@ -50,7 +50,7 @@ interface IAdminFacet {
      * @notice Check if object can be tokenized
      * @param _objectId ID of the object
      */
-    function isObjectTokenizable(bytes32 _objectId) external returns (bool);
+    function isObjectTokenizable(bytes32 _objectId) external view returns (bool);
 
     /**
      * @notice System Admin can lock a function
