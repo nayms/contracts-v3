@@ -63,7 +63,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test entity");
 
         // assign entity admin
-        nayms.assignRole(account0Id, entityId1, LibConstants.ROLE_ENTITY_ADMIN);
         assertTrue(nayms.isInGroup(account0Id, entityId1, LibConstants.GROUP_ENTITY_ADMINS));
 
         // fund the entity balance
