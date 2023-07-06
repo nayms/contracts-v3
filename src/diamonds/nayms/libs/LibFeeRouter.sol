@@ -78,8 +78,10 @@ library LibFeeRouter {
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
             fee = (_premiumPaid * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
 
-            emit FeePaid(parentEntityId, feeSchedule.receiver[i], asset, fee, LibConstants.FEE_TYPE_PREMIUM);
-            LibTokenizedVault._internalTransfer(parentEntityId, feeSchedule.receiver[i], asset, fee);
+            if(fee > 0) {
+                emit FeePaid(parentEntityId, feeSchedule.receiver[i], asset, fee, LibConstants.FEE_TYPE_PREMIUM);
+                LibTokenizedVault._internalTransfer(parentEntityId, feeSchedule.receiver[i], asset, fee);
+            }
         }
     }
 
@@ -143,10 +145,12 @@ library LibFeeRouter {
         uint256 feeScheduleReceiversCount = feeSchedule.receiver.length;
         for (uint256 i; i < feeScheduleReceiversCount; i++) {
             fee = (_buyAmount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
-            totalFees_ += fee;
 
-            emit FeePaid(_buyer, feeSchedule.receiver[i], _tokenId, fee, LibConstants.FEE_TYPE_TRADING);
-            LibTokenizedVault._internalTransfer(_buyer, feeSchedule.receiver[i], _tokenId, fee);
+            if(fee > 0) {
+                LibTokenizedVault._internalTransfer(_buyer, feeSchedule.receiver[i], _tokenId, fee);
+                totalFees_ += fee;
+                emit FeePaid(_buyer, feeSchedule.receiver[i], _tokenId, fee, LibConstants.FEE_TYPE_TRADING);
+            }
         }
     }
 
