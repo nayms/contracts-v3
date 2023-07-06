@@ -37,7 +37,6 @@ contract NewFeesTest is D03ProtocolDefaults {
         (stakeholders, simplePolicy) = initPolicy(testHash);
     }
 
-
     function fundEntityWeth(NaymsAccount memory acc, uint256 amount) private {
         deal(address(weth), acc.addr, amount);
         changePrank(acc.addr);
@@ -46,7 +45,6 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.externalDeposit(address(weth), amount);
         assertEq(nayms.internalBalanceOf(acc.entityId, wethId), balanceBefore + amount, "entity's weth balance is incorrect");
     }
-
 
     function test_setFeeSchedule_OnlySystemAdmin() public {
         changePrank(address(0xdead));
@@ -192,7 +190,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint256[] memory customFeeBP = u256Array1(_fee);
         nayms.addFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
-        
+
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(systemAdmin);
@@ -209,7 +207,12 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
     }
 
-    function test_calculatePremiumFees_MultipleReceivers(uint256 _fee, uint256 _fee1, uint256 _fee2, uint256 _fee3) public {
+    function test_calculatePremiumFees_MultipleReceivers(
+        uint256 _fee,
+        uint256 _fee1,
+        uint256 _fee2,
+        uint256 _fee3
+    ) public {
         vm.assume(0 <= _fee && _fee <= LibConstants.BP_FACTOR / 2);
         vm.assume(_fee1 < LibConstants.BP_FACTOR / 2 && _fee2 < LibConstants.BP_FACTOR / 2 && _fee3 < LibConstants.BP_FACTOR / 2);
         vm.assume(0 <= (_fee1 + _fee2 + _fee3) && (_fee1 + _fee2 + _fee3) <= LibConstants.BP_FACTOR / 2);
@@ -249,13 +252,13 @@ contract NewFeesTest is D03ProtocolDefaults {
 
     function test_zeroPremiumFees() public {
         nayms.addFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM, b32Array1(NAYMS_LTD_IDENTIFIER), u256Array1(0));
-        
+
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(systemAdmin);
         bytes32 policyId = "policy1";
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
-        
+
         uint256 premiumAmount = 1 ether;
         CalculatedFees memory cf = nayms.calculatePremiumFees(policyId, premiumAmount);
 
@@ -269,11 +272,11 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(feeSchedule.basisPoints[0], 0);
     }
 
-    function totalPremiumFeeBP(SimplePolicy memory simplePolicy, uint256[] memory customFeeBP) private returns(uint256 totalBP_){
-        for(uint256 i; i < simplePolicy.commissionBasisPoints.length; i++) {
+    function totalPremiumFeeBP(SimplePolicy memory simplePolicy, uint256[] memory customFeeBP) private returns (uint256 totalBP_) {
+        for (uint256 i; i < simplePolicy.commissionBasisPoints.length; i++) {
             totalBP_ += simplePolicy.commissionBasisPoints[i];
         }
-        for(uint256 i; i < customFeeBP.length; i++) {
+        for (uint256 i; i < customFeeBP.length; i++) {
             totalBP_ += customFeeBP[i];
         }
     }
@@ -335,7 +338,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
     function test_startTokenSale_PlaceOrderBeforeStartTokenSale() public {
         fundEntityWeth(acc2, 1 ether);
-        
+
         nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
 
         changePrank(systemAdmin);
@@ -354,7 +357,7 @@ contract NewFeesTest is D03ProtocolDefaults {
     function test_startTokenSale_StartingWithMultipleExecuteLimitOffers() public {
         CalculatedFees memory cf = nayms.calculateTradingFees(acc2.entityId, 2 ether);
         fundEntityWeth(acc2, 2 ether + cf.totalFees);
-        
+
         nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
         nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
 
@@ -380,18 +383,12 @@ contract NewFeesTest is D03ProtocolDefaults {
     function test_cov_LibFeeRouterFixture() public {
         // just for coverage sigh.
         LibFeeRouterFixture libFeeRouterFixture = new LibFeeRouterFixture();
-        
+
         libFeeRouterFixture.exposed_calculatePremiumFees(bytes32("policy11"), 1e17);
         libFeeRouterFixture.exposed_payPremiumFees(bytes32("policy11"), 1e17);
 
         libFeeRouterFixture.exposed_calculateTradingFees(bytes32("entity11"), 1e17);
-        libFeeRouterFixture.exposed_payTradingFees(
-            bytes32("entity11"), 
-            bytes32("entity11"), 
-            bytes32("entity21"), 
-            bytes32("entity21"), 
-            1e17
-        );
+        libFeeRouterFixture.exposed_payTradingFees(bytes32("entity11"), bytes32("entity11"), bytes32("entity21"), bytes32("entity21"), 1e17);
     }
 
     function test_zeroTradingFees() public {
@@ -409,7 +406,6 @@ contract NewFeesTest is D03ProtocolDefaults {
         CalculatedFees memory cf = nayms.calculateTradingFees(acc2.entityId, 1 ether);
 
         assertEq(cf.totalFees, 0, "Invalid total fees!");
-
     }
 
     function assertEq(FeeSchedule memory feeSchedule, FeeSchedule memory feeScheduleTarget) private {
