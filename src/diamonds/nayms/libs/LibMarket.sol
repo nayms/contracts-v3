@@ -37,7 +37,6 @@ library LibMarket {
 
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         return s.bestOfferId[_sellToken][_buyToken];
     }
 
@@ -179,6 +178,7 @@ library LibMarket {
 
                 // (For a breakdown on the matching algorithm see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
                 // note: We have removed the "optimistic" matching.
+                // if maker price is higher, then stop
                 if (makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount) {
                     break; // no matching price, bail out
                 }

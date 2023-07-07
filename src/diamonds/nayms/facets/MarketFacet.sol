@@ -112,11 +112,15 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
 
     /**
      * @dev Calculate the trading fees based on a buy amount.
+     * @param _buyerId The account buying the asset.
+     * @param _sellToken The asset being sold.
+     * @param _buyToken The asset being bought.
      * @param _buyAmount The amount that the fees payments are calculated from.
-     * @return cf CalculatedFees struct
+     * @return totalFees_ total fee to be payed
+     * @return totalBP_ total basis points
      */
-    function calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory cf) {
-        cf = LibFeeRouter._calculateTradingFees(_buyer, _buyAmount);
+    function calculateTradingFees(bytes32 _buyerId, bytes32 _sellToken, bytes32 _buyToken, uint256 _buyAmount) external view returns (uint256 totalFees_, uint256 totalBP_) {
+        (totalFees_, totalBP_) = LibFeeRouter._calculateTradingFees(_buyerId, _sellToken, _buyToken, _buyAmount);
     }
 
     function getMakerBP() external view returns (uint16) {

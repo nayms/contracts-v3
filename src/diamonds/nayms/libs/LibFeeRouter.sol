@@ -85,37 +85,37 @@ library LibFeeRouter {
         }
     }
 
-    function _calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) internal view returns (CalculatedFees memory cf) {
+    function _calculateTradingFees(bytes32 _buyerId, bytes32 _sellToken, bytes32 _buyToken, uint256 _buyAmount) internal view returns (uint256 totalFees_, uint256 totalBP_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        FeeSchedule memory feeSchedule = _getFeeSchedule(_buyer, LibConstants.FEE_TYPE_TRADING);
+        uint256 offerId = s.bestOfferId[_buyToken][_sellToken];
+        uint256 remainingBuyAmount = _buyAmount;
+        uint offerCounter;
+        
+        while (remainingBuyAmount > 0) {
+            FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, s.offers[offerId].feeSchedule);
+            if(s.offers[offerId].sellAmount == 0) {
+                revert("not enough liquidity");
+            }
+            uint256 amount = remainingBuyAmount < s.offers[offerId].sellAmount ? remainingBuyAmount : s.offers[offerId].sellAmount;
+            remainingBuyAmount -= amount;
 
-        uint256 feeScheduleReceiversCount = feeSchedule.receiver.length;
-        uint256 totalReceiverCount = (s.tradingCommissionMakerBP > 0) ? feeScheduleReceiversCount + 1 : feeScheduleReceiversCount;
+            for(uint i; i < feeSchedule.basisPoints.length; i++) {
+                totalFees_ += (amount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
+                totalBP_ += feeSchedule.basisPoints[i];
+            }
 
-        cf.feeAllocations = new FeeAllocation[](totalReceiverCount);
+            if (s.tradingCommissionMakerBP > 0) {
+                totalFees_ += amount;
+                totalBP_ += s.tradingCommissionMakerBP;
+            }
 
-        uint256 receiverCount;
-        // Calculate fees for the market maker
-        if (s.tradingCommissionMakerBP > 0) {
-            cf.feeAllocations[0].to = _buyer;
-            cf.feeAllocations[0].basisPoints = s.tradingCommissionMakerBP;
-            cf.feeAllocations[0].fee = (_buyAmount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
-
-            cf.totalFees += cf.feeAllocations[0].fee;
-            cf.totalBP += s.tradingCommissionMakerBP;
-
-            receiverCount++;
+            offerCounter++;
+            offerId = s.offers[offerId].rankPrev;
         }
 
-        for (uint256 i; i < feeScheduleReceiversCount; i++) {
-            cf.feeAllocations[receiverCount + i].to = feeSchedule.receiver[i];
-            cf.feeAllocations[receiverCount + i].basisPoints = feeSchedule.basisPoints[i];
-            cf.feeAllocations[receiverCount + i].fee = (_buyAmount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
+        totalBP_ /= offerCounter; // normalize total BP
 
-            cf.totalFees += cf.feeAllocations[receiverCount + i].fee;
-            cf.totalBP += feeSchedule.basisPoints[i];
-        }
     }
 
     /// @dev The total bp for a marketplace fee schedule cannot exceed LibConstants.BP_FACTOR since the maker BP and fee schedules are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.
