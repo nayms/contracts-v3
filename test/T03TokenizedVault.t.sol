@@ -742,6 +742,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         address charlie = signer2;
         bytes32 eCharlie = nayms.getEntity(signer2Id);
 
+        uint256 defaultTradingFeeBP = 30;
+
         changePrank(alice);
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
 
@@ -749,15 +751,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(bob);
         writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, 3_000);
-        nayms.externalDeposit(wethAddress, 3_000 + totalFees_);
+        uint256 totalFees = defaultTradingFeeBP * 3_000 / LibConstants.BP_FACTOR;
+        nayms.externalDeposit(wethAddress, 3_000 + totalFees);
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + totalFees);
 
         changePrank(charlie);
         writeTokenBalance(charlie, naymsAddress, wethAddress, depositAmount);
-        (totalFees_, ) = nayms.calculateTradingFees(eCharlie, wethId, eAlice, 17_000);
-        nayms.externalDeposit(wethAddress, 17_000 + totalFees_);
+        totalFees = defaultTradingFeeBP * 17_000 / LibConstants.BP_FACTOR;
+        nayms.externalDeposit(wethAddress, 17_000 + totalFees);
 
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + totalFees_);
 
         // note: starting a token sale which mints participation tokens
         changePrank(systemAdmin);

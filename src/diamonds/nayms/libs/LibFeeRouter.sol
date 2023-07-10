@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+// solhint-disable no-console
+import { console2 } from "forge-std/console2.sol";
+
 import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeSchedule } from "../AppStorage.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
+import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { FeeBasisPointsExceedHalfMax } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
@@ -94,24 +98,32 @@ library LibFeeRouter {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint256 offerId = s.bestOfferId[_buyToken][_sellToken];
+        bool buyExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+
         uint256 remainingBuyAmount = _buyAmount;
         uint256 offerCounter;
 
         while (remainingBuyAmount > 0) {
-            FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, s.offers[offerId].feeSchedule);
             if (s.offers[offerId].sellAmount == 0) {
                 revert("not enough liquidity");
             }
+
             uint256 amount = remainingBuyAmount < s.offers[offerId].sellAmount ? remainingBuyAmount : s.offers[offerId].sellAmount;
+            
             remainingBuyAmount -= amount;
 
+            FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, s.offers[offerId].feeSchedule);
             for (uint256 i; i < feeSchedule.basisPoints.length; i++) {
+                if(buyExternalToken) {
+                    // normalize the amount for external tokens
+                    amount = amount * s.offers[offerId].buyAmount / s.offers[offerId].sellAmount;
+                }
                 totalFees_ += (amount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
                 totalBP_ += feeSchedule.basisPoints[i];
             }
 
             if (s.tradingCommissionMakerBP > 0) {
-                totalFees_ += amount;
+                totalFees_ += (amount * s.tradingCommissionMakerBP) / LibConstants.BP_FACTOR;
                 totalBP_ += s.tradingCommissionMakerBP;
             }
 

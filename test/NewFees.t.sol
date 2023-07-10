@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+// solhint-disable no-console
+import { console2 } from "forge-std/console2.sol";
+
 import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeSchedule, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
@@ -131,7 +134,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256[] memory customFeeBP = u256Array1(900);
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
 
-        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_TRADING, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
 
         uint256 _buyAmount = 10 ether;
         (uint256 totalFees_, uint256 totalBP_) = nayms.calculateTradingFees(acc2.entityId, wethId, acc1.entityId, _buyAmount);
@@ -317,7 +320,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(defaultFeeScheduleTotalBP + makerBP, totalBP_, "total BP is incorrect");
 
         assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), buyAmount + ((buyAmount * makerBP) / LibConstants.BP_FACTOR), "makers's weth balance is incorrect");
-        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), (buyAmount - totalFees_), "taker's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), (sellAmount - buyAmount - totalFees_), "taker's weth balance is incorrect");
     }
 
     function test_startTokenSale_FirstTokenSale() public {
@@ -374,10 +377,10 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 singleOrderAmount = 0.5 ether;
         uint256 singleSaleAmount = 1 ether;
 
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(acc2.entityId, wethId, acc1.entityId, totalAmount);
-
-        fundEntityWeth(acc2, totalAmount + totalFees_);
-
+        uint256 defaultTotalBP = 30;
+        fundEntityWeth(acc2, totalAmount + (totalAmount * defaultTotalBP / LibConstants.BP_FACTOR));
+        
+        changePrank(acc2.addr);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
 
@@ -407,7 +410,9 @@ contract NewFeesTest is D03ProtocolDefaults {
         libFeeRouterFixture.exposed_calculatePremiumFees(bytes32("policy11"), 1e17);
         libFeeRouterFixture.exposed_payPremiumFees(bytes32("policy11"), 1e17);
 
-        libFeeRouterFixture.exposed_calculateTradingFees(acc2.entityId, wethId, acc1.entityId, 1 ether);
+        vm.expectRevert("not enough liquidity");
+        libFeeRouterFixture.exposed_calculateTradingFees(acc2.entityId, acc1.entityId, wethId, 1 ether);
+        
         libFeeRouterFixture.exposed_payTradingFees(bytes32("entity11"), bytes32("entity11"), bytes32("entity21"), bytes32("entity21"), 1e17);
     }
 
@@ -419,7 +424,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
         assertEq(nayms.internalBalanceOf(acc1.entityId, acc1.entityId), saleAmount, "entity selling par balance is incorrect");
 
-        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_TRADING, b32Array1(NAYMS_LTD_IDENTIFIER), u256Array1(0));
+        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE, b32Array1(NAYMS_LTD_IDENTIFIER), u256Array1(0));
 
         fundEntityWeth(acc2, saleAmount);
 
