@@ -88,7 +88,12 @@ interface IMarketFacet {
      * @return totalFees_ total fee to be payed
      * @return totalBP_ total basis points
      */
-    function calculateTradingFees(bytes32 _buyerId, bytes32 _sellToken, bytes32 _buyToken, uint256 _buyAmount) external view returns (uint256 totalFees_, uint256 totalBP_);
+    function calculateTradingFees(
+        bytes32 _buyerId,
+        bytes32 _sellToken,
+        bytes32 _buyToken,
+        uint256 _buyAmount
+    ) external view returns (uint256 totalFees_, uint256 totalBP_);
 
     /**
      * @dev Get the maker commission basis points.

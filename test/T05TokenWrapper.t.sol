@@ -67,7 +67,8 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
         // fund signer2
         changePrank(signer2);
-        uint256 amountWithFees = tokenAmount + nayms.calculateTradingFees(entityId1, tokenAmount).totalFees;
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(entityId2, wethId, entityId1, tokenAmount);
+        uint256 amountWithFees = tokenAmount + totalFees_;
         writeTokenBalance(signer2, naymsAddress, wethAddress, amountWithFees);
         nayms.externalDeposit(wethAddress, amountWithFees);
 

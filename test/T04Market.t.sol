@@ -209,9 +209,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
 
-        assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
+        assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commissions");
 
-        // assert trading commisions payed
+        // assert trading commissions payed
         uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LibConstants.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions");
 
@@ -235,12 +235,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(signer3);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(entity3, wethId, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.internalBalanceOf(entity2, wethId), e2WethBeforeTrade + dt.entity1MintAndSaleAmt, "Maker pays no commissions, on secondary market");
-        assertEq(
-            nayms.internalBalanceOf(entity3, wethId),
-            e3WethBeforeTrade - dt.entity1MintAndSaleAmt - nayms.calculateTradingFees(entity3, dt.entity1MintAndSaleAmt).totalFees,
-            "Taker should pay commissions, on secondary market"
-        );
+        assertEq(nayms.internalBalanceOf(entity3, wethId), e3WethBeforeTrade - dt.entity1MintAndSaleAmt - totalFees_, "Taker should pay commissions, on secondary market");
 
         // Use a custom fee schedule for entity3 (taker)
         // prettier-ignore
@@ -259,16 +256,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(signer2);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
-
-        CalculatedFees memory cf = nayms.calculateTradingFees(entity2, dt.entity1MintAndSaleAmt);
-
-        for (uint256 i; i < cf.feeAllocations.length; ++i) {
-            assertEq(
-                nayms.internalBalanceOf(cf.feeAllocations[i].to, wethId),
-                cf.feeAllocations[i].fee,
-                string.concat(vm.toString(cf.feeAllocations[i].to), " balance should have INCREASED (trading fees)")
-            );
-        }
     }
 
     function testMatchMakerPriceWithTakerBuyAmount() public {
@@ -342,7 +329,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity2, 0).totalBP)) / LibConstants.BP_FACTOR;
+            (, uint256 totalBP_) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
+            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + totalBP_)) / LibConstants.BP_FACTOR;
 
             changePrank(signer2);
             writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
@@ -400,7 +388,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
 
             // the BUYER of the first time par tokens needs balance for trading fees
-            uint256 feeAmount = salePrice + nayms.calculateTradingFees(entity1, salePrice).totalFees;
+            (uint256 totalFees_, ) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
+            uint256 feeAmount = salePrice + totalFees_;
             writeTokenBalance(signer2, naymsAddress, wethAddress, feeAmount);
             nayms.externalDeposit(wethAddress, feeAmount);
 
@@ -723,7 +712,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
-        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR;
+        (, uint256 totalBP_) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
+        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + totalBP_)) / LibConstants.BP_FACTOR;
 
         changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);

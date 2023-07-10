@@ -85,22 +85,27 @@ library LibFeeRouter {
         }
     }
 
-    function _calculateTradingFees(bytes32 _buyerId, bytes32 _sellToken, bytes32 _buyToken, uint256 _buyAmount) internal view returns (uint256 totalFees_, uint256 totalBP_) {
+    function _calculateTradingFees(
+        bytes32 _buyerId,
+        bytes32 _sellToken,
+        bytes32 _buyToken,
+        uint256 _buyAmount
+    ) internal view returns (uint256 totalFees_, uint256 totalBP_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint256 offerId = s.bestOfferId[_buyToken][_sellToken];
         uint256 remainingBuyAmount = _buyAmount;
-        uint offerCounter;
-        
+        uint256 offerCounter;
+
         while (remainingBuyAmount > 0) {
             FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, s.offers[offerId].feeSchedule);
-            if(s.offers[offerId].sellAmount == 0) {
+            if (s.offers[offerId].sellAmount == 0) {
                 revert("not enough liquidity");
             }
             uint256 amount = remainingBuyAmount < s.offers[offerId].sellAmount ? remainingBuyAmount : s.offers[offerId].sellAmount;
             remainingBuyAmount -= amount;
 
-            for(uint i; i < feeSchedule.basisPoints.length; i++) {
+            for (uint256 i; i < feeSchedule.basisPoints.length; i++) {
                 totalFees_ += (amount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
                 totalBP_ += feeSchedule.basisPoints[i];
             }
@@ -115,7 +120,6 @@ library LibFeeRouter {
         }
 
         totalBP_ /= offerCounter; // normalize total BP
-
     }
 
     /// @dev The total bp for a marketplace fee schedule cannot exceed LibConstants.BP_FACTOR since the maker BP and fee schedules are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.
