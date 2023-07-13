@@ -751,15 +751,14 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(bob);
         writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
-        uint256 totalFees = defaultTradingFeeBP * 3_000 / LibConstants.BP_FACTOR;
+        uint256 totalFees = (defaultTradingFeeBP * 3_000) / LibConstants.BP_FACTOR;
         nayms.externalDeposit(wethAddress, 3_000 + totalFees);
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + totalFees);
 
         changePrank(charlie);
         writeTokenBalance(charlie, naymsAddress, wethAddress, depositAmount);
-        totalFees = defaultTradingFeeBP * 17_000 / LibConstants.BP_FACTOR;
+        totalFees = (defaultTradingFeeBP * 17_000) / LibConstants.BP_FACTOR;
         nayms.externalDeposit(wethAddress, 17_000 + totalFees);
-
 
         // note: starting a token sale which mints participation tokens
         changePrank(systemAdmin);

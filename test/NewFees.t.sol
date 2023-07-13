@@ -154,7 +154,6 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
         assertEq(totalBP_, feeSchedule.basisPoints[0], "total bp is incorrect");
-
     }
 
     function test_calculateTradingFees_MultipleReceivers() public {
@@ -390,8 +389,8 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 singleSaleAmount = 1 ether;
 
         uint256 defaultTotalBP = 30;
-        fundEntityWeth(acc2, totalAmount + (totalAmount * defaultTotalBP / LibConstants.BP_FACTOR));
-        
+        fundEntityWeth(acc2, totalAmount + ((totalAmount * defaultTotalBP) / LibConstants.BP_FACTOR));
+
         changePrank(acc2.addr);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);

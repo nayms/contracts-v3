@@ -109,13 +109,13 @@ library LibFeeRouter {
             FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, feeType);
 
             uint256 amount = s.offers[offerId].sellAmount == 0 || remainingBuyAmount < s.offers[offerId].sellAmount ? remainingBuyAmount : s.offers[offerId].sellAmount;
-            
+
             remainingBuyAmount -= amount;
 
             for (uint256 i; i < feeSchedule.basisPoints.length; i++) {
-                if(buyExternalToken && s.offers[offerId].sellAmount != 0) {
+                if (buyExternalToken && s.offers[offerId].sellAmount != 0) {
                     // normalize the amount for external tokens
-                    amount = amount * s.offers[offerId].buyAmount / s.offers[offerId].sellAmount;
+                    amount = (amount * s.offers[offerId].buyAmount) / s.offers[offerId].sellAmount;
                 }
                 totalFees_ += (amount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
                 totalBP_ += feeSchedule.basisPoints[i];
