@@ -98,8 +98,6 @@ library LibFeeRouter {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint256 offerId = s.bestOfferId[_buyToken][_sellToken];
-        bool buyExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
-
         uint256 remainingBuyAmount = _buyAmount;
         uint256 offerCounter;
 
@@ -113,10 +111,6 @@ library LibFeeRouter {
             remainingBuyAmount -= amount;
 
             for (uint256 i; i < feeSchedule.basisPoints.length; i++) {
-                if (buyExternalToken && s.offers[offerId].sellAmount != 0) {
-                    // normalize the amount for external tokens
-                    amount = (amount * s.offers[offerId].buyAmount) / s.offers[offerId].sellAmount;
-                }
                 totalFees_ += (amount * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
                 totalBP_ += feeSchedule.basisPoints[i];
             }

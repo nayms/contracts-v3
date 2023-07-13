@@ -128,8 +128,6 @@ contract NewFeesTest is D03ProtocolDefaults {
     }
 
     function test_calculateTradingFees_SingleReceiver() public {
-        nayms.startTokenSale(acc1.entityId, 1000 ether, 1000 ether);
-
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint256[] memory customFeeBP = u256Array1(900);
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
@@ -157,9 +155,6 @@ contract NewFeesTest is D03ProtocolDefaults {
     }
 
     function test_calculateTradingFees_MultipleReceivers() public {
-        uint256 saleAmount = 1000 ether;
-        nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
-
         bytes32[] memory customRecipient = b32Array3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER);
         uint256[] memory customFeeBP = u256Array3(150, 75, 75);
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
