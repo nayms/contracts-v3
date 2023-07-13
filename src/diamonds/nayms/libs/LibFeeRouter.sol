@@ -104,17 +104,16 @@ library LibFeeRouter {
         uint256 offerCounter;
 
         while (remainingBuyAmount > 0) {
-            if (s.offers[offerId].sellAmount == 0) {
-                revert("not enough liquidity");
-            }
+            // if no liquidity, apply default fees
+            uint256 feeType = s.offers[offerId].sellAmount == 0 ? LibConstants.FEE_TYPE_INITIAL_SALE : s.offers[offerId].feeSchedule;
+            FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, feeType);
 
-            uint256 amount = remainingBuyAmount < s.offers[offerId].sellAmount ? remainingBuyAmount : s.offers[offerId].sellAmount;
+            uint256 amount = s.offers[offerId].sellAmount == 0 || remainingBuyAmount < s.offers[offerId].sellAmount ? remainingBuyAmount : s.offers[offerId].sellAmount;
             
             remainingBuyAmount -= amount;
 
-            FeeSchedule memory feeSchedule = _getFeeSchedule(_buyerId, s.offers[offerId].feeSchedule);
             for (uint256 i; i < feeSchedule.basisPoints.length; i++) {
-                if(buyExternalToken) {
+                if(buyExternalToken && s.offers[offerId].sellAmount != 0) {
                     // normalize the amount for external tokens
                     amount = amount * s.offers[offerId].buyAmount / s.offers[offerId].sellAmount;
                 }
@@ -130,8 +129,7 @@ library LibFeeRouter {
             offerCounter++;
             offerId = s.offers[offerId].rankPrev;
         }
-
-        totalBP_ /= offerCounter; // normalize total BP
+        totalBP_ = offerCounter > 0 ? totalBP_ / offerCounter : totalBP_; // normalize total BP
     }
 
     /// @dev The total bp for a marketplace fee schedule cannot exceed LibConstants.BP_FACTOR since the maker BP and fee schedules are each checked to be less than LibConstants.BP_FACTOR / 2 when they are being set.

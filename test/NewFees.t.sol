@@ -145,6 +145,18 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(totalBP_, customFeeSchedule.basisPoints[0], "total bp is incorrect");
     }
 
+    function test_calculateTradingFees_BuyExternal() public {
+        uint256 _buyAmount = 10 ether;
+        (uint256 totalFees_, uint256 totalBP_) = nayms.calculateTradingFees(acc2.entityId, acc1.entityId, wethId, _buyAmount);
+
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_TRADING);
+        uint256 expectedValue = (_buyAmount * feeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR;
+
+        assertEq(totalFees_, expectedValue, "total fees is incorrect");
+        assertEq(totalBP_, feeSchedule.basisPoints[0], "total bp is incorrect");
+
+    }
+
     function test_calculateTradingFees_MultipleReceivers() public {
         uint256 saleAmount = 1000 ether;
         nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
@@ -410,9 +422,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         libFeeRouterFixture.exposed_calculatePremiumFees(bytes32("policy11"), 1e17);
         libFeeRouterFixture.exposed_payPremiumFees(bytes32("policy11"), 1e17);
 
-        vm.expectRevert("not enough liquidity");
         libFeeRouterFixture.exposed_calculateTradingFees(acc2.entityId, acc1.entityId, wethId, 1 ether);
-        
         libFeeRouterFixture.exposed_payTradingFees(bytes32("entity11"), bytes32("entity11"), bytes32("entity21"), bytes32("entity21"), 1e17);
     }
 
