@@ -173,7 +173,7 @@ library LibFeeRouter {
         bytes32 _entityId,
         uint256 _feeScheduleType,
         bytes32[] calldata _receiver,
-        uint256[] calldata _basisPoints
+        uint16[] calldata _basisPoints
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 

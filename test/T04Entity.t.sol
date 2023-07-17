@@ -452,7 +452,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         // fee schedule receivers
         // change fee schedule to one that does not have any receivers
         bytes32[] memory r;
-        uint256[] memory bp;
+        uint16[] memory bp;
 
         nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
         vm.expectRevert("must have fee schedule receivers");
@@ -460,7 +460,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // add back fee receiver
         r = b32Array1(NAYMS_LTD_IDENTIFIER);
-        bp = u256Array1(300);
+        bp = u16Array1(300);
         nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, r, bp);
 
         vm.expectRevert("number of commissions don't match");

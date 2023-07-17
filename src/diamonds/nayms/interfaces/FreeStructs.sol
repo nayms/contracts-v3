@@ -85,7 +85,7 @@ struct StakingCheckpoint {
 
 struct FeeSchedule {
     bytes32[] receiver;
-    uint256[] basisPoints;
+    uint16[] basisPoints;
 }
 
 struct FeeAllocation {

@@ -189,7 +189,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // 0.075% to stm
 
         bytes32[] memory customReceivers = b32Array3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER);
-        uint256[] memory customBasisPoints = u256Array3(150, 75, 75);
+        uint16[] memory customBasisPoints = u16Array3(150, 75, 75);
 
         nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, customReceivers, customBasisPoints);
         nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, customReceivers, customBasisPoints);
@@ -246,7 +246,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
                 keccak256("RANDOM FEE RECEIVER"), 
                 keccak256("RANDOM FEE RECEIVER 2"), 
                 keccak256("RANDOM FEE RECEIVER 3"));
-        uint256[] memory basisPoints = u256Array3(150, 75, 75);
+        uint16[] memory basisPoints = u16Array3(150, 75, 75);
 
         changePrank(systemAdmin);
         nayms.addFeeSchedule(entity2, LibConstants.FEE_TYPE_TRADING, receivers, basisPoints);
