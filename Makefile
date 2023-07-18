@@ -467,6 +467,14 @@ update-e: ## update
 		-vvvv \
 		--broadcast
 
+coderecon: ## code recon
+	@forge script CodeRecon \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		-vv \
+		; node cli-tools/parse-json.js
+
 compb: ## Compare bytecode
 	@forge script CheckBytecode \
 		-s "run(uint8)" ${checkBytecodeAction} \
