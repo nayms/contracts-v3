@@ -469,6 +469,7 @@ update-e: ## update
 
 coderecon: ## code recon
 	@forge script CodeRecon \
+		-s "run(string[] memory)" ${contractNames} \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--chain-id 1 \
 		--etherscan-api-key ${ETHERSCAN_API_KEY} \

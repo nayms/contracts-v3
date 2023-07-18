@@ -158,24 +158,7 @@ contract CodeRecon is DeploymentHelpers {
         vm.writeJson(finalJson, path);
     }
 
-    function run() public {
-        string[] memory contractName = new string[](15);
-        contractName[0] = "ACLFacet";
-        contractName[1] = "AdminFacet";
-        contractName[2] = "EntityFacet";
-        contractName[3] = "GovernanceFacet";
-        contractName[4] = "MarketFacet";
-        contractName[5] = "NaymsTokenFacet";
-        contractName[6] = "SimplePolicyFacet";
-        contractName[7] = "SystemFacet";
-        contractName[8] = "TokenizedVaultFacet";
-        contractName[9] = "TokenizedVaultIOFacet";
-        contractName[10] = "UserFacet";
-        contractName[11] = "DiamondLoupeFacet";
-        contractName[12] = "NaymsOwnershipFacet";
-        contractName[13] = "PhasedDiamondCutFacet";
-        contractName[14] = "Nayms";
-
+    function run(string[] memory contractName) public {
         compareCode(contractName);
         genOutput();
     }
