@@ -189,9 +189,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // 0.075% to stm
 
         bytes32[] memory customReceivers = b32Array3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER);
-        uint256[] memory customBasisPoints = u256Array3(150, 75, 75);
+        uint16[] memory customBasisPoints = u16Array3(150, 75, 75);
 
         nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, customReceivers, customBasisPoints);
+        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, customReceivers, customBasisPoints);
 
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
@@ -209,9 +210,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
 
-        assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commisisons");
+        assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commissions");
 
-        // assert trading commisions payed
+        // assert trading commissions payed
         uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LibConstants.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions");
 
@@ -235,12 +236,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(signer3);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(entity3, wethId, entity1, dt.entity1MintAndSaleAmt);
         assertEq(nayms.internalBalanceOf(entity2, wethId), e2WethBeforeTrade + dt.entity1MintAndSaleAmt, "Maker pays no commissions, on secondary market");
-        assertEq(
-            nayms.internalBalanceOf(entity3, wethId),
-            e3WethBeforeTrade - dt.entity1MintAndSaleAmt - nayms.calculateTradingFees(entity3, dt.entity1MintAndSaleAmt).totalFees,
-            "Taker should pay commissions, on secondary market"
-        );
+        assertEq(nayms.internalBalanceOf(entity3, wethId), e3WethBeforeTrade - dt.entity1MintAndSaleAmt - totalFees_, "Taker should pay commissions, on secondary market");
 
         // Use a custom fee schedule for entity3 (taker)
         // prettier-ignore
@@ -248,7 +246,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
                 keccak256("RANDOM FEE RECEIVER"), 
                 keccak256("RANDOM FEE RECEIVER 2"), 
                 keccak256("RANDOM FEE RECEIVER 3"));
-        uint256[] memory basisPoints = u256Array3(150, 75, 75);
+        uint16[] memory basisPoints = u16Array3(150, 75, 75);
 
         changePrank(systemAdmin);
         nayms.addFeeSchedule(entity2, LibConstants.FEE_TYPE_TRADING, receivers, basisPoints);
@@ -259,16 +257,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(signer2);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
-
-        CalculatedFees memory cf = nayms.calculateTradingFees(entity2, dt.entity1MintAndSaleAmt);
-
-        for (uint256 i; i < cf.feeAllocations.length; ++i) {
-            assertEq(
-                nayms.internalBalanceOf(cf.feeAllocations[i].to, wethId),
-                cf.feeAllocations[i].fee,
-                string.concat(vm.toString(cf.feeAllocations[i].to), " balance should have INCREASED (trading fees)")
-            );
-        }
     }
 
     function testMatchMakerPriceWithTakerBuyAmount() public {
@@ -342,7 +330,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             vm.expectRevert("_internalMint: mint zero tokens");
             nayms.externalDeposit(wethAddress, salePrice);
         } else {
-            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity2, 0).totalBP)) / LibConstants.BP_FACTOR;
+            (, uint256 totalBP_) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
+            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + totalBP_)) / LibConstants.BP_FACTOR;
 
             changePrank(signer2);
             writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
@@ -400,7 +389,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
 
             // the BUYER of the first time par tokens needs balance for trading fees
-            uint256 feeAmount = salePrice + nayms.calculateTradingFees(entity1, salePrice).totalFees;
+            (uint256 totalFees_, ) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
+            uint256 feeAmount = salePrice + totalFees_;
             writeTokenBalance(signer2, naymsAddress, wethAddress, feeAmount);
             nayms.externalDeposit(wethAddress, feeAmount);
 
@@ -723,7 +713,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // init test funds to maxint
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
-        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + nayms.calculateTradingFees(entity1, 0).totalBP)) / LibConstants.BP_FACTOR;
+        (, uint256 totalBP_) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
+        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + totalBP_)) / LibConstants.BP_FACTOR;
 
         changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);

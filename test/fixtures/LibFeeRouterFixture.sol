@@ -15,8 +15,13 @@ contract LibFeeRouterFixture {
         LibFeeRouter._payPremiumFees(_policyId, _premiumPaid);
     }
 
-    function exposed_calculateTradingFees(bytes32 _buyer, uint256 _buyAmount) external view returns (CalculatedFees memory cf) {
-        return LibFeeRouter._calculateTradingFees(_buyer, _buyAmount);
+    function exposed_calculateTradingFees(
+        bytes32 _buyerId,
+        bytes32 _sellToken,
+        bytes32 _buyToken,
+        uint256 _buyAmount
+    ) external view returns (uint256 totalFees_, uint256 totalBP_) {
+        return LibFeeRouter._calculateTradingFees(_buyerId, _sellToken, _buyToken, _buyAmount);
     }
 
     function exposed_payTradingFees(
