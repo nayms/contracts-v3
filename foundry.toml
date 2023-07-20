@@ -15,6 +15,7 @@ via_ir = false
 ignored_error_codes = []
 ffi = false
 initial_balance = '0xffffffffffffffffffffffff'
+chain_id = 0
 # NOTE due to a toml-rs limitation, gas_limit value needs to be a string if the desired gas limit exceeds `i64::MAX` (9223372036854775807)
 gas_limit = 9223372036854775807
 gas_price = 0
