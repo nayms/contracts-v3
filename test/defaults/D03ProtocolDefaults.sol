@@ -48,6 +48,8 @@ contract D03ProtocolDefaults is D02TestSetup {
     address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
+    Entity entity;
+
     bytes32[] public defaultFeeRecipients;
     uint16[] public defaultPremiumFeeBPs;
     uint16[] public defaultTradingFeeBPs;
@@ -55,9 +57,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     FeeSchedule premiumFeeScheduleDefault;
     FeeSchedule tradingFeeScheduleDefault;
 
-    function setUp() public virtual override {
-        console2.log("\n Test SETUP:");
-        super.setUp();
+    constructor() payable {
         console2.log("\n -- D03 Protocol Defaults\n");
         console2.log("Test contract address ID, aka account0Id:");
         console2.logBytes32(account0Id);
@@ -71,10 +71,10 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        vm.startPrank(systemAdmin);
+        changePrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
 
-        Entity memory entity = Entity({
+        entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
             collateralRatio: LibConstants.BP_FACTOR,
             maxCapacity: 100 ether,

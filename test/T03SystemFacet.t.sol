@@ -11,9 +11,7 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal immutable objectContext1 = "0x1";
 
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testD03CreateEntity() public {
         // Test entity created in D03ProtocolDefaults

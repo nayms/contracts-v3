@@ -7,9 +7,7 @@ import { Vm } from "forge-std/Vm.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02UserTest is D03ProtocolDefaults, MockAccounts {
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testGetUserIdFromAddress() public {
         assertEq(nayms.getUserIdFromAddress(account0), LibHelpers._getIdForAddress(account0));

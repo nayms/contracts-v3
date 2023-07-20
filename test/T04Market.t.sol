@@ -66,9 +66,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity3SalePrice: 1_000 ether
         });
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         // whitelist WBTC as well
         nayms.addSupportedExternalToken(wbtcAddress);
 

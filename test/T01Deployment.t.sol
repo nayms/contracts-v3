@@ -8,7 +8,6 @@ import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 import { DiamondAlreadyInitialized } from "src/diamonds/nayms/InitDiamond.sol";
-import { CREATE3 } from "solmate/utils/CREATE3.sol";
 
 import { IERC165 } from "../src/diamonds/shared/interfaces/IERC165.sol";
 import { IDiamondCut } from "../src/diamonds/shared/interfaces/IDiamondCut.sol";
@@ -29,12 +28,10 @@ import { IGovernanceFacet } from "../src/diamonds/nayms/interfaces/IGovernanceFa
 contract T01DeploymentTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
 
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testOwnerOfDiamond() public {
-        assertEq(nayms.owner(), account0);
+        assertEq(nayms.owner(), owner);
     }
 
     function testDiamondLoupeFunctionality() public view {

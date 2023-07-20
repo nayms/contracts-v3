@@ -10,9 +10,7 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 /// @dev Testing for Nayms RBAC - Access Control List (ACL)
 
 contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     /// deployer, owner, address(this), account0 are all the same address. This address should not be able to have the system admin role
     /// systemAdmin is another address

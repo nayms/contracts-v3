@@ -10,9 +10,7 @@ import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokeniz
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testGetSystemId() public {
         assertEq(nayms.getSystemId(), LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER));

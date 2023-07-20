@@ -27,9 +27,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     address internal account9;
     bytes32 internal account9Id;
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
 
