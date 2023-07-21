@@ -44,7 +44,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     }
 
     constructor() payable {
-        uint256 FORK_BLOCK = vm.envOr({ name: string.concat(vm.toString(block.chainid), "_FORK_BLOCK"), defaultValue: type(uint256).max });
+        uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
         if (block.chainid != 0) {
             if (FORK_BLOCK == type(uint256).max) {
                 console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
