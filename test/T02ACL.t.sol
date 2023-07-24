@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-
+import { console2 } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { DSILib } from "test/utils/DSILib.sol";
 
 /// @dev Testing for Nayms RBAC - Access Control List (ACL)
 
 contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
+    using DSILib for address;
+    using LibHelpers for *;
+
     function setUp() public {}
 
     /// deployer, owner, address(this), account0 are all the same address. This address should not be able to have the system admin role
@@ -26,6 +30,9 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testReassignLastSystemAdminFails() public {
+        // Manually set number of system admins to 1
+        naymsAddress.write_sysAdmins(1);
+
         vm.expectRevert("must have at least one system admin");
         nayms.assignRole(systemAdminId, systemContext, LibConstants.ROLE_BROKER);
     }
