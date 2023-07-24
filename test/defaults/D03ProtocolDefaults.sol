@@ -191,11 +191,11 @@ contract D03ProtocolDefaults is D02TestSetup {
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 
-    function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicy(bytes32 offchainDataHash) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         return initPolicyWithLimit(offchainDataHash, LibConstants.BP_FACTOR);
     }
 
-    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -218,8 +218,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         commissions[1] = 10;
         commissions[2] = 10;
 
-        policy.startDate = 1000;
-        policy.maturationDate = 1000 + 2 days;
+        policy.startDate = block.timestamp + 1000;
+        policy.maturationDate = block.timestamp + 1000 + 2 days;
         policy.asset = wethId;
         policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;
@@ -237,7 +237,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
     }
 
-    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal returns (bytes memory sig_) {
+    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
