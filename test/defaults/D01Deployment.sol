@@ -44,7 +44,12 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     }
 
     constructor() payable {
+        console2.log("block.chainid", block.chainid);
+
         uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
+
+        console2.log("FORK_BLOCK", FORK_BLOCK);
+
         if (block.chainid != 0) {
             if (FORK_BLOCK == type(uint256).max) {
                 console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
@@ -52,23 +57,23 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             } else {
                 vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
             }
-            naymsAddress = 0x39e2f550fef9ee15b459d16bD4B243b04b1f60e5;
+            naymsAddress = getDiamondAddressFromFile();
             nayms = INayms(naymsAddress);
 
             deployer = address(this);
             owner = nayms.owner();
             vm.label(owner, "Owner");
-            systemAdmin = 0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929;
+            systemAdmin = vm.envOr({ name: string.concat("SYSTEM_ADMIN_", vm.toString(block.chainid)), defaultValue: address(0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929) });
             systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
             vm.label(systemAdmin, "System Admin");
 
             string[] memory facetsToCutIn;
             keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
-            IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(getDiamondAddressFromFile(), FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
+            IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(naymsAddress, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
             vm.startPrank(owner);
             scheduleAndUpgradeDiamond(cut);
         } else {
-            console2.log("Isolated testing (no fork)");
+            console2.log("Local testing (no fork)");
 
             deployer = address(this);
             owner = address(this);
