@@ -15,7 +15,15 @@ contract TNaymsToken is D03ProtocolDefaults {
         assertEq(nayms.totalSupply(), 100_000_000e18, "total supply should be 100_000_000");
     }
 
-    function testNaymsBalanceOf() public {
+    /// @dev In local tests the balance of NAYMS is minted to the test address
+    function testNaymsBalanceOf() public skipWhenForking {
         assertEq(nayms.balanceOf(account0), 100_000_000e18, "account0 should have 100_000_000");
+    }
+
+    function test_mainnet_balanceOf() public skipWhenNotForking {
+        if (block.chainid == 1) {
+            address tokenHolder = 0x3b1716F33785A9AAa3a496DCfD33A1f702Fd3CEA;
+            assertEq(nayms.balanceOf(tokenHolder), 100_000_000e18, "account0 should have 100_000_000");
+        }
     }
 }
