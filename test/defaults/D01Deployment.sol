@@ -46,17 +46,18 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     constructor() payable {
         console2.log("block.chainid", block.chainid);
 
-        uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
+        bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
+        if (BOOL_FORK_TEST) {
+            uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
+            console2.log("FORK_BLOCK", FORK_BLOCK);
 
-        console2.log("FORK_BLOCK", FORK_BLOCK);
-
-        if (block.chainid != 0) {
             if (FORK_BLOCK == type(uint256).max) {
                 console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
                 vm.createSelectFork(getChain(block.chainid).rpcUrl);
             } else {
                 vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
             }
+
             naymsAddress = getDiamondAddressFromFile();
             nayms = INayms(naymsAddress);
 
