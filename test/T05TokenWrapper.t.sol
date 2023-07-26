@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
 
@@ -18,9 +18,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     bytes32 internal constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testOnlyDiamondCanWrapTokens() public {
         vm.expectRevert();

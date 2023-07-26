@@ -19,9 +19,7 @@ contract T01LibERC20 is D03ProtocolDefaults {
     LibERC20Fixture private fixture;
     address private fixtureAddress;
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         token = new DummyToken();
         tokenAddress = address(token);
 

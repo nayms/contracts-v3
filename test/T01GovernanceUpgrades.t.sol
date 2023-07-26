@@ -23,9 +23,7 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
     uint256 public constant STARTING_BLOCK_TIMESTAMP = 100;
     address public testFacetAddress;
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         // note: The diamond starts with the PhasedDiamondCutFacet insteaad of the original DiamondCutFacet
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);

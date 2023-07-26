@@ -47,8 +47,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
     TokenizedVaultFixture internal tokenizedVaultFixture;
 
-    function setUp() public virtual override {
-        super.setUp();
+    function setUp() public {
         nWETH = LibHelpers._getIdForAddress(wethAddress);
         nWBTC = LibHelpers._getIdForAddress(wbtcAddress);
         dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
@@ -298,8 +297,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(nonAdminAddress);
         vm.expectRevert("payDividendFromEntity: not the entity's admin");
         nayms.payDividendFromEntity(randomGuid, 10 ether);
-        vm.stopPrank();
 
+        changePrank(account0);
         vm.expectRevert("payDividendFromEntity: insufficient balance");
         nayms.payDividendFromEntity(randomGuid, 10 ether);
 

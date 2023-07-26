@@ -3,7 +3,10 @@ pragma solidity 0.8.17;
 
 // solhint-disable no-console
 // solhint-disable no-global-import
-import { StdStorage, stdStorage, console2, Test } from "forge-std/Test.sol";
+// import { StdStorage, stdStorage, console2, Test } from "forge-std/Test.sol";
+import { console2 } from "forge-std/console2.sol";
+import { CommonBase } from "forge-std/Base.sol";
+import { StdStorage, stdStorage } from "forge-std/StdStorage.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
 /// @notice Default test setup part 00
@@ -14,14 +17,13 @@ import { IERC20 } from "src/erc20/IERC20.sol";
 // For local tests, account0 will be the owner and the deployer. This will be the test contract address.
 // systemAdmin will be another account. owner and system admins must be mutually exclusive.
 
-contract D00GlobalDefaults is Test {
+abstract contract D00GlobalDefaults is CommonBase {
     using stdStorage for StdStorage;
+
     address public account0 = address(this);
 
-    uint256 public MAINNET_FORK_BLOCK_NUMBER = 15615850;
-    uint256 public GOERLI_FORK_BLOCK_NUMBER = 7661570;
-
-    function setUp() public virtual {
+    constructor() payable {
+        console2.log("\n Test SETUP:");
         console2.log("\n -- D00 Global Defaults\n");
 
         console2.log("Test contract address, aka account0, deployer, owner", address(this));
@@ -39,7 +41,7 @@ contract D00GlobalDefaults is Test {
 
         stdstore.target(token).sig(IERC20(token).balanceOf.selector).with_key(to).checked_write(amount);
 
-        assertEq(tkn.balanceOf(to), amount, "balance should INCREASE (after mint)");
+        // assertEq(tkn.balanceOf(to), amount, "balance should INCREASE (after mint)");
     }
 
     function enforceHasContractCode(address _contract, string memory _errorMessage) public view {

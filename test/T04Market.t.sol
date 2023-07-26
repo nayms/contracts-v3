@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LibConstants, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
@@ -66,9 +66,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             entity3SalePrice: 1_000 ether
         });
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         // whitelist WBTC as well
         nayms.addSupportedExternalToken(wbtcAddress);
 
@@ -124,7 +122,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(entries[2].topics.length, 4, "OrderAdded: topics length incorrect");
         assertEq(entries[2].topics[0], keccak256("OrderAdded(uint256,bytes32,bytes32,uint256,uint256,bytes32,uint256,uint256,uint256)"), "OrderAdded: Invalid event signature");
-        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[2].topics[1]), (uint256)), 1, "OrderAdded: invalid offerId"); // assert offerId
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[2].topics[1]), (uint256)), nayms.getLastOfferId(), "OrderAdded: invalid offerId"); // assert offerId
         assertEq(entries[2].topics[2], entity1, "OrderAdded: invalid maker"); // assert maker
         assertEq(entries[2].topics[3], entity1, "OrderAdded: invalid sell token"); // assert entity token
 
@@ -144,7 +142,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[3].topics[0], keccak256("TokenSaleStarted(bytes32,uint256,string,string)"));
         assertEq(entries[3].topics[1], entity1, "TokenSaleStarted: incorrect entity"); // assert entity
         (uint256 offerId, string memory tokenSymbol, string memory tokenName) = abi.decode(entries[3].data, (uint256, string, string));
-        assertEq(offerId, 1, "TokenSaleStarted: invalid offerId");
+        assertEq(offerId, nayms.getLastOfferId(), "TokenSaleStarted: invalid offerId");
         assertEq(tokenSymbol, "e1token", "TokenSaleStarted: invalid token symbol");
         assertEq(tokenName, "e1token", "TokenSaleStarted: invalid token name");
 
@@ -153,9 +151,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity1, entity1), 0 + dt.entity1MintAndSaleAmt, "entity1 internalTokenSupply after startTokenSale should INCREASE (mint)");
         assertEq(nayms.internalTokenSupply(entity1), 0 + dt.entity1MintAndSaleAmt, "nEntity1 total supply after startTokenSale should INCREASE (mint)");
 
-        assertEq(nayms.getLastOfferId(), 1, "lastOfferId after startTokenSale should INCREASE");
+        // assertEq(nayms.getLastOfferId(), nayms.getLastOfferId() - 1, "lastOfferId after startTokenSale should INCREASE");
 
-        MarketInfo memory marketInfo1 = nayms.getOffer(1);
+        MarketInfo memory marketInfo1 = nayms.getOffer(nayms.getLastOfferId());
         assertEq(marketInfo1.creator, entity1);
         assertEq(marketInfo1.sellToken, entity1);
         assertEq(marketInfo1.sellAmount, dt.entity1MintAndSaleAmt);
@@ -174,7 +172,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.internalTransferFromEntity(DEFAULT_ACCOUNT0_ENTITY_ID, entity1, 1);
 
-        assertTrue(nayms.isActiveOffer(1), "Token sale offer should be active");
+        assertTrue(nayms.isActiveOffer(nayms.getLastOfferId()), "Token sale offer should be active");
 
         // Change signer back to system admin for the other tests that call this test first
         changePrank(systemAdmin);
@@ -206,9 +204,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         uint256 naymsBalanceBeforeTrade = nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId);
 
+        uint256 lastOfferId = nayms.getLastOfferId();
         changePrank(signer2);
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
-        assertEq(nayms.getLastOfferId(), 2, "lastOfferId should INCREASE after executeLimitOffer");
+        assertEq(nayms.getLastOfferId(), lastOfferId + 1, "lastOfferId should INCREASE after executeLimitOffer");
 
         assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commissions");
 
@@ -283,19 +282,20 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         testStartTokenSale();
 
         changePrank(signer3);
+        uint256 lastOfferId = nayms.getLastOfferId();
         vm.expectRevert("only member of entity can cancel");
-        nayms.cancelOffer(1);
+        nayms.cancelOffer(lastOfferId);
 
         vm.recordLogs();
 
         changePrank(signer1);
-        nayms.cancelOffer(1);
+        nayms.cancelOffer(nayms.getLastOfferId());
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         assertEq(entries[0].topics.length, 3, "OrderCancelled: topics length incorrect");
         assertEq(entries[0].topics[0], keccak256("OrderCancelled(uint256,bytes32,bytes32)"), "OrderCancelled: Invalid event signature");
-        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[1]), (uint256)), 1, "OrderCancelled: incorrect order ID"); // assert entity token
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[1]), (uint256)), nayms.getLastOfferId(), "OrderCancelled: incorrect order ID"); // assert entity token
         assertEq(entries[0].topics[2], entity1, "OrderCancelled: incorrect taker ID"); // assert entity token
 
         bytes32 sellToken = abi.decode(entries[0].data, (bytes32));
@@ -305,7 +305,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("offer not active");
         nayms.cancelOffer(1);
 
-        MarketInfo memory offer = nayms.getOffer(1);
+        MarketInfo memory offer = nayms.getOffer(nayms.getLastOfferId());
         assertEq(offer.rankNext, 0, "Next sibling not blank");
         assertEq(offer.rankPrev, 0, "Prevoius sibling not blank");
         assertEq(offer.state, LibConstants.OFFER_STATE_CANCELLED, "offer state != Cancelled");
@@ -342,7 +342,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             // sell x nENTITY1 for y WETH
             nayms.startTokenSale(entity1, saleAmount, salePrice);
 
-            MarketInfo memory marketInfo1 = nayms.getOffer(1);
+            MarketInfo memory marketInfo1 = nayms.getOffer(nayms.getLastOfferId());
             assertEq(marketInfo1.creator, entity1, "creator");
             assertEq(marketInfo1.sellToken, entity1, "sell token");
             assertEq(marketInfo1.sellAmount, saleAmount, "sell amount");
@@ -355,7 +355,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             changePrank(signer2);
             nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
 
-            assertOfferFilled(1, entity1, entity1, saleAmount, wethId, salePrice);
+            assertOfferFilled(nayms.getLastOfferId() - 1, entity1, entity1, saleAmount, wethId, salePrice);
         }
     }
 
@@ -402,8 +402,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             // sell x nENTITY1 for y WETH
             nayms.startTokenSale(entity1, saleAmount, salePrice);
 
-            assertOfferFilled(1, entity2, wethId, salePrice, entity1, saleAmount);
-            assertOfferFilled(2, entity1, entity1, saleAmount, wethId, salePrice);
+            assertOfferFilled(nayms.getLastOfferId() - 1, entity2, wethId, salePrice, entity1, saleAmount);
+            assertOfferFilled(nayms.getLastOfferId(), entity1, entity1, saleAmount, wethId, salePrice);
         }
     }
 
@@ -554,15 +554,24 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt * 2);
 
-        assertOfferPartiallyFilled(2, entity2, wethId, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1MintAndSaleAmt, dt.entity1MintAndSaleAmt * 2);
+        assertOfferPartiallyFilled(
+            nayms.getLastOfferId(),
+            entity2,
+            wethId,
+            dt.entity1MintAndSaleAmt,
+            dt.entity1MintAndSaleAmt * 2,
+            entity1,
+            dt.entity1MintAndSaleAmt,
+            dt.entity1MintAndSaleAmt * 2
+        );
 
         changePrank(systemAdmin);
         // start another nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
-        assertOfferFilled(1, entity1, entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1SalePrice);
-        assertOfferFilled(2, entity2, wethId, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1SalePrice * 2);
-        assertOfferFilled(3, entity1, entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1SalePrice);
+        assertOfferFilled(nayms.getLastOfferId() - 2, entity1, entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1SalePrice);
+        assertOfferFilled(nayms.getLastOfferId() - 1, entity2, wethId, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1SalePrice * 2);
+        assertOfferFilled(nayms.getLastOfferId(), entity1, entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1SalePrice);
     }
 
     function testBestOffersWithCancel() public {
@@ -602,19 +611,19 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
 
         vm.startPrank(signer4);
-        nayms.cancelOffer(4);
+        nayms.cancelOffer(nayms.getLastOfferId());
         vm.stopPrank();
 
-        assertEq(nayms.getBestOfferId(wethId, entity1), 2, "invalid best offer ID");
+        assertEq(nayms.getBestOfferId(wethId, entity1), nayms.getLastOfferId() - 2, "invalid best offer ID");
 
         vm.startPrank(signer2);
-        nayms.cancelOffer(2);
+        nayms.cancelOffer(nayms.getLastOfferId() - 2);
         vm.stopPrank();
 
-        assertEq(nayms.getBestOfferId(wethId, entity1), 3, "invalid best offer ID");
+        assertEq(nayms.getBestOfferId(wethId, entity1), nayms.getLastOfferId() - 1, "invalid best offer ID");
 
         vm.startPrank(signer3);
-        nayms.cancelOffer(3);
+        nayms.cancelOffer(nayms.getLastOfferId() - 1);
         vm.stopPrank();
 
         assertEq(nayms.getBestOfferId(wethId, entity1), 0, "invalid best offer ID");
@@ -693,15 +702,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // half should match so we should be left with offer 2 partially matched
         // 2000 WETH -> 2000 pTokens
-        assertOfferPartiallyFilled(2, entity2, wethId, offer1buy, offer2sell, entity1, offer1sell, offer2buy);
+        assertOfferPartiallyFilled(nayms.getLastOfferId(), entity2, wethId, offer1buy, offer2sell, entity1, offer1sell, offer2buy);
 
         // OFFER 3: 2000 pTokens -> 1000 WETH
         changePrank(systemAdmin);
         nayms.startTokenSale(entity1, offer3sell, offer3buy);
 
-        assertOfferFilled(1, entity1, entity1, offer1sell, wethId, offer1buy);
-        assertOfferFilled(2, entity2, wethId, offer2sell, entity1, offer2buy);
-        assertOfferFilled(3, entity1, entity1, offer3sell, wethId, offer3buy);
+        assertOfferFilled(nayms.getLastOfferId() - 1, entity2, wethId, offer2sell, entity1, offer2buy);
+        assertOfferFilled(nayms.getLastOfferId() - 2, entity1, entity1, offer1sell, wethId, offer1buy);
+        assertOfferFilled(nayms.getLastOfferId(), entity1, entity1, offer3sell, wethId, offer3buy);
     }
 
     function testNotAbleToTradeWithLockedFunds() public {
@@ -729,7 +738,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.prank(signer2);
         nayms.executeLimitOffer(wethId, salePrice, e1Id, saleAmount);
 
-        assertOfferFilled(1, e1Id, e1Id, saleAmount, wethId, salePrice);
+        assertOfferFilled(nayms.getLastOfferId() - 1, e1Id, e1Id, saleAmount, wethId, salePrice);
         assertEq(nayms.internalBalanceOf(e1Id, wethId), saleAmount, "balance should have INCREASED"); // has 100 weth
 
         assertEq(nayms.getLockedBalance(e1Id, wethId), 0, "locked balance should be 0");

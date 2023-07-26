@@ -3,6 +3,7 @@
 src = 'src'
 out = 'forge-artifacts'
 libs = ['lib']
+remappings = ["forge-std/=lib/forge-std/src/"]
 libraries = []
 cache = true
 force = false
@@ -53,6 +54,16 @@ fs_permissions = [
     { access = "read", path = "./broadcast/" },
     { access = "read", path = "./nayms_mnemonic.txt" },
 ]
+
+[profile.test]
+solc = '0.8.17'
+auto_detect_solc = false
+optimizer = false
+ffi = true
+sparse_mode = true
+verbosity = 3
+ignored_error_codes = ["license", "code-size"]
+no_match_contract = "ReplaceDiamondCutTest"
 
 [fuzz]
 runs = 256

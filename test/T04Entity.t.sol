@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
@@ -27,9 +27,7 @@ contract T04EntityTest is D03ProtocolDefaults {
     address internal account9;
     bytes32 internal account9Id;
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         account9 = vm.addr(0xACC9);
         account9Id = LibHelpers._getIdForAddress(account9);
 
@@ -431,17 +429,24 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(systemAdmin);
 
         // start date too early
-        vm.warp(1);
+        uint256 blockTimestampBeforeWarp;
+        if (block.timestamp == 0) {
+            vm.warp(1);
+        } else {
+            blockTimestampBeforeWarp = block.timestamp;
+        }
         simplePolicy.startDate = block.timestamp - 1;
         vm.expectRevert("start date < block.timestamp");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        simplePolicy.startDate = 1000;
+        simplePolicy.startDate = blockTimestampBeforeWarp + 1000;
 
         // start date after maturation date
         simplePolicy.startDate = simplePolicy.maturationDate;
         vm.expectRevert("start date > maturation date");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        simplePolicy.startDate = 1000;
+        simplePolicy.startDate = blockTimestampBeforeWarp + 1000;
+
+        vm.warp(blockTimestampBeforeWarp);
 
         uint256 maturationDateOrig = simplePolicy.maturationDate;
         simplePolicy.maturationDate = simplePolicy.startDate + 1;
@@ -895,8 +900,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
         nayms.createEntity(entityId1, account0Id, entity1, "entity test hash");
 
-        assertEq(nayms.getLastOfferId(), 0);
-
         vm.expectRevert(abi.encodeWithSelector(ObjectCannotBeTokenized.selector, entityId1));
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
@@ -914,12 +917,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("total price must be > 0");
         nayms.startTokenSale(entityId1, sellAmount, 0);
 
+        uint256 lastOfferId = nayms.getLastOfferId();
+
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
-        uint256 lastOfferId = nayms.getLastOfferId();
-        assertEq(lastOfferId, 1);
+        assertEq(lastOfferId, nayms.getLastOfferId() - 1);
 
-        MarketInfo memory marketInfo = nayms.getOffer(lastOfferId);
+        MarketInfo memory marketInfo = nayms.getOffer(lastOfferId + 1);
         assertEq(marketInfo.creator, entityId1);
         assertEq(marketInfo.sellToken, entityId1);
         assertEq(marketInfo.sellAmount, sellAmount);

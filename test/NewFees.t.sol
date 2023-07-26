@@ -24,9 +24,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
     bytes32 internal testHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         // prettier-ignore
         entityInfo = Entity({ 
             assetId: wethId, 

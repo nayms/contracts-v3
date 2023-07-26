@@ -48,6 +48,8 @@ contract D03ProtocolDefaults is D02TestSetup {
     address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
 
+    Entity entity;
+
     bytes32[] public defaultFeeRecipients;
     uint16[] public defaultPremiumFeeBPs;
     uint16[] public defaultTradingFeeBPs;
@@ -55,9 +57,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     FeeSchedule premiumFeeScheduleDefault;
     FeeSchedule tradingFeeScheduleDefault;
 
-    function setUp() public virtual override {
-        console2.log("\n Test SETUP:");
-        super.setUp();
+    constructor() payable {
         console2.log("\n -- D03 Protocol Defaults\n");
         console2.log("Test contract address ID, aka account0Id:");
         console2.logBytes32(account0Id);
@@ -71,10 +71,10 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        vm.startPrank(systemAdmin);
+        changePrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
 
-        Entity memory entity = Entity({
+        entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
             collateralRatio: LibConstants.BP_FACTOR,
             maxCapacity: 100 ether,
@@ -191,11 +191,11 @@ contract D03ProtocolDefaults is D02TestSetup {
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 
-    function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicy(bytes32 offchainDataHash) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         return initPolicyWithLimit(offchainDataHash, LibConstants.BP_FACTOR);
     }
 
-    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
@@ -218,8 +218,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         commissions[1] = 10;
         commissions[2] = 10;
 
-        policy.startDate = 1000;
-        policy.maturationDate = 1000 + 2 days;
+        policy.startDate = block.timestamp + 1000;
+        policy.maturationDate = block.timestamp + 1000 + 2 days;
         policy.asset = wethId;
         policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;
@@ -237,7 +237,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
     }
 
-    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal returns (bytes memory sig_) {
+    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }

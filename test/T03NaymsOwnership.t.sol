@@ -6,9 +6,7 @@ import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03Pro
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
 contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testTransferOwernshipFailsIfNotSysAdmin() public {
         changePrank(signer2);
