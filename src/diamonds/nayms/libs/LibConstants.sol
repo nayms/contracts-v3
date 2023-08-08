@@ -5,7 +5,7 @@ pragma solidity 0.8.17;
  * @dev Settings keys.
  */
 library LibConstants {
-    //Reserved IDs
+    /// Reserved IDs
     string internal constant EMPTY_IDENTIFIER = "";
     string internal constant SYSTEM_IDENTIFIER = "System";
     string internal constant NDF_IDENTIFIER = "NDF";
@@ -15,15 +15,24 @@ library LibConstants {
     string internal constant DIVIDEND_BANK_IDENTIFIER = "Dividend Bank"; //This will hold all the dividends
     string internal constant NAYMS_LTD_IDENTIFIER = "Nayms Ltd";
 
-    //Roles
+    /// Roles
+
     string internal constant ROLE_SYSTEM_ADMIN = "System Admin";
+    string internal constant ROLE_INTERNAL_UNDERWRITER = "Internal Underwriter";
+
+    string internal constant ROLE_ACCOUNT_MANAGER = "Account Manager";
+    string internal constant ROLE_SPONSOR = "Sponsor";
+    string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
+    string internal constant ROLE_INSURED_PARTY = "Insured";
+    string internal constant ROLE_BROKER = "Broker";
+    string internal constant ROLE_CONSULTANT = "Consultant";
+
+    string internal constant ROLE_COMPTROLLER = "Comptroller";
+
     string internal constant ROLE_SYSTEM_MANAGER = "System Manager";
     string internal constant ROLE_ENTITY_ADMIN = "Entity Admin";
     string internal constant ROLE_ENTITY_MANAGER = "Entity Manager";
-    string internal constant ROLE_BROKER = "Broker";
-    string internal constant ROLE_INSURED_PARTY = "Insured";
     string internal constant ROLE_UNDERWRITER = "Underwriter";
-    string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
     string internal constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
