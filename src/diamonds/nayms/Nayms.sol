@@ -8,6 +8,7 @@ pragma solidity 0.8.17;
 * Implementation of a diamond.
 /******************************************************************************/
 import { LibDiamond } from "../shared/libs/LibDiamond.sol";
+import { LibInit } from "../shared/libs/LibInit.sol";
 import { PhasedDiamondCutFacet } from "../shared/facets/PhasedDiamondCutFacet.sol";
 import { DiamondLoupeFacet } from "../shared/facets/DiamondLoupeFacet.sol";
 import { NaymsOwnershipFacet } from "src/diamonds/shared/facets/NaymsOwnershipFacet.sol";
@@ -17,9 +18,9 @@ import { GovernanceFacet } from "src/diamonds/nayms/facets/GovernanceFacet.sol";
 contract Nayms {
     constructor(address _contractOwner, address _systemAdmin) payable {
         LibDiamond.setContractOwner(_contractOwner);
-        LibDiamond.setRoleGroupsAndAssigners();
-        LibDiamond.setSystemAdmin(_systemAdmin); // note: This method checks to make sure system admin is not the same address as the contract owner.
-        LibDiamond.setUpgradeExpiration();
+        LibInit.setRoleGroupsAndAssigners();
+        LibInit.setSystemAdmin(_systemAdmin); // note: This method checks to make sure system admin is not the same address as the contract owner.
+        LibInit.setUpgradeExpiration();
 
         LibDiamond.addDiamondFunctions(
             address(new PhasedDiamondCutFacet()),
