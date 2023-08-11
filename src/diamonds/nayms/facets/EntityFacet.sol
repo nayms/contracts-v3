@@ -5,7 +5,7 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../AppStorage.s
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
@@ -44,7 +44,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external assertSysMgr assertSimplePolicyEnabled(_entityId) {
+    ) external assertInternalUW assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
@@ -87,7 +87,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertSysMgr {
+    ) external notLocked(msg.sig) nonReentrant assertPermissions(LC.GROUP_START_TOKEN_SALE, LibObject._getParentFromAddress(msg.sender)) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 

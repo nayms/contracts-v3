@@ -8,6 +8,7 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { ITokenizedVaultIOFacet } from "../interfaces/ITokenizedVaultIOFacet.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 
 /**
  * @title Token Vault IO
@@ -22,7 +23,12 @@ contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyG
      * @param _externalTokenAddress Token address
      * @param _amount deposit amount
      */
-    function externalDeposit(address _externalTokenAddress, uint256 _amount) external notLocked(msg.sig) nonReentrant {
+    function externalDeposit(address _externalTokenAddress, uint256 _amount)
+        external
+        notLocked(msg.sig)
+        nonReentrant
+        assertPermissions(LC.GROUP_TENANTS, LibObject._getParentFromAddress(msg.sender))
+    {
         // a user can only deposit an approved external ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
         // a user can only deposit to their valid entity
@@ -45,7 +51,7 @@ contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyG
         address _receiver,
         address _externalTokenAddress,
         uint256 _amount
-    ) external notLocked(msg.sig) nonReentrant assertEntityAdmin(_entityId) {
+    ) external notLocked(msg.sig) nonReentrant assertPermissions(LC.GROUP_WITHDRAW_FUNDS, LibObject._getParentFromAddress(msg.sender)) {
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
     }
 }

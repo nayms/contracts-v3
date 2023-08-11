@@ -8,6 +8,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { ISimplePolicyFacet } from "../interfaces/ISimplePolicyFacet.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 
 /**
  * @title Simple Policies
@@ -39,7 +40,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         bytes32 _policyId,
         bytes32 _insuredId,
         uint256 _amount
-    ) external notLocked(msg.sig) assertSysMgr {
+    ) external notLocked(msg.sig) assertPermissions(LC.GROUP_PAY_CLAIMS, LibObject._getParentFromAddress(msg.sender)) {
         LibSimplePolicy._payClaim(_claimId, _policyId, _insuredId, _amount);
     }
 
@@ -74,7 +75,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
-    function cancelSimplePolicy(bytes32 _policyId) external assertSysMgr {
+    function cancelSimplePolicy(bytes32 _policyId) external assertInternalUW {
         LibSimplePolicy._cancel(_policyId);
     }
 

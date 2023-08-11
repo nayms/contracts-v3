@@ -28,7 +28,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityAdmin,
         Entity calldata _entityData,
         bytes32 _dataHash
-    ) external assertSysMgr {
+    ) external assertSysAdmin {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
     }
 
@@ -77,7 +77,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
      * @notice Wrap an object token as ERC20
      * @param _objectId ID of the tokenized object
      */
-    function wrapToken(bytes32 _objectId) external nonReentrant assertSysMgr {
+    function wrapToken(bytes32 _objectId) external nonReentrant assertSysAdmin {
         LibObject._wrapToken(_objectId);
     }
 }

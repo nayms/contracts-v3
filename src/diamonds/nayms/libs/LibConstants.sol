@@ -18,29 +18,44 @@ library LibConstants {
     /// Roles
 
     string internal constant ROLE_SYSTEM_ADMIN = "System Admin";
+    string internal constant ROLE_SYSTEM_MANAGER = "System Manager"; // Segregated account manager
     string internal constant ROLE_INTERNAL_UNDERWRITER = "Internal Underwriter";
 
-    string internal constant ROLE_ACCOUNT_MANAGER = "Account Manager";
     string internal constant ROLE_SPONSOR = "Sponsor";
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_INSURED_PARTY = "Insured";
     string internal constant ROLE_BROKER = "Broker";
-    string internal constant ROLE_CONSULTANT = "Consultant";
+    string internal constant ROLE_CONSULTANT = "Consultant"; // note NEW name for ROLE_SERVICE_PROVIDER
+    string internal constant ROLE_SERVICE_PROVIDER = "Service Provider"; // todo deprecate this
 
-    string internal constant ROLE_COMPTROLLER = "Comptroller";
+    string internal constant ROLE_COMPTROLLER_COMBINED = "Comptroller Combined";
+    string internal constant ROLE_COMPTROLLER_WITHDRAW = "Comptroller Withdraw";
+    string internal constant ROLE_COMPTROLLER_CLAIM = "Comptroller Claim";
+    string internal constant ROLE_COMPTROLLER_DIVIDEND = "Comptroller Dividend";
 
-    string internal constant ROLE_SYSTEM_MANAGER = "System Manager";
     string internal constant ROLE_ENTITY_ADMIN = "Entity Admin";
     string internal constant ROLE_ENTITY_MANAGER = "Entity Manager";
     string internal constant ROLE_UNDERWRITER = "Underwriter";
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
     string internal constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
-    string internal constant ROLE_SERVICE_PROVIDER = "Service Provider";
 
-    //Groups
+    /// Groups
+
     string internal constant GROUP_SYSTEM_ADMINS = "System Admins";
     string internal constant GROUP_SYSTEM_MANAGERS = "System Managers";
+    string internal constant GROUP_INTERNAL_UNDERWRITERS = "Internal Underwriters";
+
+    string internal constant GROUP_TENANTS = "Tenants";
+
+    string internal constant GROUP_START_TOKEN_SALE = "G start token sale";
+    string internal constant GROUP_PLACE_LIMIT_ORDERS = "G place limit orders";
+    string internal constant GROUP_CANCEL_LIMIT_ORDERS = "G cancel limit orders";
+    string internal constant GROUP_WITHDRAW_FUNDS = "G withdraw funds";
+    string internal constant GROUP_PAY_CLAIMS = "G pay claims";
+    string internal constant GROUP_PAY_DISTRIBUTIONS = "G pay dists";
+    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
+
     string internal constant GROUP_ENTITY_ADMINS = "Entity Admins";
     string internal constant GROUP_ENTITY_MANAGERS = "Entity Managers";
     string internal constant GROUP_APPROVED_USERS = "Approved Users";
@@ -52,7 +67,6 @@ library LibConstants {
     string internal constant GROUP_TRADERS = "Traders";
     string internal constant GROUP_SEGREGATED_ACCOUNTS = "Segregated Accounts";
     string internal constant GROUP_SERVICE_PROVIDERS = "Service Providers";
-    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
 
     /*///////////////////////////////////////////////////////////////////////////
                         Market and Premium Fee Schedules
