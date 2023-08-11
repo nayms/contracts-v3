@@ -21,6 +21,8 @@ library LibConstants {
     string internal constant ROLE_SYSTEM_MANAGER = "System Manager"; // Segregated account manager
     string internal constant ROLE_INTERNAL_UNDERWRITER = "Internal Underwriter";
 
+    string internal constant ROLE_ACCOUNT_MANAGER = "Account Manager";
+
     string internal constant ROLE_SPONSOR = "Sponsor";
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_INSURED_PARTY = "Insured";
@@ -46,6 +48,7 @@ library LibConstants {
     string internal constant GROUP_SYSTEM_MANAGERS = "System Managers";
     string internal constant GROUP_INTERNAL_UNDERWRITERS = "Internal Underwriters";
 
+    string internal constant GROUP_ACCOUNT_MANAGERS = "Account Managers";
     string internal constant GROUP_TENANTS = "Tenants";
 
     string internal constant GROUP_START_TOKEN_SALE = "G start token sale";

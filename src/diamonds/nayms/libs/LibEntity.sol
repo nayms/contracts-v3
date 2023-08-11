@@ -223,7 +223,7 @@ library LibEntity {
 
     function _createEntity(
         bytes32 _entityId,
-        bytes32 _entityAdmin,
+        bytes32 _accountAdmin,
         Entity calldata _entity,
         bytes32 _dataHash
     ) internal {
@@ -235,17 +235,17 @@ library LibEntity {
         validateEntity(_entity);
 
         LibObject._createObject(_entityId, _dataHash);
-        LibObject._setParent(_entityAdmin, _entityId);
+        LibObject._setParent(_accountAdmin, _entityId);
         s.existingEntities[_entityId] = true;
 
-        LibACL._assignRole(_entityAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
+        LibACL._assignRole(_accountAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ACCOUNT_MANAGER));
 
         // An entity starts without any capacity being utilized
         require(_entity.utilizedCapacity == 0, "utilized capacity starts at 0");
 
         s.entities[_entityId] = _entity;
 
-        emit EntityCreated(_entityId, _entityAdmin);
+        emit EntityCreated(_entityId, _accountAdmin);
     }
 
     /// @dev This currently updates a non cell type entity and a cell type entity, but
