@@ -238,7 +238,7 @@ library LibEntity {
         LibObject._setParent(_accountAdmin, _entityId);
         s.existingEntities[_entityId] = true;
 
-        LibACL._assignRole(_accountAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ACCOUNT_MANAGER));
+        LibACL._assignRole(_accountAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
 
         // An entity starts without any capacity being utilized
         require(_entity.utilizedCapacity == 0, "utilized capacity starts at 0");

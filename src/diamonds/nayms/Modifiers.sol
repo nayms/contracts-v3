@@ -18,7 +18,7 @@ contract Modifiers {
     using LibHelpers for *;
     using LibACL for *;
 
-    error NotInternalUnderwriter(address msgSender);
+    error NotSystemUnderwriter(address msgSender);
 
     /// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
     /// @param msgSenderId Id of the sender
@@ -37,8 +37,8 @@ contract Modifiers {
         _;
     }
 
-    modifier assertInternalUW() {
-        if (!msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_INTERNAL_UNDERWRITERS._stringToBytes32())) revert NotInternalUnderwriter(msg.sender);
+    modifier assertSystemUW() {
+        if (!msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS._stringToBytes32())) revert NotSystemUnderwriter(msg.sender);
         _;
     }
 

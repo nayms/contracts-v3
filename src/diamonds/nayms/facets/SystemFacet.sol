@@ -28,7 +28,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityAdmin,
         Entity calldata _entityData,
         bytes32 _dataHash
-    ) external assertSysAdmin {
+    ) external assertSysMgr {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
     }
 

@@ -18,25 +18,28 @@ library LibConstants {
     /// Roles
 
     string internal constant ROLE_SYSTEM_ADMIN = "System Admin";
-    string internal constant ROLE_SYSTEM_MANAGER = "System Manager"; // Segregated account manager
-    string internal constant ROLE_INTERNAL_UNDERWRITER = "Internal Underwriter";
+    string internal constant ROLE_SYSTEM_MANAGER = "System Manager";
+    string internal constant ROLE_SYSTEM_UNDERWRITER = "System Underwriter";
 
-    string internal constant ROLE_ACCOUNT_MANAGER = "Account Manager";
+    string internal constant ROLE_ENTITY_ADMIN = "Entity Admin";
+    string internal constant ROLE_ENTITY_MANAGER = "Entity Manager";
+    string internal constant ROLE_ENTITY_BROKER = "Broker";
+    string internal constant ROLE_ENTITY_INSURED = "Insured";
+    string internal constant ROLE_ENTITY_CP = "Capital Provider";
+    string internal constant ROLE_ENTITY_CONSULTANT = "Consultant"; // note NEW name for ROLE_SERVICE_PROVIDER
 
+    string internal constant ROLE_ENTITY_COMPTROLLER_COMBINED = "Comptroller Combined";
+    string internal constant ROLE_ENTITY_COMPTROLLER_WITHDRAW = "Comptroller Withdraw";
+    string internal constant ROLE_ENTITY_COMPTROLLER_CLAIM = "Comptroller Claim";
+    string internal constant ROLE_ENTITY_COMPTROLLER_DIVIDEND = "Comptroller Dividend";
+
+    /// old roles
     string internal constant ROLE_SPONSOR = "Sponsor";
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_INSURED_PARTY = "Insured";
     string internal constant ROLE_BROKER = "Broker";
-    string internal constant ROLE_CONSULTANT = "Consultant"; // note NEW name for ROLE_SERVICE_PROVIDER
-    string internal constant ROLE_SERVICE_PROVIDER = "Service Provider"; // todo deprecate this
+    string internal constant ROLE_SERVICE_PROVIDER = "Service Provider";
 
-    string internal constant ROLE_COMPTROLLER_COMBINED = "Comptroller Combined";
-    string internal constant ROLE_COMPTROLLER_WITHDRAW = "Comptroller Withdraw";
-    string internal constant ROLE_COMPTROLLER_CLAIM = "Comptroller Claim";
-    string internal constant ROLE_COMPTROLLER_DIVIDEND = "Comptroller Dividend";
-
-    string internal constant ROLE_ENTITY_ADMIN = "Entity Admin";
-    string internal constant ROLE_ENTITY_MANAGER = "Entity Manager";
     string internal constant ROLE_UNDERWRITER = "Underwriter";
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
@@ -46,17 +49,21 @@ library LibConstants {
 
     string internal constant GROUP_SYSTEM_ADMINS = "System Admins";
     string internal constant GROUP_SYSTEM_MANAGERS = "System Managers";
-    string internal constant GROUP_INTERNAL_UNDERWRITERS = "Internal Underwriters";
+    string internal constant GROUP_SYSTEM_UNDERWRITERS = "System Underwriters";
 
-    string internal constant GROUP_ACCOUNT_MANAGERS = "Account Managers";
     string internal constant GROUP_TENANTS = "Tenants";
 
-    string internal constant GROUP_START_TOKEN_SALE = "G start token sale";
-    string internal constant GROUP_PLACE_LIMIT_ORDERS = "G place limit orders";
-    string internal constant GROUP_CANCEL_LIMIT_ORDERS = "G cancel limit orders";
-    string internal constant GROUP_WITHDRAW_FUNDS = "G withdraw funds";
-    string internal constant GROUP_PAY_CLAIMS = "G pay claims";
-    string internal constant GROUP_PAY_DISTRIBUTIONS = "G pay dists";
+    string internal constant GROUP_START_TOKEN_SALE = "Start Token Sale";
+    string internal constant GROUP_EXECUTE_LIMIT_OFFER = "Execute Limit Offer";
+    string internal constant GROUP_CANCEL_OFFER = "Cancel Offer";
+    string internal constant GROUP_INTERNAL_TRANSFER_FROM_ENTITY = "Internal Transfer From Entity";
+    string internal constant GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY = "External Withdraw From Entity";
+    string internal constant GROUP_EXTERNAL_DEPOSIT = "External Deposit";
+    string internal constant GROUP_WITHDRAW_DIVIDEND = "Withdraw Dividend";
+    string internal constant GROUP_WITHDRAW_ALL_DIVIDENDS = "Withdraw All Dividends";
+    string internal constant GROUP_PAY_CLAIMS = "Pay Claims";
+    string internal constant GROUP_PAY_DIVIDEND_FROM_ENTITY = "Pay Dividend From Entity";
+
     string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
 
     string internal constant GROUP_ENTITY_ADMINS = "Entity Admins";

@@ -44,7 +44,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external assertInternalUW assertSimplePolicyEnabled(_entityId) {
+    ) external assertSystemUW assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
@@ -58,7 +58,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _objectId,
         string memory _symbol,
         string memory _name
-    ) external assertSysAdmin {
+    ) external assertSysMgr {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
@@ -72,7 +72,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         string memory _symbol,
         string memory _name
-    ) external assertSysAdmin {
+    ) external assertSysMgr {
         LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
@@ -87,7 +87,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertPermissions(LC.GROUP_START_TOKEN_SALE, LibObject._getParentFromAddress(msg.sender)) {
+    ) external notLocked(msg.sig) nonReentrant assertPermissions(LC.GROUP_START_TOKEN_SALE, _entityId) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 

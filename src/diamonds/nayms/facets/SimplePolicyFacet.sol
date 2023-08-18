@@ -28,6 +28,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         LibSimplePolicy._payPremium(payerEntityId, _policyId, _amount);
     }
 
+    // todo replace assertPolicyHandler with assertPermissions(LC.GROUP_POLICY_HANDLERS, _policyId);
     /**
      * @dev Pay a claim of `_amount` for simple policy
      * @param _claimId Id of the simple policy claim
@@ -75,7 +76,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
-    function cancelSimplePolicy(bytes32 _policyId) external assertInternalUW {
+    function cancelSimplePolicy(bytes32 _policyId) external assertSystemUW {
         LibSimplePolicy._cancel(_policyId);
     }
 

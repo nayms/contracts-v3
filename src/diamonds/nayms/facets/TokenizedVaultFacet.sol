@@ -51,7 +51,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external notLocked(msg.sig) nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
+    ) external notLocked(msg.sig) nonReentrant assertPermissions(LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY, LibObject._getParentFromAddress(msg.sender)) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
@@ -108,7 +108,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 ownerId,
         bytes32 tokenId,
         bytes32 dividendTokenId
-    ) external notLocked(msg.sig) {
+    ) external notLocked(msg.sig) assertPermissions(LC.GROUP_WITHDRAW_DIVIDEND, LibObject._getParentFromAddress(msg.sender)) {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
@@ -118,7 +118,11 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param ownerId Unique ID of the dividend receiver
      * @param tokenId Unique ID of token
      */
-    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external notLocked(msg.sig) {
+    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId)
+        external
+        notLocked(msg.sig)
+        assertPermissions(LC.GROUP_WITHDRAW_ALL_DIVIDENDS, LibObject._getParentFromAddress(msg.sender))
+    {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
 
@@ -131,7 +135,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
     function payDividendFromEntity(bytes32 guid, uint256 amount)
         external
         notLocked(msg.sig)
-        assertPermissions(LC.GROUP_PAY_DISTRIBUTIONS, LibObject._getParentFromAddress(msg.sender))
+        assertPermissions(LC.GROUP_PAY_DIVIDEND_FROM_ENTITY, LibObject._getParentFromAddress(msg.sender))
     {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
