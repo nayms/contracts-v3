@@ -58,6 +58,7 @@ contract Modifiers {
         _;
     }
 
+    // todo delete this - replaced this modifier with assertPolicyHandler with assertPermissions(LC.GROUP_POLICY_HANDLERS, _policyId)
     modifier assertPolicyHandler(bytes32 _context) {
         require(LibACL._isInGroup(LibObject._getParentFromAddress(msg.sender), _context, LibHelpers._stringToBytes32(LC.GROUP_POLICY_HANDLERS)), "not a policy handler");
         _;

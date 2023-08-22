@@ -3,9 +3,7 @@ pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
-import { LibACL } from "../libs/LibACL.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
@@ -108,7 +106,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 ownerId,
         bytes32 tokenId,
         bytes32 dividendTokenId
-    ) external notLocked(msg.sig) assertPermissions(LC.GROUP_WITHDRAW_DIVIDEND, LibObject._getParentFromAddress(msg.sender)) {
+    ) external notLocked(msg.sig) {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
@@ -118,11 +116,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param ownerId Unique ID of the dividend receiver
      * @param tokenId Unique ID of token
      */
-    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId)
-        external
-        notLocked(msg.sig)
-        assertPermissions(LC.GROUP_WITHDRAW_ALL_DIVIDENDS, LibObject._getParentFromAddress(msg.sender))
-    {
+    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external notLocked(msg.sig) {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
 

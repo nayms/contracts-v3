@@ -52,6 +52,7 @@ library LibConstants {
     string internal constant GROUP_SYSTEM_UNDERWRITERS = "System Underwriters";
 
     string internal constant GROUP_TENANTS = "Tenants";
+    string internal constant GROUP_MANAGERS = "Managers"; // a group of roles that can be assigned by both system and entity managers
 
     string internal constant GROUP_START_TOKEN_SALE = "Start Token Sale";
     string internal constant GROUP_EXECUTE_LIMIT_OFFER = "Execute Limit Offer";
@@ -59,12 +60,11 @@ library LibConstants {
     string internal constant GROUP_INTERNAL_TRANSFER_FROM_ENTITY = "Internal Transfer From Entity";
     string internal constant GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY = "External Withdraw From Entity";
     string internal constant GROUP_EXTERNAL_DEPOSIT = "External Deposit";
-    string internal constant GROUP_WITHDRAW_DIVIDEND = "Withdraw Dividend";
-    string internal constant GROUP_WITHDRAW_ALL_DIVIDENDS = "Withdraw All Dividends";
-    string internal constant GROUP_PAY_CLAIMS = "Pay Claims";
+    string internal constant GROUP_PAY_SIMPLE_CLAIM = "Pay Simple Claim";
+    string internal constant GROUP_PAY_SIMPLE_PREMIUM = "Pay Simple Premium";
     string internal constant GROUP_PAY_DIVIDEND_FROM_ENTITY = "Pay Dividend From Entity";
 
-    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
+    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers"; // note replaced with GROUP_PAY_SIMPLE_PREMIUM
 
     string internal constant GROUP_ENTITY_ADMINS = "Entity Admins";
     string internal constant GROUP_ENTITY_MANAGERS = "Entity Managers";
