@@ -132,7 +132,7 @@ library LibDiamond {
         functionSelectors[0] = IERC173.transferOwnership.selector;
         functionSelectors[1] = IERC173.owner.selector;
         cut[2] = IDiamondCut.FacetCut({ facetAddress: _ownershipFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
-        functionSelectors = new bytes4[](10);
+        functionSelectors = new bytes4[](12);
         functionSelectors[0] = IACLFacet.assignRole.selector;
         functionSelectors[1] = IACLFacet.unassignRole.selector;
         functionSelectors[2] = IACLFacet.isInGroup.selector;
@@ -143,6 +143,8 @@ library LibDiamond {
         functionSelectors[7] = IACLFacet.canGroupAssignRole.selector;
         functionSelectors[8] = IACLFacet.updateRoleAssigner.selector;
         functionSelectors[9] = IACLFacet.updateRoleGroup.selector;
+        functionSelectors[10] = IACLFacet.canAssignRole.selector;
+        functionSelectors[11] = IACLFacet.hasGroupPrivilege.selector;
         cut[3] = IDiamondCut.FacetCut({ facetAddress: _aclFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
         functionSelectors = new bytes4[](6);
         functionSelectors[0] = IGovernanceFacet.isDiamondInitialized.selector;

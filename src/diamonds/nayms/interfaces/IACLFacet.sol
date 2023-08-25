@@ -72,6 +72,19 @@ interface IACLFacet {
         string memory _role
     ) external view returns (bool);
 
+    function canAssignRole(
+        bytes32 _assignerId,
+        bytes32 _objectId,
+        bytes32 _contextId,
+        string memory _role
+    ) external view returns (bool);
+
+    function hasGroupPrivilege(
+        bytes32 _userId,
+        bytes32 _contextId,
+        bytes32 _groupId
+    ) external view returns (bool);
+
     /**
      * @notice Get a user's (an objectId's) assigned role in a specific context
      * @param objectId ID of an object that is being checked for its assigned role in a specific context

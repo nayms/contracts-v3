@@ -8,6 +8,7 @@ import { LibConstants as LC } from "./libs/LibConstants.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
 import { LibObject } from "./libs/LibObject.sol";
 import { LibACL } from "./libs/LibACL.sol";
+import { NotSystemUnderwriter, InvalidGroupPrivilege } from "./interfaces/CustomErrors.sol";
 
 /**
  * @title Modifiers
@@ -17,15 +18,6 @@ import { LibACL } from "./libs/LibACL.sol";
 contract Modifiers {
     using LibHelpers for *;
     using LibACL for *;
-
-    error NotSystemUnderwriter(address msgSender);
-
-    /// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
-    /// @param msgSenderId Id of the sender
-    /// @param context Context in which the sender is trying to perform an action
-    /// @param roleInContext Role of the sender in the context
-    /// @param group Tenant group ID (LibConstants.GROUP_TENANTS) displayed as type string
-    error InvalidRole(bytes32 msgSenderId, bytes32 context, string roleInContext, string group);
 
     modifier notLocked(bytes4 functionSelector) {
         require(!LibAdmin._isFunctionLocked(functionSelector), "function is locked");
@@ -47,20 +39,19 @@ contract Modifiers {
         _;
     }
 
-    modifier assertPermissions(string memory _group, bytes32 _context) {
-        if (!msg.sender._getIdForAddress()._isInGroup(_context, _group._stringToBytes32()))
-            revert InvalidRole(msg.sender._getIdForAddress(), _context, abi.decode(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes(), (string)), _group);
+    modifier assertHasGroupPrivilege(bytes32 _context, string memory _group) {
+        if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32()))
+            revert InvalidGroupPrivilege(
+                msg.sender._getIdForAddress(),
+                _context,
+                abi.decode(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes(), (string)),
+                _group
+            );
         _;
     }
 
     modifier assertEntityAdmin(bytes32 _context) {
         require(msg.sender._getIdForAddress()._isInGroup(_context, LibHelpers._stringToBytes32(LC.GROUP_ENTITY_ADMINS)), "not the entity's admin");
-        _;
-    }
-
-    // todo delete this - replaced this modifier with assertPolicyHandler with assertPermissions(LC.GROUP_POLICY_HANDLERS, _policyId)
-    modifier assertPolicyHandler(bytes32 _context) {
-        require(LibACL._isInGroup(LibObject._getParentFromAddress(msg.sender), _context, LibHelpers._stringToBytes32(LC.GROUP_POLICY_HANDLERS)), "not a policy handler");
         _;
     }
 

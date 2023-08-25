@@ -49,7 +49,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external notLocked(msg.sig) nonReentrant assertPermissions(LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY, LibObject._getParentFromAddress(msg.sender)) {
+    ) external notLocked(msg.sig) nonReentrant assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
@@ -129,7 +129,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
     function payDividendFromEntity(bytes32 guid, uint256 amount)
         external
         notLocked(msg.sig)
-        assertPermissions(LC.GROUP_PAY_DIVIDEND_FROM_ENTITY, LibObject._getParentFromAddress(msg.sender))
+        assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_DIVIDEND_FROM_ENTITY)
     {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
