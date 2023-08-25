@@ -219,6 +219,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(cf.totalFees, expectedPremiumAmount, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
+        assertEq(cf.feeAllocations.length, simplePolicy.commissionReceivers.length + customRecipient.length, "fee allocation length incorrect");
     }
 
     function test_calculatePremiumFees_MultipleReceivers(
@@ -249,6 +250,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
+        assertEq(cf.feeAllocations.length, simplePolicy.commissionReceivers.length + customRecipient.length, "fee allocation count incorrect");
 
         // Update the same fee schedule: 3 receivers to 1 receiver
         customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
@@ -262,6 +264,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
+        assertEq(cf.feeAllocations.length, simplePolicy.commissionReceivers.length + customRecipient.length, "fee allocation count incorrect");
     }
 
     function test_zeroPremiumFees() public {

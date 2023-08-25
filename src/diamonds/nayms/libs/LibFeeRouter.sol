@@ -44,9 +44,9 @@ library LibFeeRouter {
         for (uint256 i; i < feeScheduleReceiversCount; ++i) {
             fee = (_premiumPaid * feeSchedule.basisPoints[i]) / LibConstants.BP_FACTOR;
 
-            cf.feeAllocations[i].to = feeSchedule.receiver[i];
-            cf.feeAllocations[i].basisPoints = feeSchedule.basisPoints[i];
-            cf.feeAllocations[i].fee = fee;
+            cf.feeAllocations[commissionsCount + i].to = feeSchedule.receiver[i];
+            cf.feeAllocations[commissionsCount + i].basisPoints = feeSchedule.basisPoints[i];
+            cf.feeAllocations[commissionsCount + i].fee = fee;
 
             cf.totalBP += feeSchedule.basisPoints[i];
             cf.totalFees += fee;
