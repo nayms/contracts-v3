@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 import { console2 } from "forge-std/console2.sol";
-import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
@@ -21,7 +21,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     // the deployer should NOT be a system admin
     function testDeployerIsNotASystemAdmin() public {
-        assertFalse(nayms.isInGroup(account0Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+        assertFalse(nayms.isInGroup(account0Id, systemContext, LC.GROUP_SYSTEM_ADMINS));
     }
 
     function testUnassignLastSystemAdminFails() public {
@@ -37,11 +37,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         naymsAddress.write_sysAdmins(1);
 
         vm.expectRevert("must have at least one system admin");
-        nayms.assignRole(systemAdminId, systemContext, LibConstants.ROLE_BROKER);
+        nayms.assignRole(systemAdminId, systemContext, LC.ROLE_SYSTEM_MANAGER);
     }
 
     function testUnassignSystemAdmin() public {
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(signer1Id, systemContext, LC.ROLE_SYSTEM_ADMIN);
 
         changePrank(signer1);
         nayms.unassignRole(systemAdminId, systemContext);
@@ -49,28 +49,28 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     /// test_canAssign_SystemAdminCanAssignAnyRoleToAnotherObjectInSystemContext
     function testDeployerAssignRoleToAnotherObject() public {
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
 
         // assign the role entity admin to deployer / account0
         assertTrue(nayms.canAssign(systemAdminId, signer1Id, systemContext, role));
         nayms.assignRole(signer1Id, systemContext, role);
 
         // the group that the deployer / account0 is in is now the entity admins group
-        assertTrue(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_ENTITY_ADMINS));
+        assertTrue(nayms.isInGroup(signer1Id, systemContext, LC.GROUP_ENTITY_ADMINS));
     }
 
     /// test_canAssign_SystemAdminCanAssignAnyRoleToAnotherObjectInAnyContext
     function testSystemAdminAssignAnyRoleToAnotherObjectInNewContext() public {
-        string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
+        string memory role = LC.ROLE_SYSTEM_MANAGER;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign the role signer1
         // changePrank(systemAdmin);
-        assertTrue(nayms.canAssign(systemAdminId, signer1Id, context, role));
+        assertTrue(nayms.canAssignRole(systemAdminId, signer1Id, context, role));
         nayms.assignRole(signer1Id, context, role);
 
         // the group that the signer1 is in is now the approved users group
-        assertTrue(nayms.isInGroup(signer1Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertTrue(nayms.isInGroup(signer1Id, context, LC.GROUP_SYSTEM_MANAGERS));
     }
 
     function testDeployerUnassignRoleOnAnotherObject() public {
@@ -80,12 +80,12 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // 2. unassign role
         nayms.unassignRole(signer1Id, systemContext);
 
-        assertFalse(nayms.isInGroup(signer1Id, systemContext, LibConstants.GROUP_ENTITY_ADMINS));
+        assertFalse(nayms.isInGroup(signer1Id, systemContext, LC.GROUP_ENTITY_ADMINS));
     }
 
     function testRoleAssignmentEmitsAnEvent() public {
         bytes32 context = LibHelpers._stringToBytes32("test");
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
 
         vm.recordLogs();
 
@@ -104,19 +104,19 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     function testInvalidObjectIdWhenAssignRole() public {
         bytes32 invalidObjectId = bytes32(0);
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
         vm.expectRevert("invalid object ID");
         nayms.assignRole(invalidObjectId, systemContext, role);
     }
 
-    function testAssignInvalidRole() public {
+    function testAssignInvalidGroupPrivilege() public {
         // assign a role to signer1
         vm.expectRevert("not in assigners group");
         nayms.assignRole(signer1Id, systemContext, "random role");
     }
 
     function testNonAssignersCannotAssignRole() public {
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign a role to signer1
@@ -130,13 +130,13 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testNonAssignersCanAssignRoleIfTheirParentHasAssignerRoleInSystemContext() public {
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // create entity with signer2 as child
         bytes32 entityId1 = createTestEntity(signer2Id);
         // assign entity as system manager
-        nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(entityId1, systemContext, LC.ROLE_SYSTEM_MANAGER);
 
         // signer2 tries to assign to signer3
         assertTrue(nayms.canAssign(signer2Id, signer3Id, context, role));
@@ -145,25 +145,28 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testAssignersCanAssignRole() public {
-        string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
+        string memory role = LC.ROLE_SYSTEM_MANAGER;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // give signer3 assigner powers
-        nayms.assignRole(signer3Id, context, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer3Id, context, LC.ROLE_SYSTEM_MANAGER);
 
         // signer3 makes signer2 an approved user
-        assertTrue(nayms.canAssign(signer3Id, signer2Id, context, role));
+        assertFalse(nayms.canAssign(signer3Id, signer2Id, context, role));
+        assertTrue(nayms.canAssign(signer3Id, signer2Id, context, LC.ROLE_ENTITY_BROKER));
         changePrank(signer3);
-        nayms.assignRole(signer2Id, context, role);
+        // nayms.assignRole(signer2Id, context, role);
+        nayms.assignRole(signer2Id, context, LC.ROLE_ENTITY_BROKER);
 
         changePrank(systemAdmin);
-        assertTrue(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertFalse(nayms.isInGroup(signer2Id, context, LC.GROUP_SYSTEM_MANAGERS));
+        assertTrue(nayms.isInGroup(signer2Id, context, LC.GROUP_PAY_SIMPLE_PREMIUM));
     }
 
     function testNonAssignersCannotUnassignRole() public {
         testAssignersCanAssignRole();
 
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign a role to signer1
@@ -184,7 +187,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // create entity with signer1 as child
         bytes32 entityId1 = createTestEntity(signer1Id);
         // assign entity as system manager
-        nayms.assignRole(entityId1, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(entityId1, systemContext, LC.ROLE_SYSTEM_MANAGER);
 
         // signer1 tries to unassign to signer2
         changePrank(signer1);
@@ -205,11 +208,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // signer3 can unassign signer2 as approved user
         changePrank(signer3);
         nayms.unassignRole(signer2Id, context);
-        assertFalse(nayms.isInGroup(signer2Id, context, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertFalse(nayms.isInGroup(signer2Id, context, LC.GROUP_SYSTEM_MANAGERS));
     }
 
     function testRoleUnassignmentEmitsAnEvent() public {
-        string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
+        string memory role = LC.ROLE_SYSTEM_MANAGER;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // signer3 makes signer2 an approved user
@@ -232,7 +235,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testGetRoleInContext() public {
-        string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
+        string memory role = LC.ROLE_SYSTEM_MANAGER;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // signer3 assigns signer2 as approved user
@@ -249,8 +252,8 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testHavingRoleInSystemContextConfersRoleInAllContexts() public {
-        string memory role = LibConstants.ROLE_SYSTEM_MANAGER;
-        string memory group = LibConstants.GROUP_SYSTEM_MANAGERS;
+        string memory role = LC.ROLE_SYSTEM_MANAGER;
+        string memory group = LC.GROUP_SYSTEM_MANAGERS;
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign role in system context
@@ -267,8 +270,8 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testIsParentInGroup() public {
-        string memory role = LibConstants.ROLE_ENTITY_ADMIN;
-        string memory group = LibConstants.GROUP_ENTITY_ADMINS;
+        string memory role = LC.ROLE_ENTITY_ADMIN;
+        string memory group = LC.GROUP_ENTITY_ADMINS;
 
         // create entity with signer2 as child
         bytes32 entityId1 = createTestEntity(signer2Id);
@@ -289,24 +292,24 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     function testUpdateRoleAssigner() public {
         // setup signer1 as broker
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
+        nayms.assignRole(signer1Id, systemContext, LC.ROLE_BROKER);
         // brokers can't usually assign approved users
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertFalse(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LC.ROLE_ENTITY_ADMIN));
+        assertFalse(nayms.canGroupAssignRole(LC.ROLE_ENTITY_ADMIN, LC.GROUP_BROKERS));
 
         // now change this
         vm.recordLogs();
 
-        nayms.updateRoleAssigner(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS);
-        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertTrue(nayms.canGroupAssignRole(LibConstants.ROLE_ENTITY_ADMIN, LibConstants.GROUP_BROKERS));
+        nayms.updateRoleAssigner(LC.ROLE_ENTITY_ADMIN, LC.GROUP_BROKERS);
+        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LC.ROLE_ENTITY_ADMIN));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_ENTITY_ADMIN, LC.GROUP_BROKERS));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("RoleCanAssignUpdated(string,string)"));
         (string memory r, string memory g) = abi.decode(entries[0].data, (string, string));
-        assertEq(r, LibConstants.ROLE_ENTITY_ADMIN);
-        assertEq(g, LibConstants.GROUP_BROKERS);
+        assertEq(r, LC.ROLE_ENTITY_ADMIN);
+        assertEq(g, LC.GROUP_BROKERS);
     }
 
     function testUpdateRoleGroupFailIfNotAdmin() public {
@@ -318,44 +321,44 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     function testUpdateRoleGroup() public {
         // setup signer1 as broker
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_BROKER);
+        nayms.assignRole(signer1Id, systemContext, LC.ROLE_BROKER);
         // brokers can't usually assign approved users
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertFalse(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LC.ROLE_ENTITY_ADMIN));
+        assertFalse(nayms.isRoleInGroup(LC.ROLE_BROKER, LC.GROUP_SYSTEM_MANAGERS));
 
         vm.expectRevert(abi.encodePacked(RoleIsMissing.selector));
-        nayms.updateRoleGroup("", LibConstants.GROUP_SYSTEM_MANAGERS, false);
+        nayms.updateRoleGroup("", LC.GROUP_SYSTEM_MANAGERS, false);
 
         vm.expectRevert(abi.encodePacked(AssignerGroupIsMissing.selector));
-        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, "", false);
+        nayms.updateRoleGroup(LC.ROLE_BROKER, "", false);
 
         // now change this
         vm.recordLogs();
 
-        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, true);
-        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
-        assertTrue(nayms.isRoleInGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS));
+        nayms.updateRoleGroup(LC.ROLE_BROKER, LC.GROUP_SYSTEM_MANAGERS, true);
+        assertTrue(nayms.canAssign(signer1Id, signer2Id, systemContext, LC.ROLE_ENTITY_ADMIN));
+        assertTrue(nayms.isRoleInGroup(LC.ROLE_BROKER, LC.GROUP_SYSTEM_MANAGERS));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
         (string memory r, string memory g, bool v) = abi.decode(entries[0].data, (string, string, bool));
-        assertEq(r, LibConstants.ROLE_BROKER);
-        assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
+        assertEq(r, LC.ROLE_BROKER);
+        assertEq(g, LC.GROUP_SYSTEM_MANAGERS);
         assertTrue(v);
 
         // now change it back
         vm.recordLogs();
 
-        nayms.updateRoleGroup(LibConstants.ROLE_BROKER, LibConstants.GROUP_SYSTEM_MANAGERS, false);
-        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LibConstants.ROLE_ENTITY_ADMIN));
+        nayms.updateRoleGroup(LC.ROLE_BROKER, LC.GROUP_SYSTEM_MANAGERS, false);
+        assertFalse(nayms.canAssign(signer1Id, signer2Id, systemContext, LC.ROLE_ENTITY_ADMIN));
 
         entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
         assertEq(entries[0].topics[0], keccak256("RoleGroupUpdated(string,string,bool)"));
         (r, g, v) = abi.decode(entries[0].data, (string, string, bool));
-        assertEq(r, LibConstants.ROLE_BROKER);
-        assertEq(g, LibConstants.GROUP_SYSTEM_MANAGERS);
+        assertEq(r, LC.ROLE_BROKER);
+        assertEq(g, LC.GROUP_SYSTEM_MANAGERS);
         assertFalse(v);
     }
 }

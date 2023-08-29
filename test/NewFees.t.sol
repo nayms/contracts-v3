@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 // solhint-disable no-console
 import { console2 } from "forge-std/console2.sol";
 
-import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeSchedule, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
@@ -28,7 +28,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         // prettier-ignore
         entityInfo = Entity({ 
             assetId: wethId, 
-            collateralRatio: LibConstants.BP_FACTOR, 
+            collateralRatio: LC.BP_FACTOR, 
             maxCapacity: 1 ether, 
             utilizedCapacity: 0, 
             simplePolicyEnabled: true 
@@ -58,69 +58,69 @@ contract NewFeesTest is D03ProtocolDefaults {
         changePrank(address(0xdead));
 
         vm.expectRevert("not a system admin");
-        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
     }
 
     function test_removeFeeSchedule() public {
         bytes32 entityId = "anything";
-        FeeSchedule memory defaultFeeSchedule = nayms.getFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory defaultFeeSchedule = nayms.getFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM);
 
         bytes32[] memory customRecipient = b32Array1("recipient");
         uint16[] memory customFeeBP = u16Array1(42);
 
-        nayms.addFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
-        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM);
         assertEq(storedFeeSchedule.receiver[0], customRecipient[0], "fee receiver is not custom");
         assertEq(storedFeeSchedule.basisPoints[0], customFeeBP[0], "fee basis points not custom");
 
-        nayms.removeFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM);
-        storedFeeSchedule = nayms.getFeeSchedule(entityId, LibConstants.FEE_TYPE_PREMIUM);
+        nayms.removeFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM);
+        storedFeeSchedule = nayms.getFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM);
         assertEq(storedFeeSchedule.receiver[0], defaultFeeSchedule.receiver[0], "fee receiver is not custom");
         assertEq(storedFeeSchedule.basisPoints[0], defaultFeeSchedule.basisPoints[0], "fee basis points not custom");
     }
 
     function test_getPremiumCommissionSchedule_Default() public {
         bytes32 entityWithDefault = keccak256("entity with default fee schedule");
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithDefault, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithDefault, LC.FEE_TYPE_PREMIUM);
         assertEq(feeSchedule, premiumFeeScheduleDefault);
     }
 
     function test_getPremiumCommissionSchedule_Custom() public {
         bytes32 entityWithCustom = keccak256("entity with CUSTOM fee schedule");
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithCustom, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithCustom, LC.FEE_TYPE_PREMIUM);
 
         assertEq(feeSchedule, premiumFeeScheduleDefault);
 
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint16[] memory customFeeBP = u16Array1(301);
 
-        nayms.addFeeSchedule(entityWithCustom, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(entityWithCustom, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
-        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityWithCustom, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityWithCustom, LC.FEE_TYPE_PREMIUM);
         assertEq(storedFeeSchedule, customFeeSchedule);
     }
 
     function test_getTradingCommissionSchedule_Default() public {
         bytes32 entityWithDefault = keccak256("entity with default");
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithDefault, LibConstants.FEE_TYPE_TRADING);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithDefault, LC.FEE_TYPE_TRADING);
         assertEq(feeSchedule, tradingFeeScheduleDefault);
     }
 
     function test_getTradingCommissionSchedule_Custom() public {
         bytes32 entityWithCustom = keccak256("entity with CUSTOM");
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithCustom, LibConstants.FEE_TYPE_TRADING);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithCustom, LC.FEE_TYPE_TRADING);
 
         assertEq(feeSchedule, tradingFeeScheduleDefault);
 
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint16[] memory customFeeBP = u16Array1(31);
 
-        nayms.addFeeSchedule(entityWithCustom, LibConstants.FEE_TYPE_TRADING, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(entityWithCustom, LC.FEE_TYPE_TRADING, customRecipient, customFeeBP);
 
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
-        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityWithCustom, LibConstants.FEE_TYPE_TRADING);
+        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityWithCustom, LC.FEE_TYPE_TRADING);
 
         assertEq(storedFeeSchedule, customFeeSchedule);
     }
@@ -130,12 +130,12 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint16[] memory customFeeBP = u16Array1(900);
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
 
-        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
 
         uint256 _buyAmount = 10 ether;
         (uint256 totalFees_, uint256 totalBP_) = nayms.calculateTradingFees(acc2.entityId, wethId, acc1.entityId, _buyAmount);
 
-        uint256 expectedValue = (_buyAmount * customFeeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR;
+        uint256 expectedValue = (_buyAmount * customFeeSchedule.basisPoints[0]) / LC.BP_FACTOR;
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
         assertEq(totalBP_, customFeeSchedule.basisPoints[0], "total bp is incorrect");
@@ -145,8 +145,8 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 _buyAmount = 10 ether;
         (uint256 totalFees_, uint256 totalBP_) = nayms.calculateTradingFees(acc2.entityId, acc1.entityId, wethId, _buyAmount);
 
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_TRADING);
-        uint256 expectedValue = (_buyAmount * feeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR;
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc2.entityId, LC.FEE_TYPE_TRADING);
+        uint256 expectedValue = (_buyAmount * feeSchedule.basisPoints[0]) / LC.BP_FACTOR;
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
         assertEq(totalBP_, feeSchedule.basisPoints[0], "total bp is incorrect");
@@ -157,12 +157,12 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint16[] memory customFeeBP = u16Array3(150, 75, 75);
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
 
-        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
 
         uint256 _buyAmount = 1e18;
         (uint256 totalFees_, uint256 totalBP_) = nayms.calculateTradingFees(acc2.entityId, wethId, acc1.entityId, _buyAmount);
 
-        uint256 expectedValue = (_buyAmount * (customFeeSchedule.basisPoints[0] + customFeeSchedule.basisPoints[1] + customFeeSchedule.basisPoints[2])) / LibConstants.BP_FACTOR;
+        uint256 expectedValue = (_buyAmount * (customFeeSchedule.basisPoints[0] + customFeeSchedule.basisPoints[1] + customFeeSchedule.basisPoints[2])) / LC.BP_FACTOR;
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
         assertEq(totalBP_, (customFeeSchedule.basisPoints[0] + customFeeSchedule.basisPoints[1] + customFeeSchedule.basisPoints[2]), "total bp is incorrect");
@@ -172,38 +172,38 @@ contract NewFeesTest is D03ProtocolDefaults {
         customFeeBP = u16Array1(300);
         customFeeSchedule = feeSched(customRecipient, customFeeBP);
 
-        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, customRecipient, customFeeBP);
 
         (totalFees_, totalBP_) = nayms.calculateTradingFees(acc2.entityId, wethId, acc1.entityId, _buyAmount);
 
-        expectedValue = (_buyAmount * customFeeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR;
+        expectedValue = (_buyAmount * customFeeSchedule.basisPoints[0]) / LC.BP_FACTOR;
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
         assertEq(totalBP_, customFeeSchedule.basisPoints[0], "total bp is incorrect");
 
         // Clear out custom fee schedule
-        nayms.removeFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE);
+        nayms.removeFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE);
 
         // Should be back to default market fee schedule
         (totalFees_, totalBP_) = nayms.calculateTradingFees(acc2.entityId, wethId, acc1.entityId, _buyAmount);
 
-        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE);
+        FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE);
         uint256 totalBP;
         for (uint256 i; i < storedFeeSchedule.receiver.length; ++i) {
             totalBP += storedFeeSchedule.basisPoints[i];
         }
 
-        expectedValue = (_buyAmount * totalBP) / LibConstants.BP_FACTOR;
+        expectedValue = (_buyAmount * totalBP) / LC.BP_FACTOR;
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
         assertEq(totalBP_, totalBP, "total bp is incorrect");
     }
 
     function test_calculatePremiumFees_SingleReceiver(uint16 _fee) public {
-        vm.assume(0 <= _fee && _fee <= LibConstants.BP_FACTOR / 2);
+        vm.assume(0 <= _fee && _fee <= LC.BP_FACTOR / 2);
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint16[] memory customFeeBP = u16Array1(_fee);
-        nayms.addFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc1.entityId, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         fundEntityWeth(acc1, 1 ether);
 
@@ -215,7 +215,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         CalculatedFees memory cf = nayms.calculatePremiumFees(policyId, premiumPaid);
 
         uint256 expectedTotalPremiumFeeBP = totalPremiumFeeBP(simplePolicy, customFeeBP);
-        uint256 expectedPremiumAmount = (premiumPaid * expectedTotalPremiumFeeBP) / LibConstants.BP_FACTOR;
+        uint256 expectedPremiumAmount = (premiumPaid * expectedTotalPremiumFeeBP) / LC.BP_FACTOR;
 
         assertEq(cf.totalFees, expectedPremiumAmount, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
@@ -227,13 +227,13 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint16 _fee2,
         uint16 _fee3
     ) public {
-        vm.assume(0 <= _fee && _fee <= LibConstants.BP_FACTOR / 2);
-        vm.assume(_fee1 < LibConstants.BP_FACTOR / 2 && _fee2 < LibConstants.BP_FACTOR / 2 && _fee3 < LibConstants.BP_FACTOR / 2);
-        vm.assume(0 <= (_fee1 + _fee2 + _fee3) && (_fee1 + _fee2 + _fee3) <= LibConstants.BP_FACTOR / 2);
+        vm.assume(0 <= _fee && _fee <= LC.BP_FACTOR / 2);
+        vm.assume(_fee1 < LC.BP_FACTOR / 2 && _fee2 < LC.BP_FACTOR / 2 && _fee3 < LC.BP_FACTOR / 2);
+        vm.assume(0 <= (_fee1 + _fee2 + _fee3) && (_fee1 + _fee2 + _fee3) <= LC.BP_FACTOR / 2);
 
         bytes32[] memory customRecipient = b32Array3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER);
         uint16[] memory customFeeBP = u16Array3(_fee1, _fee2, _fee3);
-        nayms.addFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc1.entityId, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         fundEntityWeth(acc1, 1 ether);
 
@@ -245,7 +245,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         CalculatedFees memory cf = nayms.calculatePremiumFees(policyId, _premiumPaid);
 
         uint256 expectedTotalPremiumFeeBP = totalPremiumFeeBP(simplePolicy, customFeeBP);
-        uint256 expectedValue = (_premiumPaid * expectedTotalPremiumFeeBP) / LibConstants.BP_FACTOR;
+        uint256 expectedValue = (_premiumPaid * expectedTotalPremiumFeeBP) / LC.BP_FACTOR;
 
         assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
@@ -253,19 +253,19 @@ contract NewFeesTest is D03ProtocolDefaults {
         // Update the same fee schedule: 3 receivers to 1 receiver
         customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         customFeeBP = u16Array1(_fee);
-        nayms.addFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
+        nayms.addFeeSchedule(acc1.entityId, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         cf = nayms.calculatePremiumFees(policyId, _premiumPaid);
 
         expectedTotalPremiumFeeBP = totalPremiumFeeBP(simplePolicy, customFeeBP);
-        expectedValue = (_premiumPaid * expectedTotalPremiumFeeBP) / LibConstants.BP_FACTOR;
+        expectedValue = (_premiumPaid * expectedTotalPremiumFeeBP) / LC.BP_FACTOR;
 
         assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
     }
 
     function test_zeroPremiumFees() public {
-        nayms.addFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(0));
+        nayms.addFeeSchedule(acc1.entityId, LC.FEE_TYPE_PREMIUM, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(0));
 
         fundEntityWeth(acc1, 1 ether);
 
@@ -277,11 +277,11 @@ contract NewFeesTest is D03ProtocolDefaults {
         CalculatedFees memory cf = nayms.calculatePremiumFees(policyId, premiumAmount);
 
         uint256 expectedTotalPremiumFeeBP = totalPremiumFeeBP(simplePolicy, u16Array1(0));
-        uint256 expectedValue = (premiumAmount * expectedTotalPremiumFeeBP) / LibConstants.BP_FACTOR;
+        uint256 expectedValue = (premiumAmount * expectedTotalPremiumFeeBP) / LC.BP_FACTOR;
 
         assertEq(cf.totalFees, expectedValue, "Invalid total fees!");
 
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LC.FEE_TYPE_PREMIUM);
         assertEq(feeSchedule.basisPoints.length, 1);
         assertEq(feeSchedule.basisPoints[0], 0);
     }
@@ -323,7 +323,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(defaultFeeScheduleTotalBP + makerBP, totalBP_, "total BP is incorrect");
 
-        assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), buyAmount + ((buyAmount * makerBP) / LibConstants.BP_FACTOR), "makers's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), buyAmount + ((buyAmount * makerBP) / LC.BP_FACTOR), "makers's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), (sellAmount - buyAmount - totalFees_), "taker's weth balance is incorrect");
     }
 
@@ -346,13 +346,13 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         nayms.executeLimitOffer(wethId, buyAmount, acc1.entityId, buyAmount);
 
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_INITIAL_SALE);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LC.FEE_TYPE_INITIAL_SALE);
 
         assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), buyAmount, "maker's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), buyAmount, "taker's par token (acc1.entityId) balance is incorrect");
 
         // For FIRST_OFFER, the commission should be paid by the buyer of the par tokens
-        uint256 commission = (buyAmount * feeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR;
+        uint256 commission = (buyAmount * feeSchedule.basisPoints[0]) / LC.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), buyAmount - commission, "entity's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
     }
@@ -365,13 +365,13 @@ contract NewFeesTest is D03ProtocolDefaults {
         changePrank(systemAdmin);
         nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
 
-        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LibConstants.FEE_TYPE_INITIAL_SALE);
+        FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LC.FEE_TYPE_INITIAL_SALE);
 
         assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), 0.5 ether, "par token seller's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), 0.5 ether, "par token buyer's par token (acc1.entityId) balance is incorrect");
 
         // For FIRST_OFFER, the commission should be paid by the buyer of the par tokens
-        uint256 commission = (0.5 ether * feeSchedule.basisPoints[0]) / LibConstants.BP_FACTOR;
+        uint256 commission = (0.5 ether * feeSchedule.basisPoints[0]) / LC.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 0.5 ether - commission, "par token buyer's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
     }
@@ -382,7 +382,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 singleSaleAmount = 1 ether;
 
         uint256 defaultTotalBP = 30;
-        fundEntityWeth(acc2, totalAmount + ((totalAmount * defaultTotalBP) / LibConstants.BP_FACTOR));
+        fundEntityWeth(acc2, totalAmount + ((totalAmount * defaultTotalBP) / LC.BP_FACTOR));
 
         changePrank(acc2.addr);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
@@ -394,7 +394,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
 
         changePrank(systemAdmin);
-        nayms.assignRole(acc3.id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(acc3.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
 
         // Switch up who starts the token sale
         changePrank(acc3.addr);
@@ -426,7 +426,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
         assertEq(nayms.internalBalanceOf(acc1.entityId, acc1.entityId), saleAmount, "entity selling par balance is incorrect");
 
-        nayms.addFeeSchedule(acc2.entityId, LibConstants.FEE_TYPE_INITIAL_SALE, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(0));
+        nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(0));
 
         fundEntityWeth(acc2, saleAmount);
 

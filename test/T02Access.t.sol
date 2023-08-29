@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 import { console2 } from "forge-std/console2.sol";
-import { D03ProtocolDefaults, LibHelpers, LibConstants as LC } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { Modifiers } from "src/diamonds/nayms/Modifiers.sol";
 import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
@@ -10,9 +10,9 @@ import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
 // updateRoleAssigner | canGroupAssignRole | canAssign [role] = group
 // getRoleInContext | roles[objectId][contextId] = role
 
-contract PermissionsFixture is Modifiers {
-    function assertPermissionsT(string memory _group, bytes32 _context) public view assertPermissions(_group, _context) {}
-}
+// contract PermissionsFixture is Modifiers {
+//     function hasGroupPrivilegeT(string memory _group, bytes32 _context) public view assertHasGroupPrivilege(_group, _context) {}
+// }
 
 abstract contract T02AccessHelpers is D03ProtocolDefaults {
     string[3] internal rolesThatCanAssignRoles = [LC.ROLE_SYSTEM_ADMIN, LC.ROLE_SYSTEM_MANAGER, LC.ROLE_ENTITY_MANAGER];
@@ -67,38 +67,18 @@ abstract contract T02AccessHelpers is D03ProtocolDefaults {
 contract T02Access is T02AccessHelpers {
     using LibHelpers for *;
 
-    NaymsAccount sa = makeNaymsAcc("System Admin");
-    NaymsAccount sm = makeNaymsAcc("System Manager");
-    NaymsAccount su = makeNaymsAcc("System Underwriter");
-
-    NaymsAccount ea = makeNaymsAcc("Entity Admin");
-    NaymsAccount em = makeNaymsAcc("Entity Manager");
-
-    NaymsAccount ts = makeNaymsAcc("Tenant Sponsor");
-    NaymsAccount tcp = makeNaymsAcc("Tenant CP");
-    NaymsAccount ti = makeNaymsAcc("Tenant Insured");
-    NaymsAccount tb = makeNaymsAcc("Tenant Broker");
-    NaymsAccount tc = makeNaymsAcc("Tenant Consultant");
-
-    NaymsAccount cc = makeNaymsAcc("Comptroller Combined");
-    NaymsAccount cw = makeNaymsAcc("Comptroller Withdraw");
-    NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
-    NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
-
     bytes32 internal testPolicyDataHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
     Stakeholders internal stakeholders;
     SimplePolicy internal simplePolicy;
 
-    string constant GROUP_ADMINS = "new admin group";
-
     function setUp() public {
-        bytes4[] memory fs = new bytes4[](1);
-        fs[0] = PermissionsFixture.assertPermissionsT.selector;
+        // bytes4[] memory fs = new bytes4[](1);
+        // fs[0] = PermissionsFixture.hasGroupPrivilegeT.selector;
 
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        cut[0] = IDiamondCut.FacetCut({ facetAddress: address(new PermissionsFixture()), action: IDiamondCut.FacetCutAction.Add, functionSelectors: fs });
+        // IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        // cut[0] = IDiamondCut.FacetCut({ facetAddress: address(new PermissionsFixture()), action: IDiamondCut.FacetCutAction.Add, functionSelectors: fs });
 
-        scheduleAndUpgradeDiamond(cut, address(0), "");
+        // scheduleAndUpgradeDiamond(cut, address(0), "");
 
         // Remove system admin from system managers group
         nayms.updateRoleGroup(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_MANAGERS, false);
@@ -138,8 +118,6 @@ contract T02Access is T02AccessHelpers {
 
         nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_PAY_SIMPLE_CLAIM, true);
         nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_CLAIM, LC.GROUP_PAY_SIMPLE_CLAIM, true);
-
-        // todo currently have a check on internalTransferFromEntity, is this needed?
 
         nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_PAY_DIVIDEND_FROM_ENTITY, true);
         nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_DIVIDEND, LC.GROUP_PAY_DIVIDEND_FROM_ENTITY, true);
@@ -241,7 +219,7 @@ contract T02Access is T02AccessHelpers {
         // assertFalse(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_MANAGERS));
     }
 
-    function test_roles_assertPermissions() public {
+    function test_roles_hasGroupPrivilege() public {
         hAssignRole(em.id, sm.entityId, LC.ROLE_ENTITY_MANAGER);
 
         changePrank(sm.addr);
@@ -272,8 +250,7 @@ contract T02Access is T02AccessHelpers {
                 bytes32 user = roleToUsers[role][0];
                 bytes32 context = objectToContext[user];
 
-                changePrank(user._getAddressFromId());
-                PermissionsFixture(naymsAddress).assertPermissionsT(functionGroup, context);
+                nayms.hasGroupPrivilege(user, context, functionGroup._stringToBytes32());
             }
         }
     }

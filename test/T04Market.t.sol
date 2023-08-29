@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, LibHelpers, LibConstants, console2 } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC, console2 } from "./defaults/D03ProtocolDefaults.sol";
 import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
@@ -70,7 +70,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // whitelist WBTC as well
         nayms.addSupportedExternalToken(wbtcAddress);
 
-        dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+        dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
     }
 
     function testStartTokenSale() public {
@@ -136,7 +136,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(buyToken, wethId, "OrderAdded: invalid buy token");
         assertEq(buyAmount, dt.entity1SalePrice, "OrderAdded: invalid buy amount");
         assertEq(buyAmountInitial, dt.entity1SalePrice, "OrderAdded: invalid initial buy amount");
-        assertEq(state, LibConstants.OFFER_STATE_ACTIVE, "OrderAdded: invalid offer state");
+        assertEq(state, LC.OFFER_STATE_ACTIVE, "OrderAdded: invalid offer state");
 
         assertEq(entries[3].topics.length, 2, "TokenSaleStarted: topics length incorrect");
         assertEq(entries[3].topics[0], keccak256("TokenSaleStarted(bytes32,uint256,string,string)"));
@@ -161,7 +161,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyToken, wethId);
         assertEq(marketInfo1.buyAmount, dt.entity1SalePrice);
         assertEq(marketInfo1.buyAmountInitial, dt.entity1SalePrice);
-        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE);
+        assertEq(marketInfo1.state, LC.OFFER_STATE_ACTIVE);
 
         // a user should NOT be able to transfer / withdraw their tokens for sale
         // transfer to invalid entity check?
@@ -189,8 +189,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         bytes32[] memory customReceivers = b32Array3(NAYMS_LTD_IDENTIFIER, NDF_IDENTIFIER, STM_IDENTIFIER);
         uint16[] memory customBasisPoints = u16Array3(150, 75, 75);
 
-        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, customReceivers, customBasisPoints);
-        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, customReceivers, customBasisPoints);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, customReceivers, customBasisPoints);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, customReceivers, customBasisPoints);
 
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
@@ -212,12 +212,12 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commissions");
 
         // assert trading commissions payed
-        uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LibConstants.BP_FACTOR;
+        uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LC.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions");
 
-        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * customBasisPoints[0]) / LibConstants.BP_FACTOR);
-        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * customBasisPoints[1]) / LibConstants.BP_FACTOR);
-        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * customBasisPoints[2]) / LibConstants.BP_FACTOR);
+        uint256 naymsBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * customBasisPoints[0]) / LC.BP_FACTOR);
+        uint256 ndfBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * customBasisPoints[1]) / LC.BP_FACTOR);
+        uint256 stmBalanceAfterTrade = naymsBalanceBeforeTrade + ((dt.entity1MintAndSaleAmt * customBasisPoints[2]) / LC.BP_FACTOR);
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), naymsBalanceAfterTrade, "Nayms should receive half of trading commissions");
         assertEq(nayms.internalBalanceOf(NDF_IDENTIFIER, wethId), ndfBalanceAfterTrade, "NDF should get a trading commission");
         assertEq(nayms.internalBalanceOf(STM_IDENTIFIER, wethId), stmBalanceAfterTrade, "Staking mechanism should get a trading commission");
@@ -248,7 +248,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint16[] memory basisPoints = u16Array3(150, 75, 75);
 
         changePrank(systemAdmin);
-        nayms.addFeeSchedule(entity2, LibConstants.FEE_TYPE_TRADING, receivers, basisPoints);
+        nayms.addFeeSchedule(entity2, LC.FEE_TYPE_TRADING, receivers, basisPoints);
 
         // Signer3 place an order with to sell the par tokens purchased from signer1
         changePrank(signer3);
@@ -275,7 +275,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         uint256 offerId = nayms.getLastOfferId();
         MarketInfo memory offer = nayms.getOffer(offerId);
-        assertEq(offer.state, LibConstants.OFFER_STATE_FULFILLED, "offer should be closed");
+        assertEq(offer.state, LC.OFFER_STATE_FULFILLED, "offer should be closed");
     }
 
     function testCancelOffer() public {
@@ -308,7 +308,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         MarketInfo memory offer = nayms.getOffer(nayms.getLastOfferId());
         assertEq(offer.rankNext, 0, "Next sibling not blank");
         assertEq(offer.rankPrev, 0, "Prevoius sibling not blank");
-        assertEq(offer.state, LibConstants.OFFER_STATE_CANCELLED, "offer state != Cancelled");
+        assertEq(offer.state, LC.OFFER_STATE_CANCELLED, "offer state != Cancelled");
     }
 
     function testFuzzMatchingOffers(uint256 saleAmount, uint256 salePrice) public {
@@ -331,7 +331,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             nayms.externalDeposit(wethAddress, salePrice);
         } else {
             (, uint256 totalBP_) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
-            uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + totalBP_)) / LibConstants.BP_FACTOR;
+            uint256 e2Balance = (salePrice * (LC.BP_FACTOR + totalBP_)) / LC.BP_FACTOR;
 
             changePrank(signer2);
             writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);
@@ -350,7 +350,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
             assertEq(marketInfo1.buyToken, wethId, "buy token");
             assertEq(marketInfo1.buyAmount, salePrice, "buy amount");
             assertEq(marketInfo1.buyAmountInitial, salePrice, "buy amount initial");
-            assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "state");
+            assertEq(marketInfo1.state, LC.OFFER_STATE_ACTIVE, "state");
 
             changePrank(signer2);
             nayms.executeLimitOffer(wethId, salePrice, entity1, saleAmount);
@@ -427,7 +427,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.cancelOffer(lastOfferId);
         MarketInfo memory offer = nayms.getOffer(lastOfferId);
-        assertEq(offer.state, LibConstants.OFFER_STATE_CANCELLED);
+        assertEq(offer.state, LC.OFFER_STATE_CANCELLED);
 
         nayms.externalWithdrawFromEntity(entity2, signer2, wethAddress, 500 ether);
         uint256 balanceAfterWithdraw = nayms.internalBalanceOf(entity2, wethId);
@@ -645,7 +645,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(offer.buyToken, buyToken, "invalid buy token");
         assertEq(offer.buyAmount, 0, "invalid buy amount");
         assertEq(offer.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
-        assertEq(offer.state, LibConstants.OFFER_STATE_FULFILLED, "invalid state");
+        assertEq(offer.state, LC.OFFER_STATE_FULFILLED, "invalid state");
     }
 
     function assertOfferPartiallyFilled(
@@ -666,7 +666,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(marketInfo1.buyToken, buyToken, "invalid buy token");
         assertEq(marketInfo1.buyAmount, buyAmount, "invalid buy amount");
         assertEq(marketInfo1.buyAmountInitial, initBuyAmount, "invalid initial buy amount");
-        assertEq(marketInfo1.state, LibConstants.OFFER_STATE_ACTIVE, "invalid state");
+        assertEq(marketInfo1.state, LC.OFFER_STATE_ACTIVE, "invalid state");
     }
 
     function testQSP2() public {
@@ -723,7 +723,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         writeTokenBalance(account0, naymsAddress, wethAddress, ~uint256(0));
 
         (, uint256 totalBP_) = nayms.calculateTradingFees(entity2, wethId, entity1, saleAmount);
-        uint256 e2Balance = (salePrice * (LibConstants.BP_FACTOR + totalBP_)) / LibConstants.BP_FACTOR;
+        uint256 e2Balance = (salePrice * (LC.BP_FACTOR + totalBP_)) / LC.BP_FACTOR;
 
         changePrank(signer2);
         writeTokenBalance(signer2, naymsAddress, wethAddress, e2Balance);

@@ -6,7 +6,7 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/diamonds/na
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
-import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
 
 // solhint-disable no-console
 // solhint-disable state-visibility
@@ -38,12 +38,12 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
 
     // 0x4e61796d73204c74640000000000000000000000000000000000000000000000
-    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
-    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER);
-    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER);
-    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.SSF_IDENTIFIER);
+    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LC.NAYMS_LTD_IDENTIFIER);
+    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LC.NDF_IDENTIFIER);
+    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LC.STM_IDENTIFIER);
+    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LC.SSF_IDENTIFIER);
 
-    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
     address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
@@ -56,6 +56,24 @@ contract D03ProtocolDefaults is D02TestSetup {
 
     FeeSchedule premiumFeeScheduleDefault;
     FeeSchedule tradingFeeScheduleDefault;
+
+    NaymsAccount sa = makeNaymsAcc("System Admin");
+    NaymsAccount sm = makeNaymsAcc("System Manager");
+    NaymsAccount su = makeNaymsAcc("System Underwriter");
+
+    NaymsAccount ea = makeNaymsAcc("Entity Admin");
+    NaymsAccount em = makeNaymsAcc("Entity Manager");
+
+    NaymsAccount ts = makeNaymsAcc("Tenant Sponsor");
+    NaymsAccount tcp = makeNaymsAcc("Tenant CP");
+    NaymsAccount ti = makeNaymsAcc("Tenant Insured");
+    NaymsAccount tb = makeNaymsAcc("Tenant Broker");
+    NaymsAccount tc = makeNaymsAcc("Tenant Consultant");
+
+    NaymsAccount cc = makeNaymsAcc("Comptroller Combined");
+    NaymsAccount cw = makeNaymsAcc("Comptroller Withdraw");
+    NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
+    NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
 
     constructor() payable {
         console2.log("\n -- D03 Protocol Defaults\n");
@@ -76,12 +94,16 @@ contract D03ProtocolDefaults is D02TestSetup {
 
         entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
-            collateralRatio: LibConstants.BP_FACTOR,
+            collateralRatio: LC.BP_FACTOR,
             maxCapacity: 100 ether,
             utilizedCapacity: 0,
             simplePolicyEnabled: true
         });
 
+        nayms.assignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+        changePrank(sm.addr);
         nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity, "entity test hash");
@@ -96,12 +118,13 @@ contract D03ProtocolDefaults is D02TestSetup {
         premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
         tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
 
+        changePrank(sa.addr);
         // For Premiums
-        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
 
         // For Marketplace
-        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
-        nayms.addFeeSchedule(LibConstants.DEFAULT_FEE_SCHEDULE, LibConstants.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
 
         console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
@@ -173,7 +196,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
-        Entity memory entity1 = initEntity(wethId, LibConstants.BP_FACTOR / 2, LibConstants.BP_FACTOR, false);
+        Entity memory entity1 = initEntity(wethId, LC.BP_FACTOR / 2, LC.BP_FACTOR, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
         return entityId;
     }
@@ -192,15 +215,15 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function initPolicy(bytes32 offchainDataHash) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        return initPolicyWithLimit(offchainDataHash, LibConstants.BP_FACTOR);
+        return initPolicyWithLimit(offchainDataHash, LC.BP_FACTOR);
     }
 
     function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
-        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
-        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
-        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
-        roles[3] = LibHelpers._stringToBytes32(LibConstants.ROLE_INSURED_PARTY);
+        roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LC.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LC.ROLE_CAPITAL_PROVIDER);
+        roles[3] = LibHelpers._stringToBytes32(LC.ROLE_INSURED_PARTY);
 
         bytes32[] memory entityIds = new bytes32[](4);
         entityIds[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
