@@ -528,11 +528,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 bobEAliceBuyAmount,
         uint256 dividendAmount
     ) public {
-        dividendAmount = bound(dividendAmount, 1, type(uint128).max);
-        bobWethDepositAmount = bound(bobWethDepositAmount, 10_000, type(uint128).max);
-        eAliceParTokenSaleAmount = bound(eAliceParTokenSaleAmount, 10_000, type(uint128).max);
-        eAliceParTokenPrice = bound(eAliceParTokenPrice, 10_000, type(uint128).max);
-        bobEAliceBuyAmount = bound(bobEAliceBuyAmount, 10_000, type(uint128).max);
+        vm.assume(1 < dividendAmount && dividendAmount < type(uint128).max);
+        vm.assume(10_000 < bobWethDepositAmount && bobWethDepositAmount < type(uint128).max);
+        vm.assume(10_000 < eAliceParTokenSaleAmount && eAliceParTokenSaleAmount < type(uint128).max);
+        vm.assume(10_000 < eAliceParTokenPrice && eAliceParTokenPrice < type(uint128).max);
+        vm.assume(10_000 < bobEAliceBuyAmount && bobEAliceBuyAmount < type(uint128).max);
+
         require(bobEAliceBuyAmount >= 10_000 && bobEAliceBuyAmount <= type(uint128).max);
 
         changePrank(alice);
