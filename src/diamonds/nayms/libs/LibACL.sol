@@ -133,6 +133,7 @@ library LibACL {
         // if account itself does not have the membership in given context, then having membership
         // in the system context grants him the privilege needed
         if (_isInGroup(_assignerId, LibAdmin._getSystemId(), assignerGroup)) return true;
+        return false;
     }
 
     function _hasGroupPrivilege(
@@ -143,6 +144,7 @@ library LibACL {
         if (_isParentInGroup(_userId, _contextId, _groupId)) return true;
         if (_isInGroup(_userId, _contextId, _groupId)) return true;
         if (_isInGroup(_userId, LibAdmin._getSystemId(), _groupId)) return true;
+        return false;
     }
 
     function _getRoleInContext(bytes32 _objectId, bytes32 _contextId) internal view returns (bytes32) {
