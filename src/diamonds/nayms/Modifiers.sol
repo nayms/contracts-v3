@@ -41,12 +41,7 @@ contract Modifiers {
 
     modifier assertHasGroupPrivilege(bytes32 _context, string memory _group) {
         if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32()))
-            revert InvalidGroupPrivilege(
-                msg.sender._getIdForAddress(),
-                _context,
-                abi.decode(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes(), (string)),
-                _group
-            );
+            revert InvalidGroupPrivilege(msg.sender._getIdForAddress(), _context, string(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes()), _group);
         _;
     }
 

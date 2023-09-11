@@ -274,7 +274,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 1 ether);
         changePrank(account9);
-        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, acc9Id, acc0EntityId, "", LC.GROUP_PAY_DIVIDEND_FROM_ENTITY));
+
+        bytes32 role = nayms.getRoleInContext(account9._getIdForAddress(), nayms.getEntity(account9._getIdForAddress()));
+        string memory roleString = string(role._bytes32ToBytes());
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, acc9Id, acc0EntityId, roleString, LC.GROUP_PAY_DIVIDEND_FROM_ENTITY));
         nayms.payDividendFromEntity(bytes32("0x1"), 1 ether);
     }
 
@@ -304,8 +307,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sm.addr);
         nayms.setEntity(nonAdminId, acc0EntityId);
 
+        bytes32 role = nayms.getRoleInContext(account9._getIdForAddress(), nayms.getEntity(account9._getIdForAddress()));
+        string memory roleString = string(role._bytes32ToBytes());
+
         changePrank(nonAdminAddress);
-        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, nonAdminId, acc0EntityId, "", LC.GROUP_PAY_DIVIDEND_FROM_ENTITY));
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, nonAdminId, acc0EntityId, roleString, LC.GROUP_PAY_DIVIDEND_FROM_ENTITY));
         nayms.payDividendFromEntity(randomGuid, 10 ether);
 
         changePrank(em.addr);
