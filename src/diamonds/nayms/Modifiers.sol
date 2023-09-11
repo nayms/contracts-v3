@@ -41,7 +41,16 @@ contract Modifiers {
 
     modifier assertHasGroupPrivilege(bytes32 _context, string memory _group) {
         if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32()))
-            revert InvalidGroupPrivilege(msg.sender._getIdForAddress(), _context, string(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes()), _group);
+            /// Note: If the role returned by `_getRoleInContext` is empty (represented by bytes32(0)), we explicitly return an empty string.
+            /// This ensures the user doesn't receive a string that could potentially include unwanted data (like pointer and length) without any meaningful content.
+            revert InvalidGroupPrivilege(
+                msg.sender._getIdForAddress(),
+                _context,
+                (msg.sender._getIdForAddress()._getRoleInContext(_context) == bytes32(0))
+                    ? ""
+                    : string(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes()),
+                _group
+            );
         _;
     }
 
