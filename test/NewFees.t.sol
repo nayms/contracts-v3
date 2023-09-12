@@ -34,7 +34,7 @@ contract NewFeesTest is D03ProtocolDefaults {
             simplePolicyEnabled: true 
         });
 
-        changePrank(systemAdmin);
+        changePrank(sm.addr);
 
         nayms.createEntity(acc1.entityId, acc1.id, entityInfo, testHash);
         nayms.createEntity(acc2.entityId, acc2.id, entityInfo, testHash);
@@ -43,6 +43,8 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.enableEntityTokenization(acc1.entityId, "ESPT", "Entity Selling Par Tokens");
 
         (stakeholders, simplePolicy) = initPolicy(testHash);
+
+        changePrank(sa.addr);
     }
 
     function fundEntityWeth(NaymsAccount memory acc, uint256 amount) private {
@@ -207,7 +209,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         fundEntityWeth(acc1, 1 ether);
 
-        changePrank(systemAdmin);
+        changePrank(su.addr);
         bytes32 policyId = "policy1";
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
@@ -237,7 +239,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         fundEntityWeth(acc1, 1 ether);
 
-        changePrank(systemAdmin);
+        changePrank(su.addr);
         bytes32 policyId = "policy1";
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
@@ -249,6 +251,8 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         assertEq(cf.totalFees, expectedValue, "total fees is incorrect");
         assertEq(cf.totalBP, expectedTotalPremiumFeeBP, "total bp is incorrect");
+
+        changePrank(systemAdmin);
 
         // Update the same fee schedule: 3 receivers to 1 receiver
         customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
@@ -269,7 +273,7 @@ contract NewFeesTest is D03ProtocolDefaults {
 
         fundEntityWeth(acc1, 1 ether);
 
-        changePrank(systemAdmin);
+        changePrank(su.addr);
         bytes32 policyId = "policy1";
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
@@ -313,6 +317,8 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 sellAmount = 1 ether;
         uint256 buyAmount = 0.5 ether;
 
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
         nayms.startTokenSale(acc1.entityId, sellAmount, sellAmount);
 
         fundEntityWeth(acc2, sellAmount);
@@ -334,6 +340,8 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 saleAmount = 1 ether;
         uint256 buyAmount = 0.5 ether;
 
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
         nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
 
         assertEq(nayms.internalBalanceOf(acc1.entityId, acc1.entityId), saleAmount, "maker balance is incorrect");
@@ -358,11 +366,14 @@ contract NewFeesTest is D03ProtocolDefaults {
     }
 
     function test_startTokenSale_PlaceOrderBeforeStartTokenSale() public {
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
+
         fundEntityWeth(acc2, 1 ether);
 
         nayms.executeLimitOffer(wethId, 0.5 ether, acc1.entityId, 0.5 ether);
 
-        changePrank(systemAdmin);
+        changePrank(sm.addr);
         nayms.startTokenSale(acc1.entityId, 1 ether, 1 ether);
 
         FeeSchedule memory feeSchedule = nayms.getFeeSchedule(acc1.entityId, LC.FEE_TYPE_INITIAL_SALE);
@@ -382,13 +393,16 @@ contract NewFeesTest is D03ProtocolDefaults {
         uint256 singleSaleAmount = 1 ether;
 
         uint256 defaultTotalBP = 30;
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
+
         fundEntityWeth(acc2, totalAmount + ((totalAmount * defaultTotalBP) / LC.BP_FACTOR));
 
         changePrank(acc2.addr);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
 
-        changePrank(systemAdmin);
+        changePrank(sm.addr);
         nayms.startTokenSale(acc1.entityId, singleSaleAmount, singleSaleAmount);
         changePrank(acc2.addr);
         nayms.executeLimitOffer(wethId, singleOrderAmount, acc1.entityId, singleOrderAmount);
@@ -422,10 +436,14 @@ contract NewFeesTest is D03ProtocolDefaults {
         // acc1 is the par token seller
         // acc2 is the par token buyer
 
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
+
         uint256 saleAmount = 1 ether;
         nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
         assertEq(nayms.internalBalanceOf(acc1.entityId, acc1.entityId), saleAmount, "entity selling par balance is incorrect");
 
+        changePrank(sa.addr);
         nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(0));
 
         fundEntityWeth(acc2, saleAmount);
