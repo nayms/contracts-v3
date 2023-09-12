@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { InitDiamond } from "src/diamonds/nayms/InitDiamond.sol";
-import { NaymsTokenFacet } from "src/diamonds/nayms/facets/NaymsTokenFacet.sol";
-import { ACLFacet } from "src/diamonds/nayms/facets/ACLFacet.sol";
-import { AdminFacet } from "src/diamonds/nayms/facets/AdminFacet.sol";
-import { SystemFacet } from "src/diamonds/nayms/facets/SystemFacet.sol";
+import { InitDiamond } from "src/init/InitDiamond.sol";
+import { NaymsTokenFacet } from "src/facets/NaymsTokenFacet.sol";
+import { ACLFacet } from "src/facets/ACLFacet.sol";
+import { AdminFacet } from "src/facets/AdminFacet.sol";
+import { SystemFacet } from "src/facets/SystemFacet.sol";
 
 // solhint-disable no-empty-blocks
 

@@ -5,8 +5,8 @@ pragma solidity 0.8.17;
 import { console2 } from "forge-std/console2.sol";
 
 import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, FeeSchedule, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
-import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, FeeSchedule, CalculatedFees } from "../src/shared/AppStorage.sol";
+import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "../src/shared/FreeStructs.sol";
 
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 

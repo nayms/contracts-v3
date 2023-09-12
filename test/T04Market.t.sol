@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/shared/FreeStructs.sol";
 
 /* 
     Terminology:

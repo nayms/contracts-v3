@@ -4,7 +4,8 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, LibAdmin, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+
+// import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 /// @notice Contains tests for Nayms ERC20 token
 

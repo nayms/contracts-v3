@@ -5,8 +5,8 @@ import { D03ProtocolDefaults, LibConstants } from "./defaults/D03ProtocolDefault
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity } from "src/diamonds/nayms/AppStorage.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { Entity } from "../src/shared/AppStorage.sol";
+import "../src/shared/CustomErrors.sol";
 
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal immutable objectContext1 = "0x1";

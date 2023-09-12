@@ -6,22 +6,24 @@ pragma solidity 0.8.17;
 
 import "./D00GlobalDefaults.sol";
 
-import { InitDiamond } from "src/diamonds/nayms/InitDiamond.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-import { Nayms } from "src/diamonds/nayms/Nayms.sol";
-import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+import { IDiamondCut } from "../../src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { DiamondProxy } from "src/generated/DiamondProxy.sol";
+import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
+import { LibDiamondHelper } from "src/generated/LibDiamondHelper.sol";
+import { LibHelpers } from "src/libs/LibHelpers.sol";
+import { InitDiamond } from "../../src/init/InitDiamond.sol";
 
-import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
-import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
+// import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
+// import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
-abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
+abstract contract D01Deployment is D00GlobalDefaults {
     using LibHelpers for *;
-    InitDiamond public initDiamond;
-    Nayms public naymsContract;
+
+    IDiamondProxy public diamond;
+
     address public naymsAddress;
-    INayms public nayms;
 
     //// test constant variables ////
     bytes32 public immutable salt = keccak256(bytes("A salt!"));
@@ -46,58 +48,59 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     constructor() payable {
         console2.log("block.chainid", block.chainid);
 
-        bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
-        if (BOOL_FORK_TEST) {
-            uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
-            console2.log("FORK_BLOCK", FORK_BLOCK);
+        // TODO KP help!
+        // bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
+        // if (BOOL_FORK_TEST) {
+        //     uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
+        //     console2.log("FORK_BLOCK", FORK_BLOCK);
 
-            if (FORK_BLOCK == type(uint256).max) {
-                console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
-                vm.createSelectFork(getChain(block.chainid).rpcUrl);
-            } else {
-                vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
-            }
+        //     if (FORK_BLOCK == type(uint256).max) {
+        //         console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
+        //         vm.createSelectFork(getChain(block.chainid).rpcUrl);
+        //     } else {
+        //         vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
+        //     }
 
-            naymsAddress = getDiamondAddressFromFile();
-            nayms = INayms(naymsAddress);
+        //     naymsAddress = getDiamondAddressFromFile();
+        //     nayms = INayms(naymsAddress);
 
-            deployer = address(this);
-            owner = nayms.owner();
-            vm.label(owner, "Owner");
-            systemAdmin = vm.envOr({ name: string.concat("SYSTEM_ADMIN_", vm.toString(block.chainid)), defaultValue: address(0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929) });
-            systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
-            vm.label(systemAdmin, "System Admin");
+        //     deployer = address(this);
+        //     owner = nayms.owner();
+        //     vm.label(owner, "Owner");
+        //     systemAdmin = vm.envOr({ name: string.concat("SYSTEM_ADMIN_", vm.toString(block.chainid)), defaultValue: address(0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929) });
+        //     systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
+        //     vm.label(systemAdmin, "System Admin");
 
-            string[] memory facetsToCutIn;
-            keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
-            IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(naymsAddress, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
-            vm.startPrank(owner);
-            scheduleAndUpgradeDiamond(cut);
-        } else {
-            console2.log("Local testing (no fork)");
+        //     string[] memory facetsToCutIn;
+        //     keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
+        //     IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(naymsAddress, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
+        //     vm.startPrank(owner);
+        //     scheduleAndUpgradeDiamond(cut);
+        // } else {
+        console2.log("Local testing (no fork)");
 
-            deployer = address(this);
-            owner = address(this);
-            vm.startPrank(deployer);
+        deployer = address(this);
+        owner = address(this);
+        vm.startPrank(deployer);
 
-            // deploy the init contract
-            initDiamond = new InitDiamond();
-            console2.log("InitDiamond address", address(initDiamond));
-            vm.label(address(initDiamond), "InitDiamond");
-            // deploy all facets
-            address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
+        // deploy the init contract
+        InitDiamond initDiamond = new InitDiamond();
+        console2.log("InitDiamond address", address(initDiamond));
+        vm.label(address(initDiamond), "InitDiamond");
+        // deploy all facets
+        address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
 
-            vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
-            systemAdmin = makeAddr("System Admin 0");
-            systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
+        vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
+        systemAdmin = makeAddr("System Admin 0");
+        systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
 
-            naymsContract = new Nayms(owner, systemAdmin);
-            nayms = INayms(address(naymsContract));
-            naymsAddress = address(nayms);
-            // initialize the diamond as well as cut in all facets
-            INayms.FacetCut[] memory cut = LibGeneratedNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
-            scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
-        }
+        Diamond naymsContract = new Nayms(owner, systemAdmin);
+        nayms = INayms(address(naymsContract));
+        address naymsAddress = address(nayms);
+        // initialize the diamond as well as cut in all facets
+        INayms.FacetCut[] memory cut = LibGeneratedNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
+        scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
+        // }
     }
 
     function scheduleAndUpgradeDiamond(

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { AppStorage, LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
-import { LibSimplePolicy } from "src/diamonds/nayms/libs/LibSimplePolicy.sol";
+import { AppStorage, LibAppStorage } from "src/shared/AppStorage.sol";
+import { LibSimplePolicy } from "src/libs/LibSimplePolicy.sol";
 
-import { SimplePolicy } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { SimplePolicy } from "src/shared/FreeStructs.sol";
 
 contract SimplePolicyFixture {
     function getFullInfo(bytes32 _policyId) public returns (SimplePolicy memory) {

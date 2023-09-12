@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
-import { LibFeeRouter, CalculatedFees, FeeAllocation, FeeSchedule } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
+import { LibConstants } from "src/libs/LibConstants.sol";
+import { LibFeeRouter, CalculatedFees, FeeAllocation, FeeSchedule } from "src/libs/LibFeeRouter.sol";
 
 /// Create a fixture to test the library LibFeeRouter
 

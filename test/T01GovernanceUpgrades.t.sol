@@ -3,9 +3,10 @@ pragma solidity 0.8.17;
 
 import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
-import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
-import { PhasedDiamondCutFacet, PhasedDiamondCutUpgradeFailed } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
+import "../src/shared/CustomErrors.sol";
+
+// import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
+// import { PhasedDiamondCutFacet, PhasedDiamondCutUpgradeFailed } from "../src/facets/PhasedDiamondCutFacet.sol";
 
 /// @dev Testing for Nayms upgrade pattern
 

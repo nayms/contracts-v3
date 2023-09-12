@@ -3,11 +3,11 @@ pragma solidity 0.8.17;
 
 import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 
-import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity } from "../src/shared/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "src/diamonds/nayms/INayms.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+// import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "../src/diamonds/nayms/INayms.sol";
+import "../src/shared/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public {}

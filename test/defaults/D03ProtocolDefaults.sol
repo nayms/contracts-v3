@@ -2,11 +2,11 @@
 pragma solidity 0.8.17;
 
 import { D02TestSetup, LibHelpers, console2 } from "./D02TestSetup.sol";
-import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
-import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { LibAdmin } from "src/libs/LibAdmin.sol";
+import { LibConstants } from "src/libs/LibConstants.sol";
 
 // solhint-disable no-console
 // solhint-disable state-visibility

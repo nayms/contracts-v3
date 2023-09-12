@@ -31,7 +31,10 @@
     "lint": "yarn prettier && yarn run solhint",
     "lint:check": "yarn prettier:check && yarn run solhint:check",
     "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/docgen.js",
-    "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json"
+    "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json",
+    "build": "gemforge build",
+    "build-v": "gemforge build -v",
+    "gfv": "gemforge --version"
   },
   "devDependencies": {
     "chalk": "4",
@@ -51,7 +54,8 @@
     "solc": "0.8.17",
     "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.21",
-    "solidity-docgen": "^0.5.17"
+    "solidity-docgen": "^0.5.17",
+    "gemforge": "1.6.0"
   },
   "dependencies": {
     "yarn": "^1.22.19"

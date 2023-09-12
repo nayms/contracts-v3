@@ -2,11 +2,11 @@
 pragma solidity 0.8.17;
 
 import "forge-std/Script.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
-import { LibConstants } from "src/diamonds/nayms/libs/LibConstants.sol";
-import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+// import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { Entity } from "src/shared/FreeStructs.sol";
+import { LibAdmin } from "src/libs/LibAdmin.sol";
+import { LibConstants } from "src/libs/LibConstants.sol";
+import { LibHelpers } from "src/libs/LibHelpers.sol";
 import { MockERC20 } from "solmate/test/utils/mocks/MockERC20.sol";
 
 contract CreateEntity is Script {

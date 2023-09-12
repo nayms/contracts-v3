@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { IERC20 } from "src/erc20/IERC20.sol";
+import { IERC20 } from "src/interfaces/IERC20.sol";
 
 // solhint-disable no-unused-vars
 contract BadToken is IERC20 {

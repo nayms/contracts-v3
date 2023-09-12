@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Test } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { LibHelpers } from "../src/diamonds/nayms/libs/LibHelpers.sol";
+import { LibHelpers } from "../src/libs/LibHelpers.sol";
 
 contract T01LibHelpers is Test {
     function testGetIdForObjectAtIndexFuzz(uint256 i) public {

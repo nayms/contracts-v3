@@ -4,13 +4,13 @@ pragma solidity 0.8.17;
 import { Vm } from "forge-std/Vm.sol";
 
 import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "../src/shared/FreeStructs.sol";
+// import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
 // solhint-disable no-global-import
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import "../src/shared/CustomErrors.sol";
 
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {

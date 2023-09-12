@@ -3,11 +3,11 @@ pragma solidity 0.8.17;
 
 // solhint-disable no-console
 // solhint-disable no-global-import
-// import { StdStorage, stdStorage, console2, Test } from "forge-std/Test.sol";
-import { console2 } from "forge-std/console2.sol";
+
+import { console2 } from "forge-std/Test.sol";
 import { CommonBase } from "forge-std/Base.sol";
 import { StdStorage, stdStorage } from "forge-std/StdStorage.sol";
-import { IERC20 } from "src/erc20/IERC20.sol";
+import { IERC20 } from "src/interfaces/IERC20.sol";
 
 /// @notice Default test setup part 00
 ///         Global level defaults for any and all solidity projects using solc >=0.7.6
@@ -20,7 +20,9 @@ import { IERC20 } from "src/erc20/IERC20.sol";
 abstract contract D00GlobalDefaults is CommonBase {
     using stdStorage for StdStorage;
 
-    address public account0 = address(this);
+    address public immutable account0 = address(this);
+    address public account1;
+    address public account2;
 
     constructor() payable {
         console2.log("\n Test SETUP:");
