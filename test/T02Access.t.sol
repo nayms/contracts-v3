@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import { console2 } from "forge-std/console2.sol";
+import { console2 as c } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { Modifiers } from "src/diamonds/nayms/Modifiers.sol";
@@ -41,7 +41,7 @@ abstract contract T02AccessHelpers is D03ProtocolDefaults {
         roleToUsers[_role].push(_objectId);
 
         if (objectToContext[_objectId] == systemContext) {
-            console2.log("warning: object's context is currently systemContext");
+            c.log("warning: object's context is currently systemContext");
         } else {
             objectToContext[_objectId] = _contextId;
         }
@@ -57,7 +57,7 @@ abstract contract T02AccessHelpers is D03ProtocolDefaults {
         roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin);
 
         if (objectToContext[_entityAdmin] == systemContext) {
-            console2.log("warning: object's context is currently systemContext");
+            c.log("warning: object's context is currently systemContext");
         } else {
             objectToContext[_entityAdmin] = _entityId;
         }
@@ -79,56 +79,6 @@ contract T02Access is T02AccessHelpers {
         // cut[0] = IDiamondCut.FacetCut({ facetAddress: address(new PermissionsFixture()), action: IDiamondCut.FacetCutAction.Add, functionSelectors: fs });
 
         // scheduleAndUpgradeDiamond(cut, address(0), "");
-
-        // Remove system admin from system managers group
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_MANAGERS, false);
-
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_MANAGERS, true);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_CP, LC.GROUP_SYSTEM_MANAGERS);
-
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_MANAGERS, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_MANAGER, LC.GROUP_MANAGERS, true);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_BROKER, LC.GROUP_MANAGERS);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_INSURED, LC.GROUP_MANAGERS);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_MANAGER, LC.GROUP_ENTITY_MANAGERS, true);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_ENTITY_MANAGERS);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW, LC.GROUP_ENTITY_MANAGERS);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_CLAIM, LC.GROUP_ENTITY_MANAGERS);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_DIVIDEND, LC.GROUP_ENTITY_MANAGERS);
-
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_ADMIN, GROUP_ADMINS, true);
-        nayms.updateRoleAssigner(LC.ROLE_SYSTEM_ADMIN, GROUP_ADMINS);
-        nayms.updateRoleAssigner(LC.ROLE_SYSTEM_MANAGER, GROUP_ADMINS);
-        nayms.updateRoleAssigner(LC.ROLE_SYSTEM_UNDERWRITER, GROUP_ADMINS);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_ADMIN, GROUP_ADMINS);
-        nayms.updateRoleAssigner(LC.ROLE_ENTITY_MANAGER, GROUP_ADMINS);
-
-        // Setup roles which can call functions
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_START_TOKEN_SALE, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_MANAGER, LC.GROUP_START_TOKEN_SALE, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_MANAGER, LC.GROUP_CANCEL_OFFER, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_CANCEL_OFFER, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_EXECUTE_LIMIT_OFFER, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_BROKER, LC.GROUP_PAY_SIMPLE_PREMIUM, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_INSURED, LC.GROUP_PAY_SIMPLE_PREMIUM, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_PAY_SIMPLE_CLAIM, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_CLAIM, LC.GROUP_PAY_SIMPLE_CLAIM, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_PAY_DIVIDEND_FROM_ENTITY, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_DIVIDEND, LC.GROUP_PAY_DIVIDEND_FROM_ENTITY, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_EXTERNAL_DEPOSIT, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_EXTERNAL_DEPOSIT, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW, LC.GROUP_EXTERNAL_DEPOSIT, true);
-
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY, true);
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW, LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY, true);
 
         // Assign roles to users
         hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
@@ -181,18 +131,18 @@ contract T02Access is T02AccessHelpers {
         assertFalse(nayms.isRoleInGroup(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS));
 
         // new group admins
-        assertTrue(nayms.isRoleInGroup(LC.ROLE_SYSTEM_ADMIN, GROUP_ADMINS));
+        assertTrue(nayms.isRoleInGroup(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_ADMINS));
 
-        assertFalse(nayms.isRoleInGroup(LC.ROLE_SYSTEM_MANAGER, GROUP_ADMINS));
-        assertFalse(nayms.isRoleInGroup(LC.ROLE_SYSTEM_UNDERWRITER, GROUP_ADMINS));
+        assertFalse(nayms.isRoleInGroup(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS));
+        assertFalse(nayms.isRoleInGroup(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS));
 
-        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, GROUP_ADMINS));
-        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_MANAGER, GROUP_ADMINS));
-        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_UNDERWRITER, GROUP_ADMINS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_ADMINS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS));
 
-        // assertTrue(nayms.canAssign(systemAdminId, sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN));
-        // assertTrue(nayms.canAssign(systemAdminId, sa.id, systemContext, LC.ROLE_SYSTEM_MANAGER));
-        // assertTrue(nayms.canAssign(systemAdminId, sa.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER));
+        assertTrue(nayms.canAssign(systemAdminId, sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN));
+        assertTrue(nayms.canAssign(systemAdminId, sa.id, systemContext, LC.ROLE_SYSTEM_MANAGER));
+        assertTrue(nayms.canAssign(systemAdminId, sa.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER));
 
         assertFalse(nayms.isRoleInGroup(LC.ROLE_ENTITY_BROKER, LC.GROUP_SYSTEM_MANAGERS));
         assertFalse(nayms.isRoleInGroup(LC.ROLE_ENTITY_BROKER, LC.GROUP_ENTITY_MANAGERS));
@@ -211,12 +161,12 @@ contract T02Access is T02AccessHelpers {
         hAssignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         assertTrue(nayms.canAssign(em.id, tb.id, systemContext, LC.ROLE_ENTITY_BROKER)); // can assign in system context
 
-        // assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_ADMINS));
-        // assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS));
-        // assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS));
-        // assertTrue(nayms.canGroupAssignRole(LC.ROLE_CAPITAL_PROVIDER, LC.GROUP_SYSTEM_MANAGERS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_ADMINS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS));
+        assertTrue(nayms.canGroupAssignRole(LC.ROLE_CAPITAL_PROVIDER, LC.GROUP_SYSTEM_MANAGERS));
 
-        // assertFalse(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_MANAGERS));
+        assertFalse(nayms.canGroupAssignRole(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_MANAGERS));
     }
 
     function test_roles_hasGroupPrivilege() public {
@@ -254,4 +204,65 @@ contract T02Access is T02AccessHelpers {
             }
         }
     }
+
+    function test_sysAdmin_canAssign_sysUW() public {
+        changePrank(sa.addr);
+        hAssignRole(address(888)._getIdForAddress(), systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+
+        nayms.updateRoleAssigner(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS);
+    }
+    // function testR2() public {
+    //     changePrank(sm.addr);
+    //     nayms.createEntity(ea.id, ea.id, entity, "entity test hash");
+    //     uint256 sellAmount = 1 ether;
+    //     uint256 buyAmount = 0.5 ether;
+
+    //     nayms.enableEntityTokenization(ea.id, "ESPT", "Entity Selling Par Tokens");
+
+    //     // changePrank(sa.addr);
+    //     bytes32 id = address(9999)._getIdForAddress();
+    //     nayms.setEntity(id, ea.id);
+
+    //     changePrank(sa.addr);
+    //     // nayms.assignRole(id, ea.id, LC.ROLE_SYSTEM_MANAGER);
+    //     nayms.assignRole(id, ea.id, LC.ROLE_ENTITY_ADMIN);
+    //     changePrank(sm.addr);
+    //     // changePrank(address(9999));
+    //     nayms.startTokenSale(ea.id, sellAmount, sellAmount);
+
+    //     // fundEntityWeth(acc2, sellAmount);
+
+    //     // the context is the parent of the caller
+    //     bytes32 context = nayms.getEntity(msg.sender._getIdForAddress());
+    //     c.logBytes32(context);
+    //     bytes32 roleInContextBytes32 = nayms.getRoleInContext(msg.sender._getIdForAddress(), context);
+    //     string memory roleInContext;
+    //     if (roleInContextBytes32 != bytes32(0)) {
+    //         roleInContext = abi.decode(roleInContextBytes32._bytes32ToBytes(), (string));
+    //     } else {
+    //         roleInContext = "hi";
+    //     }
+
+    //     c.log(roleInContext);
+    //     changePrank(address(9999));
+    //     roleInContextBytes32 = nayms.getRoleInContext(msg.sender._getIdForAddress(), context);
+    //     c.logBytes32(roleInContextBytes32);
+    //     if (roleInContextBytes32 != bytes32(0)) {
+    //         c.log("DECODING");
+    //         roleInContext = abi.decode(roleInContextBytes32._bytes32ToBytes(), (string));
+    //     }
+    //     c.log(roleInContext);
+    //     nayms.executeLimitOffer(wethId, buyAmount, ea.id, buyAmount);
+    //     // if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32())) {
+    //     //     bytes32 roleInContextBytes32 = msg.sender._getIdForAddress()._getRoleInContext(_context);
+    //     //     string memory roleInContext;
+    //     //     if (roleInContextBytes32 != bytes32(0)) {
+    //     //         roleInContext = abi.decode(roleInContextBytes32._bytes32ToBytes(), (string));
+    //     //     }
+    //     //     revert InvalidGroupPrivilege(msg.sender._getIdForAddress(), _context, roleInContext, _group);
+    //     // }
+    //     // nayms.executeLimitOffer();
+    // }
 }
+// 0xd2d53960000000000000000000000000000000000000acc90000000000000000000000006530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018506179204469766964656e642046726f6d20456e746974790000000000000000
+// 0xd2d53960000000000000000000000000000000000000acc90000000000000000000000006530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000018506179204469766964656e642046726f6d20456e746974790000000000000000

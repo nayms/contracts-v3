@@ -32,7 +32,6 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     address public systemAdmin;
     bytes32 public systemAdminId;
 
-    string constant GROUP_ADMINS = "new admin group";
     struct NaymsAccount {
         bytes32 id;
         bytes32 entityId;
@@ -119,12 +118,10 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             nayms.updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_CLAIM, LC.GROUP_ENTITY_MANAGERS);
             nayms.updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_DIVIDEND, LC.GROUP_ENTITY_MANAGERS);
 
-            nayms.updateRoleGroup(LC.ROLE_SYSTEM_ADMIN, GROUP_ADMINS, true);
-            nayms.updateRoleAssigner(LC.ROLE_SYSTEM_ADMIN, GROUP_ADMINS);
-            nayms.updateRoleAssigner(LC.ROLE_SYSTEM_MANAGER, GROUP_ADMINS);
-            nayms.updateRoleAssigner(LC.ROLE_SYSTEM_UNDERWRITER, GROUP_ADMINS);
-            nayms.updateRoleAssigner(LC.ROLE_ENTITY_ADMIN, GROUP_ADMINS);
-            nayms.updateRoleAssigner(LC.ROLE_ENTITY_MANAGER, GROUP_ADMINS);
+            nayms.updateRoleAssigner(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS);
+            nayms.updateRoleAssigner(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS);
+            nayms.updateRoleAssigner(LC.ROLE_ENTITY_ADMIN, LC.GROUP_SYSTEM_ADMINS);
+            nayms.updateRoleAssigner(LC.ROLE_ENTITY_MANAGER, LC.GROUP_SYSTEM_ADMINS);
 
             // Setup roles which can call functions
             nayms.updateRoleGroup(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_START_TOKEN_SALE, true);
