@@ -466,11 +466,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether + totalFees_, "eBob's nWETH balance should INCREASE");
 
         changePrank(sm.addr);
-        // nayms.assignRole(bobId, eAlice, LC.ROLE_ENTITY_CP);
         nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
         changePrank(bob);
         nayms.executeLimitOffer(nWETH, 1 ether, eAlice, 1e18);
-        // nayms.executeLimitOffer(nWETH, 1 ether, eBob, 1e18);
         vm.stopPrank();
 
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 0, "eBob's nWETH balance should DECREASE");
