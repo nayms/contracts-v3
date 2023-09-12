@@ -6,7 +6,7 @@ import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03Pro
 import { Entity } from "../src/shared/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
-// import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokenizedVaultIOFacet, ISimplePolicyFacet } from "../src/diamonds/nayms/INayms.sol";
+import { IDiamondProxy } from "../src/generated/IDiamondProxy.sol";
 import "../src/shared/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
@@ -193,7 +193,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(systemAdminEntityId, wethId), 1 ether, "entity1 lost internal WETH");
         assertEq(nayms.internalTokenSupply(wethId), 1 ether);
 
-        nayms.lockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
+        nayms.lockFunction(IDiamondProxy.externalWithdrawFromEntity.selector);
 
         vm.expectRevert("function is locked");
         nayms.externalWithdrawFromEntity(systemAdminEntityId, systemAdmin, address(weth), 0.5 ether);
@@ -202,7 +202,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.unlockFunction(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector);
+        nayms.unlockFunction(IDiamondProxy.externalWithdrawFromEntity.selector);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries[0].topics.length, 1);
@@ -210,7 +210,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
         bytes4[] memory functionSelectors = new bytes4[](1);
-        functionSelectors[0] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
+        functionSelectors[0] = IDiamondProxy.externalWithdrawFromEntity.selector;
 
         assertEq(s_functionSelectors[0], functionSelectors[0]);
 
@@ -232,20 +232,20 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
         bytes4[] memory lockedFunctions = new bytes4[](14);
-        lockedFunctions[0] = IEntityFacet.startTokenSale.selector;
-        lockedFunctions[1] = ISimplePolicyFacet.paySimpleClaim.selector;
-        lockedFunctions[2] = ISimplePolicyFacet.paySimplePremium.selector;
-        lockedFunctions[3] = ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector;
-        lockedFunctions[4] = IMarketFacet.cancelOffer.selector;
-        lockedFunctions[5] = IMarketFacet.executeLimitOffer.selector;
-        lockedFunctions[6] = ITokenizedVaultFacet.internalTransferFromEntity.selector;
-        lockedFunctions[7] = ITokenizedVaultFacet.payDividendFromEntity.selector;
-        lockedFunctions[8] = ITokenizedVaultFacet.internalBurn.selector;
-        lockedFunctions[9] = ITokenizedVaultFacet.wrapperInternalTransferFrom.selector;
-        lockedFunctions[10] = ITokenizedVaultFacet.withdrawDividend.selector;
-        lockedFunctions[11] = ITokenizedVaultFacet.withdrawAllDividends.selector;
-        lockedFunctions[12] = ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector;
-        lockedFunctions[13] = ITokenizedVaultIOFacet.externalDeposit.selector;
+        lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
+        lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
+        lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
+        lockedFunctions[3] = IDiamondProxy.checkAndUpdateSimplePolicyState.selector;
+        lockedFunctions[4] = IDiamondProxy.cancelOffer.selector;
+        lockedFunctions[5] = IDiamondProxy.executeLimitOffer.selector;
+        lockedFunctions[6] = IDiamondProxy.internalTransferFromEntity.selector;
+        lockedFunctions[7] = IDiamondProxy.payDividendFromEntity.selector;
+        lockedFunctions[8] = IDiamondProxy.internalBurn.selector;
+        lockedFunctions[9] = IDiamondProxy.wrapperInternalTransferFrom.selector;
+        lockedFunctions[10] = IDiamondProxy.withdrawDividend.selector;
+        lockedFunctions[11] = IDiamondProxy.withdrawAllDividends.selector;
+        lockedFunctions[12] = IDiamondProxy.externalWithdrawFromEntity.selector;
+        lockedFunctions[13] = IDiamondProxy.externalDeposit.selector;
 
         for (uint256 i = 0; i < lockedFunctions.length; i++) {
             assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
@@ -295,19 +295,19 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         nayms.unlockAllFundTransferFunctions();
 
-        assertFalse(nayms.isFunctionLocked(IEntityFacet.startTokenSale.selector), "function startTokenSale locked");
-        assertFalse(nayms.isFunctionLocked(ISimplePolicyFacet.paySimpleClaim.selector), "function paySimpleClaim locked");
-        assertFalse(nayms.isFunctionLocked(ISimplePolicyFacet.paySimplePremium.selector), "function paySimplePremium locked");
-        assertFalse(nayms.isFunctionLocked(ISimplePolicyFacet.checkAndUpdateSimplePolicyState.selector), "function checkAndUpdateSimplePolicyState locked");
-        assertFalse(nayms.isFunctionLocked(IMarketFacet.cancelOffer.selector), "function cancelOffer locked");
-        assertFalse(nayms.isFunctionLocked(IMarketFacet.executeLimitOffer.selector), "function executeLimitOffer locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.internalTransferFromEntity.selector), "function internalTransferFromEntity locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.payDividendFromEntity.selector), "function payDividendFromEntity locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.internalBurn.selector), "function internalBurn locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.wrapperInternalTransferFrom.selector), "function wrapperInternalTransferFrom locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.withdrawDividend.selector), "function withdrawDividend locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultFacet.withdrawAllDividends.selector), "function withdrawAllDividends locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultIOFacet.externalWithdrawFromEntity.selector), "function externalWithdrawFromEntity locked");
-        assertFalse(nayms.isFunctionLocked(ITokenizedVaultIOFacet.externalDeposit.selector), "function externalDeposit locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.startTokenSale.selector), "function startTokenSale locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.paySimpleClaim.selector), "function paySimpleClaim locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.paySimplePremium.selector), "function paySimplePremium locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.checkAndUpdateSimplePolicyState.selector), "function checkAndUpdateSimplePolicyState locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.cancelOffer.selector), "function cancelOffer locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.executeLimitOffer.selector), "function executeLimitOffer locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.internalTransferFromEntity.selector), "function internalTransferFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.payDividendFromEntity.selector), "function payDividendFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.internalBurn.selector), "function internalBurn locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.wrapperInternalTransferFrom.selector), "function wrapperInternalTransferFrom locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.withdrawDividend.selector), "function withdrawDividend locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.withdrawAllDividends.selector), "function withdrawAllDividends locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.externalWithdrawFromEntity.selector), "function externalWithdrawFromEntity locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.externalDeposit.selector), "function externalDeposit locked");
     }
 }

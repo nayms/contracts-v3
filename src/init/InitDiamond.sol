@@ -13,17 +13,7 @@ import { IDiamondCut } from "../diamond/contracts/interfaces/IDiamondCut.sol";
 import { IDiamondLoupe } from "../diamond/contracts/interfaces/IDiamondLoupe.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
-// import { IACLFacet } from "../nayms/interfaces/IACLFacet.sol";
-// import { IAdminFacet } from "../nayms/interfaces/IAdminFacet.sol";
-// import { IEntityFacet } from "../nayms/interfaces/IEntityFacet.sol";
-// import { IMarketFacet } from "../nayms/interfaces/IMarketFacet.sol";
-// import { INaymsTokenFacet } from "../nayms/interfaces/INaymsTokenFacet.sol";
-// import { ISimplePolicyFacet } from "../nayms/interfaces/ISimplePolicyFacet.sol";
-// import { ISystemFacet } from "../nayms/interfaces/ISystemFacet.sol";
-// import { ITokenizedVaultFacet } from "../nayms/interfaces/ITokenizedVaultFacet.sol";
-// import { ITokenizedVaultIOFacet } from "../nayms/interfaces/ITokenizedVaultIOFacet.sol";
-// import { IUserFacet } from "../nayms/interfaces/IUserFacet.sol";
-// import { IGovernanceFacet } from "../nayms/interfaces/IGovernanceFacet.sol";
+import { IDiamondProxy } from "../generated/IDiamondProxy.sol";
 import { FeeSchedule } from "../shared/FreeStructs.sol";
 
 error DiamondAlreadyInitialized();
@@ -31,7 +21,7 @@ error DiamondAlreadyInitialized();
 contract InitDiamond {
     event InitializeDiamond(address sender);
 
-    function initialize() external {
+    function init() external {
         AppStorage storage s = LibAppStorage.diamondStorage();
         if (s.diamondInitialized) {
             revert DiamondAlreadyInitialized();
@@ -69,24 +59,13 @@ contract InitDiamond {
         s.maxDividendDenominations = 1;
 
         // adding ERC165 data
-        // LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        // ds.supportedInterfaces[type(IERC165).interfaceId] = true;
-        // ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
-        // ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-        // ds.supportedInterfaces[type(IERC173).interfaceId] = true;
-        // ds.supportedInterfaces[type(IERC20).interfaceId] = true;
-
-        // ds.supportedInterfaces[type(IACLFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(IAdminFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(IEntityFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(IMarketFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(INaymsTokenFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(ISimplePolicyFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(ISystemFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(ITokenizedVaultFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(ITokenizedVaultIOFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(IUserFacet).interfaceId] = true;
-        // ds.supportedInterfaces[type(IGovernanceFacet).interfaceId] = true;
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        ds.supportedInterfaces[type(IERC165).interfaceId] = true;
+        ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
+        ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
+        ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+        ds.supportedInterfaces[type(IERC20).interfaceId] = true;
+        ds.supportedInterfaces[type(IDiamondProxy).interfaceId] = true;
 
         s.diamondInitialized = true;
         emit InitializeDiamond(msg.sender);

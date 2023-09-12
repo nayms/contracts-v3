@@ -3,16 +3,19 @@ pragma solidity 0.8.17;
 
 import "script/utils/DeploymentHelpers.sol";
 
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-import { PhasedDiamondCutFacet } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
+import { IDiamondCut } from "../../src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { DiamondProxy } from "src/generated/DiamondProxy.sol";
+import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
+
+import { DiamondCutFacet } from "src/diamond/contracts/facets/DiamondCutFacet.sol";
 
 contract ReplaceDiamondCut is DeploymentHelpers {
     function run() public {
-        INayms nayms = INayms(getDiamondAddressFromFile());
+        IDiamondProxy nayms = IDiamondProxy(getDiamondAddressFromFile());
 
         // Replace diamondCut() with the two phase diamondCut()
         vm.startBroadcast(msg.sender);
-        address phasedDiamondCutFacet = address(new PhasedDiamondCutFacet());
+        address phasedDiamondCutFacet = address(new DiamondCutFacet());
 
         IDiamondCut.FacetCut[] memory cut;
         cut = new IDiamondCut.FacetCut[](1);

@@ -5,8 +5,9 @@ import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import "../src/shared/CustomErrors.sol";
 
-// import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
-// import { PhasedDiamondCutFacet, PhasedDiamondCutUpgradeFailed } from "../src/facets/PhasedDiamondCutFacet.sol";
+import { IDiamondCut } from "src/diamond/contracts/interfaces/IDiamondCut.sol";
+
+import { DiamondCutFacet, PhasedDiamondCutUpgradeFailed } from "../src/diamond/contracts/facets/DiamondCutFacet.sol";
 
 /// @dev Testing for Nayms upgrade pattern
 

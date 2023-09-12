@@ -21,8 +21,9 @@ abstract contract D00GlobalDefaults is CommonBase {
     using stdStorage for StdStorage;
 
     address public immutable account0 = address(this);
-    address public account1;
-    address public account2;
+
+    // address public account1;
+    // address public account2;
 
     constructor() payable {
         console2.log("\n Test SETUP:");

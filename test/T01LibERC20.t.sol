@@ -8,7 +8,7 @@ import { DummyToken } from "./utils/DummyToken.sol";
 import { BadToken } from "./utils/BadToken.sol";
 import { LibERC20Fixture } from "./fixtures/LibERC20Fixture.sol";
 
-// import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { IDiamondCut } from "src/diamond/contracts/interfaces/IDiamondCut.sol";
 
 contract T01LibERC20 is D03ProtocolDefaults {
     DummyToken private token;

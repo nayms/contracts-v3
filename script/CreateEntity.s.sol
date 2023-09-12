@@ -2,7 +2,11 @@
 pragma solidity 0.8.17;
 
 import "forge-std/Script.sol";
-// import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+
+import { IDiamondCut } from "../src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { DiamondProxy } from "src/generated/DiamondProxy.sol";
+import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
+
 import { Entity } from "src/shared/FreeStructs.sol";
 import { LibAdmin } from "src/libs/LibAdmin.sol";
 import { LibConstants } from "src/libs/LibConstants.sol";
@@ -13,7 +17,7 @@ contract CreateEntity is Script {
     MockERC20 public wbtc;
 
     function createAnEntity(address naymsDiamondAddress) public {
-        INayms nayms = INayms(naymsDiamondAddress);
+        IDiamondProxy nayms = IDiamondProxy(naymsDiamondAddress);
 
         wbtc = new MockERC20("Wrapped BTC", "WBTC", 18);
 

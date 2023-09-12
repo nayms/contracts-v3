@@ -15,7 +15,7 @@ import { LibConstants } from "src/libs/LibConstants.sol";
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
 contract D03ProtocolDefaults is D02TestSetup {
-    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
+    bytes32 public immutable account0Id;
     bytes32 public naymsTokenId;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
@@ -58,6 +58,8 @@ contract D03ProtocolDefaults is D02TestSetup {
     FeeSchedule tradingFeeScheduleDefault;
 
     constructor() payable {
+        account0Id = LibHelpers._getIdForAddress(account0);
+
         console2.log("\n -- D03 Protocol Defaults\n");
         console2.log("Test contract address ID, aka account0Id:");
         console2.logBytes32(account0Id);

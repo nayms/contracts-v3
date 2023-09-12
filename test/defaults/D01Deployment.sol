@@ -13,15 +13,15 @@ import { LibDiamondHelper } from "src/generated/LibDiamondHelper.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
 import { InitDiamond } from "../../src/init/InitDiamond.sol";
 
-// import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
-// import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
+import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
-abstract contract D01Deployment is D00GlobalDefaults {
+abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     using LibHelpers for *;
 
-    IDiamondProxy public diamond;
+    IDiamondProxy public nayms;
+    InitDiamond public initDiamond;
 
     address public naymsAddress;
 
@@ -84,22 +84,26 @@ abstract contract D01Deployment is D00GlobalDefaults {
         vm.startPrank(deployer);
 
         // deploy the init contract
-        InitDiamond initDiamond = new InitDiamond();
+        initDiamond = new InitDiamond();
         console2.log("InitDiamond address", address(initDiamond));
         vm.label(address(initDiamond), "InitDiamond");
+
         // deploy all facets
-        address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
+        // address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
 
         vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
         systemAdmin = makeAddr("System Admin 0");
         systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
 
-        Diamond naymsContract = new Nayms(owner, systemAdmin);
-        nayms = INayms(address(naymsContract));
-        address naymsAddress = address(nayms);
-        // initialize the diamond as well as cut in all facets
-        INayms.FacetCut[] memory cut = LibGeneratedNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
-        scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
+        console2.log("Deploy diamond");
+        nayms = IDiamondProxy(address(new DiamondProxy(account0)));
+
+        console2.log("Cut and init");
+        IDiamondCut.FacetCut[] memory cut = LibDiamondHelper.deployFacetsAndGetCuts();
+        InitDiamond init = new InitDiamond();
+        nayms.diamondCut(cut, address(init), abi.encodeWithSelector(init.init.selector));
+
+        scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.init, ()));
         // }
     }
 
