@@ -83,14 +83,6 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         owner = address(this);
         vm.startPrank(deployer);
 
-        // deploy the init contract
-        initDiamond = new InitDiamond();
-        console2.log("InitDiamond address", address(initDiamond));
-        vm.label(address(initDiamond), "InitDiamond");
-
-        // deploy all facets
-        // address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
-
         vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
         systemAdmin = makeAddr("System Admin 0");
         systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
@@ -98,11 +90,17 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         console2.log("Deploy diamond");
         nayms = IDiamondProxy(address(new DiamondProxy(account0)));
 
-        console2.log("Cut and init");
+        // deploy all facets
         IDiamondCut.FacetCut[] memory cut = LibDiamondHelper.deployFacetsAndGetCuts();
-        InitDiamond init = new InitDiamond();
-        nayms.diamondCut(cut, address(init), abi.encodeWithSelector(init.init.selector));
 
+        initDiamond = new InitDiamond();
+        vm.label(address(initDiamond), "InitDiamond");
+        console2.log("InitDiamond:", address(initDiamond));
+
+        console2.log("Cut and init");
+        nayms.diamondCut(cut, address(initDiamond), abi.encodeWithSelector(initDiamond.init.selector));
+
+        console2.log("Schedule and upgrade");
         scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.init, ()));
         // }
     }

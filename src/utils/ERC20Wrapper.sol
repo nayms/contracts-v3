@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { IERC20 } from "../interfaces/IERC20.sol";
-// import { INayms } from "../diamonds/nayms/INayms.sol";
+import { IDiamondProxy } from "../generated/IDiamondProxy.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 
@@ -11,7 +11,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
                               ERC20 STORAGE
     //////////////////////////////////////////////////////////////*/
     bytes32 internal immutable tokenId;
-    // INayms internal immutable nayms;
+    IDiamondProxy internal immutable nayms;
     mapping(address => mapping(address => uint256)) public allowances;
 
     /*//////////////////////////////////////////////////////////////
@@ -23,10 +23,10 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
 
     constructor(bytes32 _tokenId) {
         // ensure only diamond can instantiate this
-        // nayms = INayms(msg.sender);
+        nayms = IDiamondProxy(msg.sender);
 
-        // require(nayms.isObjectTokenizable(_tokenId), "must be tokenizable");
-        // require(!nayms.isTokenWrapped(_tokenId), "must not be wrapped already");
+        require(nayms.isObjectTokenizable(_tokenId), "must be tokenizable");
+        require(!nayms.isTokenWrapped(_tokenId), "must not be wrapped already");
 
         tokenId = _tokenId;
 
@@ -35,13 +35,13 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
     }
 
     function name() external view returns (string memory) {
-        //     (, , , string memory tokenName, ) = nayms.getObjectMeta(tokenId);
-        //     return tokenName;
+        (, , , string memory tokenName, ) = nayms.getObjectMeta(tokenId);
+        return tokenName;
     }
 
     function symbol() external view returns (string memory) {
-        //     (, , string memory tokenSymbol, , ) = nayms.getObjectMeta(tokenId);
-        //     return tokenSymbol;
+        (, , string memory tokenSymbol, , ) = nayms.getObjectMeta(tokenId);
+        return tokenSymbol;
     }
 
     function decimals() external pure returns (uint8) {
@@ -49,11 +49,11 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
     }
 
     function totalSupply() external view returns (uint256) {
-        // return nayms.internalTokenSupply(tokenId);
+        return nayms.internalTokenSupply(tokenId);
     }
 
     function balanceOf(address who) external view returns (uint256) {
-        // return nayms.internalBalanceOf(LibHelpers._getIdForAddress(who), tokenId);
+        return nayms.internalBalanceOf(LibHelpers._getIdForAddress(who), tokenId);
     }
 
     function allowance(address owner, address spender) external view returns (uint256) {
@@ -66,7 +66,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
 
         emit Transfer(msg.sender, to, value);
 
-        // nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
+        nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
 
         return true;
     }
@@ -111,7 +111,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
 
         emit Transfer(from, to, value);
 
-        // nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
+        nayms.wrapperInternalTransferFrom(fromId, toId, tokenId, value);
 
         return true;
     }
