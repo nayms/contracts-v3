@@ -25,7 +25,7 @@ contract ACLFacet is Modifiers, IACLFacet {
         string memory _role
     ) external {
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
-        require(LibACL._canAssignRole(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
+        require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
         LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_role));
     }
 
@@ -38,7 +38,7 @@ contract ACLFacet is Modifiers, IACLFacet {
     function unassignRole(bytes32 _objectId, bytes32 _contextId) external {
         bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
-        require(LibACL._canAssignRole(assignerId, _objectId, _contextId, roleId), "not in assigners group");
+        require(LibACL._canAssign(assignerId, _objectId, _contextId, roleId), "not in assigners group");
         LibACL._unassignRole(_objectId, _contextId);
     }
 
@@ -89,18 +89,15 @@ contract ACLFacet is Modifiers, IACLFacet {
         bytes32 _contextId,
         string memory _role
     ) external view returns (bool) {
-        return LibACL._canAssignRole(_assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role));
+        return LibACL._canAssign(_assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role));
     }
 
-    function canAssignRole(
-        bytes32 _assignerId,
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _role
-    ) external view returns (bool) {
-        return LibACL._canAssignRole(_assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role));
-    }
-
+    /**
+     * @notice Check whether a user can call a specific function.
+     * @param _userId The object ID of the user who is calling the function.
+     * @param _contextId ID of the context in which permission is checked.
+     * @param _groupId ID of the group in which permission is checked.
+     */
     function hasGroupPrivilege(
         bytes32 _userId,
         bytes32 _contextId,

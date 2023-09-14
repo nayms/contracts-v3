@@ -72,13 +72,12 @@ interface IACLFacet {
         string memory _role
     ) external view returns (bool);
 
-    function canAssignRole(
-        bytes32 _assignerId,
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _role
-    ) external view returns (bool);
-
+    /**
+     * @notice Check whether a user can call a specific function.
+     * @param _userId The object ID of the user who is calling the function.
+     * @param _contextId ID of the context in which permission is checked.
+     * @param _groupId ID of the group in which permission is checked.
+     */
     function hasGroupPrivilege(
         bytes32 _userId,
         bytes32 _contextId,

@@ -65,7 +65,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         bytes32 context = LibHelpers._stringToBytes32("test");
 
         // assign the role signer1
-        assertTrue(nayms.canAssignRole(systemAdminId, signer1Id, context, role));
+        assertTrue(nayms.canAssign(systemAdminId, signer1Id, context, role));
         nayms.assignRole(signer1Id, context, role);
 
         // the group that the signer1 is in is now the approved users group
