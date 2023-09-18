@@ -408,7 +408,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(signer1EntityId, nWETH), calculatedTakerAmount, "balance of signer1's entity should be the their buy amount minus the commission fees"); // order filled minus trading commissions)
     }
 
-    function testMultipleDepositDividendss() public {
+    function testMultipleDepositDividends() public {
         // naming conventions for this test:
         // alice == account0
         // aliceId == account0Id

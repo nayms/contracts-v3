@@ -25,7 +25,7 @@ contract Modifiers {
     }
 
     modifier assertSysAdmin() {
-        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.GROUP_SYSTEM_ADMINS)), "not a system admin");
+        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS._stringToBytes32()), "not a system admin");
         _;
     }
 
@@ -35,7 +35,7 @@ contract Modifiers {
     }
 
     modifier assertSysMgr() {
-        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.GROUP_SYSTEM_MANAGERS)), "not a system manager");
+        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS._stringToBytes32()), "not a system manager");
         _;
     }
 

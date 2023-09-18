@@ -91,9 +91,8 @@ library LibACL {
         // Check for the role in the context
         bytes32 objectRoleInContext = s.roles[_objectId][_contextId];
 
-        if (objectRoleInContext != 0 && s.groups[objectRoleInContext][_groupId]) {
-            ret = true;
-        }
+        if (objectRoleInContext != 0 && s.groups[objectRoleInContext][_groupId]) return true;
+        return false;
     }
 
     function _isParentInGroup(
