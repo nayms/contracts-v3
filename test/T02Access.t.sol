@@ -2,22 +2,18 @@
 pragma solidity 0.8.17;
 import { console2 as c } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { Modifiers } from "src/diamonds/nayms/Modifiers.sol";
-import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
+import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 
 // updateRoleGroup | isRoleInGroup | groups [role][group] = bool
 // updateRoleAssigner | canGroupAssignRole | canAssign [role] = group
 // getRoleInContext | roles[objectId][contextId] = role
 
-// contract PermissionsFixture is Modifiers {
-//     function hasGroupPrivilegeT(string memory _group, bytes32 _context) public view assertHasGroupPrivilege(_group, _context) {}
-// }
-
 abstract contract T02AccessHelpers is D03ProtocolDefaults {
+    using LibHelpers for *;
     string[3] internal rolesThatCanAssignRoles = [LC.ROLE_SYSTEM_ADMIN, LC.ROLE_SYSTEM_MANAGER, LC.ROLE_ENTITY_MANAGER];
     mapping(string => string[]) internal roleCanAssignRoles;
     mapping(string => bytes32[]) internal roleToUsers;
+    mapping(string => address[]) internal roleToUsersAddr;
     mapping(bytes32 => bytes32) internal objectToContext;
 
     mapping(string => string[]) internal functionToRoles;
@@ -39,7 +35,7 @@ abstract contract T02AccessHelpers is D03ProtocolDefaults {
     ) internal {
         nayms.assignRole(_objectId, _contextId, _role);
         roleToUsers[_role].push(_objectId);
-
+        roleToUsersAddr[_role].push(_objectId._getAddressFromId());
         if (objectToContext[_objectId] == systemContext) {
             c.log("warning: object's context is currently systemContext");
         } else {
@@ -72,14 +68,6 @@ contract T02Access is T02AccessHelpers {
     SimplePolicy internal simplePolicy;
 
     function setUp() public {
-        // bytes4[] memory fs = new bytes4[](1);
-        // fs[0] = PermissionsFixture.hasGroupPrivilegeT.selector;
-
-        // IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-        // cut[0] = IDiamondCut.FacetCut({ facetAddress: address(new PermissionsFixture()), action: IDiamondCut.FacetCutAction.Add, functionSelectors: fs });
-
-        // scheduleAndUpgradeDiamond(cut, address(0), "");
-
         // Assign roles to users
         hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
         hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
@@ -200,7 +188,8 @@ contract T02Access is T02AccessHelpers {
                 bytes32 user = roleToUsers[role][0];
                 bytes32 context = objectToContext[user];
 
-                nayms.hasGroupPrivilege(user, context, functionGroup._stringToBytes32());
+                assertTrue(nayms.isInGroup(user, context, functionGroup));
+                assertTrue(nayms.hasGroupPrivilege(user, context, functionGroup._stringToBytes32()));
             }
         }
     }
@@ -211,58 +200,4 @@ contract T02Access is T02AccessHelpers {
 
         nayms.updateRoleAssigner(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS);
     }
-    // function testR2() public {
-    //     changePrank(sm.addr);
-    //     nayms.createEntity(ea.id, ea.id, entity, "entity test hash");
-    //     uint256 sellAmount = 1 ether;
-    //     uint256 buyAmount = 0.5 ether;
-
-    //     nayms.enableEntityTokenization(ea.id, "ESPT", "Entity Selling Par Tokens");
-
-    //     // changePrank(sa.addr);
-    //     bytes32 id = address(9999)._getIdForAddress();
-    //     nayms.setEntity(id, ea.id);
-
-    //     changePrank(sa.addr);
-    //     // nayms.assignRole(id, ea.id, LC.ROLE_SYSTEM_MANAGER);
-    //     nayms.assignRole(id, ea.id, LC.ROLE_ENTITY_ADMIN);
-    //     changePrank(sm.addr);
-    //     // changePrank(address(9999));
-    //     nayms.startTokenSale(ea.id, sellAmount, sellAmount);
-
-    //     // fundEntityWeth(acc2, sellAmount);
-
-    //     // the context is the parent of the caller
-    //     bytes32 context = nayms.getEntity(msg.sender._getIdForAddress());
-    //     c.logBytes32(context);
-    //     bytes32 roleInContextBytes32 = nayms.getRoleInContext(msg.sender._getIdForAddress(), context);
-    //     string memory roleInContext;
-    //     if (roleInContextBytes32 != bytes32(0)) {
-    //         roleInContext = abi.decode(roleInContextBytes32._bytes32ToBytes(), (string));
-    //     } else {
-    //         roleInContext = "hi";
-    //     }
-
-    //     c.log(roleInContext);
-    //     changePrank(address(9999));
-    //     roleInContextBytes32 = nayms.getRoleInContext(msg.sender._getIdForAddress(), context);
-    //     c.logBytes32(roleInContextBytes32);
-    //     if (roleInContextBytes32 != bytes32(0)) {
-    //         c.log("DECODING");
-    //         roleInContext = abi.decode(roleInContextBytes32._bytes32ToBytes(), (string));
-    //     }
-    //     c.log(roleInContext);
-    //     nayms.executeLimitOffer(wethId, buyAmount, ea.id, buyAmount);
-    //     // if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32())) {
-    //     //     bytes32 roleInContextBytes32 = msg.sender._getIdForAddress()._getRoleInContext(_context);
-    //     //     string memory roleInContext;
-    //     //     if (roleInContextBytes32 != bytes32(0)) {
-    //     //         roleInContext = abi.decode(roleInContextBytes32._bytes32ToBytes(), (string));
-    //     //     }
-    //     //     revert InvalidGroupPrivilege(msg.sender._getIdForAddress(), _context, roleInContext, _group);
-    //     // }
-    //     // nayms.executeLimitOffer();
-    // }
 }
-// 0xd2d53960000000000000000000000000000000000000acc90000000000000000000000006530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018506179204469766964656e642046726f6d20456e746974790000000000000000
-// 0xd2d53960000000000000000000000000000000000000acc90000000000000000000000006530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000018506179204469766964656e642046726f6d20456e746974790000000000000000
