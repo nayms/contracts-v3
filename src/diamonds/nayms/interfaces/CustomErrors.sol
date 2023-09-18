@@ -10,6 +10,16 @@ error RoleIsMissing();
 /// @dev Passing in a missing group when trying to assign a role to a group.
 error AssignerGroupIsMissing();
 
+error NotSystemUnderwriter(address msgSender);
+
+/// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
+/// @dev In the assertHasGroupPrivilege modifier, this error message returns the context and the role in the context, not the user's role in the system context.
+/// @param msgSenderId Id of the sender
+/// @param context Context in which the sender is trying to perform an action
+/// @param roleInContext Role of the sender in the context
+/// @param group Group to check the sender's role in
+error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInContext, string group);
+
 /// @dev Passing in a missing address when trying to add a token address to the supported external token list.
 error CannotAddNullSupportedExternalToken();
 
@@ -21,6 +31,7 @@ error CannotAddNullDiscountToken();
 
 /// @dev The entity does not exist when it should.
 error EntityDoesNotExist(bytes32 objectId);
+
 /// @dev Cannot create an entity that already exists.
 error CreatingEntityThatAlreadyExists(bytes32 entityId);
 

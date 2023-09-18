@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
@@ -13,7 +13,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public {}
 
     function testGetSystemId() public {
-        assertEq(nayms.getSystemId(), LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER));
+        assertEq(nayms.getSystemId(), LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER));
     }
 
     function testGetMaxDividendDenominationsDefaultValue() public {
@@ -91,9 +91,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSupportedTokenSymbolUnique() public {
+        changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);
         nayms.enableEntityTokenization(entityId, "WBTC", "Entity1 Token");
 
+        changePrank(sa.addr);
         vm.expectRevert("token symbol already in use");
         nayms.addSupportedExternalToken(wbtcAddress);
     }
@@ -117,12 +119,14 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testAddSupportedExternalTokenIfWrapper() public {
         bytes32 entityId1 = "0xe1";
+        changePrank(sm.addr);
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
         nayms.enableEntityTokenization(entityId1, "E1", "E1 Token");
         nayms.startTokenSale(entityId1, 100 ether, 100 ether);
 
         vm.recordLogs();
 
+        changePrank(sa.addr);
         nayms.wrapToken(entityId1);
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
@@ -138,7 +142,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {
         bytes32 userId = LibHelpers._getIdForAddress(userAddress);
         changePrank(userAddress);
-        if (nayms.isInGroup(userId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS)) {
+        if (nayms.isInGroup(userId, systemContext, LC.GROUP_SYSTEM_ADMINS)) {
             nayms.lockFunction(bytes4(0x12345678));
 
             assertTrue(nayms.isFunctionLocked(bytes4(0x12345678)));
@@ -184,9 +188,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         Entity memory entityInfo = initEntity(wethId, 5000, 10000, false);
         bytes32 systemAdminEntityId = 0xe011000000000000000000000000000000000000000000000000000000000000;
+        changePrank(sm.addr);
         nayms.createEntity(systemAdminEntityId, systemAdminId, entityInfo, bytes32(0));
 
         // deposit
+        changePrank(systemAdmin); // given the entity admin role above
         writeTokenBalance(systemAdmin, naymsAddress, wethAddress, 1 ether);
         nayms.externalDeposit(wethAddress, 1 ether);
 

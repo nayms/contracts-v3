@@ -93,6 +93,20 @@ contract ACLFacet is Modifiers, IACLFacet {
     }
 
     /**
+     * @notice Check whether a user can call a specific function.
+     * @param _userId The object ID of the user who is calling the function.
+     * @param _contextId ID of the context in which permission is checked.
+     * @param _groupId ID of the group in which permission is checked.
+     */
+    function hasGroupPrivilege(
+        bytes32 _userId,
+        bytes32 _contextId,
+        bytes32 _groupId
+    ) external view returns (bool) {
+        return LibACL._hasGroupPrivilege(_userId, _contextId, _groupId);
+    }
+
+    /**
      * @notice Get a user's (an objectId's) assigned role in a specific context
      * @param objectId ID of an object that is being checked for its assigned role in a specific context
      * @param contextId ID of the context in which the objectId's role is being checked

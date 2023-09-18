@@ -77,7 +77,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
      * @notice Wrap an object token as ERC20
      * @param _objectId ID of the tokenized object
      */
-    function wrapToken(bytes32 _objectId) external nonReentrant assertSysMgr {
+    function wrapToken(bytes32 _objectId) external nonReentrant assertSysAdmin {
         LibObject._wrapToken(_objectId);
     }
 }

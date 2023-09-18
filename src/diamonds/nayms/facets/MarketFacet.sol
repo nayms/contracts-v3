@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
 import { CalculatedFees, MarketInfo } from "../AppStorage.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -32,8 +32,8 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      *
      * @param _offerId offer ID
      */
-    function cancelOffer(uint256 _offerId) external notLocked(msg.sig) nonReentrant {
-        require(LibMarket._getOffer(_offerId).state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
+    function cancelOffer(uint256 _offerId) external notLocked(msg.sig) nonReentrant assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_CANCEL_OFFER) {
+        require(LibMarket._getOffer(_offerId).state == LC.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
         require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only member of entity can cancel");
         LibMarket._cancelOffer(_offerId);
@@ -59,6 +59,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         external
         notLocked(msg.sig)
         nonReentrant
+        assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXECUTE_LIMIT_OFFER)
         returns (
             uint256 offerId_,
             uint256 buyTokenCommissionsPaid_,
@@ -68,7 +69,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_TYPE_TRADING);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
     }
 
     /**

@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, console2 as console, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
 
@@ -26,15 +26,22 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     }
 
     function testWrapEntityToken() public {
+        changePrank(sm.addr);
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
         nayms.createEntity(entityId2, signer2Id, initEntity(wethId, 5_000, 30_000, true), "test");
 
+        bytes32 eSigner2 = nayms.getEntity(signer2Id);
+        nayms.assignRole(eSigner2, eSigner2, LC.ROLE_ENTITY_CP);
+
+        changePrank(sa.addr);
         vm.expectRevert("must be tokenizable");
         nayms.wrapToken(entityId1);
 
+        changePrank(sm.addr);
         nayms.enableEntityTokenization(entityId1, testSymbol, testName);
-
         nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
+
+        changePrank(sa.addr);
 
         vm.recordLogs();
 

@@ -80,6 +80,7 @@ library LibACL {
         delete s.roles[_objectId][_contextId];
     }
 
+    /// @dev _isInGroup no longer falls back to check the _objectId's role in the system context
     function _isInGroup(
         bytes32 _objectId,
         bytes32 _contextId,
@@ -90,16 +91,8 @@ library LibACL {
         // Check for the role in the context
         bytes32 objectRoleInContext = s.roles[_objectId][_contextId];
 
-        if (objectRoleInContext != 0 && s.groups[objectRoleInContext][_groupId]) {
-            ret = true;
-        } else {
-            // A role in the context of the system covers all objects
-            bytes32 objectRoleInSystem = s.roles[_objectId][LibAdmin._getSystemId()];
-
-            if (objectRoleInSystem != 0 && s.groups[objectRoleInSystem][_groupId]) {
-                ret = true;
-            }
-        }
+        if (objectRoleInContext != 0 && s.groups[objectRoleInContext][_groupId]) return true;
+        return false;
     }
 
     function _isParentInGroup(
@@ -129,27 +122,28 @@ library LibACL {
         // we might impose additional restrictions on _objectId in the future
         require(_objectId != "", "invalid object ID");
 
-        bool ret = false;
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 assignerGroup = s.canAssign[_roleId];
 
-        // assigners group undefined
-        if (assignerGroup == 0) {
-            ret = false;
-        }
         // Check for assigner's group membership in given context
-        else if (_isInGroup(_assignerId, _contextId, assignerGroup)) {
-            ret = true;
-        }
-        // Otherwise, check his parent's membership in system context
-        // if account itself does not have the membership in given context, then having his parent
+        if (_isInGroup(_assignerId, _contextId, assignerGroup)) return true;
+        // Otherwise, check his membership in system context
+        // if account itself does not have the membership in given context, then having membership
         // in the system context grants him the privilege needed
-        else if (_isParentInGroup(_assignerId, LibAdmin._getSystemId(), assignerGroup)) {
-            ret = true;
-        }
+        if (_isInGroup(_assignerId, LibAdmin._getSystemId(), assignerGroup)) return true;
+        return false;
+    }
 
-        return ret;
+    function _hasGroupPrivilege(
+        bytes32 _userId,
+        bytes32 _contextId,
+        bytes32 _groupId
+    ) internal view returns (bool) {
+        if (_isParentInGroup(_userId, _contextId, _groupId)) return true;
+        if (_isInGroup(_userId, _contextId, _groupId)) return true;
+        if (_isInGroup(_userId, LibAdmin._getSystemId(), _groupId)) return true;
+        return false;
     }
 
     function _getRoleInContext(bytes32 _objectId, bytes32 _contextId) internal view returns (bytes32) {

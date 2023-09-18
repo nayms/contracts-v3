@@ -5,7 +5,7 @@ pragma solidity 0.8.17;
  * @dev Settings keys.
  */
 library LibConstants {
-    //Reserved IDs
+    /// Reserved IDs
     string internal constant EMPTY_IDENTIFIER = "";
     string internal constant SYSTEM_IDENTIFIER = "System";
     string internal constant NDF_IDENTIFIER = "NDF";
@@ -15,23 +15,57 @@ library LibConstants {
     string internal constant DIVIDEND_BANK_IDENTIFIER = "Dividend Bank"; //This will hold all the dividends
     string internal constant NAYMS_LTD_IDENTIFIER = "Nayms Ltd";
 
-    //Roles
+    /// Roles
+
     string internal constant ROLE_SYSTEM_ADMIN = "System Admin";
     string internal constant ROLE_SYSTEM_MANAGER = "System Manager";
+    string internal constant ROLE_SYSTEM_UNDERWRITER = "System Underwriter";
+
     string internal constant ROLE_ENTITY_ADMIN = "Entity Admin";
     string internal constant ROLE_ENTITY_MANAGER = "Entity Manager";
-    string internal constant ROLE_BROKER = "Broker";
-    string internal constant ROLE_INSURED_PARTY = "Insured";
-    string internal constant ROLE_UNDERWRITER = "Underwriter";
+    string internal constant ROLE_ENTITY_BROKER = "Broker";
+    string internal constant ROLE_ENTITY_INSURED = "Insured";
+    string internal constant ROLE_ENTITY_CP = "Capital Provider";
+    string internal constant ROLE_ENTITY_CONSULTANT = "Consultant"; // note NEW name for ROLE_SERVICE_PROVIDER
+
+    string internal constant ROLE_ENTITY_COMPTROLLER_COMBINED = "Comptroller Combined";
+    string internal constant ROLE_ENTITY_COMPTROLLER_WITHDRAW = "Comptroller Withdraw";
+    string internal constant ROLE_ENTITY_COMPTROLLER_CLAIM = "Comptroller Claim";
+    string internal constant ROLE_ENTITY_COMPTROLLER_DIVIDEND = "Comptroller Dividend";
+
+    /// old roles
+    string internal constant ROLE_SPONSOR = "Sponsor";
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
+    string internal constant ROLE_INSURED_PARTY = "Insured";
+    string internal constant ROLE_BROKER = "Broker";
+    string internal constant ROLE_SERVICE_PROVIDER = "Service Provider";
+
+    string internal constant ROLE_UNDERWRITER = "Underwriter";
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
     string internal constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
-    string internal constant ROLE_SERVICE_PROVIDER = "Service Provider";
 
-    //Groups
+    /// Groups
+
     string internal constant GROUP_SYSTEM_ADMINS = "System Admins";
     string internal constant GROUP_SYSTEM_MANAGERS = "System Managers";
+    string internal constant GROUP_SYSTEM_UNDERWRITERS = "System Underwriters";
+
+    string internal constant GROUP_TENANTS = "Tenants";
+    string internal constant GROUP_MANAGERS = "Managers"; // a group of roles that can be assigned by both system and entity managers
+
+    string internal constant GROUP_START_TOKEN_SALE = "Start Token Sale";
+    string internal constant GROUP_EXECUTE_LIMIT_OFFER = "Execute Limit Offer";
+    string internal constant GROUP_CANCEL_OFFER = "Cancel Offer";
+    string internal constant GROUP_INTERNAL_TRANSFER_FROM_ENTITY = "Internal Transfer From Entity";
+    string internal constant GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY = "External Withdraw From Entity";
+    string internal constant GROUP_EXTERNAL_DEPOSIT = "External Deposit";
+    string internal constant GROUP_PAY_SIMPLE_CLAIM = "Pay Simple Claim";
+    string internal constant GROUP_PAY_SIMPLE_PREMIUM = "Pay Simple Premium";
+    string internal constant GROUP_PAY_DIVIDEND_FROM_ENTITY = "Pay Dividend From Entity";
+
+    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers"; // note replaced with GROUP_PAY_SIMPLE_PREMIUM
+
     string internal constant GROUP_ENTITY_ADMINS = "Entity Admins";
     string internal constant GROUP_ENTITY_MANAGERS = "Entity Managers";
     string internal constant GROUP_APPROVED_USERS = "Approved Users";
@@ -43,7 +77,6 @@ library LibConstants {
     string internal constant GROUP_TRADERS = "Traders";
     string internal constant GROUP_SEGREGATED_ACCOUNTS = "Segregated Accounts";
     string internal constant GROUP_SERVICE_PROVIDERS = "Service Providers";
-    string internal constant GROUP_POLICY_HANDLERS = "Policy Handlers";
 
     /*///////////////////////////////////////////////////////////////////////////
                         Market and Premium Fee Schedules

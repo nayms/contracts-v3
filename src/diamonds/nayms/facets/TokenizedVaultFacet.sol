@@ -2,10 +2,8 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
-import { LibACL } from "../libs/LibACL.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
@@ -51,7 +49,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external notLocked(msg.sig) nonReentrant assertEntityAdmin(LibObject._getParentFromAddress(msg.sender)) {
+    ) external notLocked(msg.sig) nonReentrant {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
@@ -128,14 +126,14 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
      * @param guid Globally unique identifier of a dividend distribution.
      * @param amount the amount of the dividend token to be distributed to NAYMS token holders.
      */
-    function payDividendFromEntity(bytes32 guid, uint256 amount) external notLocked(msg.sig) {
+    function payDividendFromEntity(bytes32 guid, uint256 amount)
+        external
+        notLocked(msg.sig)
+        assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_DIVIDEND_FROM_ENTITY)
+    {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 
-        require(
-            LibACL._isInGroup(LibHelpers._getIdForAddress(msg.sender), entityId, LibHelpers._stringToBytes32(LibConstants.GROUP_ENTITY_ADMINS)),
-            "payDividendFromEntity: not the entity's admin"
-        );
         require(LibTokenizedVault._internalBalanceOf(entityId, dividendTokenId) >= amount, "payDividendFromEntity: insufficient balance");
 
         // note: The from and to are both entityId. In the case where a dividend is paid to an entity that was not tokenized to have participation tokens, the dividend payment
