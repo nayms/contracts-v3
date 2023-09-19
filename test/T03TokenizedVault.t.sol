@@ -252,7 +252,13 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 entity1WethInternalBalance = nayms.internalBalanceOf(entity1, nWETH);
         uint256 naymsWethInternalTokenSupply = nayms.internalTokenSupply(nWETH);
 
-        vm.prank(signer1);
+        vm.startPrank(sa.addr);
+        nayms.assignRole(em.id, entity1, LC.ROLE_ENTITY_MANAGER);
+
+        changePrank(em);
+        nayms.assignRole(account0Id, entity1, LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW);
+
+        changePrank(signer1);
         nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 100);
 
         assertEq(weth.balanceOf(account0), account0WethBalanceAccount0 + 100, "account0 got WETH");
