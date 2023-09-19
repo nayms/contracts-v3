@@ -44,6 +44,11 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: keccak256(bytes(name)), pk: privateKey, addr: addr });
     }
 
+    /// @dev Pass in a NaymsAccount to change the prank to NaymsAccount.addr
+    function changePrank(NaymsAccount memory na) public {
+        changePrank(na.addr);
+    }
+
     constructor() payable {
         console2.log("block.chainid", block.chainid);
 
