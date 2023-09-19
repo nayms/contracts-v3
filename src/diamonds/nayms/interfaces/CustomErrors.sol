@@ -47,6 +47,9 @@ error ExternalDepositAmountCannotBeZero();
 /// @dev Passing in 0 amount for withdraws is not allowed.
 error ExternalWithdrawAmountCannotBeZero();
 
+/// @dev The receiver of the withdraw must haveGroupPriviledge with the roles entity admin, comptroller combined, or comptroller withdraw.
+error ExternalWithdrawInvalidReceiver(address receiver);
+
 /// @dev Cannot create a simple policy with policyId of 0
 error PolicyIdCannotBeZero();
 

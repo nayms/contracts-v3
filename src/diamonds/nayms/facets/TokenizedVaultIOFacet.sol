@@ -9,6 +9,9 @@ import { LibObject } from "../libs/LibObject.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { ITokenizedVaultIOFacet } from "../interfaces/ITokenizedVaultIOFacet.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
+import { LibACL } from "../libs/LibACL.sol";
+import { LibHelpers } from "../libs/LibHelpers.sol";
+import { ExternalWithdrawInvalidReceiver } from "../interfaces/CustomErrors.sol";
 
 /**
  * @title Token Vault IO
@@ -52,6 +55,8 @@ contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyG
         address _externalTokenAddress,
         uint256 _amount
     ) external notLocked(msg.sig) nonReentrant assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY) {
+        if (!LibACL._hasGroupPrivilege(LibHelpers._getIdForAddress(_receiver), _entityId, LibHelpers._stringToBytes32(LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY)))
+            revert ExternalWithdrawInvalidReceiver(_receiver);
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
     }
 }
