@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 import { console2 as c } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 // updateRoleGroup | isRoleInGroup | groups [role][group] = bool
 // updateRoleAssigner | canGroupAssignRole | canAssign [role] = group
@@ -72,6 +73,21 @@ contract T02Access is T02AccessHelpers {
         hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
         hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
         hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+        hAssignRole(em.id, sm.entityId, LC.ROLE_ENTITY_MANAGER);
+
+        changePrank(sm.addr);
+        hCreateEntity(sm.entityId, ea.id, entity, "entity test hash");
+        hAssignRole(tcp.id, sm.entityId, LC.ROLE_ENTITY_CP);
+        hAssignRole(tb.id, sm.entityId, LC.ROLE_ENTITY_BROKER);
+        hAssignRole(ti.id, sm.entityId, LC.ROLE_ENTITY_INSURED);
+
+        changePrank(em.addr);
+        hAssignRole(cc.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        hAssignRole(cw.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW);
+        hAssignRole(cClaim.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_CLAIM);
+        hAssignRole(cd.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_DIVIDEND);
+
+        changePrank(sa.addr);
     }
 
     function test_canAssign_comprehensive() public {
@@ -158,20 +174,6 @@ contract T02Access is T02AccessHelpers {
     }
 
     function test_roles_hasGroupPrivilege() public {
-        hAssignRole(em.id, sm.entityId, LC.ROLE_ENTITY_MANAGER);
-
-        changePrank(sm.addr);
-        hCreateEntity(sm.entityId, ea.id, entity, "entity test hash");
-        hAssignRole(tcp.id, sm.entityId, LC.ROLE_ENTITY_CP);
-        hAssignRole(tb.id, sm.entityId, LC.ROLE_ENTITY_BROKER);
-        hAssignRole(ti.id, sm.entityId, LC.ROLE_ENTITY_INSURED);
-
-        changePrank(em.addr);
-        hAssignRole(cc.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
-        hAssignRole(cw.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW);
-        hAssignRole(cClaim.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_CLAIM);
-        hAssignRole(cd.id, sm.entityId, LC.ROLE_ENTITY_COMPTROLLER_DIVIDEND);
-
         functionToRoles[LC.GROUP_START_TOKEN_SALE] = [LC.ROLE_SYSTEM_MANAGER, LC.ROLE_ENTITY_MANAGER];
         functionToRoles[LC.GROUP_EXECUTE_LIMIT_OFFER] = [LC.ROLE_ENTITY_CP];
         functionToRoles[LC.GROUP_CANCEL_OFFER] = [LC.ROLE_ENTITY_MANAGER, LC.ROLE_ENTITY_CP];
@@ -199,5 +201,27 @@ contract T02Access is T02AccessHelpers {
         hAssignRole(address(888)._getIdForAddress(), systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
 
         nayms.updateRoleAssigner(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS);
+    }
+
+    function testWithdrawRestriction() public {
+        // The roles that can receive funds from a withdraw: ea, cc, cw
+        changePrank(ea);
+        writeTokenBalance(ea.addr, naymsAddress, wethAddress, 1 ether);
+        nayms.externalDeposit(wethAddress, 1 ether); // deposit 100 weth into ea's parent (sm.entityId)
+        // Withdrawing from the entity sm.entityId
+        nayms.externalWithdrawFromEntity(sm.entityId, ea.addr, wethAddress, 100);
+
+        changePrank(cc);
+        writeTokenBalance(cc.addr, naymsAddress, wethAddress, 1 ether);
+        vm.expectRevert(); // Invalid group privilege
+        nayms.externalWithdrawFromEntity(sm.entityId, cc.addr, wethAddress, 100);
+
+        changePrank(sm);
+        nayms.setEntity(cc.id, sm.entityId); // User's parent must be set to the entity to deposit and withdraw from it
+        changePrank(cc);
+        nayms.externalWithdrawFromEntity(sm.entityId, cc.addr, wethAddress, 100);
+
+        vm.expectRevert(abi.encodeWithSelector(ExternalWithdrawInvalidReceiver.selector, sm.addr));
+        nayms.externalWithdrawFromEntity(sm.entityId, sm.addr, wethAddress, 100); // Invalid receiver sm.addr
     }
 }
