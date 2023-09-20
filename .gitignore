@@ -52,3 +52,6 @@ broadcast/**/dry-run
 
 # coverage report
 cov-html
+
+# macOS
+.DS_Store
