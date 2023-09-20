@@ -5,6 +5,7 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../AppStorage.s
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
@@ -58,7 +59,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _objectId,
         string memory _symbol,
         string memory _name
-    ) external assertSysMgr {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
@@ -72,7 +73,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         string memory _symbol,
         string memory _name
-    ) external assertSysMgr {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
@@ -105,7 +106,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @param _entityId ID of the entity
      * @param _updateEntity metadata of the entity that can be updated
      */
-    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertSysMgr {
+    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._updateEntity(_entityId, _updateEntity);
     }
 

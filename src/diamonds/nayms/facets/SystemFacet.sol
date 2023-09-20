@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { Entity } from "../AppStorage.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
@@ -29,7 +30,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityAdmin,
         Entity calldata _entityData,
         bytes32 _dataHash
-    ) external assertSysMgr {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
     }
 

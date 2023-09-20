@@ -20,7 +20,7 @@ contract T02UserTest is D03ProtocolDefaults, MockAccounts {
 
     function testSetEntityFailsIfNotSysManager() public {
         changePrank(signer2);
-        vm.expectRevert("not a system manager");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer2Id, systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
         nayms.setEntity(account0Id, bytes32(0));
     }
 

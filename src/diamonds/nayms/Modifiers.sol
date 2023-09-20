@@ -29,11 +29,6 @@ contract Modifiers {
         _;
     }
 
-    modifier assertSysMgr() {
-        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS._stringToBytes32()), "not a system manager");
-        _;
-    }
-
     modifier assertPrivilege(bytes32 _context, string memory _group) {
         if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32()))
             /// Note: If the role returned by `_getRoleInContext` is empty (represented by bytes32(0)), we explicitly return an empty string.

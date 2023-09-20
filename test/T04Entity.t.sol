@@ -130,7 +130,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
 
         changePrank(signer1);
-        vm.expectRevert("not a system manager");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer1Id, systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
         changePrank(sm.addr);
 
@@ -151,7 +151,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         string memory newTokenName = "New Test Token";
 
         changePrank(signer1);
-        vm.expectRevert("not a system manager");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer1Id, systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
         nayms.updateEntityTokenInfo(entityId1, newTokenSymbol, newTokenName);
         changePrank(sm.addr);
 
