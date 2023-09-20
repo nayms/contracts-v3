@@ -3,7 +3,7 @@
   "version": "3.6.2",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts-v3.git",
-  "author": "Kevin Park <kevin@fruitful.fi>",
+  "author": "Kevin Park <kevin@fruitful.gg>",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
