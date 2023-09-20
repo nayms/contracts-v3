@@ -24,11 +24,6 @@ contract Modifiers {
         _;
     }
 
-    modifier assertSysAdmin() {
-        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS._stringToBytes32()), "not a system admin");
-        _;
-    }
-
     modifier assertSystemUW() {
         if (!msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS._stringToBytes32())) revert NotSystemUnderwriter(msg.sender);
         _;
@@ -39,7 +34,7 @@ contract Modifiers {
         _;
     }
 
-    modifier assertHasGroupPrivilege(bytes32 _context, string memory _group) {
+    modifier assertPrivilege(bytes32 _context, string memory _group) {
         if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32()))
             /// Note: If the role returned by `_getRoleInContext` is empty (represented by bytes32(0)), we explicitly return an empty string.
             /// This ensures the user doesn't receive a string that could potentially include unwanted data (like pointer and length) without any meaningful content.

@@ -296,7 +296,8 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     function testUpdateRoleAssignerFailIfNotAdmin() public {
         changePrank(account1);
-        vm.expectRevert("not a system admin");
+
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.updateRoleAssigner("role", "group");
     }
 
@@ -330,7 +331,7 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
 
     function testUpdateRoleGroupFailIfNotAdmin() public {
         changePrank(account1);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.updateRoleGroup("role", "group", false);
         vm.stopPrank();
     }

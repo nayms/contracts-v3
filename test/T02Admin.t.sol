@@ -10,6 +10,8 @@ import { IDiamondCut, IEntityFacet, IMarketFacet, ITokenizedVaultFacet, ITokeniz
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
+    using LibHelpers for *;
+
     function setUp() public {}
 
     function testGetSystemId() public {
@@ -22,7 +24,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testSetMaxDividendDenominationsFailIfNotAdmin() public {
         changePrank(account1);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.setMaxDividendDenominations(100);
         vm.stopPrank();
     }
@@ -54,7 +56,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
         changePrank(account1);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.addSupportedExternalToken(wethAddress);
         vm.stopPrank();
     }
@@ -150,10 +152,10 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
             nayms.unlockFunction(bytes4(0x12345678));
             assertFalse(nayms.isFunctionLocked(bytes4(0x12345678)));
         } else {
-            vm.expectRevert("not a system admin");
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
             nayms.lockFunction(bytes4(0x12345678));
 
-            vm.expectRevert("not a system admin");
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
             nayms.unlockFunction(bytes4(0x12345678));
         }
     }
@@ -161,7 +163,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testLockFunction() public {
         // must be sys admin
         changePrank(account9);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account9._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+
         nayms.lockFunction(bytes4(0x12345678));
 
         changePrank(systemAdmin);

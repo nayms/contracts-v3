@@ -30,7 +30,7 @@ contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyG
         external
         notLocked(msg.sig)
         nonReentrant
-        assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_DEPOSIT)
+        assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_DEPOSIT)
     {
         // a user can only deposit an approved external ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
@@ -54,7 +54,7 @@ contract TokenizedVaultIOFacet is ITokenizedVaultIOFacet, Modifiers, ReentrancyG
         address _receiver,
         address _externalTokenAddress,
         uint256 _amount
-    ) external notLocked(msg.sig) nonReentrant assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY) {
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY) {
         if (!LibACL._hasGroupPrivilege(LibHelpers._getIdForAddress(_receiver), _entityId, LibHelpers._stringToBytes32(LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY)))
             revert ExternalWithdrawInvalidReceiver(_receiver);
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);

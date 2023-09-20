@@ -87,7 +87,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertHasGroupPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { Entity } from "../AppStorage.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
@@ -77,7 +78,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
      * @notice Wrap an object token as ERC20
      * @param _objectId ID of the tokenized object
      */
-    function wrapToken(bytes32 _objectId) external nonReentrant assertSysAdmin {
+    function wrapToken(bytes32 _objectId) external nonReentrant assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
         LibObject._wrapToken(_objectId);
     }
 }
