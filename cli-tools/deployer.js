@@ -189,7 +189,8 @@ function smartDeploy(config) {
 
     if (config.broadcast) {
         command += ` \\
-        --broadcast`;
+        --broadcast \\
+        --verify --delay 30 --retries 10`;
     }
 
     return command;
