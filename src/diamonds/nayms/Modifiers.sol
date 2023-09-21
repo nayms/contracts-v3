@@ -8,7 +8,7 @@ import { LibConstants as LC } from "./libs/LibConstants.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
 import { LibObject } from "./libs/LibObject.sol";
 import { LibACL } from "./libs/LibACL.sol";
-import { NotSystemUnderwriter, InvalidGroupPrivilege } from "./interfaces/CustomErrors.sol";
+import { InvalidGroupPrivilege } from "./interfaces/CustomErrors.sol";
 
 /**
  * @title Modifiers
@@ -21,11 +21,6 @@ contract Modifiers {
 
     modifier notLocked(bytes4 functionSelector) {
         require(!LibAdmin._isFunctionLocked(functionSelector), "function is locked");
-        _;
-    }
-
-    modifier assertSystemUW() {
-        if (!msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS._stringToBytes32())) revert NotSystemUnderwriter(msg.sender);
         _;
     }
 

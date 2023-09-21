@@ -9,6 +9,7 @@ import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { ISimplePolicyFacet } from "../interfaces/ISimplePolicyFacet.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 
 /**
  * @title Simple Policies
@@ -75,7 +76,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
-    function cancelSimplePolicy(bytes32 _policyId) external assertSystemUW {
+    function cancelSimplePolicy(bytes32 _policyId) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) {
         LibSimplePolicy._cancel(_policyId);
     }
 

@@ -10,8 +10,6 @@ error RoleIsMissing();
 /// @dev Passing in a missing group when trying to assign a role to a group.
 error AssignerGroupIsMissing();
 
-error NotSystemUnderwriter(address msgSender);
-
 /// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
 /// @dev In the assertPrivilege modifier, this error message returns the context and the role in the context, not the user's role in the system context.
 /// @param msgSenderId Id of the sender

@@ -14,6 +14,8 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
+    using LibHelpers for *;
+
     bytes32 internal entityId1 = 0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38;
     bytes32 internal policyId1 = 0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869;
     bytes32 public testPolicyDataHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
@@ -416,7 +418,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // test caller is not system underwriter
         changePrank(account9);
-        vm.expectRevert(abi.encodeWithSelector(NotSystemUnderwriter.selector, account9));
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account9._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_UNDERWRITERS));
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         changePrank(su.addr);
