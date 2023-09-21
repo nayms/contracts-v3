@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
@@ -9,6 +9,8 @@ import { Entity } from "src/diamonds/nayms/AppStorage.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
+    using LibHelpers for *;
+
     bytes32 internal immutable objectContext1 = "0x1";
 
     function setUp() public {
@@ -38,8 +40,8 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     function testNonManagerCreateEntity() public {
         bytes32 objectId1 = "0x1";
 
-        vm.expectRevert("not a system manager");
         changePrank(account1);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
     }
 

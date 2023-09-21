@@ -9,6 +9,7 @@ import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { ISimplePolicyFacet } from "../interfaces/ISimplePolicyFacet.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 
 /**
  * @title Simple Policies
@@ -21,7 +22,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @param _policyId Id of the simple policy
      * @param _amount Amount of the premium
      */
-    function paySimplePremium(bytes32 _policyId, uint256 _amount) external notLocked(msg.sig) assertHasGroupPrivilege(_policyId, LC.GROUP_PAY_SIMPLE_PREMIUM) {
+    function paySimplePremium(bytes32 _policyId, uint256 _amount) external notLocked(msg.sig) assertPrivilege(_policyId, LC.GROUP_PAY_SIMPLE_PREMIUM) {
         bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
         bytes32 payerEntityId = LibObject._getParent(senderId);
 
@@ -40,7 +41,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
         bytes32 _policyId,
         bytes32 _insuredId,
         uint256 _amount
-    ) external notLocked(msg.sig) assertHasGroupPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_SIMPLE_CLAIM) {
+    ) external notLocked(msg.sig) assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_SIMPLE_CLAIM) {
         LibSimplePolicy._payClaim(_claimId, _policyId, _insuredId, _amount);
     }
 
@@ -75,7 +76,7 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
      * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
-    function cancelSimplePolicy(bytes32 _policyId) external assertSystemUW {
+    function cancelSimplePolicy(bytes32 _policyId) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) {
         LibSimplePolicy._cancel(_policyId);
     }
 

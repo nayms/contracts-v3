@@ -8,7 +8,7 @@ import { LibConstants as LC } from "./libs/LibConstants.sol";
 import { LibHelpers } from "./libs/LibHelpers.sol";
 import { LibObject } from "./libs/LibObject.sol";
 import { LibACL } from "./libs/LibACL.sol";
-import { NotSystemUnderwriter, InvalidGroupPrivilege } from "./interfaces/CustomErrors.sol";
+import { InvalidGroupPrivilege } from "./interfaces/CustomErrors.sol";
 
 /**
  * @title Modifiers
@@ -24,22 +24,7 @@ contract Modifiers {
         _;
     }
 
-    modifier assertSysAdmin() {
-        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS._stringToBytes32()), "not a system admin");
-        _;
-    }
-
-    modifier assertSystemUW() {
-        if (!msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS._stringToBytes32())) revert NotSystemUnderwriter(msg.sender);
-        _;
-    }
-
-    modifier assertSysMgr() {
-        require(msg.sender._getIdForAddress()._isInGroup(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS._stringToBytes32()), "not a system manager");
-        _;
-    }
-
-    modifier assertHasGroupPrivilege(bytes32 _context, string memory _group) {
+    modifier assertPrivilege(bytes32 _context, string memory _group) {
         if (!msg.sender._getIdForAddress()._hasGroupPrivilege(_context, _group._stringToBytes32()))
             /// Note: If the role returned by `_getRoleInContext` is empty (represented by bytes32(0)), we explicitly return an empty string.
             /// This ensures the user doesn't receive a string that could potentially include unwanted data (like pointer and length) without any meaningful content.
@@ -51,11 +36,6 @@ contract Modifiers {
                     : string(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes()),
                 _group
             );
-        _;
-    }
-
-    modifier assertEntityAdmin(bytes32 _context) {
-        require(msg.sender._getIdForAddress()._isInGroup(_context, LibHelpers._stringToBytes32(LC.GROUP_ENTITY_ADMINS)), "not the entity's admin");
         _;
     }
 

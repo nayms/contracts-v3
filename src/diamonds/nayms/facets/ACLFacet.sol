@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
 
@@ -144,7 +145,7 @@ contract ACLFacet is Modifiers, IACLFacet {
      * @param _role name of the role
      * @param _assignerGroup Group who can assign members to this role
      */
-    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertSysAdmin {
+    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibACL._updateRoleAssigner(_role, _assignerGroup);
     }
 
@@ -159,8 +160,8 @@ contract ACLFacet is Modifiers, IACLFacet {
         string memory _role,
         string memory _group,
         bool _roleInGroup
-    ) external assertSysAdmin {
-        require(!strEquals(_group, LibConstants.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        require(!strEquals(_group, LC.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
     }
 

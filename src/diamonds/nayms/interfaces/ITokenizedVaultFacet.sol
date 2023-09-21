@@ -101,7 +101,7 @@ interface ITokenizedVaultFacet {
      */
     function getLockedBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount);
 
-    function internalTransferByEntityAdmin(
+    function internalTransferBySystemAdmin(
         bytes32 _fromEntityId,
         bytes32 _toEntityId,
         bytes32 _tokenId,

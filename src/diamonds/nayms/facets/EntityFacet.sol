@@ -5,6 +5,7 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../AppStorage.s
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
@@ -44,7 +45,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external assertSystemUW assertSimplePolicyEnabled(_entityId) {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
@@ -58,7 +59,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _objectId,
         string memory _symbol,
         string memory _name
-    ) external assertSysMgr {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
@@ -72,7 +73,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         string memory _symbol,
         string memory _name
-    ) external assertSysMgr {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
@@ -87,7 +88,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertHasGroupPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
@@ -105,7 +106,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @param _entityId ID of the entity
      * @param _updateEntity metadata of the entity that can be updated
      */
-    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertSysMgr {
+    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._updateEntity(_entityId, _updateEntity);
     }
 

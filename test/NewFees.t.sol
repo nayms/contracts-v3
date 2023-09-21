@@ -7,12 +7,16 @@ import { console2 } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeSchedule, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
 import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
 // solhint-disable state-visibility
 
 contract NewFeesTest is D03ProtocolDefaults {
+    using LibHelpers for *;
+
     Entity entityInfo;
 
     NaymsAccount acc1 = makeNaymsAcc("acc1");
@@ -59,7 +63,7 @@ contract NewFeesTest is D03ProtocolDefaults {
     function test_setFeeSchedule_OnlySystemAdmin() public {
         changePrank(address(0xdead));
 
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, address(0xdead)._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
     }
 

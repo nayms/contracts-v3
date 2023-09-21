@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "src/diamonds/nayms/libs/LibEntity.sol";
@@ -41,7 +43,7 @@ contract UserFacet is IUserFacet, Modifiers {
      * @param _userId Unique platform ID of the user account
      * @param _entityId Unique platform ID of the entity
      */
-    function setEntity(bytes32 _userId, bytes32 _entityId) external assertSysMgr {
+    function setEntity(bytes32 _userId, bytes32 _entityId) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         if (!LibEntity._isEntity(_entityId)) {
             revert EntityDoesNotExist(_entityId);
         }

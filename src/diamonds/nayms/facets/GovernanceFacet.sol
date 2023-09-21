@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { IGovernanceFacet } from "../interfaces/IGovernanceFacet.sol";
@@ -19,7 +21,7 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
         return s.diamondInitialized;
     }
 
-    function createUpgrade(bytes32 id) external assertSysAdmin {
+    function createUpgrade(bytes32 id) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.upgradeScheduled[id] > block.timestamp) {
@@ -32,7 +34,7 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
         emit CreateUpgrade(id, msg.sender);
     }
 
-    function updateUpgradeExpiration(uint256 duration) external assertSysAdmin {
+    function updateUpgradeExpiration(uint256 duration) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(1 minutes < duration && duration < 1 weeks, "invalid upgrade expiration period");
@@ -41,7 +43,7 @@ contract GovernanceFacet is Modifiers, IGovernanceFacet {
         emit UpdateUpgradeExpiration(duration);
     }
 
-    function cancelUpgrade(bytes32 id) external assertSysAdmin {
+    function cancelUpgrade(bytes32 id) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.upgradeScheduled[id] > 0, "invalid upgrade ID");
