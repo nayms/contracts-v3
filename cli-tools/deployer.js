@@ -1,10 +1,11 @@
+#!/usr/bin/env node
+
 const { Wallet } = require("ethers");
 const fs = require("fs");
 const chalk = require("chalk");
 const dotenv = require("dotenv");
 
 dotenv.config();
-
 
 if (process.argv.length < 4) {
     console.error(chalk.red(`Must provide deployment action and target network!`));
@@ -37,11 +38,11 @@ if (action === "deploy") {
     console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] Deploying new diamond`);
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
-    const deployNewDiamondCmd = deployDiamond(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    const deployNewDiamondCmd = deployDiamond(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress);
     execute(deployNewDiamondCmd);
 
     console.log(`\n[ ${chalk.green("Initializing upgrade")} ]\n`);
-    const initSimCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const initSimCmd = upgrade(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress, false);
     const result = execute(initSimCmd);
     const upgradeHash = getUpgradeHash(result);
 
@@ -57,7 +58,7 @@ if (action === "deploy") {
     execute(scheduleCommand);
 
     console.log(`\n[ ${chalk.green("Doing upgrade")} ]\n`);
-    const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    const upgradeCmd = upgrade(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress);
     execute(upgradeCmd);
 } else if (action === "upgrade") {
     const addressesRaw = fs.readFileSync("deployedAddresses.json");
@@ -77,7 +78,7 @@ if (action === "deploy") {
     }
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
-    const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const upgradeCmd = upgrade(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress, false);
     const result = execute(upgradeCmd);
     const upgradeHash = getUpgradeHash(result);
 
@@ -134,11 +135,12 @@ function getUpgradeHash(result) {
     return hashLine[hashLine.length - 1];
 }
 
-function deployDiamond(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function deployDiamond(rpcUrl, networkId, fork, owner, sysAdmin, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
         newDeploy: true,
+        fork,
         owner,
         sysAdmin,
         initDiamond: false,
@@ -152,11 +154,12 @@ function deployDiamond(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"
     });
 }
 
-function upgrade(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function upgrade(rpcUrl, networkId, fork, owner, sysAdmin, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
         newDeploy: false,
+        fork,
         owner,
         sysAdmin,
         initDiamond,
@@ -189,8 +192,11 @@ function smartDeploy(config) {
 
     if (config.broadcast) {
         command += ` \\
-        --broadcast \\
-        --verify --delay 30 --retries 10`;
+        --broadcast`;
+    }
+    if(!config.fork) {
+        command += ` \\
+        --verify --delay 30 --retries 10`
     }
 
     return command;
