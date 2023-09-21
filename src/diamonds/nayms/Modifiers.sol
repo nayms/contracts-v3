@@ -39,11 +39,6 @@ contract Modifiers {
         _;
     }
 
-    modifier assertEntityAdmin(bytes32 _context) {
-        require(msg.sender._getIdForAddress()._isInGroup(_context, LibHelpers._stringToBytes32(LC.GROUP_ENTITY_ADMINS)), "not the entity's admin");
-        _;
-    }
-
     modifier assertIsInGroup(
         bytes32 _objectId,
         bytes32 _contextId,

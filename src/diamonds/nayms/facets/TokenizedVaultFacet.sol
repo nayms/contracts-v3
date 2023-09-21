@@ -8,6 +8,7 @@ import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { ITokenizedVaultFacet } from "../interfaces/ITokenizedVaultFacet.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 
 /**
  * @title Token Vault
@@ -152,18 +153,18 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
     }
 
     /**
-     * @notice An entity admin can transfer funds from an entity it is an entity admin of to another entity.
+     * @notice A system admin can transfer funds from an entity to another entity.
      * @param _fromEntityId Unique platform ID of the entity. Caller must be an entity admin of this entity.
      * @param _toEntityId The entity to transfer funds to.
      * @param _tokenId The ID assigned to an external token.
      * @param _amount The amount of internal tokens to transfer.
      */
-    function internalTransferByEntityAdmin(
+    function internalTransferBySystemAdmin(
         bytes32 _fromEntityId,
         bytes32 _toEntityId,
         bytes32 _tokenId,
         uint256 _amount
-    ) external assertEntityAdmin(_fromEntityId) {
+    ) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._internalTransfer(_fromEntityId, _toEntityId, _tokenId, _amount);
     }
 }
