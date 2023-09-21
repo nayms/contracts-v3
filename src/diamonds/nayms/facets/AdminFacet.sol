@@ -20,7 +20,7 @@ contract AdminFacet is IAdminFacet, Modifiers {
      * @notice Set `_newMax` as the max dividend denominations value.
      * @param _newMax new value to be used.
      */
-    function setMaxDividendDenominations(uint8 _newMax) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function setMaxDividendDenominations(uint8 _newMax) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._updateMaxDividendDenominations(_newMax);
     }
 
@@ -46,7 +46,7 @@ contract AdminFacet is IAdminFacet, Modifiers {
      * @notice Add another token to the supported tokens list
      * @param _tokenAddress address of the token to support
      */
-    function addSupportedExternalToken(address _tokenAddress) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function addSupportedExternalToken(address _tokenAddress) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._addSupportedExternalToken(_tokenAddress);
     }
 
@@ -70,11 +70,11 @@ contract AdminFacet is IAdminFacet, Modifiers {
         return LibObject._isObjectTokenizable(_objectId);
     }
 
-    function lockFunction(bytes4 functionSelector) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function lockFunction(bytes4 functionSelector) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._lockFunction(functionSelector);
     }
 
-    function unlockFunction(bytes4 functionSelector) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function unlockFunction(bytes4 functionSelector) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._unlockFunction(functionSelector);
     }
 
@@ -82,15 +82,15 @@ contract AdminFacet is IAdminFacet, Modifiers {
         return LibAdmin._isFunctionLocked(functionSelector);
     }
 
-    function lockAllFundTransferFunctions() external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function lockAllFundTransferFunctions() external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._lockAllFundTransferFunctions();
     }
 
-    function unlockAllFundTransferFunctions() external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function unlockAllFundTransferFunctions() external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._unlockAllFundTransferFunctions();
     }
 
-    function replaceMakerBP(uint16 _newMakerBP) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function replaceMakerBP(uint16 _newMakerBP) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._replaceMakerBP(_newMakerBP);
     }
 
@@ -99,11 +99,11 @@ contract AdminFacet is IAdminFacet, Modifiers {
         uint256 _feeScheduleType,
         bytes32[] calldata _receiver,
         uint16[] calldata _basisPoints
-    ) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _receiver, _basisPoints);
     }
 
-    function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._removeFeeSchedule(_entityId, _feeScheduleType);
     }
 }

@@ -76,7 +76,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 from,
         bytes32 tokenId,
         uint256 amount
-    ) external notLocked(msg.sig) assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    ) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._internalBurn(from, tokenId, amount);
     }
 
@@ -164,7 +164,7 @@ contract TokenizedVaultFacet is ITokenizedVaultFacet, Modifiers, ReentrancyGuard
         bytes32 _toEntityId,
         bytes32 _tokenId,
         uint256 _amount
-    ) external assertPrivilege(bytes32("System"), LC.GROUP_SYSTEM_ADMINS) {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._internalTransfer(_fromEntityId, _toEntityId, _tokenId, _amount);
     }
 }
