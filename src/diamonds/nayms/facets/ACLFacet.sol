@@ -6,6 +6,7 @@ import { LibACL, LibHelpers } from "../libs/LibACL.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
+import { AssignerCannotUnassignRole } from "../interfaces/CustomErrors.sol";
 
 /**
  * @title Access Control List
@@ -27,6 +28,13 @@ contract ACLFacet is Modifiers, IACLFacet {
     ) external {
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
         require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
+
+        /// @dev First, assigner attempts to unassign the role.
+        bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
+        if (roleId > 0 && LibACL._canAssign(assignerId, _objectId, _contextId, roleId)) revert AssignerCannotUnassignRole();
+        LibACL._unassignRole(_objectId, _contextId);
+
+        /// @dev Second, assign the role.
         LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_role));
     }
 
