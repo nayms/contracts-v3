@@ -14,6 +14,8 @@ import { AssignerCannotUnassignRole } from "../interfaces/CustomErrors.sol";
  * @dev Use it to (un)assign or check role membership
  */
 contract ACLFacet is Modifiers, IACLFacet {
+    using LibHelpers for *;
+
     /**
      * @notice Assign a `_roleId` to the object in given context
      * @dev Any object ID can be a context, system is a special context with highest priority
@@ -31,7 +33,8 @@ contract ACLFacet is Modifiers, IACLFacet {
 
         /// @dev First, assigner attempts to unassign the role.
         bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
-        if (roleId != 0 && !LibACL._canAssign(assignerId, _objectId, _contextId, roleId)) revert AssignerCannotUnassignRole(assignerId, _objectId, _contextId, _role);
+        if (roleId != 0 && !LibACL._canAssign(assignerId, _objectId, _contextId, roleId))
+            revert AssignerCannotUnassignRole(assignerId, _objectId, _contextId, string(roleId._bytes32ToBytes()));
         LibACL._unassignRole(_objectId, _contextId);
 
         /// @dev Second, assign the role.
