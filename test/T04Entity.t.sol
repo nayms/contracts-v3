@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { console2, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
+import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
@@ -173,9 +173,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
         nayms.updateEntity(entityId1, initEntity(wethId, 10_000, 0, false));
 
-        console2.logBytes32(wethId);
+        c.logBytes32(wethId);
         nayms.createEntity(entityId1, account0Id, initEntity(0, 0, 0, false), testPolicyDataHash);
-        console2.log(" >>> CREATED");
+        c.log(" >>> CREATED");
 
         changePrank(systemAdmin);
         nayms.addSupportedExternalToken(address(wbtc));
