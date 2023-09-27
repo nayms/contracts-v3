@@ -6,6 +6,7 @@ import { LibACL, LibHelpers } from "../libs/LibACL.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { IACLFacet } from "../interfaces/IACLFacet.sol";
+import { AssignerCannotUnassignRole } from "../interfaces/CustomErrors.sol";
 
 /**
  * @title Access Control List
@@ -13,6 +14,8 @@ import { IACLFacet } from "../interfaces/IACLFacet.sol";
  * @dev Use it to (un)assign or check role membership
  */
 contract ACLFacet is Modifiers, IACLFacet {
+    using LibHelpers for *;
+
     /**
      * @notice Assign a `_roleId` to the object in given context
      * @dev Any object ID can be a context, system is a special context with highest priority
@@ -27,6 +30,14 @@ contract ACLFacet is Modifiers, IACLFacet {
     ) external {
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
         require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
+
+        /// @dev First, assigner attempts to unassign the role.
+        bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
+        if (roleId != 0 && !LibACL._canAssign(assignerId, _objectId, _contextId, roleId))
+            revert AssignerCannotUnassignRole(assignerId, _objectId, _contextId, string(roleId._bytes32ToBytes()));
+        LibACL._unassignRole(_objectId, _contextId);
+
+        /// @dev Second, assign the role.
         LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_role));
     }
 

@@ -50,15 +50,15 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     }
 
     constructor() payable {
-        console2.log("block.chainid", block.chainid);
+        c.log("block.chainid", block.chainid);
 
         bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
         if (BOOL_FORK_TEST) {
             uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
-            console2.log("FORK_BLOCK", FORK_BLOCK);
+            c.log("FORK_BLOCK", FORK_BLOCK);
 
             if (FORK_BLOCK == type(uint256).max) {
-                console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
+                c.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
                 vm.createSelectFork(getChain(block.chainid).rpcUrl);
             } else {
                 vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
@@ -80,7 +80,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             vm.startPrank(owner);
             scheduleAndUpgradeDiamond(cut);
         } else {
-            console2.log("Local testing (no fork)");
+            c.log("Local testing (no fork)");
 
             deployer = address(this);
             owner = address(this);
@@ -88,7 +88,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
             // deploy the init contract
             initDiamond = new InitDiamond();
-            console2.log("InitDiamond address", address(initDiamond));
+            c.log("InitDiamond address", address(initDiamond));
             vm.label(address(initDiamond), "InitDiamond");
             // deploy all facets
             address[] memory naymsFacetAddresses = LibGeneratedNaymsFacetHelpers.deployNaymsFacets();
@@ -165,7 +165,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         // 2. upgrade
         bytes32 upgradeHash = keccak256(abi.encode(_cut, _init, _calldata));
         if (upgradeHash == 0xc597f3eb22d11c46f626cd856bd65e9127b04623d83e442686776a2e3b670bbf) {
-            console2.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
+            c.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
         } else {
             changePrank(systemAdmin);
             nayms.createUpgrade(upgradeHash);

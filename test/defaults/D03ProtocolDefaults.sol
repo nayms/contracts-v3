@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D02TestSetup, LibHelpers, console2 } from "./D02TestSetup.sol";
+import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
@@ -11,14 +11,72 @@ import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
 // solhint-disable no-console
 // solhint-disable state-visibility
 
+abstract contract T02AccessHelpers is D02TestSetup {
+    using LibHelpers for *;
+
+    bytes32 public immutable systemContext = LibAdmin._getSystemId();
+
+    string[3] internal rolesThatCanAssignRoles = [LC.ROLE_SYSTEM_ADMIN, LC.ROLE_SYSTEM_MANAGER, LC.ROLE_ENTITY_MANAGER];
+    mapping(string => string[]) internal roleCanAssignRoles;
+    mapping(string => bytes32[]) internal roleToUsers;
+    mapping(string => address[]) internal roleToUsersAddr;
+    mapping(bytes32 => bytes32) internal objectToContext;
+
+    mapping(string => string[]) internal functionToRoles;
+    string[] internal functionsUsingAssertP = [
+        LC.GROUP_START_TOKEN_SALE,
+        LC.GROUP_EXECUTE_LIMIT_OFFER,
+        LC.GROUP_CANCEL_OFFER,
+        LC.GROUP_PAY_SIMPLE_PREMIUM,
+        LC.GROUP_PAY_SIMPLE_CLAIM,
+        LC.GROUP_PAY_DIVIDEND_FROM_ENTITY,
+        LC.GROUP_EXTERNAL_DEPOSIT,
+        LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY
+    ];
+
+    function hAssignRole(
+        bytes32 _objectId,
+        bytes32 _contextId,
+        string memory _role
+    ) internal {
+        nayms.assignRole(_objectId, _contextId, _role);
+        roleToUsers[_role].push(_objectId);
+        roleToUsersAddr[_role].push(_objectId._getAddressFromId());
+        if (objectToContext[_objectId] == systemContext) {
+            c.log("warning: object's context is currently systemContext");
+        } else {
+            objectToContext[_objectId] = _contextId;
+        }
+    }
+
+    function hCreateEntity(
+        bytes32 _entityId,
+        bytes32 _entityAdmin,
+        Entity memory _entityData,
+        bytes32 _dataHash
+    ) internal {
+        nayms.createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
+        roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin);
+
+        if (objectToContext[_entityAdmin] == systemContext) {
+            c.log("warning: object's context is currently systemContext");
+        } else {
+            objectToContext[_entityAdmin] = _entityId;
+        }
+    }
+
+    /// @dev Return the role as a decoded string
+    function hGetRoleInContext(bytes32 objectId, bytes32 contextId) public view returns (string memory roleString) {
+        roleString = string(nayms.getRoleInContext(objectId, contextId)._bytes32ToBytes());
+    }
+}
+
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
-contract D03ProtocolDefaults is D02TestSetup {
+contract D03ProtocolDefaults is T02AccessHelpers {
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
     bytes32 public naymsTokenId;
-
-    bytes32 public immutable systemContext = LibAdmin._getSystemId();
 
     bytes32 public constant DEFAULT_ACCOUNT0_ENTITY_ID = bytes32("e0");
     bytes32 public constant DEFAULT_UNDERWRITER_ENTITY_ID = bytes32("e1");
@@ -76,13 +134,13 @@ contract D03ProtocolDefaults is D02TestSetup {
     NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
 
     constructor() payable {
-        console2.log("\n -- D03 Protocol Defaults\n");
-        console2.log("Test contract address ID, aka account0Id:");
-        console2.logBytes32(account0Id);
+        c.log("\n -- D03 Protocol Defaults\n");
+        c.log("Test contract address ID, aka account0Id:");
+        c.logBytes32(account0Id);
 
         naymsTokenId = LibHelpers._getIdForAddress(naymsAddress);
-        console2.log("Nayms Token ID:");
-        console2.logBytes32(naymsTokenId);
+        c.log("Nayms Token ID:");
+        c.logBytes32(naymsTokenId);
 
         vm.label(signer1, "Account 1 (Underwriter Rep)");
         vm.label(signer2, "Account 2 (Broker Rep)");
@@ -100,9 +158,10 @@ contract D03ProtocolDefaults is D02TestSetup {
             simplePolicyEnabled: true
         });
 
-        nayms.assignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
-        nayms.assignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
-        nayms.assignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+        hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
+        hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
+        hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+
         changePrank(sm.addr);
         nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity, "entity test hash");
@@ -126,7 +185,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
 
-        console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
+        c.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
 
     function b32Array1(bytes32 _value) internal pure returns (bytes32[] memory) {

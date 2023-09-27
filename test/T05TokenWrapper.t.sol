@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2 as console, LC } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, c, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
 

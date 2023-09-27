@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import { console2 as c } from "forge-std/console2.sol";
-import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
+// import { c as c } from "forge-std/c.sol";
+import { D03ProtocolDefaults, LibHelpers, LC, c } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
@@ -9,59 +9,7 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 // updateRoleAssigner | canGroupAssignRole | canAssign [role] = group
 // getRoleInContext | roles[objectId][contextId] = role
 
-abstract contract T02AccessHelpers is D03ProtocolDefaults {
-    using LibHelpers for *;
-    string[3] internal rolesThatCanAssignRoles = [LC.ROLE_SYSTEM_ADMIN, LC.ROLE_SYSTEM_MANAGER, LC.ROLE_ENTITY_MANAGER];
-    mapping(string => string[]) internal roleCanAssignRoles;
-    mapping(string => bytes32[]) internal roleToUsers;
-    mapping(string => address[]) internal roleToUsersAddr;
-    mapping(bytes32 => bytes32) internal objectToContext;
-
-    mapping(string => string[]) internal functionToRoles;
-    string[] internal functionsUsingAssertP = [
-        LC.GROUP_START_TOKEN_SALE,
-        LC.GROUP_EXECUTE_LIMIT_OFFER,
-        LC.GROUP_CANCEL_OFFER,
-        LC.GROUP_PAY_SIMPLE_PREMIUM,
-        LC.GROUP_PAY_SIMPLE_CLAIM,
-        LC.GROUP_PAY_DIVIDEND_FROM_ENTITY,
-        LC.GROUP_EXTERNAL_DEPOSIT,
-        LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY
-    ];
-
-    function hAssignRole(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _role
-    ) internal {
-        nayms.assignRole(_objectId, _contextId, _role);
-        roleToUsers[_role].push(_objectId);
-        roleToUsersAddr[_role].push(_objectId._getAddressFromId());
-        if (objectToContext[_objectId] == systemContext) {
-            c.log("warning: object's context is currently systemContext");
-        } else {
-            objectToContext[_objectId] = _contextId;
-        }
-    }
-
-    function hCreateEntity(
-        bytes32 _entityId,
-        bytes32 _entityAdmin,
-        Entity memory _entityData,
-        bytes32 _dataHash
-    ) internal {
-        nayms.createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
-        roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin);
-
-        if (objectToContext[_entityAdmin] == systemContext) {
-            c.log("warning: object's context is currently systemContext");
-        } else {
-            objectToContext[_entityAdmin] = _entityId;
-        }
-    }
-}
-
-contract T02Access is T02AccessHelpers {
+contract T02Access is D03ProtocolDefaults {
     using LibHelpers for *;
 
     bytes32 internal testPolicyDataHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
@@ -70,9 +18,6 @@ contract T02Access is T02AccessHelpers {
 
     function setUp() public {
         // Assign roles to users
-        hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
-        hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
-        hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
         hAssignRole(em.id, sm.entityId, LC.ROLE_ENTITY_MANAGER);
 
         changePrank(sm.addr);
@@ -223,5 +168,23 @@ contract T02Access is T02AccessHelpers {
 
         vm.expectRevert(abi.encodeWithSelector(ExternalWithdrawInvalidReceiver.selector, sm.addr));
         nayms.externalWithdrawFromEntity(sm.entityId, sm.addr, wethAddress, 100); // Invalid receiver sm.addr
+    }
+
+    function test_preventRoleDemotion() public {
+        changePrank(sa);
+        // Currently you can assign a user with the same role
+        nayms.assignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
+
+        // A system manager cannot unassign a system admin
+        changePrank(sm);
+        vm.expectRevert(
+            abi.encodeWithSelector(AssignerCannotUnassignRole.selector, sm.id, sa.id, systemContext, string(LC.ROLE_SYSTEM_ADMIN._stringToBytes32()._bytes32ToBytes()))
+        );
+        nayms.assignRole(sa.id, systemContext, LC.ROLE_ENTITY_CP);
+
+        // An entity manager cannot unassign a system manager
+        changePrank(em);
+        vm.expectRevert();
+        nayms.assignRole(sm.id, systemContext, string(LC.ROLE_ENTITY_MANAGER._stringToBytes32()._bytes32ToBytes()));
     }
 }

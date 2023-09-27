@@ -3,8 +3,8 @@ pragma solidity 0.8.17;
 
 // solhint-disable no-console
 // solhint-disable no-global-import
-// import { StdStorage, stdStorage, console2, Test } from "forge-std/Test.sol";
-import { console2 } from "forge-std/console2.sol";
+// import { StdStorage, stdStorage, c, Test } from "forge-std/Test.sol";
+import { console2 as c } from "forge-std/console2.sol";
 import { CommonBase } from "forge-std/Base.sol";
 import { StdStorage, stdStorage } from "forge-std/StdStorage.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
@@ -23,11 +23,11 @@ abstract contract D00GlobalDefaults is CommonBase {
     address public account0 = address(this);
 
     constructor() payable {
-        console2.log("\n Test SETUP:");
-        console2.log("\n -- D00 Global Defaults\n");
+        c.log("\n Test SETUP:");
+        c.log("\n -- D00 Global Defaults\n");
 
-        console2.log("Test contract address, aka account0, deployer, owner", address(this));
-        console2.log("msg.sender during setup", msg.sender);
+        c.log("Test contract address, aka account0, deployer, owner", address(this));
+        c.log("msg.sender during setup", msg.sender);
     }
 
     function writeTokenBalance(

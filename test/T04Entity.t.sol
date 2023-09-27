@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { console2, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
+import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 
@@ -173,9 +173,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (entityId1)));
         nayms.updateEntity(entityId1, initEntity(wethId, 10_000, 0, false));
 
-        console2.logBytes32(wethId);
+        c.logBytes32(wethId);
         nayms.createEntity(entityId1, account0Id, initEntity(0, 0, 0, false), testPolicyDataHash);
-        console2.log(" >>> CREATED");
+        c.log(" >>> CREATED");
 
         changePrank(systemAdmin);
         nayms.addSupportedExternalToken(address(wbtc));
@@ -668,7 +668,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(account0Id, nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(account0);
         // note: entity with 100% CR should be able to pay the claim - claim amount comes from the locked balance (locked in the policy)
@@ -722,7 +722,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(account0Id, nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42002);
@@ -806,7 +806,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(account0Id, nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42002);
@@ -847,7 +847,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(account0Id, nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(su.addr);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
