@@ -64,6 +64,11 @@ abstract contract T02AccessHelpers is D02TestSetup {
             objectToContext[_entityAdmin] = _entityId;
         }
     }
+
+    /// @dev Return the role as a decoded string
+    function hGetRoleInContext(bytes32 objectId, bytes32 contextId) public view returns (string memory roleString) {
+        roleString = string(nayms.getRoleInContext(objectId, contextId)._bytes32ToBytes());
+    }
 }
 
 /// @notice Default test setup part 03
