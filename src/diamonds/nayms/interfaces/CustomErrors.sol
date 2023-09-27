@@ -11,7 +11,11 @@ error RoleIsMissing();
 error AssignerGroupIsMissing();
 
 /// @dev Role assigner (msg.sender) must be in the assigners group to unassign a role.
-error AssignerCannotUnassignRole();
+/// @param assigner Id of the role assigner, LibHelpers._getIdForAddress(msg sender)
+/// @param assignee ObjectId that the role is being assigned to
+/// @param context Context that the role is being assigned in
+/// @param roleInContext Role that is being assigned
+error AssignerCannotUnassignRole(bytes32 assigner, bytes32 assignee, bytes32 context, string roleInContext);
 
 /// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
 /// @dev In the assertPrivilege modifier, this error message returns the context and the role in the context, not the user's role in the system context.

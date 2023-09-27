@@ -31,7 +31,7 @@ contract ACLFacet is Modifiers, IACLFacet {
 
         /// @dev First, assigner attempts to unassign the role.
         bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
-        if (roleId != 0 && !LibACL._canAssign(assignerId, _objectId, _contextId, roleId)) revert AssignerCannotUnassignRole();
+        if (roleId != 0 && !LibACL._canAssign(assignerId, _objectId, _contextId, roleId)) revert AssignerCannotUnassignRole(assignerId, _objectId, _contextId, _role);
         LibACL._unassignRole(_objectId, _contextId);
 
         /// @dev Second, assign the role.
