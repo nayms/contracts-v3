@@ -316,7 +316,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.payDividendFromEntity(randomGuid, 10 ether);
 
         changePrank(em.addr);
-        nayms.assignRole(account0Id, acc0EntityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(acc0EntityId, acc0EntityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
         changePrank(account0);
         vm.expectRevert("payDividendFromEntity: insufficient balance");
         nayms.payDividendFromEntity(randomGuid, 10 ether);
@@ -357,7 +357,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         bytes32 randomGuid = bytes32("0x1");
 
         changePrank(em.addr);
-        nayms.assignRole(account0Id, acc0EntityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(acc0EntityId, acc0EntityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(account0);
         nayms.payDividendFromEntity(randomGuid, 1 ether);
@@ -448,7 +448,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether, "eAlice's nWETH balance should INCREASE (deposit)");
 
         changePrank(em.addr);
-        nayms.assignRole(aliceId, eAlice, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(eAlice, eAlice, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
         bytes32 randomGuid = bytes32("0x1");
@@ -495,7 +495,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
@@ -584,7 +584,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
         writeTokenBalance(alice, naymsAddress, wethAddress, type(uint256).max);
@@ -659,13 +659,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sm.addr);
         nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
         nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eDavid, eDavid, LC.ROLE_ENTITY_CP);
         nayms.assignRole(eEmily, eEmily, LC.ROLE_ENTITY_CP);
         nayms.assignRole(eFaith, eFaith, LC.ROLE_ENTITY_CP);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
         nayms.assignRole(eDavid, eDavid, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
@@ -829,7 +828,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         // check token supply of participation token (entity token)
         assertEq(nayms.internalTokenSupply(eAlice), 20_000, "eAlice participation token supply should INCREASE (mint)");
@@ -852,9 +851,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
-
-        changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
         nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
@@ -936,7 +932,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(aliceId, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(sm.addr);
         // 1. ---- start token sale ----
@@ -1029,7 +1025,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, eAlice, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(aliceId, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         // STAGE 1: Alice is starting an eAlice token sale.
         changePrank(sm.addr);
@@ -1093,7 +1089,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
