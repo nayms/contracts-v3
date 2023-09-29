@@ -37,6 +37,31 @@ contract SmartDeploy is DeploymentHelpers {
         vm.stopBroadcast();
     }
 
+    function smartDeploy(
+        bool deployNewDiamond,
+        address _owner,
+        address _systemAdmin,
+        address initAddress,
+        FacetDeploymentAction facetDeploymentAction,
+        string[] memory facetsToCutIn,
+        bytes32 salt
+    )
+        external
+        returns (
+            // string[] memory facetsToCutIn
+            address diamondAddress,
+            address initDiamondAddress,
+            IDiamondCut.FacetCut[] memory cut,
+            bytes32 upgradeHash
+        )
+    {
+        vm.startBroadcast(msg.sender);
+
+        (diamondAddress, initDiamondAddress, cut, upgradeHash) = smartDeployment(deployNewDiamond, _owner, _systemAdmin, initAddress, facetDeploymentAction, facetsToCutIn, salt);
+
+        vm.stopBroadcast();
+    }
+
     function scheduleAndUpgradeDiamond() external {
         // 1. deploys new facets
         // 2. schedules upgrade

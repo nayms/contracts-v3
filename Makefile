@@ -10,6 +10,7 @@ facetAction=1		# 0 - all, 1 - changed, 2 - listed
 deploymentSalt=0xdeffffffff
 ownerAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdminAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
+initDiamondAddress=
 
 .DEFAULT_GOAL := help
 
@@ -470,6 +471,18 @@ anvil-upgrade-init-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond
 anvil-upgrade-init: ## Anvil - upgrading a diamond WITH InitDiamond
 	forge script SmartDeploy \
 		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} true 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-upgrade-init-addr: ## Anvil - upgrading a diamond WITH InitDiamond AND pass in init diamond address
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initDiamondAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${ownerAddress} \
