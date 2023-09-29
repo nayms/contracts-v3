@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { SimplePolicyInfo, CalculatedFees } from "../AppStorage.sol";
+import { SimplePolicyInfo, SimplePolicy, CalculatedFees } from "../AppStorage.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
@@ -62,6 +62,24 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
                 claimsPaid: LibSimplePolicy._getSimplePolicyInfo(_policyId).claimsPaid,
                 premiumsPaid: LibSimplePolicy._getSimplePolicyInfo(_policyId).premiumsPaid
             });
+    }
+
+    /**
+     * @dev Get simple policy
+     * @param _policyId Id of the simple policy
+     * @return Simple policy metadata
+     */
+    function getSimplePolicy(bytes32 _policyId) external view returns (SimplePolicy memory) {
+        return LibSimplePolicy._getSimplePolicyInfo(_policyId);
+    }
+
+    /**
+     * @dev Get the list of commission receivers
+     * @param _id Id of the simple policy
+     * @return commissionReceivers
+     */
+    function getPolicyCommissionReceivers(bytes32 _id) external view returns (bytes32[] memory commissionReceivers) {
+        return LibSimplePolicy._getSimplePolicyInfo(_id).commissionReceivers;
     }
 
     /**
