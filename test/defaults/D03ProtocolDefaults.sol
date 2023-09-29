@@ -7,12 +7,14 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { StdStyle } from "forge-std/StdStyle.sol";
 
 // solhint-disable no-console
 // solhint-disable state-visibility
 
 abstract contract T02AccessHelpers is D02TestSetup {
     using LibHelpers for *;
+    using StdStyle for *;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
 
@@ -33,6 +35,40 @@ abstract contract T02AccessHelpers is D02TestSetup {
         LC.GROUP_EXTERNAL_DEPOSIT,
         LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY
     ];
+
+    /// @dev Print roles
+    function hRoles(address id) public view {
+        hRoles(LibHelpers._getIdForAddress(id));
+    }
+
+    function hRoles(address id, bytes32 context) public view {
+        hRoles(LibHelpers._getIdForAddress(id), context);
+    }
+
+    function hRoles(NaymsAccount memory id) public view {
+        hRoles(id.id);
+    }
+
+    function hRoles(NaymsAccount memory id, bytes32 context) public view {
+        hRoles(id.id, context);
+    }
+
+    function hRoles(bytes32 id, bytes32 context) public view {
+        bytes32 parent = hRoles(id);
+        c.log(string.concat("Parent role in given context ", hGetRoleInContext(parent, context).blue()));
+        c.log(string.concat("User role in given context ", hGetRoleInContext(id, parent).blue()));
+    }
+
+    function hRoles(bytes32 id) public view returns (bytes32 parent) {
+        parent = nayms.getEntity(id);
+        c.log(string.concat("User ", vm.toString(id)));
+        c.log(id._getAddressFromId());
+        c.log(string.concat("Parent ", vm.toString(parent)));
+        c.log(string.concat("Parent role in parent context ", hGetRoleInContext(parent, parent).blue()));
+        c.log(string.concat("User role in parent context ", hGetRoleInContext(id, parent).blue()));
+        c.log(string.concat("User role in system context ", hGetRoleInContext(id, systemContext).blue()));
+        c.log(string.concat("Parent role in system context (not checked by assertPrivilege)", hGetRoleInContext(parent, systemContext).blue()));
+    }
 
     function hAssignRole(
         bytes32 _objectId,
