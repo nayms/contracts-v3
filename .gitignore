@@ -55,3 +55,6 @@ cov-html
 
 # macOS
 .DS_Store
+
+# Generated files
+script/deployment/S03UpgradeDiamond.s.sol
