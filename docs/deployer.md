@@ -22,7 +22,7 @@ Supported operations are:
 Supported flags are:
 
 - `--fork` - tells the deployer you are working against a forked node
-- `--dry-run` - tells the deployer just to print out the commands it would execut without actually executing them
+- `--dry-run` - tells the deployer just to print out the commands it would execute without actually executing them
 
 > Make sure to have environment variables defined for JSON RPC endpoints in this format $ETH\_\<networkID\>\_RPC_URL
 

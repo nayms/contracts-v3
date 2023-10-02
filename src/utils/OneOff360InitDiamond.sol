@@ -53,7 +53,7 @@ contract OneOff360InitDiamond {
         s.tokenSymbolObjectId["ILWSA01"] = 0xab023d09eb3f2cd821b38c355c45b7aaae24711ac087da3c8c45b7e77190577b;
         s.tokenSymbolObjectId["KF1SA"] = 0x3426d806c3a8118219d01b78c44b26983f41f455bd526d58bf68e8d30bc9fb5b;
 
-        console.log(StdStyle.yellow("TOKEN SIMBOL UNIQUENESS FIXED"));
+        console.log(StdStyle.yellow("TOKEN SYMBOL UNIQUENESS FIXED"));
 
         // update role group mappings and assigners
         // Remove system admin from system managers group
