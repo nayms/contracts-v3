@@ -65,15 +65,6 @@ contract SimplePolicyFacet is ISimplePolicyFacet, Modifiers {
     }
 
     /**
-     * @dev Get simple policy
-     * @param _policyId Id of the simple policy
-     * @return Simple policy metadata
-     */
-    function getSimplePolicy(bytes32 _policyId) external view returns (SimplePolicy memory) {
-        return LibSimplePolicy._getSimplePolicyInfo(_policyId);
-    }
-
-    /**
      * @dev Get the list of commission receivers
      * @param _id Id of the simple policy
      * @return commissionReceivers

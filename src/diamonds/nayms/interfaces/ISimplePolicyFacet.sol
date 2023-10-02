@@ -55,13 +55,6 @@ interface ISimplePolicyFacet {
     function getSimplePolicyInfo(bytes32 _id) external view returns (SimplePolicyInfo memory);
 
     /**
-     * @dev Get full simple policy with commission receivers
-     * @param _id Id of the simple policy
-     * @return Simple policy metadata
-     */
-    function getSimplePolicy(bytes32 _id) external view returns (SimplePolicy memory);
-
-    /**
      * @dev Get the list of commission receivers
      * @param _id Id of the simple policy
      * @return commissionReceivers
