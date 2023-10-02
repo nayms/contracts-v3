@@ -10,7 +10,7 @@ facetAction=1		# 0 - all, 1 - changed, 2 - listed
 deploymentSalt=0xdeffffffff
 ownerAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdminAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
-initDiamondAddress=
+updateStateAddress=
 
 .DEFAULT_GOAL := help
 
@@ -256,6 +256,32 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 		-vv \
 		--ffi 
 
+deploy-mainnet-init: ## upgrade to mainnet with a state update via a state updating (init) contract
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--slow \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+
+deploy-mainnet-init-sim: ## simulate upgrade to mainnet with a state update via a state updating (init) contract
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		-vv \
+		--ffi 
+
 deploy-mainnet-fork: ## smart deploy to local mainnet fork
 	@cast rpc anvil_impersonateAccount ${mainnetSysAdmin} && \
 	cast send ${diamondAddress} "transferOwnership(address)" \
@@ -491,7 +517,7 @@ anvil-upgrade-init: ## Anvil - upgrading a diamond WITH InitDiamond
 
 anvil-upgrade-init-addr: ## Anvil - upgrading a diamond WITH InitDiamond AND pass in init diamond address
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initDiamondAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${ownerAddress} \
@@ -503,7 +529,7 @@ anvil-upgrade-init-addr: ## Anvil - upgrading a diamond WITH InitDiamond AND pas
 
 anvil-upgrade-init-addr-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond AND pass in init diamond address. Use this to get the upgrade hash.
 	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initDiamondAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${ownerAddress} \
