@@ -492,6 +492,28 @@ anvil-upgrade-init-addr: ## Anvil - upgrading a diamond WITH InitDiamond AND pas
 		--ffi \
 		--broadcast
 
+anvil-upgrade-init-addr-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond AND pass in init diamond address. Use this to get the upgrade hash.
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${initDiamondAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi
+
+anvil-deploy-oneoff: ## deploy contract to anvil
+	forge script DeployOneoff \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${systemAdminAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 0 \
+		-vvvvv \
+		--ffi \
+		--broadcast
+
 anvil-deploy-contract: ## deploy contract to anvil
 	forge script S01DeployContract \
 		-s "run(string calldata)" ${contractName} \
