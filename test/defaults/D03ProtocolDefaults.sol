@@ -111,6 +111,8 @@ abstract contract T02AccessHelpers is D02TestSetup {
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
 contract D03ProtocolDefaults is T02AccessHelpers {
+    using StdStyle for *;
+
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
     bytes32 public naymsTokenId;
 
@@ -358,5 +360,14 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
+    }
+
+    /// Pretty print ///
+    function hCr(bytes32 objectId) public {
+        bytes32[] memory cr = nayms.getPolicyCommissionReceivers(objectId);
+        c.log(string.concat(vm.toString(objectId), "'s commission receivers:").blue());
+        for (uint256 i; i < cr.length; i++) {
+            c.logBytes32(cr[i]);
+        }
     }
 }
