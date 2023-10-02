@@ -292,6 +292,15 @@ deploy-contract: ## deploy any contract to mainnet
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
 
+deploy-contract-sim: ## simulate deploying any contract to mainnet
+	forge script S01DeployContract \
+		-s "run(string calldata)" ${contractName} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--sender ${senderAddress} \
+		-vv \
+		--ffi
+
 deploy-contract-sepolia: ## deploy any contract to Sepolia
 	forge script S01DeployContract \
 		-s "run(string calldata)" ${contractName} \
@@ -502,17 +511,6 @@ anvil-upgrade-init-addr-sim: ## Anvil - simulate upgrading a diamond WITH InitDi
 		--mnemonic-indexes 19 \
 		-vv \
 		--ffi
-
-anvil-deploy-oneoff: ## deploy contract to anvil
-	forge script DeployOneoff \
-		-f http:\\127.0.0.1:8545 \
-		--chain-id 31337 \
-		--sender ${systemAdminAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 0 \
-		-vvvvv \
-		--ffi \
-		--broadcast
 
 anvil-deploy-contract: ## deploy contract to anvil
 	forge script S01DeployContract \
