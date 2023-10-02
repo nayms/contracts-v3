@@ -25,9 +25,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Update path
-        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
-
       - name: Make solstat report
         run: solstat --path ./src/diamonds/nayms/
 

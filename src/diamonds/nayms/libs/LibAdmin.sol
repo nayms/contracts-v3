@@ -57,16 +57,19 @@ library LibAdmin {
             revert CannotSupportExternalTokenWithMoreThan18Decimals();
         }
         AppStorage storage s = LibAppStorage.diamondStorage();
-
+        require(!s.externalTokenSupported[_tokenAddress], "external token already added");
         require(s.objectTokenWrapperId[_tokenAddress] == bytes32(0), "cannot add participation token wrapper as external");
 
-        bool alreadyAdded = s.externalTokenSupported[_tokenAddress];
-        if (!alreadyAdded) {
-            s.externalTokenSupported[_tokenAddress] = true;
-            LibObject._createObject(LibHelpers._getIdForAddress(_tokenAddress));
-            s.supportedExternalTokens.push(_tokenAddress);
-            emit SupportedTokenAdded(_tokenAddress);
-        }
+        string memory symbol = LibERC20.symbol(_tokenAddress);
+        require(LibObject._tokenSymbolNotUsed(symbol), "token symbol already in use");
+
+        s.externalTokenSupported[_tokenAddress] = true;
+        bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
+        LibObject._createObject(tokenId);
+        s.supportedExternalTokens.push(_tokenAddress);
+        s.tokenSymbolObjectId[symbol] = tokenId;
+
+        emit SupportedTokenAdded(_tokenAddress);
     }
 
     function _getSupportedExternalTokens() internal view returns (address[] memory) {

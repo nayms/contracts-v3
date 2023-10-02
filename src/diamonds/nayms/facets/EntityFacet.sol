@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../AppStorage.sol";
 import { Modifiers } from "../Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { ReentrancyGuard } from "../../../utils/ReentrancyGuard.sol";
 import { IEntityFacet } from "../interfaces/IEntityFacet.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
+import { LibFeeRouter } from "src/diamonds/nayms/libs/LibFeeRouter.sol";
 
 /**
  * @title Entities
@@ -42,7 +45,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external assertSysMgr assertSimplePolicyEnabled(_entityId) {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
@@ -56,8 +59,22 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _objectId,
         string memory _symbol,
         string memory _name
-    ) external assertSysAdmin {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
+    }
+
+    /**
+     * @notice Update entity token name and symbol
+     * @param _entityId ID of the entity
+     * @param _symbol New entity token symbol
+     * @param _name New entity token name
+     */
+    function updateEntityTokenInfo(
+        bytes32 _entityId,
+        string memory _symbol,
+        string memory _name
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+        LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
     /**
@@ -71,7 +88,7 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
         bytes32 _entityId,
         uint256 _amount,
         uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertSysMgr {
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
@@ -89,16 +106,26 @@ contract EntityFacet is IEntityFacet, Modifiers, ReentrancyGuard {
      * @param _entityId ID of the entity
      * @param _updateEntity metadata of the entity that can be updated
      */
-    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertSysMgr {
+    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._updateEntity(_entityId, _updateEntity);
     }
 
     /**
-     * @notice Get the the data for entity with ID: `_entityId`
+     * @notice Get the data for entity with ID: `_entityId`
      * @dev Get the Entity data for a given entityId
      * @param _entityId ID of the entity
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory) {
         return LibEntity._getEntityInfo(_entityId);
+    }
+
+    /**
+     * @notice Get the fee schedule
+     * @param _entityId ID of the entity
+     * @param _feeScheduleType fee schedule type
+     * @return FeeSchedule of given type for the entity
+     */
+    function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory) {
+        return LibFeeRouter._getFeeSchedule(_entityId, _feeScheduleType);
     }
 }

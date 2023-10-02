@@ -37,6 +37,31 @@ contract SmartDeploy is DeploymentHelpers {
         vm.stopBroadcast();
     }
 
+    function smartDeploy(
+        bool deployNewDiamond,
+        address _owner,
+        address _systemAdmin,
+        address initAddress,
+        FacetDeploymentAction facetDeploymentAction,
+        string[] memory facetsToCutIn,
+        bytes32 salt
+    )
+        external
+        returns (
+            // string[] memory facetsToCutIn
+            address diamondAddress,
+            address initDiamondAddress,
+            IDiamondCut.FacetCut[] memory cut,
+            bytes32 upgradeHash
+        )
+    {
+        vm.startBroadcast(msg.sender);
+
+        (diamondAddress, initDiamondAddress, cut, upgradeHash) = smartDeployment(deployNewDiamond, _owner, _systemAdmin, initAddress, facetDeploymentAction, facetsToCutIn, salt);
+
+        vm.stopBroadcast();
+    }
+
     function scheduleAndUpgradeDiamond() external {
         // 1. deploys new facets
         // 2. schedules upgrade
@@ -53,6 +78,13 @@ contract SmartDeploy is DeploymentHelpers {
             nayms.createUpgrade(upgradeHash);
             nayms.diamondCut(cut, address(0), new bytes(0));
         }
+        vm.stopBroadcast();
+    }
+
+    function schedule(bytes32 upgradeHash) external {
+        INayms nayms = INayms(getDiamondAddressFromFile());
+        vm.startBroadcast(msg.sender);
+        nayms.createUpgrade(upgradeHash);
         vm.stopBroadcast();
     }
 

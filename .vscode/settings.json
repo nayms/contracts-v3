@@ -14,5 +14,7 @@
     ".gas-snapshot": "julia"
   },
   "solidity.packageDefaultDependenciesContractsDirectory": "src",
-  "solidity.packageDefaultDependenciesDirectory": "lib"
+  "solidity.packageDefaultDependenciesDirectory": "lib",
+  "slither.solcPath": "",
+  "slither.hiddenDetectors": []
 }

@@ -1,9 +1,9 @@
 {
   "name": "@nayms/contracts",
-  "version": "3.4.6-qs2",
+  "version": "3.6.3",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts-v3.git",
-  "author": "Kevin Park <kevin@fruitful.fi>",
+  "author": "Kevin Park <kevin@fruitful.gg>",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -48,7 +48,7 @@
     "glob": "^8.0.3",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
-    "solc": "^0.8.16",
+    "solc": "0.8.17",
     "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.21",
     "solidity-docgen": "^0.5.17"

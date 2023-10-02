@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { LibAppStorage, AppStorage } from "../AppStorage.sol";
-import { Entity, SimplePolicy, Stakeholders } from "../AppStorage.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../AppStorage.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -11,9 +11,10 @@ import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
 import { LibSimplePolicy } from "./LibSimplePolicy.sol";
+import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -71,20 +72,26 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        // by default there are always 3 platform commission receivers: Nayms, NDF and STM
-        // policy-level receivers are also expected
+        FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_PREMIUM);
+        uint256 feeReceiversCount = feeSchedule.receiver.length;
+        // There must be at least one receiver from the fee schedule
+        require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
+
+        // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
-        require(commissionReceiversArrayLength > 3, "must have commission receivers");
-        require(commissionReceiversArrayLength <= 3 + _stakeholders.roles.length, "too many commission receivers");
+        require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
         require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
 
-        uint256 totalBP;
+        uint256 commissionReceiversTotalBP;
         for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
-            totalBP += simplePolicy.commissionBasisPoints[i];
+            commissionReceiversTotalBP += simplePolicy.commissionBasisPoints[i];
         }
-        require(totalBP <= LibConstants.BP_FACTOR, "bp cannot be > 10000");
+
+        if (commissionReceiversTotalBP > LibConstants.BP_FACTOR / 2) {
+            revert FeeBasisPointsExceedHalfMax(commissionReceiversTotalBP, LibConstants.BP_FACTOR / 2);
+        }
 
         require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
     }
@@ -107,12 +114,6 @@ library LibEntity {
         require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
 
         s.simplePolicies[_policyId] = _simplePolicy;
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.NDF_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionReceivers.push(LibHelpers._stringToBytes32(LibConstants.STM_IDENTIFIER));
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNaymsLtdBP);
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionNDFBP);
-        s.simplePolicies[_policyId].commissionBasisPoints.push(s.premiumCommissionSTMBP);
 
         _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
@@ -159,7 +160,7 @@ library LibEntity {
         emit SimplePolicyCreated(_policyId, _entityId);
     }
 
-    function getSigner(bytes32 signingHash, bytes memory signature) private returns (address) {
+    function getSigner(bytes32 signingHash, bytes memory signature) private pure returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;
@@ -215,14 +216,14 @@ library LibEntity {
         // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
-        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_SCHEDULE_STANDARD);
+        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_TYPE_INITIAL_SALE);
 
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
     function _createEntity(
         bytes32 _entityId,
-        bytes32 _entityAdmin,
+        bytes32 _accountAdmin,
         Entity calldata _entity,
         bytes32 _dataHash
     ) internal {
@@ -234,17 +235,17 @@ library LibEntity {
         validateEntity(_entity);
 
         LibObject._createObject(_entityId, _dataHash);
-        LibObject._setParent(_entityAdmin, _entityId);
+        LibObject._setParent(_accountAdmin, _entityId);
         s.existingEntities[_entityId] = true;
 
-        LibACL._assignRole(_entityAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
+        LibACL._assignRole(_accountAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
 
         // An entity starts without any capacity being utilized
         require(_entity.utilizedCapacity == 0, "utilized capacity starts at 0");
 
         s.entities[_entityId] = _entity;
 
-        emit EntityCreated(_entityId, _entityAdmin);
+        emit EntityCreated(_entityId, _accountAdmin);
     }
 
     /// @dev This currently updates a non cell type entity and a cell type entity, but

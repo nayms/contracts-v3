@@ -24,6 +24,7 @@ import { ITokenizedVaultFacet } from "../nayms/interfaces/ITokenizedVaultFacet.s
 import { ITokenizedVaultIOFacet } from "../nayms/interfaces/ITokenizedVaultIOFacet.sol";
 import { IUserFacet } from "../nayms/interfaces/IUserFacet.sol";
 import { IGovernanceFacet } from "../nayms/interfaces/IGovernanceFacet.sol";
+import { FeeSchedule } from "../nayms/interfaces/FreeStructs.sol";
 
 error DiamondAlreadyInitialized();
 
@@ -49,20 +50,19 @@ contract InitDiamond {
         s.existingObjects[0] = true;
 
         // Set Commissions (all are in basis points)
-        s.tradingCommissionTotalBP = 30;
-        // From the tradingCommissionTotalBP, each of the following entities take their share.
-        s.tradingCommissionNaymsLtdBP = 5000;
-        s.tradingCommissionNDFBP = 2500;
-        s.tradingCommissionSTMBP = 2500;
-        s.tradingCommissionMakerBP; // init 0
+        bytes32[] memory receiver = new bytes32[](1);
+        receiver[0] = LibHelpers._stringToBytes32(LibConstants.NAYMS_LTD_IDENTIFIER);
 
-        // A percentage of the premium payments are taken as commission.
-        // The following entities take this percentage of premium payments (in basis points)
-        // The calculation for the commission is done in the following way:
-        // premium payment amount * entity commissions (in basis points) / 10000
-        s.premiumCommissionNaymsLtdBP = 150;
-        s.premiumCommissionNDFBP = 75;
-        s.premiumCommissionSTMBP = 75;
+        uint16[] memory premiumBP = new uint16[](1);
+        premiumBP[0] = 300;
+        uint16[] memory tradingBP = new uint16[](1);
+        tradingBP[0] = 30;
+        uint16[] memory initSaleBP = new uint16[](1);
+        initSaleBP[0] = 100;
+
+        s.feeSchedules[LibConstants.DEFAULT_FEE_SCHEDULE][LibConstants.FEE_TYPE_PREMIUM] = FeeSchedule({ receiver: receiver, basisPoints: premiumBP });
+        s.feeSchedules[LibConstants.DEFAULT_FEE_SCHEDULE][LibConstants.FEE_TYPE_TRADING] = FeeSchedule({ receiver: receiver, basisPoints: tradingBP });
+        s.feeSchedules[LibConstants.DEFAULT_FEE_SCHEDULE][LibConstants.FEE_TYPE_INITIAL_SALE] = FeeSchedule({ receiver: receiver, basisPoints: initSaleBP });
 
         s.naymsTokenId = LibHelpers._getIdForAddress(address(this));
         s.naymsToken = address(this);

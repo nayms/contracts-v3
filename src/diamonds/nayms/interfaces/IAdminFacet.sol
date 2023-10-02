@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PolicyCommissionsBasisPoints, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+import { FeeSchedule } from "./FreeStructs.sol";
 
 /**
  * @title Administration
@@ -14,18 +14,6 @@ interface IAdminFacet {
      * @param _newMax new value to be used.
      */
     function setMaxDividendDenominations(uint8 _newMax) external;
-
-    /**
-     * @notice Update policy commission basis points configuration.
-     * @param _policyCommissions policy commissions configuration to set
-     */
-    function setPolicyCommissionsBasisPoints(PolicyCommissionsBasisPoints calldata _policyCommissions) external;
-
-    /**
-     * @notice Update trading commission basis points configuration.
-     * @param _tradingCommissions trading commissions configuration to set
-     */
-    function setTradingCommissionsBasisPoints(TradingCommissionsBasisPoints calldata _tradingCommissions) external;
 
     /**
      * @notice Get the max dividend denominations value
@@ -62,7 +50,7 @@ interface IAdminFacet {
      * @notice Check if object can be tokenized
      * @param _objectId ID of the object
      */
-    function isObjectTokenizable(bytes32 _objectId) external returns (bool);
+    function isObjectTokenizable(bytes32 _objectId) external view returns (bool);
 
     /**
      * @notice System Admin can lock a function
@@ -94,4 +82,19 @@ interface IAdminFacet {
      * @notice Unlock all contract methods involving fund transfers
      */
     function unlockAllFundTransferFunctions() external;
+
+    /**
+     * @notice Update market maker fee basis points
+     * @param _newMakerBP new maker fee value
+     */
+    function replaceMakerBP(uint16 _newMakerBP) external;
+
+    function addFeeSchedule(
+        bytes32 entityId,
+        uint256 _feeScheduleType,
+        bytes32[] calldata _receiver,
+        uint16[] calldata _basisPoints
+    ) external;
+
+    function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external;
 }

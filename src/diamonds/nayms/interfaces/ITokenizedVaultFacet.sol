@@ -100,4 +100,11 @@ interface ITokenizedVaultFacet {
      * @return amount of tokens that the entity has for sale in the marketplace.
      */
     function getLockedBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256 amount);
+
+    function internalTransferBySystemAdmin(
+        bytes32 _fromEntityId,
+        bytes32 _toEntityId,
+        bytes32 _tokenId,
+        uint256 _amount
+    ) external;
 }

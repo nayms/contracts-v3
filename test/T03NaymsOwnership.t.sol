@@ -1,26 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
+import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { INayms } from "src/diamonds/nayms/INayms.sol";
-import { Entity } from "src/diamonds/nayms/AppStorage.sol";
-
 contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    using LibHelpers for *;
+
+    function setUp() public {}
 
     function testTransferOwernshipFailsIfNotSysAdmin() public {
         changePrank(signer2);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer2Id, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.transferOwnership(signer1);
     }
 
     function testTransferOwernshipFailsIfNewOwnerIsSysAdmin() public {
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(signer1Id, systemContext, LC.ROLE_SYSTEM_ADMIN);
 
         changePrank(signer1);
         vm.expectRevert("NEW owner MUST NOT be sys admin");
@@ -28,8 +26,8 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testTransferOwernshipFailsIfNewOwnerIsSysManager() public {
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
-        nayms.assignRole(signer2Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
+        nayms.assignRole(signer1Id, systemContext, LC.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(signer2Id, systemContext, LC.ROLE_SYSTEM_MANAGER);
 
         changePrank(signer1);
         vm.expectRevert("NEW owner MUST NOT be sys manager");
@@ -37,28 +35,27 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testTransferOwernship() public {
-        nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(signer1Id, systemContext, LC.ROLE_SYSTEM_ADMIN);
 
         changePrank(signer1);
         nayms.transferOwnership(signer2);
         vm.stopPrank();
 
         assertTrue(nayms.owner() == signer2);
-        assertFalse(nayms.isInGroup(signer2Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+        assertFalse(nayms.isInGroup(signer2Id, systemContext, LC.GROUP_SYSTEM_ADMINS));
     }
 
-    // solhint-disable func-name-mixedcase
     function testFuzz_TransferOwnership(
         address newOwner,
         address notSysAdmin,
         address anotherSysAdmin
     ) public {
-        vm.assume(newOwner != anotherSysAdmin);
+        vm.assume(newOwner != anotherSysAdmin && newOwner != account0);
         vm.assume(anotherSysAdmin != address(0));
 
         bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
         // note: for this test, assume that the notSysAdmin address is not a system admin
-        vm.assume(!nayms.isInGroup(notSysAdminId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
+        vm.assume(!nayms.isInGroup(notSysAdminId, systemContext, LC.GROUP_SYSTEM_ADMINS));
 
         vm.label(newOwner, "newOwner");
         vm.label(notSysAdmin, "notSysAdmin");
@@ -69,12 +66,12 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
 
         // Only a system admin can transfer diamond ownership
         changePrank(notSysAdmin);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, notSysAdmin._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.transferOwnership(newOwner);
 
         // Only a system admin can transfer diamond ownership, the new owner isn't a system admin
         changePrank(newOwner);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, newOwner._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.transferOwnership(newOwner);
 
         // System admin can transfer diamond ownership
@@ -83,7 +80,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertTrue(nayms.owner() == newOwner);
 
         bytes32 anotherSysAdminId = LibHelpers._getIdForAddress(address(anotherSysAdmin));
-        nayms.assignRole(anotherSysAdminId, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
+        nayms.assignRole(anotherSysAdminId, systemContext, LC.ROLE_SYSTEM_ADMIN);
 
         changePrank(anotherSysAdmin);
         nayms.transferOwnership(nayms.owner());

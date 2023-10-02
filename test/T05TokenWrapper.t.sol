@@ -3,13 +3,13 @@ pragma solidity 0.8.17;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, c, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
     bytes32 internal entityId1 = "0xe1";
+    bytes32 internal entityId2 = "0xe2";
 
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";
@@ -18,9 +18,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
 
     bytes32 internal constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testOnlyDiamondCanWrapTokens() public {
         vm.expectRevert();
@@ -28,14 +26,22 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     }
 
     function testWrapEntityToken() public {
+        changePrank(sm.addr);
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
+        nayms.createEntity(entityId2, signer2Id, initEntity(wethId, 5_000, 30_000, true), "test");
 
+        bytes32 eSigner2 = nayms.getEntity(signer2Id);
+        nayms.assignRole(eSigner2, eSigner2, LC.ROLE_ENTITY_CP);
+
+        changePrank(sa.addr);
         vm.expectRevert("must be tokenizable");
         nayms.wrapToken(entityId1);
 
+        changePrank(sm.addr);
         nayms.enableEntityTokenization(entityId1, testSymbol, testName);
-
         nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
+
+        changePrank(sa.addr);
 
         vm.recordLogs();
 
@@ -64,8 +70,17 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         assertEq(wrapper.totalSupply(), nayms.internalTokenSupply(entityId1), "token supply should match");
         assertEq(wrapper.totalSupply(), tokenAmount, "token supply should match sale amount");
 
-        changePrank(account0);
-        nayms.cancelOffer(1); // unlock tokens from market, to enable transfer
+        // fund signer2
+        changePrank(signer2);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(entityId2, wethId, entityId1, tokenAmount);
+        uint256 amountWithFees = tokenAmount + totalFees_;
+        writeTokenBalance(signer2, naymsAddress, wethAddress, amountWithFees);
+        nayms.externalDeposit(wethAddress, amountWithFees);
+
+        // signer2 buy p-tokens
+        nayms.executeLimitOffer(wethId, tokenAmount, entityId1, tokenAmount);
+
+        // signer2 transfer p-tokens to account0
         nayms.internalTransferFromEntity(account0Id, entityId1, tokenAmount);
         assertEq(wrapper.balanceOf(account0), nayms.internalBalanceOf(account0Id, entityId1), "wrapper balance should match diamond");
     }
@@ -75,6 +90,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         (, , , , address wrapperAddress) = nayms.getObjectMeta(entityId1);
         ERC20Wrapper wrapper = ERC20Wrapper(wrapperAddress);
 
+        changePrank(account0);
         wrapper.transfer(signer1, tokenAmount);
 
         assertEq(wrapper.balanceOf(signer1), tokenAmount, "signer1 balance should increase");

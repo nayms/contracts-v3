@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D03ProtocolDefaults, console2, LibAdmin, LibConstants, LibHelpers, LibObject } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
-import { LibACL } from "../src/diamonds/nayms/libs/LibACL.sol";
-import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 import { IDiamondCut } from "src/diamonds/shared/interfaces/IDiamondCut.sol";
 import { PhasedDiamondCutFacet, PhasedDiamondCutUpgradeFailed } from "src/diamonds/shared/facets/PhasedDiamondCutFacet.sol";
+import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 
 /// @dev Testing for Nayms upgrade pattern
 
@@ -22,12 +21,12 @@ contract TestFacet {
 }
 
 contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
+    using LibHelpers for *;
+
     uint256 public constant STARTING_BLOCK_TIMESTAMP = 100;
     address public testFacetAddress;
 
-    function setUp() public virtual override {
-        super.setUp();
-
+    function setUp() public {
         // note: The diamond starts with the PhasedDiamondCutFacet insteaad of the original DiamondCutFacet
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
@@ -172,7 +171,7 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         nayms.createUpgrade(upgradeId);
 
         changePrank(address(0xAAAAAAAAA));
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, address(0xAAAAAAAAA)._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.updateUpgradeExpiration(1 days);
 
         changePrank(systemAdmin);

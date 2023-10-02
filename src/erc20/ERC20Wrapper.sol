@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-// solhint-disable func-name-mixedcase
-
 import { IERC20 } from "./IERC20.sol";
 import { INayms } from "../diamonds/nayms/INayms.sol";
 import { LibHelpers } from "../diamonds/nayms/libs/LibHelpers.sol";
@@ -78,7 +76,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
         return true;
     }
 
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) external returns (bool) {
         require(type(uint256).max - allowances[msg.sender][spender] >= addedValue, "ERC20: allowance overflow");
         unchecked {
             allowances[msg.sender][spender] += addedValue;
@@ -86,7 +84,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
         return true;
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool) {
         uint256 currentAllowance = allowances[msg.sender][spender];
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
         unchecked {

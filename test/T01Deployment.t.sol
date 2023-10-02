@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "forge-std/Test.sol";
+import { StdStorage, stdStorage } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { D03ProtocolDefaults, console2, LibConstants, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { INayms, IDiamondLoupe } from "src/diamonds/nayms/INayms.sol";
 import { DiamondAlreadyInitialized } from "src/diamonds/nayms/InitDiamond.sol";
-import { CREATE3 } from "solmate/utils/CREATE3.sol";
 
 import { IERC165 } from "../src/diamonds/shared/interfaces/IERC165.sol";
 import { IDiamondCut } from "../src/diamonds/shared/interfaces/IDiamondCut.sol";
@@ -29,12 +28,10 @@ import { IGovernanceFacet } from "../src/diamonds/nayms/interfaces/IGovernanceFa
 contract T01DeploymentTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
 
-    function setUp() public virtual override {
-        super.setUp();
-    }
+    function setUp() public {}
 
     function testOwnerOfDiamond() public {
-        assertEq(nayms.owner(), account0);
+        assertEq(nayms.owner(), owner);
     }
 
     function testDiamondLoupeFunctionality() public view {
@@ -47,14 +44,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         nayms.facetAddresses();
     }
 
-    function testFork() public {
-        string memory mainnetUrl = vm.rpcUrl("mainnet");
-        string memory goerliUrl = vm.rpcUrl("goerli");
-        uint256 mainnetFork = vm.createSelectFork(mainnetUrl, MAINNET_FORK_BLOCK_NUMBER);
-        uint256 goerliFork = vm.createSelectFork(goerliUrl, GOERLI_FORK_BLOCK_NUMBER);
-    }
-
-    function testInitDiamond() public {
+    function testInitDiamond() public skipWhenForking {
         InitDiamondFixture fixture = new InitDiamondFixture();
 
         changePrank(owner);
@@ -77,27 +67,10 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(fixture.isObject(0));
 
         assertEq(fixture.getMaxDividendDenominations(), 1);
-
-        assertTrue(nayms.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IDiamondCut).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IDiamondLoupe).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IERC173).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IERC20).interfaceId));
-
-        assertTrue(nayms.supportsInterface(type(IACLFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IAdminFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IEntityFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IMarketFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(INaymsTokenFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(ISimplePolicyFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(ISystemFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(ITokenizedVaultFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(ITokenizedVaultIOFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IUserFacet).interfaceId));
-        assertTrue(nayms.supportsInterface(type(IGovernanceFacet).interfaceId));
     }
 
-    function testCallInitDiamondTwice() public {
+    /// @dev For a new diamond using the InitDiamond only.
+    function testCallInitDiamondTwice() public skipWhenForking {
         // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
         INayms.FacetCut[] memory cut;
 
@@ -108,5 +81,25 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         changePrank(owner);
         vm.expectRevert(abi.encodePacked(DiamondAlreadyInitialized.selector));
         nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
+    }
+
+    function test_supportsInterface() public {
+        assertTrue(nayms.supportsInterface(type(IERC165).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IDiamondCut).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IDiamondLoupe).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IERC173).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IERC20).interfaceId));
+
+        assertTrue(nayms.supportsInterface(type(IACLFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IAdminFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IEntityFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IGovernanceFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IMarketFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(INaymsTokenFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ISimplePolicyFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ISystemFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ITokenizedVaultFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(ITokenizedVaultIOFacet).interfaceId));
+        assertTrue(nayms.supportsInterface(type(IUserFacet).interfaceId));
     }
 }

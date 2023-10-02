@@ -2,8 +2,8 @@
 pragma solidity 0.8.17;
 
 import { Modifiers } from "../Modifiers.sol";
-import { TradingCommissions, TradingCommissionsBasisPoints, MarketInfo } from "../AppStorage.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { CalculatedFees, MarketInfo } from "../AppStorage.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -32,8 +32,8 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
      *
      * @param _offerId offer ID
      */
-    function cancelOffer(uint256 _offerId) external notLocked(msg.sig) nonReentrant {
-        require(LibMarket._getOffer(_offerId).state == LibConstants.OFFER_STATE_ACTIVE, "offer not active");
+    function cancelOffer(uint256 _offerId) external notLocked(msg.sig) nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_CANCEL_OFFER) {
+        require(LibMarket._getOffer(_offerId).state == LC.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
         require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only member of entity can cancel");
         LibMarket._cancelOffer(_offerId);
@@ -59,6 +59,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         external
         notLocked(msg.sig)
         nonReentrant
+        assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXECUTE_LIMIT_OFFER)
         returns (
             uint256 offerId_,
             uint256 buyTokenCommissionsPaid_,
@@ -68,7 +69,7 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
         // Get the msg.sender's entityId. The parent is the entityId associated with the child, aka the msg.sender.
         // note: Only the entity associated with the msg.sender can make an offer on the market
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LibConstants.FEE_SCHEDULE_STANDARD);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
     }
 
     /**
@@ -111,15 +112,24 @@ contract MarketFacet is IMarketFacet, Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @dev Calculate the trading commissions based on a buy amount.
-     * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct
+     * @dev Calculate the trading fees based on a buy amount.
+     * @param _buyerId The account buying the asset.
+     * @param _sellToken The asset being sold.
+     * @param _buyToken The asset being bought.
+     * @param _buyAmount The amount that the fees payments are calculated from.
+     * @return totalFees_ total fee to be payed
+     * @return totalBP_ total basis points
      */
-    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc) {
-        tc = LibFeeRouter._calculateTradingCommissions(buyAmount);
+    function calculateTradingFees(
+        bytes32 _buyerId,
+        bytes32 _sellToken,
+        bytes32 _buyToken,
+        uint256 _buyAmount
+    ) external view returns (uint256 totalFees_, uint256 totalBP_) {
+        (totalFees_, totalBP_) = LibFeeRouter._calculateTradingFees(_buyerId, _sellToken, _buyToken, _buyAmount);
     }
 
-    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp) {
-        bp = LibFeeRouter._getTradingCommissionsBasisPoints();
+    function getMakerBP() external view returns (uint16) {
+        return LibFeeRouter._getMakerBP();
     }
 }

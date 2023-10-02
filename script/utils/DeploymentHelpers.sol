@@ -282,7 +282,7 @@ contract DeploymentHelpers is Test {
             cut = cutS;
         } else if (facetDeploymentAction == FacetDeploymentAction.UpgradeFacetsListedOnly) {
             // Deploy the facets listed in facetsToCutIn
-            require(facetsToCutIn.length > 0, "facetDeployment: did not provide any facet names to be manually deployed");
+            // require(facetsToCutIn.length > 0, "facetDeployment: did not provide any facet names to be manually deployed");
 
             for (uint256 i; i < facetsToCutIn.length; i++) {
                 dynamicFacetCutV1(diamondAddress, facetsToCutIn[i]);
@@ -458,6 +458,51 @@ contract DeploymentHelpers is Test {
 
         if (initNewDiamond) {
             IInitDiamond initDiamond = IInitDiamond(LibGeneratedNaymsFacetHelpers.deployNaymsFacetsByName("InitDiamond"));
+            initDiamondAddress = address(initDiamond);
+            upgradeHash = keccak256(abi.encode(cut, initDiamondAddress, abi.encodeCall(initDiamond.initialize, ())));
+        } else {
+            upgradeHash = keccak256(abi.encode(cut, address(0), ""));
+        }
+        console2.log(StdStyle.blue("upgradeHash: "), StdStyle.yellow(vm.toString(upgradeHash)));
+        debugDeployment(diamondAddress, facetsToCutIn, facetDeploymentAction);
+
+        uint256 upgradeExpiry = INayms(diamondAddress).getUpgrade(upgradeHash);
+        if (upgradeExpiry >= block.timestamp) {
+            cutAndInit(diamondAddress, cut, initDiamondAddress);
+        } else {
+            console2.log(StdStyle.red("UPGRADE NOT PERFORMED"), StdStyle.blue("(but facets have been deployed and the upgrade hash is valid)"));
+            console2.log("Upgrade is not scheduled for this hash", vm.toString(upgradeHash));
+            console2.log("Upgrade expiry time from getUpgrade()", vm.toString(upgradeExpiry));
+            console2.log("Current block.timestamp for chainid", vm.toString(block.chainid), vm.toString(block.timestamp));
+            console2.log("Use the upgrade hash given above to schedule an upgrade");
+        }
+    }
+
+    function smartDeployment(
+        bool deployNewDiamond,
+        address _owner,
+        address _systemAdmin,
+        address initAddress,
+        FacetDeploymentAction facetDeploymentAction,
+        string[] memory facetsToCutIn,
+        bytes32 salt
+    )
+        public
+        returns (
+            address diamondAddress,
+            address initDiamondAddress,
+            IDiamondCut.FacetCut[] memory cut,
+            bytes32 upgradeHash
+        )
+    {
+        // deploys new Nayms diamond, or gets the diamond address from file
+        diamondAddress = diamondDeployment(deployNewDiamond, _owner, _systemAdmin, salt);
+
+        // deploys facets
+        cut = facetDeploymentAndCut(diamondAddress, facetDeploymentAction, facetsToCutIn);
+
+        if (initAddress != address(0)) {
+            IInitDiamond initDiamond = IInitDiamond(initAddress);
             initDiamondAddress = address(initDiamond);
             upgradeHash = keccak256(abi.encode(cut, initDiamondAddress, abi.encodeCall(initDiamond.initialize, ())));
         } else {

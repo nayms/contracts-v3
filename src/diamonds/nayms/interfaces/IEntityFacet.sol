@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
+import { FeeSchedule, SimplePolicy, Entity, Stakeholders } from "./FreeStructs.sol";
 
 /**
  * @title Entities
@@ -60,6 +60,18 @@ interface IEntityFacet {
     ) external;
 
     /**
+     * @notice Update entity token name and symbol
+     * @param _entityId ID of the entity
+     * @param _symbol New entity token symbol
+     * @param _name New entity token name
+     */
+    function updateEntityTokenInfo(
+        bytes32 _entityId,
+        string memory _symbol,
+        string memory _name
+    ) external;
+
+    /**
      * @notice Start token sale of `_amount` tokens for total price of `_totalPrice`
      * @dev Entity tokens are minted when the sale is started
      * @param _entityId ID of the entity
@@ -93,4 +105,6 @@ interface IEntityFacet {
      * @return Entity struct with metadata of the entity
      */
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory);
+
+    function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory);
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { MarketInfo, TradingCommissions, TradingCommissionsBasisPoints } from "./FreeStructs.sol";
+import { MarketInfo } from "./FreeStructs.sol";
 
 /**
  * @title Matching Market (inspired by MakerOTC: https://github.com/nayms/maker-otc/blob/master/contracts/matching_market.sol)
@@ -80,15 +80,24 @@ interface IMarketFacet {
     function isActiveOffer(uint256 _offerId) external view returns (bool);
 
     /**
-     * @dev Calculate the trading commissions based on a buy amount.
-     * @param buyAmount The amount that the commissions payments are calculated from.
-     * @return tc TradingCommissions struct with metadata regarding the trade commission payment amounts.
+     * @dev Calculate the trading fees based on a buy amount.
+     * @param _buyerId The account buying the asset.
+     * @param _sellToken The asset being sold.
+     * @param _buyToken The asset being bought.
+     * @param _buyAmount The amount that the fees payments are calculated from.
+     * @return totalFees_ total fee to be payed
+     * @return totalBP_ total basis points
      */
-    function calculateTradingCommissions(uint256 buyAmount) external view returns (TradingCommissions memory tc);
+    function calculateTradingFees(
+        bytes32 _buyerId,
+        bytes32 _sellToken,
+        bytes32 _buyToken,
+        uint256 _buyAmount
+    ) external view returns (uint256 totalFees_, uint256 totalBP_);
 
     /**
-     * @notice Get the marketplace's trading commissions basis points.
-     * @return bp - TradingCommissionsBasisPoints struct containing the individual basis points set for each marketplace commission receiver.
+     * @dev Get the maker commission basis points.
+     * @return maker fee BP
      */
-    function getTradingCommissionsBasisPoints() external view returns (TradingCommissionsBasisPoints memory bp);
+    function getMakerBP() external view returns (uint16);
 }

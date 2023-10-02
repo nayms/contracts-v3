@@ -22,9 +22,6 @@ jobs:
           submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update path
-        run: echo "/root/.cargo/bin:/root/.foundry/bin" >> $GITHUB_PATH
-
       - name: Install solc
         run: svm install 0.8.17 && svm use 0.8.17
 

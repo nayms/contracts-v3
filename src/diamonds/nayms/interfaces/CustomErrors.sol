@@ -10,6 +10,21 @@ error RoleIsMissing();
 /// @dev Passing in a missing group when trying to assign a role to a group.
 error AssignerGroupIsMissing();
 
+/// @dev Role assigner (msg.sender) must be in the assigners group to unassign a role.
+/// @param assigner Id of the role assigner, LibHelpers._getIdForAddress(msg sender)
+/// @param assignee ObjectId that the role is being assigned to
+/// @param context Context that the role is being assigned in
+/// @param roleInContext Role that is being assigned
+error AssignerCannotUnassignRole(bytes32 assigner, bytes32 assignee, bytes32 context, string roleInContext);
+
+/// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
+/// @dev In the assertPrivilege modifier, this error message returns the context and the role in the context, not the user's role in the system context.
+/// @param msgSenderId Id of the sender
+/// @param context Context in which the sender is trying to perform an action
+/// @param roleInContext Role of the sender in the context
+/// @param group Group to check the sender's role in
+error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInContext, string group);
+
 /// @dev Passing in a missing address when trying to add a token address to the supported external token list.
 error CannotAddNullSupportedExternalToken();
 
@@ -21,6 +36,7 @@ error CannotAddNullDiscountToken();
 
 /// @dev The entity does not exist when it should.
 error EntityDoesNotExist(bytes32 objectId);
+
 /// @dev Cannot create an entity that already exists.
 error CreatingEntityThatAlreadyExists(bytes32 entityId);
 
@@ -36,11 +52,21 @@ error ExternalDepositAmountCannotBeZero();
 /// @dev Passing in 0 amount for withdraws is not allowed.
 error ExternalWithdrawAmountCannotBeZero();
 
+/// @dev The receiver of the withdraw must haveGroupPriviledge with the roles entity admin, comptroller combined, or comptroller withdraw.
+error ExternalWithdrawInvalidReceiver(address receiver);
+
 /// @dev Cannot create a simple policy with policyId of 0
 error PolicyIdCannotBeZero();
 
 /// @dev Policy commissions among commission receivers cannot sum to be greater than 10_000 basis points.
 error PolicyCommissionsBasisPointsCannotBeGreaterThan10000(uint256 calculatedTotalBp);
+
+/// @dev The total basis points for a fee schedule, policy fee receivers at policy creation, or maker bp cannot be greater than half of LibConstants.BP_FACTOR.
+///     This is to prevent the total basis points of a fee schedule with additional fee receivers (policy fee receivers for fee payments on premiums) from being greater than 100%.
+error FeeBasisPointsExceedHalfMax(uint256 actual, uint256 expected);
+
+/// @dev The total fees can never exceed the premium payment or the marketplace trade.
+error FeeBasisPointsExceedMax(uint256 actual, uint256 expected);
 
 /// @dev When validating an entity, the utilized capacity cannot be greater than the max capacity.
 error UtilizedCapacityGreaterThanMaxCapacity(uint256 utilizedCapacity, uint256 maxCapacity);

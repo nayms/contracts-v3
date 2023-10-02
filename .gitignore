@@ -8,7 +8,7 @@ results.sarif
 anvil*.json
 
 # SECURITY
-nayms_mnemonic.txt
+*mnemonic*.txt
 
 # yarn v1, node
 node_modules
@@ -31,6 +31,7 @@ facetsdeployed.txt
 .vscode/dryrun.log
 .vscode/targets.log
 .vscode/launch.json
+.vscode/slither-results.json
 
 .history
 
@@ -48,3 +49,12 @@ broadcast/**/31337/*
 NaymsDiamond.json
 
 broadcast/**/dry-run
+
+# coverage report
+cov-html
+
+# macOS
+.DS_Store
+
+# Generated files
+script/deployment/S03UpgradeDiamond.s.sol

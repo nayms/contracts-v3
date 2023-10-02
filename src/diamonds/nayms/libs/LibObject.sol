@@ -11,6 +11,7 @@ import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
 library LibObject {
     event TokenizationEnabled(bytes32 objectId, string tokenSymbol, string tokenName);
     event TokenWrapped(bytes32 indexed entityId, address tokenWrapper);
+    event TokenInfoUpdated(bytes32 indexed objectId, string symbol, string name);
     event ObjectCreated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
     event ObjectUpdated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
 
@@ -80,6 +81,11 @@ library LibObject {
         return (bytes(s.objectTokenSymbol[_objectId]).length != 0);
     }
 
+    function _tokenSymbolNotUsed(string memory _symbol) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.tokenSymbolObjectId[_symbol] == bytes32(0);
+    }
+
     function _enableObjectTokenization(
         bytes32 _objectId,
         string memory _symbol,
@@ -89,6 +95,7 @@ library LibObject {
         if (bytes(_symbol).length == 0) {
             revert MissingSymbolWhenEnablingTokenization(_objectId);
         }
+        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
         if (!s.existingEntities[_objectId]) {
@@ -96,14 +103,34 @@ library LibObject {
         }
 
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
-        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
+        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
 
         require(bytes(_name).length > 0, "name must not be empty");
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
+        s.tokenSymbolObjectId[_symbol] = _objectId;
 
         emit TokenizationEnabled(_objectId, _symbol, _name);
+    }
+
+    function _updateTokenInfo(
+        bytes32 _objectId,
+        string memory _symbol,
+        string memory _name
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
+        require(_isObjectTokenizable(_objectId), "object not tokenized");
+
+        string memory oldSymbol = s.objectTokenSymbol[_objectId];
+        delete s.tokenSymbolObjectId[oldSymbol];
+
+        s.objectTokenSymbol[_objectId] = _symbol;
+        s.objectTokenName[_objectId] = _name;
+        s.tokenSymbolObjectId[_symbol] = _objectId;
+
+        emit TokenInfoUpdated(_objectId, _symbol, _name);
     }
 
     function _isObjectTokenWrapped(bytes32 _objectId) internal view returns (bool) {

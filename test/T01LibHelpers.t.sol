@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { D03ProtocolDefaults, console2, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
+import { LibHelpers } from "../src/diamonds/nayms/libs/LibHelpers.sol";
 
-contract T01LibHelpers is D03ProtocolDefaults {
+contract T01LibHelpers is Test {
     function testGetIdForObjectAtIndexFuzz(uint256 i) public {
         assertEq(LibHelpers._getIdForObjectAtIndex(i), keccak256(abi.encodePacked(i)));
     }

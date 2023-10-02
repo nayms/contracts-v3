@@ -1,21 +1,120 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { D02TestSetup, console2, LibHelpers, LibConstants, LibAdmin, LibObject, LibSimplePolicy } from "./D02TestSetup.sol";
-import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-
+import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
+import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { StdStyle } from "forge-std/StdStyle.sol";
+
 // solhint-disable no-console
+// solhint-disable state-visibility
+
+abstract contract T02AccessHelpers is D02TestSetup {
+    using LibHelpers for *;
+    using StdStyle for *;
+
+    bytes32 public immutable systemContext = LibAdmin._getSystemId();
+
+    string[3] internal rolesThatCanAssignRoles = [LC.ROLE_SYSTEM_ADMIN, LC.ROLE_SYSTEM_MANAGER, LC.ROLE_ENTITY_MANAGER];
+    mapping(string => string[]) internal roleCanAssignRoles;
+    mapping(string => bytes32[]) internal roleToUsers;
+    mapping(string => address[]) internal roleToUsersAddr;
+    mapping(bytes32 => bytes32) internal objectToContext;
+
+    mapping(string => string[]) internal functionToRoles;
+    string[] internal functionsUsingAssertP = [
+        LC.GROUP_START_TOKEN_SALE,
+        LC.GROUP_EXECUTE_LIMIT_OFFER,
+        LC.GROUP_CANCEL_OFFER,
+        LC.GROUP_PAY_SIMPLE_PREMIUM,
+        LC.GROUP_PAY_SIMPLE_CLAIM,
+        LC.GROUP_PAY_DIVIDEND_FROM_ENTITY,
+        LC.GROUP_EXTERNAL_DEPOSIT,
+        LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY
+    ];
+
+    /// @dev Print roles
+    function hRoles(address id) public view {
+        hRoles(LibHelpers._getIdForAddress(id));
+    }
+
+    function hRoles(address id, bytes32 context) public view {
+        hRoles(LibHelpers._getIdForAddress(id), context);
+    }
+
+    function hRoles(NaymsAccount memory id) public view {
+        hRoles(id.id);
+    }
+
+    function hRoles(NaymsAccount memory id, bytes32 context) public view {
+        hRoles(id.id, context);
+    }
+
+    function hRoles(bytes32 id, bytes32 context) public view {
+        bytes32 parent = hRoles(id);
+        c.log(string.concat("Parent role in given context ", hGetRoleInContext(parent, context).blue()));
+        c.log(string.concat("User role in given context ", hGetRoleInContext(id, parent).blue()));
+    }
+
+    function hRoles(bytes32 id) public view returns (bytes32 parent) {
+        parent = nayms.getEntity(id);
+        c.log(string.concat("User ", vm.toString(id)));
+        c.log(id._getAddressFromId());
+        c.log(string.concat("Parent ", vm.toString(parent)));
+        c.log(string.concat("Parent role in parent context ", hGetRoleInContext(parent, parent).blue()));
+        c.log(string.concat("User role in parent context ", hGetRoleInContext(id, parent).blue()));
+        c.log(string.concat("User role in system context ", hGetRoleInContext(id, systemContext).blue()));
+        c.log(string.concat("Parent role in system context (not checked by assertPrivilege)", hGetRoleInContext(parent, systemContext).blue()));
+    }
+
+    function hAssignRole(
+        bytes32 _objectId,
+        bytes32 _contextId,
+        string memory _role
+    ) internal {
+        nayms.assignRole(_objectId, _contextId, _role);
+        roleToUsers[_role].push(_objectId);
+        roleToUsersAddr[_role].push(_objectId._getAddressFromId());
+        if (objectToContext[_objectId] == systemContext) {
+            c.log("warning: object's context is currently systemContext");
+        } else {
+            objectToContext[_objectId] = _contextId;
+        }
+    }
+
+    function hCreateEntity(
+        bytes32 _entityId,
+        bytes32 _entityAdmin,
+        Entity memory _entityData,
+        bytes32 _dataHash
+    ) internal {
+        nayms.createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
+        roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin);
+
+        if (objectToContext[_entityAdmin] == systemContext) {
+            c.log("warning: object's context is currently systemContext");
+        } else {
+            objectToContext[_entityAdmin] = _entityId;
+        }
+    }
+
+    /// @dev Return the role as a decoded string
+    function hGetRoleInContext(bytes32 objectId, bytes32 contextId) public view returns (string memory roleString) {
+        roleString = string(nayms.getRoleInContext(objectId, contextId)._bytes32ToBytes());
+    }
+}
+
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults
 ///         Setup internal token IDs, entities,
-contract D03ProtocolDefaults is D02TestSetup {
+contract D03ProtocolDefaults is T02AccessHelpers {
+    using StdStyle for *;
+
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
     bytes32 public naymsTokenId;
-
-    bytes32 public immutable systemContext = LibAdmin._getSystemId();
 
     bytes32 public constant DEFAULT_ACCOUNT0_ENTITY_ID = bytes32("e0");
     bytes32 public constant DEFAULT_UNDERWRITER_ENTITY_ID = bytes32("e1");
@@ -34,46 +133,169 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
     bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
 
-    function setUp() public virtual override {
-        console2.log("\n Test SETUP:");
-        super.setUp();
-        console2.log("\n -- D03 Protocol Defaults\n");
-        console2.log("Test contract address ID, aka account0Id:");
-        console2.logBytes32(account0Id);
+    // 0x4e61796d73204c74640000000000000000000000000000000000000000000000
+    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LC.NAYMS_LTD_IDENTIFIER);
+    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LC.NDF_IDENTIFIER);
+    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LC.STM_IDENTIFIER);
+    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LC.SSF_IDENTIFIER);
+
+    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
+
+    address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
+
+    Entity entity;
+
+    bytes32[] public defaultFeeRecipients;
+    uint16[] public defaultPremiumFeeBPs;
+    uint16[] public defaultTradingFeeBPs;
+
+    FeeSchedule premiumFeeScheduleDefault;
+    FeeSchedule tradingFeeScheduleDefault;
+
+    NaymsAccount sa = makeNaymsAcc("System Admin");
+    NaymsAccount sm = makeNaymsAcc("System Manager");
+    NaymsAccount su = makeNaymsAcc("System Underwriter");
+
+    NaymsAccount ea = makeNaymsAcc("Entity Admin");
+    NaymsAccount em = makeNaymsAcc("Entity Manager");
+
+    NaymsAccount ts = makeNaymsAcc("Tenant Sponsor");
+    NaymsAccount tcp = makeNaymsAcc("Tenant CP");
+    NaymsAccount ti = makeNaymsAcc("Tenant Insured");
+    NaymsAccount tb = makeNaymsAcc("Tenant Broker");
+    NaymsAccount tc = makeNaymsAcc("Tenant Consultant");
+
+    NaymsAccount cc = makeNaymsAcc("Comptroller Combined");
+    NaymsAccount cw = makeNaymsAcc("Comptroller Withdraw");
+    NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
+    NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
+
+    constructor() payable {
+        c.log("\n -- D03 Protocol Defaults\n");
+        c.log("Test contract address ID, aka account0Id:");
+        c.logBytes32(account0Id);
 
         naymsTokenId = LibHelpers._getIdForAddress(naymsAddress);
-        console2.log("Nayms Token ID:");
-        console2.logBytes32(naymsTokenId);
+        c.log("Nayms Token ID:");
+        c.logBytes32(naymsTokenId);
 
         vm.label(signer1, "Account 1 (Underwriter Rep)");
         vm.label(signer2, "Account 2 (Broker Rep)");
         vm.label(signer3, "Account 3 (Capital Provider Rep)");
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
-        vm.startPrank(systemAdmin);
+        changePrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
 
-        Entity memory entity = Entity({
+        entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
-            collateralRatio: LibConstants.BP_FACTOR,
+            collateralRatio: LC.BP_FACTOR,
             maxCapacity: 100 ether,
             utilizedCapacity: 0,
             simplePolicyEnabled: true
         });
 
+        hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
+        hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
+        hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+
+        changePrank(sm.addr);
         nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
         nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
 
-        console2.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
+        // Setup fee schedules
+        defaultFeeRecipients = b32Array1(NAYMS_LTD_IDENTIFIER);
+        defaultPremiumFeeBPs = u16Array1(300);
+        defaultTradingFeeBPs = u16Array1(30);
+
+        premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
+        tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
+
+        changePrank(sa.addr);
+        // For Premiums
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
+
+        // For Marketplace
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
+
+        c.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
 
-    function createTestEntity(bytes32 adminId) internal returns (bytes32 entityId) {
-        entityId = "0xe1";
-        Entity memory entity1 = initEntity(wethId, 5000, 10000, false);
+    function b32Array1(bytes32 _value) internal pure returns (bytes32[] memory) {
+        bytes32[] memory arr = new bytes32[](1);
+        arr[0] = _value;
+        return arr;
+    }
+
+    function b32Array3(
+        bytes32 _value1,
+        bytes32 _value2,
+        bytes32 _value3
+    ) internal pure returns (bytes32[] memory) {
+        bytes32[] memory arr_ = new bytes32[](3);
+        arr_[0] = _value1;
+        arr_[1] = _value2;
+        arr_[2] = _value3;
+        return arr_;
+    }
+
+    function u16Array1(uint16 _value) internal pure returns (uint16[] memory) {
+        uint16[] memory arr = new uint16[](1);
+        arr[0] = _value;
+        return arr;
+    }
+
+    function u16Array3(
+        uint16 _value1,
+        uint16 _value2,
+        uint16 _value3
+    ) internal pure returns (uint16[] memory) {
+        uint16[] memory arr = new uint16[](3);
+        arr[0] = _value1;
+        arr[1] = _value2;
+        arr[2] = _value3;
+        return arr;
+    }
+
+    function u256Array1(uint256 _value) internal pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](1);
+        arr[0] = _value;
+        return arr;
+    }
+
+    function u256Array3(
+        uint256 _value1,
+        uint256 _value2,
+        uint256 _value3
+    ) internal pure returns (uint256[] memory) {
+        uint256[] memory arr = new uint256[](3);
+        arr[0] = _value1;
+        arr[1] = _value2;
+        arr[2] = _value3;
+        return arr;
+    }
+
+    function feeSched1(bytes32 _receiver, uint16 _basisPoints) internal pure returns (FeeSchedule memory) {
+        return FeeSchedule({ receiver: b32Array1(_receiver), basisPoints: u16Array1(_basisPoints) });
+    }
+
+    function feeSched(bytes32[] memory _receiver, uint16[] memory _basisPoints) internal pure returns (FeeSchedule memory) {
+        return FeeSchedule({ receiver: _receiver, basisPoints: _basisPoints });
+    }
+
+    function createTestEntity(bytes32 adminId) internal returns (bytes32) {
+        return createTestEntityWithId(adminId, "0xe1");
+    }
+
+    function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
+        Entity memory entity1 = initEntity(wethId, LC.BP_FACTOR / 2, LC.BP_FACTOR, false);
         nayms.createEntity(entityId, adminId, entity1, bytes32(0));
+        return entityId;
     }
 
     function initEntity(
@@ -89,16 +311,16 @@ contract D03ProtocolDefaults is D02TestSetup {
         e.simplePolicyEnabled = _simplePolicyEnabled;
     }
 
-    function initPolicy(bytes32 offchainDataHash) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
-        return initPolicyWithLimit(offchainDataHash, 10_000);
+    function initPolicy(bytes32 offchainDataHash) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        return initPolicyWithLimit(offchainDataHash, LC.BP_FACTOR);
     }
 
-    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+    function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
-        roles[0] = LibHelpers._stringToBytes32(LibConstants.ROLE_UNDERWRITER);
-        roles[1] = LibHelpers._stringToBytes32(LibConstants.ROLE_BROKER);
-        roles[2] = LibHelpers._stringToBytes32(LibConstants.ROLE_CAPITAL_PROVIDER);
-        roles[3] = LibHelpers._stringToBytes32(LibConstants.ROLE_INSURED_PARTY);
+        roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
+        roles[1] = LibHelpers._stringToBytes32(LC.ROLE_BROKER);
+        roles[2] = LibHelpers._stringToBytes32(LC.ROLE_CAPITAL_PROVIDER);
+        roles[3] = LibHelpers._stringToBytes32(LC.ROLE_INSURED_PARTY);
 
         bytes32[] memory entityIds = new bytes32[](4);
         entityIds[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
@@ -116,8 +338,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         commissions[1] = 10;
         commissions[2] = 10;
 
-        policy.startDate = 1000;
-        policy.maturationDate = 1000 + 2 days;
+        policy.startDate = block.timestamp + 1000;
+        policy.maturationDate = block.timestamp + 1000 + 2 days;
         policy.asset = wethId;
         policy.limit = limitAmount;
         policy.commissionReceivers = commissionReceivers;
@@ -135,8 +357,17 @@ contract D03ProtocolDefaults is D02TestSetup {
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
     }
 
-    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal returns (bytes memory sig_) {
+    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
+    }
+
+    /// Pretty print ///
+    function hCr(bytes32 objectId) public {
+        bytes32[] memory cr = nayms.getPolicyCommissionReceivers(objectId);
+        c.log(string.concat(vm.toString(objectId), "'s commission receivers:").blue());
+        for (uint256 i; i < cr.length; i++) {
+            c.logBytes32(cr[i]);
+        }
     }
 }
