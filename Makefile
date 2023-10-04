@@ -761,3 +761,7 @@ checkf: ## Check if facet exists in a diamond
 		--mnemonic-indexes 19 \
 		-vv \
 		--ffi
+	
+bn-mainnet: ## get block number for mainnet and replace FORK_BLOCK_1 in .env
+	@result=$$(cast bn -r mainnet) && \
+	sed -i '' "s/^export FORK_BLOCK_1=.*/export FORK_BLOCK_1=$$result/" .env
