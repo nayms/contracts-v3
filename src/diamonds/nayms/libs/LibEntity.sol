@@ -65,7 +65,8 @@ library LibEntity {
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // The entity's balance must be >= to the updated capacity requirement
-        require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
+        uint256 availableBalance = LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(_entityId, simplePolicy.asset);
+        require(availableBalance >= updatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
