@@ -849,8 +849,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.startTokenSale(userA.entityId, pToken100, usdc1000 + 1);
 
         c.log("- [0] before attack trade".yellow());
-        c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
-        c.log("      lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
+        c.log("      attacker internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
+        c.log("      attacker lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
 
         // Attack script
 
@@ -858,8 +858,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(usdcId, usdc1000, userA.entityId, pToken100);
 
         c.log("- [1] attack order placed".yellow());
-        c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
-        c.log("      lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
+        c.log("      attacker internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
+        c.log("      attacker lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
 
         vm.startPrank(su.addr);
 
@@ -873,15 +873,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
         uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
-        c.log("      internalBalance:", internalBalance);
-        c.log("      lockedBalance:  ", lockedBalance.green());
+        c.log("      attacker internalBalance:", internalBalance);
+        c.log("      attacker lockedBalance:  ", lockedBalance.green());
         // require(lockedBalance <= internalBalance, "Attack successful");
 
         c.log("- [3] userB placing order".yellow());
         vm.startPrank(userB.addr);
         nayms.executeLimitOffer(usdcId, usdc1000 + 1, userA.entityId, pToken100);
 
-        c.log("- [1] userB offer matched".yellow());
+        c.log("- [4] userB offer matched".yellow());
         c.log("      userB pTokenBalance:", nayms.internalBalanceOf(userB.entityId, userA.entityId));
     }
 
