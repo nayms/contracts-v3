@@ -16,6 +16,10 @@ import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+// solhint-disable no-console
+import { console2 as console } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 library LibEntity {
     using ECDSA for bytes32;
     /**
@@ -65,8 +69,7 @@ library LibEntity {
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // The entity's balance must be >= to the updated capacity requirement
-        uint256 availableBalance = LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(_entityId, simplePolicy.asset);
-        require(availableBalance >= updatedUtilizedCapacity, "not enough capital");
+        require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");

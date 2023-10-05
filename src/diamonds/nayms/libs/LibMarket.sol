@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+// solhint-disable no-console
+import { console2 as console } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { MarketInfo, TokenAmount, CalculatedFees } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -9,6 +13,8 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 library LibMarket {
+    using StdStyle for *;
+
     struct MatchingOfferResult {
         uint256 remainingBuyAmount;
         uint256 remainingSellAmount;
@@ -176,19 +182,10 @@ library LibMarket {
                 uint256 makerBuyAmount = s.offers[bestOfferId].buyAmount;
                 uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
 
-                // Check if best available price on the market is better or same,
-                // as the one taker is willing to pay, within error margin of ±1.
-                // This ugly hack is to work around rounding errors. Based on the idea that
-                // the furthest the amounts can stray from their "true" values is 1.
-                // Ergo the worst case has `sellAmount` and `makerSellAmount` at +1 away from
-                // their "correct" values and `makerBuyAmount` and `buyAmount` at -1.
-                // Since (c - 1) * (d - 1) > (a + 1) * (b + 1) is equivalent to
-                // c * d > a * b + a + b + c + d
-                // (For detailed breakdown see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
-                if (
-                    makerBuyAmount * result.remainingBuyAmount >
-                    result.remainingSellAmount * makerSellAmount + makerBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + makerSellAmount
-                ) {
+                // (For a breakdown on the matching algorithm see https://hiddentao.com/archives/2019/09/08/maker-otc-on-chain-orderbook-deep-dive)
+                // note: We have removed the "optimistic" matching.
+                // if maker price is higher, then stop
+                if (makerBuyAmount * result.remainingBuyAmount > makerSellAmount * result.remainingSellAmount) {
                     break; // no matching price, bail out
                 }
 
@@ -300,6 +297,8 @@ library LibMarket {
                 commissionsPaid_ = LibFeeRouter._payTradingFees(feeScheduleType, buyer, s.offers[_offerId].creator, _takerId, s.offers[_offerId].buyToken, _sellAmount);
             }
             s.lockedBalances[s.offers[_offerId].creator][s.offers[_offerId].sellToken] -= _buyAmount;
+
+            console.log(" ---  taking offer");
 
             LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
             LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _sellAmount);

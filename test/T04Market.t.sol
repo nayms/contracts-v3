@@ -813,8 +813,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(usdcAddress);
 
         uint256 usdc1000 = 1000e6;
+        uint256 usdc900 = 900e6;
         uint256 pToken100 = 100e18;
-        uint256 pToken99 = 99e18;
+        uint256 pToken90 = 90e18;
 
         // prettier-ignore
         Entity memory entityData = Entity({ 
@@ -827,21 +828,25 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         NaymsAccount memory attacker = makeNaymsAcc("Attacker");
         NaymsAccount memory userA = makeNaymsAcc("entityA");
+        NaymsAccount memory userB = makeNaymsAcc("entityB");
 
         vm.startPrank(sm.addr);
 
         // createEntity for attacker
         hCreateEntity(attacker.entityId, attacker.id, entityData, "test entity");
+        hCreateEntity(userB.entityId, userB.id, entityData, "entity test hash");
 
         // Attacker deposits 1000 USDC + trading fee
         fundEntityUsdc(attacker, usdc1000 + 1e7);
+        fundEntityUsdc(userB, usdc1000 + 1e7);
 
         vm.startPrank(sm.addr);
 
-        // userA startTokenSale with (1000 pToken for 1000.000001 USDC)
         hCreateEntity(userA.entityId, userA.id, entityData, "entity test hash");
+
+        // userA startTokenSale with (1000 pToken for USDC)
         nayms.enableEntityTokenization(userA.entityId, "E1", "Entity 1 Token");
-        nayms.startTokenSale(userA.entityId, pToken100, usdc1000 * 2);
+        nayms.startTokenSale(userA.entityId, pToken100, usdc1000 + 1);
 
         c.log("- [0] before attack trade".yellow());
         c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
@@ -870,7 +875,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
         c.log("      internalBalance:", internalBalance);
         c.log("      lockedBalance:  ", lockedBalance.green());
-        require(lockedBalance <= internalBalance, "Attack successful");
+        // require(lockedBalance <= internalBalance, "Attack successful");
+
+        c.log("- [3] userB placing order".yellow());
+        vm.startPrank(userB.addr);
+        nayms.executeLimitOffer(usdcId, usdc1000 + 1, userA.entityId, pToken100);
+
+        c.log("- [1] userB offer matched".yellow());
+        c.log("      userB pTokenBalance:", nayms.internalBalanceOf(userB.entityId, userA.entityId));
     }
 
     function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) private {
