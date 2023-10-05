@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { D03ProtocolDefaults, LibHelpers, LC, c as c } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LibObject, LC, c } from "./defaults/D03ProtocolDefaults.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { StdStyle } from "forge-std/Test.sol";
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
 import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+
+import { StdStyle } from "forge-std/StdStyle.sol";
 
 /* 
     Terminology:
@@ -907,5 +909,79 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         require(price1 < price2, string.concat("best order incorrect: ", vm.toString(price1)));
         require(price2 < price3, string.concat("second best order incorrect: ", vm.toString(price2)));
+    }
+
+    function testDoubleLockedBalance_IM24430() public {
+        nayms.addSupportedExternalToken(usdcAddress);
+
+        uint256 attackUSDCAmount = 1000e6;
+        uint256 entity1Amount = 1000;
+        bytes32 offChainHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
+
+        // prettier-ignore
+        Entity memory entityData = Entity({ 
+            assetId: usdcId, 
+            collateralRatio: 5_000, 
+            maxCapacity: 100_000 * 1e6,
+            utilizedCapacity: 0,
+            simplePolicyEnabled: true 
+        });
+
+        NaymsAccount memory attacker = makeNaymsAcc("Attacker");
+        NaymsAccount memory user1 = makeNaymsAcc("entityONE");
+
+        vm.startPrank(sm.addr);
+
+        // createEntity for attacker
+        hCreateEntity(attacker.entityId, attacker.id, entityData, "test entity");
+
+        // Attacker deposits 1000e6 USDC + trading fee
+        fundEntityUsdc(attacker, attackUSDCAmount + 1e7);
+
+        vm.startPrank(sm.addr);
+
+        // user1 startTokenSale with (1000 pToken for 1000.000001 USDC)
+        hCreateEntity(user1.entityId, user1.id, entityData, "entity test hash");
+        nayms.enableEntityTokenization(user1.entityId, "E1", "Entity 1 Token");
+        nayms.startTokenSale(user1.entityId, entity1Amount, attackUSDCAmount * 2);
+
+        c.log("- [0] before attack trade".yellow());
+        c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
+        c.log("      lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
+
+        // Attack script
+
+        vm.startPrank(attacker.addr);
+        nayms.executeLimitOffer(usdcId, attackUSDCAmount, user1.entityId, entity1Amount);
+
+        c.log("- [1] attack order placed".yellow());
+        c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
+        c.log("      lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
+
+        vm.startPrank(su.addr);
+
+        uint256 policyLimitAmount = (attackUSDCAmount * 10_000) / entityData.collateralRatio;
+        (Stakeholders memory stakeholders, SimplePolicy memory simplePolicy) = initPolicyWithLimitAndAsset(offChainHash, policyLimitAmount, usdcId);
+
+        vm.expectRevert("not enough capital");
+        nayms.createSimplePolicy(bytes32("1"), attacker.entityId, stakeholders, simplePolicy, offChainHash);
+
+        // c.log("- [2] policy created".yellow());
+
+        // uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
+        // uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
+        // c.log("      internalBalance:", internalBalance);
+        // c.log("      lockedBalance:  ", lockedBalance.green());
+        // require(lockedBalance <= internalBalance, "Attack successful");
+    }
+
+    function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) private {
+        deal(usdcAddress, acc.addr, amount);
+        changePrank(acc.addr);
+        usdc.approve(address(nayms), amount);
+        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, usdcId);
+        nayms.externalDeposit(usdcAddress, amount);
+        uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
+        assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
     }
 }
