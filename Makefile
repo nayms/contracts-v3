@@ -765,3 +765,7 @@ checkf: ## Check if facet exists in a diamond
 bn-mainnet: ## get block number for mainnet and replace FORK_BLOCK_1 in .env
 	@result=$$(cast bn -r mainnet) && \
 	sed -i '' "s/^export FORK_BLOCK_1=.*/export FORK_BLOCK_1=$$result/" .env
+
+bn-sepolia: ## get block number for sepolia and replace FORK_BLOCK_11155111 in .env
+	@result=$$(cast bn -r sepolia) && \
+	sed -i '' "s/^export FORK_BLOCK_11155111=.*/export FORK_BLOCK_11155111=$$result/" .env
