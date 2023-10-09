@@ -105,6 +105,12 @@ abstract contract T02AccessHelpers is D02TestSetup {
     function hGetRoleInContext(bytes32 objectId, bytes32 contextId) public view returns (string memory roleString) {
         roleString = string(nayms.getRoleInContext(objectId, contextId)._bytes32ToBytes());
     }
+
+    /// @dev Set the parent of the user and also update NaymsAccount.entityId
+    function hSetEntity(NaymsAccount memory acc, bytes32 entityId) public {
+        nayms.setEntity(acc.id, entityId);
+        acc.entityId = entityId;
+    }
 }
 
 /// @notice Default test setup part 03
