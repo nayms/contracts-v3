@@ -101,6 +101,26 @@ abstract contract T02AccessHelpers is D02TestSetup {
         }
     }
 
+    /// @dev Create an entity for a NaymsAccount, and assign _entityId to NaymsAccount.entityId
+    function hCreateEntity(
+        bytes32 _entityId,
+        NaymsAccount memory _entityAdmin,
+        Entity memory _entityData,
+        bytes32 _dataHash
+    ) internal {
+        bytes32 previousParent = nayms.getEntity(_entityAdmin.id);
+        nayms.createEntity(_entityId, _entityAdmin.id, _entityData, _dataHash);
+        roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin.id);
+
+        if (objectToContext[_entityAdmin.id] == systemContext) {
+            c.log("warning: object's context is currently systemContext");
+        } else {
+            objectToContext[_entityAdmin.id] = _entityId;
+        }
+        c.log(string.concat("The entity admin's parent has been updated from ", vm.toString(previousParent), " to ", vm.toString(_entityId)));
+        _entityAdmin.entityId = _entityId;
+    }
+
     /// @dev Return the role as a decoded string
     function hGetRoleInContext(bytes32 objectId, bytes32 contextId) public view returns (string memory roleString) {
         roleString = string(nayms.getRoleInContext(objectId, contextId)._bytes32ToBytes());
