@@ -769,3 +769,8 @@ bn-mainnet: ## get block number for mainnet and replace FORK_BLOCK_1 in .env
 bn-sepolia: ## get block number for sepolia and replace FORK_BLOCK_11155111 in .env
 	@result=$$(cast bn -r sepolia) && \
 	sed -i '' "s/^export FORK_BLOCK_11155111=.*/export FORK_BLOCK_11155111=$$result/" .env
+
+tf: ## Toggle forking of tests. true == fork a node, false == no fork
+	@result=$$(grep -q 'BOOL_FORK_TEST=true' .env && echo "false" || echo "true"); \
+	sed -i '' -e "s/BOOL_FORK_TEST=.*/BOOL_FORK_TEST=$$result/" .env; \
+	echo "BOOL_FORK_TEST is now set to $$result"
