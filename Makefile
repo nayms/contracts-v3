@@ -499,3 +499,10 @@ checkf: ## Check if facet exists in a diamond
 		--mnemonic-indexes 19 \
 		-vv \
 		--ffi
+
+im24511: ## Run IM_24511 script
+	@forge script IM_24511 \
+		-f mainnet \
+		--chain-id 1 \
+		--fork-block-number 18263277 \
+		-vvvvv -w
