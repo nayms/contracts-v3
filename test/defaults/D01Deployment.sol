@@ -14,6 +14,7 @@ import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
 import { LibGeneratedNaymsFacetHelpers } from "script/utils/LibGeneratedNaymsFacetHelpers.sol";
 import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { StdStyle } from "forge-std/StdStyle.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
@@ -55,9 +56,9 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         c.log("block.chainid", block.chainid);
 
         bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
-        c.log("Are tests being run on a fork?", BOOL_FORK_TEST);
+        c.log("Are tests being run on a fork?".yellow().bold(), BOOL_FORK_TEST);
         bool TESTS_FORK_UPGRADE_DIAMOND = vm.envOr({ name: "TESTS_FORK_UPGRADE_DIAMOND", defaultValue: true });
-        c.log("Are we testing diamond upgrades on a fork?", TESTS_FORK_UPGRADE_DIAMOND);
+        c.log("Are we testing diamond upgrades on a fork?".yellow().bold(), TESTS_FORK_UPGRADE_DIAMOND);
 
         if (BOOL_FORK_TEST) {
             uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
