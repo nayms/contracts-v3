@@ -80,16 +80,19 @@ Get simple policy info
 | --- | --- |
 |`Simple` | policy metadata|
 <br></br>
-### getPremiumCommissionBasisPoints
-Get the policy premium commissions basis points.
+### getPolicyCommissionReceivers
+No description
+Get the list of commission receivers
 ```solidity
-  function getPremiumCommissionBasisPoints(
-  ) external returns (struct PolicyCommissionsBasisPoints)
+  function getPolicyCommissionReceivers(
+    bytes32 _id
+  ) external returns (bytes32[] commissionReceivers)
 ```
-#### Returns:
-| Type | Description |
-| --- | --- |
-|`PolicyCommissionsBasisPoints` | struct containing the individual basis points set for each policy commission receiver.|
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_id` | bytes32 | Id of the simple policy
+|
 <br></br>
 ### checkAndUpdateSimplePolicyState
 No description
@@ -116,4 +119,23 @@ Cancel a simple policy
 | Argument | Type | Description |
 | --- | --- | --- |
 |`_policyId` | bytes32 | Id of the simple policy|
+<br></br>
+### calculatePremiumFees
+No description
+Calculate the policy premium fees based on a buy amount.
+```solidity
+  function calculatePremiumFees(
+    bytes32 _premiumPaid
+  ) external returns (struct CalculatedFees cf)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_premiumPaid` | bytes32 | The amount that the fees payments are calculated from.
+|
+<br></br>
+#### Returns:
+| Type | Description |
+| --- | --- |
+|`cf` | CalculatedFees struct|
 <br></br>

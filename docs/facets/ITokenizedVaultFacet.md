@@ -165,3 +165,9 @@ Get the amount of tokens that an entity has for sale in the marketplace.
 | --- | --- |
 |`amount` | of tokens that the entity has for sale in the marketplace.|
 <br></br>
+### internalTransferBySystemAdmin
+No description
+```solidity
+  function internalTransferBySystemAdmin(
+  ) external
+```

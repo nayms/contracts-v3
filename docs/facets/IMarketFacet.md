@@ -108,33 +108,41 @@ Check if the offer #`_offerId` is active or not.
 | --- | --- |
 |`active` | or not|
 <br></br>
-### calculateTradingCommissions
+### calculateTradingFees
 No description
-Calculate the trading commissions based on a buy amount.
+Calculate the trading fees based on a buy amount.
 ```solidity
-  function calculateTradingCommissions(
-    uint256 buyAmount
-  ) external returns (struct TradingCommissions tc)
+  function calculateTradingFees(
+    bytes32 _buyerId,
+    bytes32 _sellToken,
+    bytes32 _buyToken,
+    uint256 _buyAmount
+  ) external returns (uint256 totalFees_, uint256 totalBP_)
 ```
 #### Arguments:
 | Argument | Type | Description |
 | --- | --- | --- |
-|`buyAmount` | uint256 | The amount that the commissions payments are calculated from.
+|`_buyerId` | bytes32 | The account buying the asset.
+|`_sellToken` | bytes32 | The asset being sold.
+|`_buyToken` | bytes32 | The asset being bought.
+|`_buyAmount` | uint256 | The amount that the fees payments are calculated from.
 |
 <br></br>
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`tc` | TradingCommissions struct with metadata regarding the trade commission payment amounts.|
+|`totalFees_` | total fee to be payed
+|`totalBP_` | total basis points|
 <br></br>
-### getTradingCommissionsBasisPoints
-Get the marketplace's trading commissions basis points.
+### getMakerBP
+No description
+Get the maker commission basis points.
 ```solidity
-  function getTradingCommissionsBasisPoints(
-  ) external returns (struct TradingCommissionsBasisPoints bp)
+  function getMakerBP(
+  ) external returns (uint16)
 ```
 #### Returns:
 | Type | Description |
 | --- | --- |
-|`bp` | - TradingCommissionsBasisPoints struct containing the individual basis points set for each marketplace commission receiver.|
+|`maker` | fee BP|
 <br></br>

@@ -103,6 +103,22 @@ Check permission to assign to a role
 | --- | --- |
 |`true` | if user the right to assign, false otherwise|
 <br></br>
+### hasGroupPrivilege
+Check whether a user can call a specific function.
+```solidity
+  function hasGroupPrivilege(
+    bytes32 _userId,
+    bytes32 _contextId,
+    bytes32 _groupId
+  ) external returns (bool)
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_userId` | bytes32 | The object ID of the user who is calling the function.
+|`_contextId` | bytes32 | ID of the context in which permission is checked.
+|`_groupId` | bytes32 | ID of the group in which permission is checked.|
+<br></br>
 ### getRoleInContext
 Get a user's (an objectId's) assigned role in a specific context
 ```solidity
