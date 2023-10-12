@@ -19,6 +19,8 @@ import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
 ///         Deploy and initialize Nayms platform
 abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     using LibHelpers for *;
+    using StdStyle for *;
+
     InitDiamond public initDiamond;
     Nayms public naymsContract;
     address public naymsAddress;
@@ -53,6 +55,10 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         c.log("block.chainid", block.chainid);
 
         bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
+        c.log("Are tests being run on a fork?", BOOL_FORK_TEST);
+        bool TESTS_FORK_UPGRADE_DIAMOND = vm.envOr({ name: "TESTS_FORK_UPGRADE_DIAMOND", defaultValue: true });
+        c.log("Are we testing diamond upgrades on a fork?", TESTS_FORK_UPGRADE_DIAMOND);
+
         if (BOOL_FORK_TEST) {
             uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
             c.log("FORK_BLOCK", FORK_BLOCK);
@@ -78,7 +84,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
             IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(naymsAddress, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
             vm.startPrank(owner);
-            scheduleAndUpgradeDiamond(cut);
+            if (TESTS_FORK_UPGRADE_DIAMOND) scheduleAndUpgradeDiamond(cut);
         } else {
             c.log("Local testing (no fork)");
 

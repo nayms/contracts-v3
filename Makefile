@@ -774,3 +774,8 @@ tf: ## Toggle forking of tests. true == fork a node, false == no fork
 	@result=$$(grep -q 'BOOL_FORK_TEST=true' .env && echo "false" || echo "true"); \
 	sed -i '' -e "s/BOOL_FORK_TEST=.*/BOOL_FORK_TEST=$$result/" .env; \
 	echo "BOOL_FORK_TEST is now set to $$result"
+
+tu: ## Toggle upgrading the diamond in the forked tests. true == upgrade, false == no upgrade
+	@result=$$(grep -q 'TESTS_FORK_UPGRADE_DIAMOND=true' .env && echo "false" || echo "true"); \
+	sed -i '' -e "s/TESTS_FORK_UPGRADE_DIAMOND=.*/TESTS_FORK_UPGRADE_DIAMOND=$$result/" .env; \
+	echo "TESTS_FORK_UPGRADE_DIAMOND is now set to $$result"
