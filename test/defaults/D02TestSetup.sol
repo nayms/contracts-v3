@@ -16,6 +16,10 @@ abstract contract D02TestSetup is D01Deployment {
     address public wbtcAddress;
     bytes32 public wbtcId;
 
+    MockERC20 public usdc;
+    address public usdcAddress;
+    bytes32 public usdcId;
+
     constructor() payable {
         changePrank(address(this));
         weth = new MockERC20("Wrapped ETH", "WETH", 18);
@@ -25,6 +29,10 @@ abstract contract D02TestSetup is D01Deployment {
         wbtc = new MockERC20("Wrapped BTC", "WBTC", 18);
         wbtcAddress = address(wbtc);
         wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
+
+        usdc = new MockERC20("USD Coin", "USDC", 6);
+        usdcAddress = address(usdc);
+        usdcId = LibHelpers._getIdForAddress(usdcAddress);
 
         vm.label(wethAddress, "WETH");
         vm.label(wbtcAddress, "WBTC");
