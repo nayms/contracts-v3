@@ -35,6 +35,8 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     address public systemAdmin;
     bytes32 public systemAdminId;
 
+    INayms.FacetCut[] CUT_STRUCT;
+
     struct NaymsAccount {
         bytes32 id;
         bytes32 entityId;
@@ -109,7 +111,9 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             naymsAddress = address(nayms);
             // initialize the diamond as well as cut in all facets
             INayms.FacetCut[] memory cut = LibGeneratedNaymsFacetHelpers.createNaymsDiamondFunctionsCut(naymsFacetAddresses);
-            scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
+            INayms.FacetCut[] memory cut2 = removeStruct(cut, getFacetIndex("ACL"));
+            INayms.FacetCut[] memory cut3 = removeStruct(cut2, getFacetIndex("Governance") - 1);
+            scheduleAndUpgradeDiamond(cut3, address(initDiamond), abi.encodeCall(initDiamond.initialize, ()));
 
             // Remove system admin from system managers group
             nayms.updateRoleGroup(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_MANAGERS, false);
@@ -184,5 +188,30 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
     function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut) internal {
         scheduleAndUpgradeDiamond(_cut, address(0), "");
+    }
+
+    function removeStruct(INayms.FacetCut[] memory inputArray, uint256 indexToRemove) public pure returns (INayms.FacetCut[] memory) {
+        require(indexToRemove < inputArray.length, "Index out of bounds");
+
+        c.log("REMOVING STRUCT".green().bold());
+        INayms.FacetCut[] memory newArray = new INayms.FacetCut[](inputArray.length - 1);
+        uint256 j;
+        for (uint256 i; i < inputArray.length; i++) {
+            if (i != indexToRemove) {
+                newArray[j] = inputArray[i];
+                j++;
+            }
+        }
+
+        return newArray;
+    }
+
+    function getFacetIndex(string memory facetName) public pure returns (uint256) {
+        string[] memory facetNames = LibGeneratedNaymsFacetHelpers.getFacetNames();
+        for (uint256 i; i < facetNames.length; i++) {
+            if (keccak256(abi.encodePacked(facetNames[i])) == keccak256(abi.encodePacked(facetName))) {
+                return (i);
+            }
+        }
     }
 }

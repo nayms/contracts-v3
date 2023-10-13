@@ -39,10 +39,7 @@ gen-i: ## generate solidity interfaces from facet implementations
 		-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
 		--ffi
 
-prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This excludes ACL and Governance facets, which are deployed with the Nayms diamond.
-	node ./cli-tools/prep-build.js ACL Governance
-
-prep-build-all: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
+prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
 	node ./cli-tools/prep-build.js
 
 prep-upgrade: ## Generate upgrade script S03UpgradeDiamond.s.sol with cut information from broadcast json file. Pass in e.g. broadcastJson=broadcast/S01DeployContract.s.sol/31337/run-latest.json
