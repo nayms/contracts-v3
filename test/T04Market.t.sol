@@ -825,6 +825,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(signer1);
         writeTokenBalance(signer1, naymsAddress, usdcAddress, dt.entity1StartingBal);
         nayms.externalDeposit(usdcAddress, dt.entity1ExternalDepositAmt);
+        vm.stopPrank();
 
         vm.startPrank(sm.addr);
         nayms.enableEntityTokenization(entity1, "E1", "Entity1");
