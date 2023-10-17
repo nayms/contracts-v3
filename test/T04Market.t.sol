@@ -808,7 +808,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMessUpOrderSorting_IM24299() public {
-        nayms.addSupportedExternalToken(usdcAddress);
         assertEq(nayms.getBestOfferId(usdcId, entity1), 0, "invalid best offer, when no offer exists");
 
         vm.startPrank(sm.addr);
@@ -910,5 +909,4 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         require(price1 < price2, string.concat("best order incorrect: ", vm.toString(price1)));
         require(price2 < price3, string.concat("second best order incorrect: ", vm.toString(price2)));
     }
-
 }

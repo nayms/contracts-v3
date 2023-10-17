@@ -243,6 +243,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
 
         changePrank(systemAdmin);
         nayms.addSupportedExternalToken(wethAddress);
+        nayms.addSupportedExternalToken(usdcAddress);
 
         entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
