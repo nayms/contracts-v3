@@ -912,11 +912,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testDoubleLockedBalance_IM24430() public {
-        nayms.addSupportedExternalToken(usdcAddress);
+        /// when creating a policy, available balance is checked to be used for collateral,
+        /// previously no check was being performed, to see if any part of the balance is locked already
+        /// attack consists of placing an order to lock the available balance
+        ///  and then creating a policy locking the same funds again
 
         uint256 usdc1000 = 1000e6;
         uint256 pToken100 = 100e18;
-        uint256 pToken99 = 99e18;
+        // uint256 pToken99 = 99e18;
 
         // prettier-ignore
         Entity memory entityData = Entity({ 
@@ -945,34 +948,22 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.enableEntityTokenization(userA.entityId, "E1", "Entity 1 Token");
         nayms.startTokenSale(userA.entityId, pToken100, usdc1000 * 2);
 
-        c.log("- [0] before attack trade".yellow());
-        c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
-        c.log("      lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
-
-        // Attack script
-
+        /// Attack script
+        /// place order and lock funds
         vm.startPrank(attacker.addr);
         nayms.executeLimitOffer(usdcId, usdc1000, userA.entityId, pToken100);
 
-        c.log("- [1] attack order placed".yellow());
-        c.log("      internalBalance:", nayms.internalBalanceOf(attacker.entityId, usdcId));
-        c.log("      lockedBalance:  ", nayms.getLockedBalance(attacker.entityId, usdcId).green());
-
         vm.startPrank(su.addr);
-
+        /// create policy (double lock?)
         uint256 policyLimitAmount = (usdc1000 * 10_000) / entityData.collateralRatio;
         (Stakeholders memory stakeholders, SimplePolicy memory simplePolicy) = initPolicyWithLimitAndAsset("offChainHash", policyLimitAmount, usdcId);
 
-        // vm.expectRevert("not enough capital");
+        vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(bytes32("1"), attacker.entityId, stakeholders, simplePolicy, "offChainHash");
 
-        c.log("- [2] policy created".yellow());
-
-        uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
-        uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
-        c.log("      internalBalance:", internalBalance);
-        c.log("      lockedBalance:  ", lockedBalance.green());
-        require(lockedBalance <= internalBalance, "Attack successful");
+        // uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
+        // uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
+        // require(lockedBalance <= internalBalance, "double lock balance attack successful");
     }
 
     function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) private {
