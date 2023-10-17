@@ -2,8 +2,9 @@
 pragma solidity 0.8.17;
 
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
-import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { IERC20 } from "src/erc20/IERC20.sol";
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
@@ -85,6 +86,10 @@ abstract contract T02AccessHelpers is D02TestSetup {
         }
     }
 
+    function hUnassignRole(bytes32 _objectId, bytes32 _contextId) internal {
+        nayms.unassignRole(_objectId, _contextId);
+    }
+
     function hCreateEntity(
         bytes32 _entityId,
         bytes32 _entityAdmin,
@@ -130,6 +135,31 @@ abstract contract T02AccessHelpers is D02TestSetup {
     function hSetEntity(NaymsAccount memory acc, bytes32 entityId) public {
         nayms.setEntity(acc.id, entityId);
         acc.entityId = entityId;
+    }
+
+    function logOfferDetails(uint256 offerId) public view {
+        MarketInfo memory m = nayms.getOffer(offerId);
+        string memory offerState;
+        if (m.state == 1) offerState = "Active".green();
+        if (m.state == 2) offerState = "Cancelled".red();
+        if (m.state == 3) offerState = "Fulfilled".blue();
+
+        string memory sellSymbol;
+        string memory buySymbol;
+        if (nayms.isSupportedExternalToken(m.sellToken)) {
+            sellSymbol = IERC20(LibHelpers._getAddressFromId(m.sellToken)).symbol();
+            (, , buySymbol, , ) = nayms.getObjectMeta(m.buyToken);
+        } else {
+            (, , sellSymbol, , ) = nayms.getObjectMeta(m.sellToken);
+            buySymbol = IERC20(LibHelpers._getAddressFromId(m.buyToken)).symbol();
+        }
+
+        c.log(string.concat("ID: ", vm.toString(offerId), "  (", offerState, ")"));
+        c.log(string.concat(sellSymbol.red(), ":\t ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
+        c.log(string.concat(buySymbol.green(), ":\t ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
+
+        // price is multiplied by 1000 to prevent rounding loss for small amounts in tests
+        c.log(string.concat("Price: ", vm.toString((m.buyAmount * 1000) / m.sellAmount).blue(), "(", vm.toString((m.buyAmountInitial * 1000) / m.sellAmountInitial).blue(), ")\n"));
     }
 }
 

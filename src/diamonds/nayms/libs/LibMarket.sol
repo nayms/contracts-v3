@@ -127,11 +127,11 @@ library LibMarket {
     function _isOfferPricedLtOrEq(uint256 _lowOfferId, uint256 _highOfferId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 lowSellAmount = s.offers[_lowOfferId].sellAmount;
-        uint256 lowBuyAmount = s.offers[_lowOfferId].buyAmount;
+        uint256 lowSellAmount = s.offers[_lowOfferId].sellAmountInitial;
+        uint256 lowBuyAmount = s.offers[_lowOfferId].buyAmountInitial;
 
-        uint256 highSellAmount = s.offers[_highOfferId].sellAmount;
-        uint256 highBuyAmount = s.offers[_highOfferId].buyAmount;
+        uint256 highSellAmount = s.offers[_highOfferId].sellAmountInitial;
+        uint256 highBuyAmount = s.offers[_highOfferId].buyAmountInitial;
 
         return lowBuyAmount * highSellAmount >= highBuyAmount * lowSellAmount;
     }
