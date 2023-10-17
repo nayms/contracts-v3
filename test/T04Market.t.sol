@@ -867,6 +867,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         hAssignRole(signer4Id, entity4, LC.ROLE_ENTITY_CP);
         vm.stopPrank();
 
+        // signer 2 & 3 take all the ptokens
         vm.startPrank(signer2);
         nayms.executeLimitOffer(usdcId, 200, entity1, 200); // it will be the best offer
         vm.stopPrank();
@@ -883,17 +884,14 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(entity1, 200, usdcId, 100); // it will be the best offer now
         vm.stopPrank();
 
-        vm.startPrank(signer4); //attacker fulfills his offer using another entity with counter offer (sellAmount3, buyAmount3) = (100, 199)
+        // this one causes rounding isseue and is incorrectly added to the order book
+        vm.startPrank(signer4);
         nayms.executeLimitOffer(usdcId, 100, entity1, 199);
         vm.stopPrank();
 
-        //Then partially funfilled offer `(sellAmount2, buyAmount2) = (1, 1)` will still be the best offer
-        vm.startPrank(signer3); //attacker adds an offer (sellAmount4, buyAmount4) = (150, 100) worsethan the honest's but it will be the best one
+        vm.startPrank(signer3);
         nayms.executeLimitOffer(entity1, 150, usdcId, 100);
         vm.stopPrank();
-
-        // Now the worse offer will be shown as the best and the real best offer will be at the bottom of the sorting list
-        // assertEq(nayms.getLastOfferId(), nayms.getBestOfferId(usdcId, entity1), "Not the best offer");
 
         uint256 bestId = nayms.getBestOfferId(entity1, usdcId);
         uint256 prev1 = nayms.getOffer(bestId).rankPrev;
