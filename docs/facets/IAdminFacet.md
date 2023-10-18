@@ -12,30 +12,6 @@ Set `_newMax` as the max dividend denominations value.
 | --- | --- | --- |
 |`_newMax` | uint8 | new value to be used.|
 <br></br>
-### setPolicyCommissionsBasisPoints
-Update policy commission basis points configuration.
-```solidity
-  function setPolicyCommissionsBasisPoints(
-    struct PolicyCommissionsBasisPoints _policyCommissions
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_policyCommissions` | struct PolicyCommissionsBasisPoints | policy commissions configuration to set|
-<br></br>
-### setTradingCommissionsBasisPoints
-Update trading commission basis points configuration.
-```solidity
-  function setTradingCommissionsBasisPoints(
-    struct TradingCommissionsBasisPoints _tradingCommissions
-  ) external
-```
-#### Arguments:
-| Argument | Type | Description |
-| --- | --- | --- |
-|`_tradingCommissions` | struct TradingCommissionsBasisPoints | trading commissions configuration to set|
-<br></br>
 ### getMaxDividendDenominations
 Get the max dividend denominations value
 ```solidity
@@ -160,5 +136,29 @@ Lock all contract methods involving fund transfers
 Unlock all contract methods involving fund transfers
 ```solidity
   function unlockAllFundTransferFunctions(
+  ) external
+```
+### replaceMakerBP
+Update market maker fee basis points
+```solidity
+  function replaceMakerBP(
+    uint16 _newMakerBP
+  ) external
+```
+#### Arguments:
+| Argument | Type | Description |
+| --- | --- | --- |
+|`_newMakerBP` | uint16 | new maker fee value|
+<br></br>
+### addFeeSchedule
+No description
+```solidity
+  function addFeeSchedule(
+  ) external
+```
+### removeFeeSchedule
+No description
+```solidity
+  function removeFeeSchedule(
   ) external
 ```
