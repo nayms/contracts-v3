@@ -10,12 +10,12 @@
 [submodule "lib/solidity-lib"]
 	path = lib/solidity-lib
 	url = https://github.com/uniswap/solidity-lib
-[submodule "lib/ozv4"]
-	path = lib/ozv4
-	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "lib/v3-periphery-foundry"]
 	path = lib/v3-periphery-foundry
 	url = https://github.com/gakonst/v3-periphery-foundry
 [submodule "lib/solidity-stringutils"]
 	path = lib/solidity-stringutils
 	url = https://github.com/arachnid/solidity-stringutils
+[submodule "lib/oz"]
+	path = lib/oz
+	url = https://github.com/openzeppelin/openzeppelin-contracts
