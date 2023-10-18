@@ -1,8 +1,8 @@
 ## Nayms Deployer
 
-This documents describe how to use the `deployer` script to make use of the `SmartDeploy` more easily.
+This document describes how to use the `deployer` script to make use of the `SmartDeploy` more easily.
 
-Basicaly what `deployer` does is, it automates the interaction with the `SmartDeploy` script for some of the most common use cases.
+Basically what `deployer` does is, it automates the interaction with the `SmartDeploy` script for some of the most common use cases.
 
 ### Basics
 
@@ -46,9 +46,9 @@ Leave this shell active, and in another shell window run:
 cli-tools/deployer.js upgrade 1 --fork --dry-run
 ```
 
-This will give you a preview of the commands that it would actually execute, should you ommit the `--dry-run` flag. Bare in mind for this to work you will need to have `$ETH_1_RPC_URL` environment variable defined.
+This will give you a preview of the commands that it would actually execute, should you omit the `--dry-run` flag. Bear in mind for this to work you will need to have `$ETH_1_RPC_URL` environment variable defined.
 
-There is also a `anvil-fork-sepolia` makefile target available for convenience.
+There is also an `anvil-fork-sepolia` makefile target available for convenience.
 
 #### Sepolia upgrade
 
@@ -62,7 +62,7 @@ For this to work you will need to have `$ETH_11155111_RPC_URL` environment varia
 
 #### Full deploy on local node
 
-You want a fresh new deployment of the diamond on you local node. Asumption is we use foundry anvil.
+You want a fresh new deployment of the diamond on your local node. Assumption is we use foundry anvil.
 
 ```zsh
 cli-tools/deployer.js deploy 31337
