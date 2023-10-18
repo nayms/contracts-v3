@@ -4,7 +4,7 @@
   "solc_remaps": [
     "ds-test/=lib/ds-test/src/",
     "forge-std/=lib/forge-std/src/",
-    "@openzeppelin/=lib/ozv4/",
+    "@openzeppelin/=lib/oz/",
     "src/=./src/",
     "test/=./test/",
     "script/=./script/"
