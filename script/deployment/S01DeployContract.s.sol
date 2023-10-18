@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
 import "script/utils/DeploymentHelpers.sol";
@@ -9,7 +9,14 @@ import "script/utils/DeploymentHelpers.sol";
 /// note The upgradeHash returned here is only correct for upgrading a single facet, and assuming all methods are `replaced`. If we were to add and/or remove methods, we would need to add them to the `cut` array.
 
 contract S01DeployContract is DeploymentHelpers {
-    function run(string calldata contractName) external returns (IDiamondCut.FacetCut[] memory cut, bytes32 upgradeHash, bytes32 upgradeHashOld) {
+    function run(string calldata contractName)
+        external
+        returns (
+            IDiamondCut.FacetCut[] memory cut,
+            bytes32 upgradeHash,
+            bytes32 upgradeHashOld
+        )
+    {
         address deployer = msg.sender;
         vm.label(deployer, "S01DeployContract deployer");
         vm.startBroadcast(deployer);

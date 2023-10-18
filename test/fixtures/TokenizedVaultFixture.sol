@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { LibTokenizedVaultIO } from "src/diamonds/nayms/libs/LibTokenizedVaultIO.sol";
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";

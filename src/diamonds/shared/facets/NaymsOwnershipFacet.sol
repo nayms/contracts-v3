@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
 import { LibACL } from "src/diamonds/nayms/libs/LibACL.sol";

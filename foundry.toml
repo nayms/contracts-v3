@@ -57,7 +57,7 @@ fs_permissions = [
 ]
 
 [profile.test]
-solc = '0.8.17'
+solc = '0.8.20'
 auto_detect_solc = false
 optimizer = false
 ffi = true
