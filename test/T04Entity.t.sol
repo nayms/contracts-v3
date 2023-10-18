@@ -725,12 +725,16 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testSimplePolicyEntityCapitalUtilization50CR() public {
         getReadyToCreatePolicies();
-        changePrank(sa.addr);
+        vm.stopPrank();
+        vm.startPrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
-        changePrank(em.addr);
-        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        vm.stopPrank();
 
-        changePrank(su.addr);
+        vm.startPrank(em.addr);
+        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        vm.stopPrank();
+
+        vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42002);
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
@@ -739,8 +743,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42000);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000, "locked balance should INCREASE");
+        vm.stopPrank();
 
-        changePrank(account0);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
 
@@ -753,7 +757,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.getEntityInfo(entityId1).utilizedCapacity, 21000 - 1, "entity utilization should DECREASE when a claim is made");
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1, "entity locked balance should DECREASE");
 
-        changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 200_000);
         nayms.externalDeposit(wethAddress, 200_000);
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 20999 + 200_000, "after deposit, entity balance of nWETH should INCREASE");
@@ -761,12 +764,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         // increase max cap from 30_000 to 221_000
         Entity memory newEInfo = nayms.getEntityInfo(entityId1);
         newEInfo.maxCapacity = 221_000;
-        changePrank(sm.addr);
+        vm.startPrank(sm.addr);
         nayms.updateEntity(entityId1, newEInfo);
+        vm.stopPrank();
 
         bytes32 policyId2 = LibHelpers._stringToBytes32("policyId2");
 
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 400_003);
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
@@ -775,29 +779,27 @@ contract T04EntityTest is D03ProtocolDefaults {
         // note: brings us to 100% max capacity
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1 + 200_000, "locked balance should INCREASE");
+        vm.stopPrank();
 
-        changePrank(account0);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         nayms.cancelSimplePolicy(policyId1);
+        vm.stopPrank();
 
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1 + 200_000 - 20999, "after cancelling policy, the locked balance should DECREASE");
 
-        changePrank(account0);
         vm.expectRevert("_internalBurn: insufficient balance available, funds locked");
         nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 21_000);
-
         nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 21_000 - 1);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
         nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
 
-        changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 1);
         nayms.externalDeposit(wethAddress, 1);
 
