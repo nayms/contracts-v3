@@ -59,7 +59,8 @@ library LibEntity {
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
-        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + ((simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR);
+        uint256 additionalCapacityNeeded = ((simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR);
+        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + additionalCapacityNeeded;
 
         // The entity must have enough capacity available to write this policy.
         // An entity is not able to write an additional policy that will utilize its capacity beyond its assigned max capacity.
@@ -67,7 +68,7 @@ library LibEntity {
 
         // The entity's balance must be >= to the updated capacity requirement
         uint256 availableBalance = LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(_entityId, simplePolicy.asset);
-        require(availableBalance >= updatedUtilizedCapacity, "not enough capital");
+        require(availableBalance >= additionalCapacityNeeded, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
