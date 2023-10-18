@@ -19,3 +19,4 @@
 [submodule "lib/oz"]
 	path = lib/oz
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+	branch = merge/release-v5.0
