@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import { IERC20 } from "src/erc20/IERC20.sol";
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
@@ -415,7 +415,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     }
 
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, MessageHashUtils.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
 

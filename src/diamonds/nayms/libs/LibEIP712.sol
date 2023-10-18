@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 library LibEIP712 {
     function _domainSeparatorV4() internal view returns (bytes32) {
@@ -28,6 +28,6 @@ library LibEIP712 {
     }
 
     function _hashTypedDataV4(bytes32 structHash) internal view returns (bytes32) {
-        return ECDSA.toTypedDataHash(_domainSeparatorV4(), structHash);
+        return MessageHashUtils.toTypedDataHash(_domainSeparatorV4(), structHash);
     }
 }
