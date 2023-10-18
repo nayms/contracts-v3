@@ -36,5 +36,6 @@ abstract contract D02TestSetup is D01Deployment {
 
         vm.label(wethAddress, "WETH");
         vm.label(wbtcAddress, "WBTC");
+        vm.label(usdcAddress, "USDC");
     }
 }
