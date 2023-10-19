@@ -5,6 +5,16 @@ pragma solidity 0.8.20;
  * @dev Settings keys.
  */
 library LibConstants {
+    /// Object Types
+    bytes12 internal constant OBJECT_TYPE_USER = "USER";
+    bytes12 internal constant OBJECT_TYPE_ENTITY = "ENTITY";
+    bytes12 internal constant OBJECT_TYPE_POLICY = "POLICY";
+    bytes12 internal constant OBJECT_TYPE_FEE = "FEE";
+    bytes12 internal constant OBJECT_TYPE_CLAIM = "CLAIM";
+    bytes12 internal constant OBJECT_TYPE_DIVIDEND = "DIVIDEND";
+    bytes12 internal constant OBJECT_TYPE_ROLE = "ROLE";
+    bytes12 internal constant OBJECT_TYPE_GROUP = "GROUP";
+
     /// Reserved IDs
     string internal constant EMPTY_IDENTIFIER = "";
     string internal constant SYSTEM_IDENTIFIER = "System";

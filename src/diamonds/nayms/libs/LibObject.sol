@@ -158,6 +158,14 @@ library LibObject {
         return s.existingObjects[_id];
     }
 
+    function _getObjectType(bytes32 _objectId) internal pure returns (bytes12) {
+        return bytes12(_objectId >> 160);
+    }
+
+    function _isObjectType(bytes32 _objectId, bytes12 _objectType) internal pure returns (bool) {
+        return (_getObjectType(_objectId) == _objectType);
+    }
+
     function _getObjectMeta(bytes32 _id)
         internal
         view
