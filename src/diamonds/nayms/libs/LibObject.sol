@@ -158,8 +158,12 @@ library LibObject {
         return s.existingObjects[_id];
     }
 
-    function _getObjectType(bytes32 _objectId) internal pure returns (bytes12) {
-        return bytes12(_objectId >> 160);
+    function _getObjectType(bytes32 _objectId) internal pure returns (bytes12 objectType) {
+        bytes32 shifted = _objectId >> 160;
+        assembly {
+            objectType := shl(160, shifted)
+        }
+        return objectType;
     }
 
     function _isObjectType(bytes32 _objectId, bytes12 _objectType) internal pure returns (bool) {

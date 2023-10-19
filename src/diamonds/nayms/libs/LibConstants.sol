@@ -12,6 +12,7 @@ library LibConstants {
     bytes12 internal constant OBJECT_TYPE_FEE = "FEE";
     bytes12 internal constant OBJECT_TYPE_CLAIM = "CLAIM";
     bytes12 internal constant OBJECT_TYPE_DIVIDEND = "DIVIDEND";
+    bytes12 internal constant OBJECT_TYPE_PREMIUM = "PREMIUM";
     bytes12 internal constant OBJECT_TYPE_ROLE = "ROLE";
     bytes12 internal constant OBJECT_TYPE_GROUP = "GROUP";
 

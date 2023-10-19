@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC, c } from "./defaults/D03ProtocolDefaults.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
@@ -89,5 +89,24 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         assertEq(tokenSymbol, "");
         assertEq(tokenName, "");
         assertEq(wrapperAddress, address(0));
+    }
+
+    bytes12[9] internal objectTypes = [
+        LC.OBJECT_TYPE_USER,
+        LC.OBJECT_TYPE_ENTITY,
+        LC.OBJECT_TYPE_POLICY,
+        LC.OBJECT_TYPE_FEE,
+        LC.OBJECT_TYPE_CLAIM,
+        LC.OBJECT_TYPE_DIVIDEND,
+        LC.OBJECT_TYPE_PREMIUM,
+        LC.OBJECT_TYPE_ROLE,
+        LC.OBJECT_TYPE_GROUP
+    ];
+
+    function test_IsObjectType() public {
+        for (uint256 i; i < objectTypes.length; i++) {
+            bytes32 objectId = bytes32(objectTypes[i]) | bytes32(uint256(1));
+            assertEq(nayms.isObjectType(objectId, objectTypes[i]), true, "isObjectType");
+        }
     }
 }
