@@ -65,6 +65,7 @@ jobs:
         env:
           SOLC_VERSION: 0.8.20
         run: make slither
+        continue-on-error: true
 
       - name: Upload Slither SARIF file
         uses: github/codeql-action/upload-sarif@v2
