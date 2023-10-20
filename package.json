@@ -31,8 +31,9 @@
     "lint:check": "yarn prettier:check && yarn run solhint:check",
     "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/docgen.js",
     "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json",
+    "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 20",
     "build": "gemforge build",
-    "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 20"
+    "deploy": "gemforge deploy"
   },
   "devDependencies": {
     "chalk": "4",
