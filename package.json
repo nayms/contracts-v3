@@ -33,8 +33,7 @@
     "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/docgen.js",
     "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json",
     "build": "gemforge build",
-    "build-v": "gemforge build -v",
-    "gfv": "gemforge --version"
+    "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 20"
   },
   "devDependencies": {
     "chalk": "4",

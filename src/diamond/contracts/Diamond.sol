@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity ^0.8.0;
 
 /******************************************************************************\
 * Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
@@ -7,40 +7,34 @@ pragma solidity 0.8.21;
 *
 * Implementation of a diamond.
 /******************************************************************************/
+
 import { LibDiamond } from "./libraries/LibDiamond.sol";
-import { DiamondCutFacet } from "./facets/DiamondCutFacet.sol";
-import { DiamondLoupeFacet } from "./facets/DiamondLoupeFacet.sol";
-import { OwnershipFacet } from "./facets/OwnershipFacet.sol";
-import { ACLFacet } from "src/facets/ACLFacet.sol";
-import { GovernanceFacet } from "src/facets/GovernanceFacet.sol";
+import { IDiamondCut } from "./interfaces/IDiamondCut.sol";
 
 contract Diamond {
-    constructor(address _contractOwner, address _systemAdmin) payable {
+    constructor(address _contractOwner, address _diamondCutFacet) payable {
         LibDiamond.setContractOwner(_contractOwner);
-        LibDiamond.setRoleGroupsAndAssigners();
-        LibDiamond.setSystemAdmin(_systemAdmin); // note: This method checks to make sure system admin is not the same address as the contract owner.
-        LibDiamond.setUpgradeExpiration();
 
-        // TODO KP help!
-        // LibDiamond.addDiamondFunctions(
-        //     address(new DiamondCutFacet()),
-        //     address(new DiamondLoupeFacet()),
-        //     address(new OwnershipFacet()),
-        //     address(new ACLFacet()),
-        //     address(new GovernanceFacet())
-        // );
+        // Add the diamondCut external function from the diamondCutFacet
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        bytes4[] memory functionSelectors = new bytes4[](1);
+        functionSelectors[0] = IDiamondCut.diamondCut.selector;
+        cut[0] = IDiamondCut.FacetCut({ facetAddress: _diamondCutFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors });
+        LibDiamond.diamondCut(cut, address(0), "");
     }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
-    // solhint-disable no-complex-fallback
     fallback() external payable {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-
+        LibDiamond.DiamondStorage storage ds;
+        bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
+        // get diamond storage
+        assembly {
+            ds.slot := position
+        }
         // get facet from function selector
         address facet = address(bytes20(ds.facets[msg.sig]));
-        // require(facet != address(0), "Diamond: Function does not exist"); - don't need to do this since we check for code below
-        LibDiamond.enforceHasContractCode(facet, "Diamond: Facet has no code");
+        require(facet != address(0), "Diamond: Function does not exist");
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments
@@ -60,6 +54,5 @@ contract Diamond {
         }
     }
 
-    // solhint-disable no-empty-blocks
     receive() external payable {}
 }

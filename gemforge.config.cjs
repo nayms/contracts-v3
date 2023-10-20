@@ -15,7 +15,7 @@ module.exports = {
   },
   paths: {
     // contract built artifacts folder
-    artifacts: 'out',
+    artifacts: 'forge-artifacts',
     // source files
     src: {
       // file patterns to include in facet parsing

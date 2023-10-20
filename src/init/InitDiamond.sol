@@ -67,6 +67,10 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IERC20).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondProxy).interfaceId] = true;
 
+        LibDiamond.setRoleGroupsAndAssigners();
+        LibDiamond.setSystemAdmin(_systemAdmin); // note: This method checks to make sure system admin is not the same address as the contract owner.
+        LibDiamond.setUpgradeExpiration();
+
         s.diamondInitialized = true;
         emit InitializeDiamond(msg.sender);
     }
