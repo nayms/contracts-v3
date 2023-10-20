@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 import { D02TestSetup, LibHelpers, console2 } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "lib/ozv4/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import { LibAdmin } from "src/libs/LibAdmin.sol";
 import { LibConstants } from "src/libs/LibConstants.sol";
@@ -240,7 +241,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ECDSA.toEthSignedMessageHash(signingHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, MessageHashUtils.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
 }

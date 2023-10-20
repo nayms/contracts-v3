@@ -1,9 +1,12 @@
 module.exports = {
+  // Configuration file version
+  version: 2,
+  // Compiler configuration
   solc: {
     // SPDX License - to be inserted in all generated .sol files
     license: 'MIT',
     // Solidity compiler version - to be inserted in all generated .sol files
-    version: '0.8.17',
+    version: '0.8.21',
   },
   // commands to execute
   commands: {
@@ -55,11 +58,9 @@ module.exports = {
   diamond: {
     // Whether to include public methods when generating the IDiamondProxy interface. Default is to only include external methods.
     publicMethods: false,
-    // The diamond initialization contract - to be called when first deploying the diamond.
-    init: 'InitDiamond',
     // Names of core facet contracts - these will not be modified/removed once deployed and are also reserved names.
     // This default list is taken from the diamond-2-hardhat library.
-    // NOTE: we recommend not removing any of these existing names unless you know what you are doing.
+    // NOTE: WE RECOMMEND NOT CHANGING ANY OF THESE EXISTING NAMES UNLESS YOU KNOW WHAT YOU ARE DOING.
     coreFacets: [
       'OwnershipFacet',
       'DiamondCutFacet',
@@ -103,21 +104,36 @@ module.exports = {
       },
     },
   },
-  // Networks to deploy to
+  // Networks/chains
   networks: {
     // Local network
     local: {
       // RPC endpoint URL
       rpcUrl: 'http://localhost:8545',
-      // Wallet to use for deployment
-      wallet: 'wallet2',
     },
     // Sepolia test network
     sepolia: {
       // RPC endpoint URL
       rpcUrl: () => process.env.SEPOLIA_RPC_URL,
+    }
+  },
+  // Targets to deploy
+  targets: {
+    local: {
+      // Network to deploy to
+      network: 'local',
+      // Wallet to use for deployment
+      wallet: 'wallet1',
+      // Initialization function arguments
+      initArgs: [],
+    },
+    testnet: {
+      // Network to deploy to
+      network: 'sepolia',
       // Wallet to use for deployment
       wallet: 'wallet2',
+      // Initialization function arguments
+      initArgs: [],
     }
   }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 /// @dev The Nayms Diamond (proxy contract) owner (address) must be mutually exclusive with the system admin role.
 error OwnerCannotBeSystemAdmin();

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 import { LibAppStorage, AppStorage } from "../shared/AppStorage.sol";
 import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppStorage.sol";
@@ -14,6 +14,7 @@ import { LibSimplePolicy } from "./LibSimplePolicy.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "lib/ozv4/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "lib/ozv4/contracts/utils/cryptography/MessageHashUtils.sol";
 import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "../shared/CustomErrors.sol";
 
 library LibEntity {
@@ -186,7 +187,7 @@ library LibEntity {
             }
         }
 
-        (address signer, ) = ECDSA.tryRecover(ECDSA.toEthSignedMessageHash(signingHash), v, r, s);
+        (address signer, , ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
 
         return signer;
     }

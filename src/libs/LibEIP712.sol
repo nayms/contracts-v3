@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "lib/ozv4/contracts/utils/cryptography/MessageHashUtils.sol";
 
 library LibEIP712 {
     function _domainSeparatorV4() internal view returns (bytes32) {
@@ -28,6 +28,6 @@ library LibEIP712 {
     }
 
     function _hashTypedDataV4(bytes32 structHash) internal view returns (bytes32) {
-        return ECDSA.toTypedDataHash(_domainSeparatorV4(), structHash);
+        return MessageHashUtils.toTypedDataHash(_domainSeparatorV4(), structHash);
     }
 }

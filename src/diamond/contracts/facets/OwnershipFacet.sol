@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LibACL } from "src/libs/LibACL.sol";

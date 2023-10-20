@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 import { LibConstants } from "src/libs/LibConstants.sol";
 import { LibFeeRouter, CalculatedFees, FeeAllocation, FeeSchedule } from "src/libs/LibFeeRouter.sol";
