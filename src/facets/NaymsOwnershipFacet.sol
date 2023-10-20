@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import { LibDiamond } from "../libraries/LibDiamond.sol";
+import { LibDiamond } from "lib/diamond-2-hardhat/contracts/libraries/LibDiamond.sol";
+import { IERC173 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC173.sol";
 import { LibACL } from "src/libs/LibACL.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
 import { LibConstants } from "src/libs/LibConstants.sol";
-import { IERC173 } from "../interfaces/IERC173.sol";
 import { Modifiers } from "src/shared/Modifiers.sol";
 
-contract OwnershipFacet is IERC173, Modifiers {
+contract NaymsOwnershipFacet is IERC173, Modifiers {
     function transferOwnership(address _newOwner) public override assertSysAdmin {
         bytes32 systemID = LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
         bytes32 newAcc1Id = LibHelpers._getIdForAddress(_newOwner);

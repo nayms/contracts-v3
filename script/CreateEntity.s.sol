@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import "forge-std/Script.sol";
 
-import { IDiamondCut } from "../src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { DiamondProxy } from "src/generated/DiamondProxy.sol";
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 

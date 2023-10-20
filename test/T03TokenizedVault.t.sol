@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { console2, D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
-import { IDiamondCut } from "src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 
 // solhint-disable max-states-count

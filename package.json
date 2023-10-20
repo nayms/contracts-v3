@@ -12,10 +12,9 @@
     "forge-artifacts/**",
     "broadcast/**",
     "deployedAddresses.json",
+    "gemforge.deployments.json",
     "index.js",
-    "src/diamonds/nayms/interfaces/**",
-    "src/diamonds/shared/interfaces/IERC173.sol",
-    "src/ERC20/IERC20.sol"
+    "src/generated/IDiamondProxy.sol"
   ],
   "scripts": {
     "prettier": "yarn prettier:test && yarn prettier:src && yarn prettier:script",

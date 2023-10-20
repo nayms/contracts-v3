@@ -13,9 +13,7 @@ const exclude = [
   'script/.*',
   'test/.*',
   'src/utils/.*',
-  'src/diamonds/nayms/AppStorage',
-  'src/diamonds/shared/libs/.*',
-  'src/diamonds/shared/interfaces/.*',
+  'src/shared/AppStorage',
 ]
 
 let record = false

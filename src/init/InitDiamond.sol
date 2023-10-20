@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
+import { IDiamondLoupe } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondLoupe.sol";
+import { LibDiamond } from "lib/diamond-2-hardhat/contracts/libraries/LibDiamond.sol";
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibConstants } from "../libs/LibConstants.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibACL } from "../libs/LibACL.sol";
-import { LibDiamond } from "../diamond/contracts/libraries/LibDiamond.sol";
+import { LibInitDiamond } from "../libs/LibInitDiamond.sol";
 import { LibEIP712 } from "../libs/LibEIP712.sol";
 import { IERC165 } from "../interfaces/IERC165.sol";
-import { IDiamondCut } from "../diamond/contracts/interfaces/IDiamondCut.sol";
-import { IDiamondLoupe } from "../diamond/contracts/interfaces/IDiamondLoupe.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
-import { IDiamondProxy } from "../generated/IDiamondProxy.sol";
 import { FeeSchedule } from "../shared/FreeStructs.sol";
 
 error DiamondAlreadyInitialized();
@@ -21,7 +21,7 @@ error DiamondAlreadyInitialized();
 contract InitDiamond {
     event InitializeDiamond(address sender);
 
-    function init() external {
+    function init(address _systemAdmin) external {
         AppStorage storage s = LibAppStorage.diamondStorage();
         if (s.diamondInitialized) {
             revert DiamondAlreadyInitialized();
@@ -65,11 +65,10 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
         ds.supportedInterfaces[type(IERC20).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondProxy).interfaceId] = true;
 
-        LibDiamond.setRoleGroupsAndAssigners();
-        LibDiamond.setSystemAdmin(_systemAdmin); // note: This method checks to make sure system admin is not the same address as the contract owner.
-        LibDiamond.setUpgradeExpiration();
+        LibInitDiamond.setRoleGroupsAndAssigners();
+        LibInitDiamond.setSystemAdmin(_systemAdmin);
+        LibInitDiamond.setUpgradeExpiration();
 
         s.diamondInitialized = true;
 

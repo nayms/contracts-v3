@@ -2,7 +2,7 @@
 pragma solidity 0.8.21;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
-import { LibDiamond } from "../diamond/contracts/libraries/LibDiamond.sol";
+import { LibDiamond } from "lib/diamond-2-hardhat/contracts/libraries/LibDiamond.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";

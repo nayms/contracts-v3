@@ -36,7 +36,7 @@ module.exports = {
     // library source code
     lib: {
       // diamond library
-      diamond: 'src/diamond',
+      diamond: 'lib/diamond-2-hardhat',
     }
   },
   // artifacts configuration
@@ -58,13 +58,19 @@ module.exports = {
   diamond: {
     // Whether to include public methods when generating the IDiamondProxy interface. Default is to only include external methods.
     publicMethods: false,
+    init: {
+      contract: 'InitDiamond',
+      function: 'init'
+    },
     // Names of core facet contracts - these will not be modified/removed once deployed and are also reserved names.
     // This default list is taken from the diamond-2-hardhat library.
     // NOTE: WE RECOMMEND NOT CHANGING ANY OF THESE EXISTING NAMES UNLESS YOU KNOW WHAT YOU ARE DOING.
     coreFacets: [
-      'OwnershipFacet',
       'DiamondCutFacet',
       'DiamondLoupeFacet',
+      'NaymsOwnershipFacet',
+      'ACLFacet',
+      'GovernanceFacet'
     ],
   },
   // lifecycle hooks
@@ -125,7 +131,9 @@ module.exports = {
       // Wallet to use for deployment
       wallet: 'wallet1',
       // Initialization function arguments
-      initArgs: [],
+      initArgs: [
+        '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' // system_admin wallet address
+      ],
     },
     testnet: {
       // Network to deploy to
@@ -133,7 +141,9 @@ module.exports = {
       // Wallet to use for deployment
       wallet: 'wallet2',
       // Initialization function arguments
-      initArgs: [],
+      initArgs: [
+        '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' // system_admin wallet address
+      ],
     }
   }
 }

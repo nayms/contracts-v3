@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 // import { Test } from "forge-std/Test.sol";
 
-// import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+// import { IDiamondCut } from "lib/diamond-2-hardhats/nayms/INayms.sol";
 
 // import { S01DeployContract } from "script/deployment/S01DeployContract.s.sol";
 // import { S02ScheduleUpgrade } from "script/deployment/S02ScheduleUpgrade.s.sol";

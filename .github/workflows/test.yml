@@ -65,7 +65,7 @@ jobs:
         id: slither
         with:
           sarif: results.sarif
-          target: src/diamonds/nayms
+          target: src
           slither-args: --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
         continue-on-error: true
 

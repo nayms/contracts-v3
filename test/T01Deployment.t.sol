@@ -6,13 +6,13 @@ import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
-import { IDiamondLoupe } from "src/diamond/contracts/interfaces/IDiamondLoupe.sol";
-import { IDiamondCut } from "src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { IDiamondLoupe } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondLoupe.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { DiamondAlreadyInitialized } from "src/init/InitDiamond.sol";
 
-import { IERC165 } from "../src/interfaces/IERC165.sol";
-import { IERC173 } from "../src/interfaces/IERC173.sol";
+import { IERC165 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC165.sol";
+import { IERC173 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC173.sol";
 import { IERC20 } from "../src/interfaces/IERC20.sol";
 
 contract T01DeploymentTest is D03ProtocolDefaults {
@@ -40,7 +40,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         changePrank(owner);
         vm.recordLogs();
 
-        fixture.init();
+        fixture.init(systemAdmin);
 
         // check logs
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -64,13 +64,13 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
         IDiamondCut.FacetCut[] memory cut;
 
-        bytes32 upgradeHash = keccak256(abi.encode(cut, address(initDiamond), abi.encodeCall(initDiamond.init, ())));
+        bytes32 upgradeHash = keccak256(abi.encode(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin))));
 
         changePrank(systemAdmin);
         nayms.createUpgrade(upgradeHash);
         changePrank(owner);
         vm.expectRevert(abi.encodePacked(DiamondAlreadyInitialized.selector));
-        nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.init, ()));
+        nayms.diamondCut(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin)));
     }
 
     function test_supportsInterface() public {

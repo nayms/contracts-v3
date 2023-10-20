@@ -6,12 +6,12 @@ pragma solidity 0.8.21;
 
 import "./D00GlobalDefaults.sol";
 
-import { IDiamondCut } from "../../src/diamond/contracts/interfaces/IDiamondCut.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { DiamondProxy } from "src/generated/DiamondProxy.sol";
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { LibDiamondHelper } from "src/generated/LibDiamondHelper.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
-import { InitDiamond } from "../../src/init/InitDiamond.sol";
+import { InitDiamond } from "src/init/InitDiamond.sol";
 
 import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
@@ -101,7 +101,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         nayms.diamondCut(cut, address(initDiamond), abi.encodeWithSelector(initDiamond.init.selector));
 
         console2.log("Schedule and upgrade");
-        scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.init, ()));
+        scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin)));
         // }
     }
 

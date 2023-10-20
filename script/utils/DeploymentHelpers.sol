@@ -2,14 +2,12 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
+import { DiamondCutFacet } from "lib/diamond-2-hardhat/contracts/facets/DiamondCutFacet.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
+import { IDiamondLoupe } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondLoupe.sol";
 import { strings } from "lib/solidity-stringutils/src/strings.sol";
-import { IDiamondCut } from "src/diamond/contracts/interfaces/IDiamondCut.sol";
-import { IDiamondLoupe } from "src/diamond/contracts/interfaces/IDiamondLoupe.sol";
-import { Diamond } from "src/diamond/contracts/Diamond.sol";
 
 import { Create3Deployer } from "src/utils/Create3Deployer.sol";
-
-import { DiamondCutFacet } from "src/diamond/contracts/facets/DiamondCutFacet.sol";
 
 // solhint-disable no-empty-blocks
 // solhint-disable state-visibility
