@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { Entity, SimplePolicy } from "../AppStorage.sol";
 import { LibACL } from "./LibACL.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
@@ -72,7 +72,7 @@ library LibSimplePolicy {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(_amount > 0, "invalid claim amount");
-        require(LibACL._isInGroup(_insuredEntityId, _policyId, LibHelpers._stringToBytes32(LibConstants.GROUP_INSURED_PARTIES)), "not an insured party");
+        require(LibACL._isInGroup(_insuredEntityId, _policyId, LibHelpers._stringToBytes32(LC.GROUP_INSURED_PARTIES)), "not an insured party");
 
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         require(!simplePolicy.cancelled, "Policy is cancelled");
@@ -83,11 +83,11 @@ library LibSimplePolicy {
 
         bytes32 entityId = LibObject._getParent(_policyId);
         Entity memory entity = s.entities[entityId];
-        s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
 
-        s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
 
-        LibObject._createObject(_claimId);
+        LibObject._createObject(_claimId, LC.OBJECT_TYPE_CLAIM);
 
         LibTokenizedVault._internalTransfer(entityId, _insuredEntityId, simplePolicy.asset, _amount);
 
@@ -112,7 +112,7 @@ library LibSimplePolicy {
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         Entity storage entity = s.entities[entityId];
 
-        uint256 policyLockedAmount = ((simplePolicy.limit - simplePolicy.claimsPaid) * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        uint256 policyLockedAmount = ((simplePolicy.limit - simplePolicy.claimsPaid) * entity.collateralRatio) / LC.BP_FACTOR;
         entity.utilizedCapacity -= policyLockedAmount;
         s.lockedBalances[entityId][entity.assetId] -= policyLockedAmount;
 

@@ -40,6 +40,12 @@ error EntityDoesNotExist(bytes32 objectId);
 /// @dev Cannot create an entity that already exists.
 error CreatingEntityThatAlreadyExists(bytes32 entityId);
 
+/// @dev The object type is not supported in this function call.
+error InvalidObjectType();
+
+/// @dev The object ID being passed in is expected to be an address type, but the bottom (least significant) 12 bytes are not empty.
+error InvalidObjectIdForAddress();
+
 /// @dev (non specific) the object is not enabled to be tokenized.
 error ObjectCannotBeTokenized(bytes32 objectId);
 

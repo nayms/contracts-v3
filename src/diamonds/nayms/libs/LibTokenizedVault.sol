@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibAdmin } from "./LibAdmin.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 
@@ -180,7 +180,7 @@ library LibTokenizedVault {
         bytes32 _dividendTokenId
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+        bytes32 dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
         uint256 amountOwned = s.tokenBalances[_tokenId][_ownerId];
         uint256 supply = _internalTokenSupply(_tokenId);
@@ -238,7 +238,7 @@ library LibTokenizedVault {
         require(!LibObject._isObject(_guid), "nonunique dividend distribution identifier");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+        bytes32 dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
         // If no tokens are issued, then deposit directly.
         // note: This functionality is for the business case where we want to distribute dividends directly to entities.
@@ -268,7 +268,7 @@ library LibTokenizedVault {
         }
 
         // prevent guid reuse/collision
-        LibObject._createObject(_guid);
+        LibObject._createObject(_guid, LC.OBJECT_TYPE_DIVIDEND);
 
         // Events are emitted from the _internalTransfer()
         emit DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);

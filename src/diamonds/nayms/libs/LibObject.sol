@@ -2,10 +2,12 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
+import { InvalidObjectType, InvalidObjectIdForAddress } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
@@ -17,28 +19,36 @@ library LibObject {
 
     function _createObject(
         bytes32 _objectId,
+        bytes12 _objectType,
         bytes32 _parentId,
         bytes32 _dataHash
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        _createObject(_objectId);
+        _createObject(_objectId, _objectType);
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
 
         emit ObjectCreated(_objectId, _parentId, _dataHash);
     }
 
-    function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
+    function _createObject(
+        bytes32 _objectId,
+        bytes12 _objectType,
+        bytes32 _dataHash
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        _createObject(_objectId);
+        _createObject(_objectId, _objectType);
         s.objectDataHashes[_objectId] = _dataHash;
 
         emit ObjectCreated(_objectId, 0, _dataHash);
     }
 
-    function _createObject(bytes32 _objectId) internal {
+    function _createObject(bytes32 _objectId, bytes12 _objectType) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(!s.existingObjects[_objectId], "objectId is already being used by another object");
+        if (_objectType == LC.OBJECT_TYPE_ADDRESS && !LibHelpers._isAddress(_objectId)) revert InvalidObjectIdForAddress();
+        else if (!_isObjectType(_objectId, _objectType)) revert InvalidObjectType();
+
         s.existingObjects[_objectId] = true;
 
         emit ObjectCreated(_objectId, 0, 0);

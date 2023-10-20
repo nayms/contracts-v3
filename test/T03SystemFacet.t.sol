@@ -92,7 +92,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     }
 
     bytes12[9] internal objectTypes = [
-        LC.OBJECT_TYPE_USER,
+        LC.OBJECT_TYPE_ADDRESS,
         LC.OBJECT_TYPE_ENTITY,
         LC.OBJECT_TYPE_POLICY,
         LC.OBJECT_TYPE_FEE,

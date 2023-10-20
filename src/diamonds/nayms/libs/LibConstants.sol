@@ -6,7 +6,7 @@ pragma solidity 0.8.20;
  */
 library LibConstants {
     /// Object Types
-    bytes12 internal constant OBJECT_TYPE_USER = "USER";
+    bytes12 internal constant OBJECT_TYPE_ADDRESS = "ADDRESS";
     bytes12 internal constant OBJECT_TYPE_ENTITY = "ENTITY";
     bytes12 internal constant OBJECT_TYPE_POLICY = "POLICY";
     bytes12 internal constant OBJECT_TYPE_FEE = "FEE";
