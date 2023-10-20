@@ -46,6 +46,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
     function makeNaymsAcc(string memory name) public returns (NaymsAccount memory) {
         (address addr, uint256 privateKey) = makeAddrAndKey(name);
+        vm.label(addr, name);
         return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: keccak256(bytes(name)), pk: privateKey, addr: addr });
     }
 
@@ -55,6 +56,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     }
 
     constructor() payable {
+        c.log("\n -- D01 Deployment Defaults\n");
         c.log("block.chainid", block.chainid);
 
         bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
@@ -147,6 +149,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             nayms.updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_CANCEL_OFFER, true);
 
             nayms.updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_EXECUTE_LIMIT_OFFER, true);
+            nayms.updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_EXECUTE_LIMIT_OFFER, true);
 
             nayms.updateRoleGroup(LC.ROLE_ENTITY_BROKER, LC.GROUP_PAY_SIMPLE_PREMIUM, true);
             nayms.updateRoleGroup(LC.ROLE_ENTITY_INSURED, LC.GROUP_PAY_SIMPLE_PREMIUM, true);
