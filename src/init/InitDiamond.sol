@@ -72,6 +72,7 @@ contract InitDiamond {
         LibDiamond.setUpgradeExpiration();
 
         s.diamondInitialized = true;
+
         emit InitializeDiamond(msg.sender);
     }
 }
