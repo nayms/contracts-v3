@@ -440,6 +440,40 @@ contract D03ProtocolDefaults is D02TestSetup {
         }
     }
 
+    function initPolicyWithLimitAndAssetAndAttacker(
+        uint256 limitAmount,
+        bytes32 assetId,
+        NaymsAccount memory acc,
+        NaymsAccount memory attacker
+    ) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        bytes32[] memory roles = new bytes32[](1);
+        roles[0] = LibHelpers._stringToBytes32(LC.GROUP_PAY_SIMPLE_PREMIUM);
+        bytes32[] memory entityIds = new bytes32[](1);
+        entityIds[0] = attacker.id;
+        {
+            bytes32[] memory commissionReceivers = new bytes32[](1);
+            commissionReceivers[0] = acc.entityId;
+            uint256[] memory commissions = new uint256[](1);
+            commissions[0] = 0;
+            policy.startDate = block.timestamp + 1000;
+            policy.maturationDate = block.timestamp + 1000 + 2 days;
+            policy.asset = assetId;
+            policy.limit = limitAmount;
+            policy.commissionReceivers = commissionReceivers;
+            policy.commissionBasisPoints = commissions;
+        }
+
+        {
+            bytes[] memory signatures = new bytes[](1);
+            bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, "offchain");
+
+            signatures[0] = initPolicySig(acc.pk, signingHash);
+            //0xbb51ae847295104088b45a86e9ceb7dfabec7268e84a64243dfa8e653bc624db pk for attacker Backup
+
+            policyStakeholders = Stakeholders(roles, entityIds, signatures);
+        }
+    }
+
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, MessageHashUtils.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
