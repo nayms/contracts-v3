@@ -49,7 +49,7 @@ library LibAdmin {
 
     function _isSupportedExternalToken(bytes32 _tokenId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.externalTokenSupported[LibHelpers._getAddressFromId(_tokenId)];
+        return LibHelpers._isAddress(_tokenId) && s.externalTokenSupported[LibHelpers._getAddressFromId(_tokenId)];
     }
 
     function _addSupportedExternalToken(address _tokenAddress) internal {

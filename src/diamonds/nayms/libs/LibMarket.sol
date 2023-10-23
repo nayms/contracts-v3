@@ -7,6 +7,7 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
+import { LibAdmin } from "./LibAdmin.sol";
 
 library LibMarket {
     struct MatchingOfferResult {
@@ -164,7 +165,7 @@ library LibMarket {
         // If the buyToken is entity(p-token)   => limit both buy and sell amounts
         // If the buyToken is external          => limit only sell amount
 
-        bool buyExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool buyExternalToken =  LibAdmin._isSupportedExternalToken(_buyToken);
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
@@ -395,9 +396,9 @@ library LibMarket {
         // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
 
         bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
-        bool isSellTokenASupportedExternalToken = LibHelpers._isAddress(_sellToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool isSellTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_sellToken);
         bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
-        bool isBuyTokenASupportedExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool isBuyTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
 
         _assertAmounts(_sellAmount, _buyAmount);
 
