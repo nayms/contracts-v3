@@ -144,8 +144,9 @@ abstract contract T02AccessHelpers is D02TestSetup {
         if (m.state == 2) offerState = "Cancelled".red();
         if (m.state == 3) offerState = "Fulfilled".blue();
 
-        string memory sellSymbol;
-        string memory buySymbol;
+        string memory sellSymbol = vm.toString(m.sellToken);
+        string memory buySymbol = vm.toString(m.buyToken);
+
         if (nayms.isSupportedExternalToken(m.sellToken)) {
             sellSymbol = IERC20(LibHelpers._getAddressFromId(m.sellToken)).symbol();
             (, , buySymbol, , ) = nayms.getObjectMeta(m.buyToken);
@@ -154,12 +155,23 @@ abstract contract T02AccessHelpers is D02TestSetup {
             buySymbol = IERC20(LibHelpers._getAddressFromId(m.buyToken)).symbol();
         }
 
-        c.log(string.concat("ID: ", vm.toString(offerId), "  (", offerState, ")"));
-        c.log(string.concat(sellSymbol.red(), ":\t ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
-        c.log(string.concat(buySymbol.green(), ":\t ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
+        c.log("");
+        c.log(string.concat("--".green(), " ID: ", vm.toString(offerId), " (", offerState, ") ", "---------------------------------------------".green()));
+        c.log(string.concat(" ", sellSymbol.red(), ":\t ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
+        c.log(string.concat(" ", buySymbol.green(), ":\t ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
 
         // price is multiplied by 1000 to prevent rounding loss for small amounts in tests
-        c.log(string.concat("Price: ", vm.toString((m.buyAmount * 1000) / m.sellAmount).blue(), "(", vm.toString((m.buyAmountInitial * 1000) / m.sellAmountInitial).blue(), ")\n"));
+        c.log(
+            string.concat(
+                "-- ".green(),
+                "Price: ",
+                vm.toString((m.buyAmount * 1000) / m.sellAmount).blue(),
+                "(",
+                vm.toString((m.buyAmountInitial * 1000) / m.sellAmountInitial).blue(),
+                ")",
+                " ------------------------------------------------\n".green()
+            )
+        );
     }
 }
 
@@ -412,6 +424,40 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         signatures[3] = initPolicySig(0xACC4, signingHash);
 
         policyStakeholders = Stakeholders(roles, entityIds, signatures);
+    }
+
+    function initPolicyWithLimitAndAssetAndAttacker(
+        uint256 limitAmount,
+        bytes32 assetId,
+        NaymsAccount memory acc,
+        NaymsAccount memory attacker
+    ) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        bytes32[] memory roles = new bytes32[](1);
+        roles[0] = LibHelpers._stringToBytes32(LC.GROUP_PAY_SIMPLE_PREMIUM);
+        bytes32[] memory entityIds = new bytes32[](1);
+        entityIds[0] = attacker.id;
+        {
+            bytes32[] memory commissionReceivers = new bytes32[](1);
+            commissionReceivers[0] = acc.entityId;
+            uint256[] memory commissions = new uint256[](1);
+            commissions[0] = 0;
+            policy.startDate = block.timestamp + 1000;
+            policy.maturationDate = block.timestamp + 1000 + 2 days;
+            policy.asset = assetId;
+            policy.limit = limitAmount;
+            policy.commissionReceivers = commissionReceivers;
+            policy.commissionBasisPoints = commissions;
+        }
+
+        {
+            bytes[] memory signatures = new bytes[](1);
+            bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, "offchain");
+
+            signatures[0] = initPolicySig(acc.pk, signingHash);
+            //0xbb51ae847295104088b45a86e9ceb7dfabec7268e84a64243dfa8e653bc624db pk for attacker Backup
+
+            policyStakeholders = Stakeholders(roles, entityIds, signatures);
+        }
     }
 
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {

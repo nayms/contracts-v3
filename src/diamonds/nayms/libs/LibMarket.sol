@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+// solhint-disable no-console
+import { console2 as console } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { MarketInfo, TokenAmount, CalculatedFees } from "../AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
+import { LibAdmin } from "./LibAdmin.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
@@ -164,7 +169,7 @@ library LibMarket {
         // If the buyToken is entity(p-token)   => limit both buy and sell amounts
         // If the buyToken is external          => limit only sell amount
 
-        bool buyExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool buyExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
@@ -210,7 +215,11 @@ library LibMarket {
                 } else {
                     // Similar operations, but for the non-external token case (the fee is always paid in external tokens)
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
+                    console.log(" -->>  currentBuyAmount * s.offers[bestOfferId].buyAmount", currentBuyAmount * s.offers[bestOfferId].buyAmount);
+                    console.log(" -->>  s.offers[bestOfferId].sellAmount", s.offers[bestOfferId].sellAmount);
+                    console.log(" -->>  currentSellAmount * 1e18:", ((currentBuyAmount * s.offers[bestOfferId].buyAmount) * 1e18) / s.offers[bestOfferId].sellAmount);
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
+                    console.log(" -->>  currentSellAmount:", currentSellAmount);
                     uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
@@ -395,9 +404,9 @@ library LibMarket {
         // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
 
         bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
-        bool isSellTokenASupportedExternalToken = LibHelpers._isAddress(_sellToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool isSellTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_sellToken);
         bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
-        bool isBuyTokenASupportedExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool isBuyTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
 
         _assertAmounts(_sellAmount, _buyAmount);
 
