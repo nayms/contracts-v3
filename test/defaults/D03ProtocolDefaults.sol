@@ -145,8 +145,9 @@ abstract contract T02AccessHelpers is D02TestSetup {
         if (m.state == 2) offerState = "Cancelled".red();
         if (m.state == 3) offerState = "Fulfilled".blue();
 
-        string memory sellSymbol;
-        string memory buySymbol;
+        string memory sellSymbol = vm.toString(m.sellToken);
+        string memory buySymbol = vm.toString(m.buyToken);
+
         if (nayms.isSupportedExternalToken(m.sellToken)) {
             sellSymbol = IERC20(LibHelpers._getAddressFromId(m.sellToken)).symbol();
             (, , buySymbol, , ) = nayms.getObjectMeta(m.buyToken);
@@ -155,12 +156,25 @@ abstract contract T02AccessHelpers is D02TestSetup {
             buySymbol = IERC20(LibHelpers._getAddressFromId(m.buyToken)).symbol();
         }
 
-        c.log(string.concat("ID: ", vm.toString(offerId), "  (", offerState, ")"));
-        c.log(string.concat(sellSymbol.red(), ":\t ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
-        c.log(string.concat(buySymbol.green(), ":\t ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
+        c.log("");
+        c.log(string.concat("--".green(), " ID: ", vm.toString(offerId), " (", offerState, ") ", "---------------------------------------------".green()));
+        c.log(string.concat(" ", sellSymbol.red(), ":    ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
+        c.log(string.concat(" ", buySymbol.green(), ":    ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
 
         // price is multiplied by 1000 to prevent rounding loss for small amounts in tests
-        c.log(string.concat("Price: ", vm.toString((m.buyAmount * 1000) / m.sellAmount).blue(), "(", vm.toString((m.buyAmountInitial * 1000) / m.sellAmountInitial).blue(), ")\n"));
+        uint256 price = m.sellAmount == 0 ? 0 : ((m.buyAmount * 1000) / m.sellAmount);
+        uint256 priceInitial = m.sellAmountInitial == 0 ? 0 : ((m.buyAmountInitial * 1000) / m.sellAmountInitial);
+        c.log(
+            string.concat(
+                "-- ".green(),
+                "Price: ",
+                vm.toString(price).blue(),
+                " (",
+                vm.toString(priceInitial).blue(),
+                ")",
+                " ------------------------------------------------\n".green()
+            )
+        );
     }
 }
 
