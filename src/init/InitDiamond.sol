@@ -67,8 +67,8 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IERC20).interfaceId] = true;
 
         LibInitDiamond.setRoleGroupsAndAssigners();
-        LibInitDiamond.setSystemAdmin(_systemAdmin);
         LibInitDiamond.setUpgradeExpiration();
+        LibInitDiamond.setSystemAdmin(_systemAdmin);
 
         s.diamondInitialized = true;
 
