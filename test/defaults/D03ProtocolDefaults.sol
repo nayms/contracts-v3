@@ -172,11 +172,11 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
     bytes32 public naymsTokenId;
 
-    bytes32 public constant DEFAULT_ACCOUNT0_ENTITY_ID = bytes32("e0");
-    bytes32 public constant DEFAULT_UNDERWRITER_ENTITY_ID = bytes32("e1");
-    bytes32 public constant DEFAULT_BROKER_ENTITY_ID = bytes32("e2");
-    bytes32 public constant DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = bytes32("e3");
-    bytes32 public constant DEFAULT_INSURED_PARTY_ENTITY_ID = bytes32("e4");
+    bytes32 public DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, account0);
+    bytes32 public DEFAULT_UNDERWRITER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE2));
+    bytes32 public DEFAULT_BROKER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE3));
+    bytes32 public DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE4));
+    bytes32 public DEFAULT_INSURED_PARTY_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE5));
 
     // deriving public keys from private keys
     address public immutable signer1 = vm.addr(0xACC2);
@@ -226,6 +226,11 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     NaymsAccount cw = makeNaymsAcc("Comptroller Withdraw");
     NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
     NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
+
+    /// @dev Helper function to create object Ids with object type prefix.
+    function makeId(bytes12 _objecType, address _addr) internal pure returns (bytes32) {
+        return bytes32((_objecType)) | (bytes32(bytes20(_addr)) >> 96);
+    }
 
     constructor() payable {
         c.log("\n -- D03 Protocol Defaults\n");
