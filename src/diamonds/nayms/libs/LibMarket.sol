@@ -165,7 +165,7 @@ library LibMarket {
         // If the buyToken is entity(p-token)   => limit both buy and sell amounts
         // If the buyToken is external          => limit only sell amount
 
-        bool buyExternalToken =  LibAdmin._isSupportedExternalToken(_buyToken);
+        bool buyExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
