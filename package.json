@@ -31,9 +31,10 @@
     "lint:check": "yarn prettier:check && yarn run solhint:check",
     "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/do gen.js",
     "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json",
-    "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 20",
+    "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 30 -m ./nayms_mnemonic.txt",
     "build": "gemforge build",
-    "deploy": "./script/gemforge/deploy.js"
+    "deploy": "./script/gemforge/deploy.js",
+    "query": "gemforge query"
   },
   "devDependencies": {
     "chalk": "4",

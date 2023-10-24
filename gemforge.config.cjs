@@ -1,3 +1,12 @@
+require('dotenv').config()
+const fs = require('fs')
+const ethers = require('ethers')
+
+const MNEMONIC = fs.readFileSync('./nayms_mnemonic.txt').toString().trim()  
+
+const walletOwnerIndex = 20
+const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC).address
+
 module.exports = {
   // Configuration file version
   version: 2,
@@ -93,21 +102,10 @@ module.exports = {
       // Wallet config
       config: {
         // Mnemonic phrase
-        words: 'test test test test test test test test test test test junk',
+        words: MNEMONIC,
         // 0-based index of the account to use
-        index: 0,
+        index: walletOwnerIndex,
       }
-    },
-    wallet2: {
-      // Wallet type - mnemonic
-      type: 'mnemonic',
-      // Wallet config
-      config: {
-        // Mnemonic phrase
-        words: () => process.env.MNEMONIC,
-        // 0-based index of the account to use
-        index: 0,
-      },
     },
   },
   // Networks/chains
@@ -121,6 +119,11 @@ module.exports = {
     sepolia: {
       // RPC endpoint URL
       rpcUrl: () => process.env.SEPOLIA_RPC_URL,
+    },
+    // Mainnet network
+    mainnet: {
+      // RPC endpoint URL
+      rpcUrl: () => process.env.MAINNET_RPC_URL,
     }
   },
   // Targets to deploy
@@ -132,17 +135,27 @@ module.exports = {
       wallet: 'wallet1',
       // Initialization function arguments
       initArgs: [
-        '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' // system_admin wallet address - anvil #2
+        sysAdminAddress
       ],
     },
     testnet: {
       // Network to deploy to
       network: 'sepolia',
       // Wallet to use for deployment
-      wallet: 'wallet2',
+      wallet: 'wallet1',
       // Initialization function arguments
       initArgs: [
-        '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' // system_admin wallet address - anvil #2
+        sysAdminAddress
+      ],
+    },
+    mainnet: {
+      // Network to deploy to
+      network: 'mainnet',
+      // Wallet to use for deployment
+      wallet: 'wallet1',
+      // Initialization function arguments
+      initArgs: [
+        /* TODO: Add mainnet sys admin address */
       ],
     }
   }

@@ -18,7 +18,7 @@ const enableCutViaGovernance = async (targetId, cutFile) => {
   const proxyAddress = deployments[targetId].contracts.find(a => a.name === 'DiamondProxy').onChain.address
 
   const provider = new ethers.providers.JsonRpcProvider(network.rpcUrl)
-  const signer = ethers.Wallet.fromMnemonic(wallet.config.words, "m/44'/60'/0'/0/1").connect(provider)
+  const signer = ethers.Wallet.fromMnemonic(wallet.config.words).connect(provider)
   const contract = new ethers.Contract(proxyAddress, abi, signer)
 
   console.log(`Target: ${targetId}`)
@@ -30,10 +30,20 @@ const enableCutViaGovernance = async (targetId, cutFile) => {
   const upgradeId = await contract.calculateUpgradeId(cutData.cuts, cutData.initContractAddress, cutData.initData)
   console.log(`Upgrade id: ${upgradeId}`)
 
-  const tx = await contract.createUpgrade(upgradeId)
-  console.log(`Transaction hash: ${tx.hash}`)
-  await tx.wait()
-  console.log('Transaction mined!')
+  if (networkId === 'mainnet') {
+    console.log(`Waiting for MPC signature...`)
+    await new Promise(resolve => setTimeout(resolve, 1000 * 60 * 60 * 24))
+  } else {
+    const tx = await contract.createUpgrade(upgradeId)
+    console.log(`Transaction hash: ${tx.hash}`)
+    await tx.wait()
+    console.log('Transaction mined!')
+  }
+
+  const val = await contract.getUpgrade(upgradeId)
+  if (!val) {
+    throw new Error(`Upgrade not found!`)
+  }
 }
 
 (async () => {

@@ -28,20 +28,43 @@ yarn anvil
 
 A script - `script/gemforge/deploy.js` - is provided as a convenience for handling the Nayms phased deployments flow. You can call this directly or just use `yarn deploy ...`
 
-**Fresh deployments**
+The current deployment targets:
 
-To do a fresh deployment to [target `<target>`](https://gemforge.xyz/configuration/targets/):
+- `local`: local anvil node
+- `testnet`: sepolia
+- `mainnet`: mainnet
+
+**1. Setup config**
+
+Create a `.env` and ensure it contains:
+
+```
+SEPOLIA_RPC_URL=
+MAINNET_RPC_URL=
+```
+
+Create a `nayms_mnemonic.txt` file and ensure it contains the team mnemonic.
+
+**2. Fresh deployments**
+
+To do a fresh deployment to a given [target](https://gemforge.xyz/configuration/targets/):
 
 ```
 yarn deploy <target> --fresh
 ```
 
-**Upgrades**
+**3. Upgrades**
 
-To upgrade a deployment on `<target>`:
+To upgrade a deployment on a target:
 
 ```
 yarn deploy <target>
 ```
 
-**NOTE: This assumes that the second address on the deployment wallet is the system admin address. Mainnet deployments via Qredo MPC are not yet supported in this script.**
+## Querying
+
+To see how the current deployed Diamond differs from the compiled code for a target:
+
+```
+yarn query <target>
+```
