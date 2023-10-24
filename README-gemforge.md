@@ -16,6 +16,14 @@ To compile contracts:
 yarn build
 ```
 
+## Devnet
+
+To run the local devnet:
+
+```
+yarn anvil
+```
+
 ## Deployments
 
 A script - `script/gemforge/deploy.js` - is provided as a convenience for handling the Nayms phased deployments flow. You can call this directly or just use `yarn deploy ...`
