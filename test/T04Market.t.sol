@@ -975,4 +975,77 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
         assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
     }
+
+    function testMarketFacet0009_IM24666() public {
+        c.log(">>>>> INIT");
+        NaymsAccount memory acc1 = makeNaymsAcc("acc1");
+        NaymsAccount memory acc2 = makeNaymsAcc("acc2");
+        NaymsAccount memory acc2cp = makeNaymsAcc("acc2cp");
+
+        c.log(">>>>> Create a test environment");
+        c.log("  - Crate demo entities");
+        vm.startPrank(sm.addr);
+        nayms.createEntity(
+            acc1.entityId,
+            acc1.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "demo entity id1"
+        );
+        nayms.createEntity(
+            acc2.entityId,
+            acc2.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "demo entity id2"
+        );
+        nayms.setEntity(acc2cp.id, acc2.entityId);
+        hAssignRole(acc2cp.id, acc2.entityId, LC.ROLE_ENTITY_CP);
+        vm.stopPrank();
+
+        c.log("  - E2 deposit some USDC");
+        vm.startPrank(acc2.addr);
+        writeTokenBalance(acc2.addr, naymsAddress, usdcAddress, 10 * 1e6);
+        nayms.externalDeposit(usdcAddress, 10 * 1e6);
+        vm.stopPrank();
+
+        c.log("  - E1 Start token sale => 0.9 PToken/USDC");
+        vm.startPrank(sm.addr);
+        nayms.enableEntityTokenization(acc1.entityId, "ptE1", "E1 pToken");
+        nayms.startTokenSale(acc1.entityId, 0.9 * 1e6, 1 * 1e6);
+
+        uint256 offer1Id = nayms.getLastOfferId();
+        MarketInfo memory offer1 = nayms.getOffer(offer1Id);
+        c.log("    Offer ID: %s, state: %s", offer1Id, offer1.state);
+
+        c.log("  - E1 Start token sale => 1.1 PToken/USDC");
+        nayms.startTokenSale(acc1.entityId, 1.1 * 1e6, 1 * 1e6);
+
+        uint256 offer2Id = nayms.getLastOfferId();
+        MarketInfo memory offer2 = nayms.getOffer(offer2Id);
+        c.log("    Offer ID: %s, state: %s", offer2Id, offer2.state);
+        vm.stopPrank();
+        c.log();
+
+        c.log(">>>>> Account2 take offers (Limit Price: 1.0 PToken/USDC)");
+
+        vm.startPrank(acc2.addr);
+        writeTokenBalance(acc2.addr, naymsAddress, usdcAddress, 2 * 1e6);
+        nayms.externalDeposit(usdcAddress, 2 * 1e6);
+        vm.stopPrank();
+
+        vm.startPrank(acc2cp.addr);
+        nayms.executeLimitOffer(usdcId, 2 * 1e6, acc1.entityId, 2 * 1e6);
+        vm.stopPrank();
+
+        uint256 offer3Id = nayms.getLastOfferId();
+
+        logOfferDetails(offer1Id);
+        logOfferDetails(offer2Id);
+        logOfferDetails(offer3Id);
+
+        c.log(">>>>> RESULT");
+        c.log("  - The limit price is 1.0 PToken/USDC,");
+        c.log("    but it also take offer whose price is 0.9 PToken/USDC.");
+        c.log("  - If you look at the call stack, you will find that the offer of 1.1 was taken first,");
+        c.log("    and then the offer of 0.9 was taken.");
+    }
 }

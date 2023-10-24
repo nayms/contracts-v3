@@ -9,7 +9,13 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 
+// solhint-disable no-console
+import { console2 as console } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 library LibMarket {
+    using StdStyle for *;
+
     struct MatchingOfferResult {
         uint256 remainingBuyAmount;
         uint256 remainingSellAmount;
@@ -165,7 +171,7 @@ library LibMarket {
         // If the buyToken is entity(p-token)   => limit both buy and sell amounts
         // If the buyToken is external          => limit only sell amount
 
-        bool buyExternalToken =  LibAdmin._isSupportedExternalToken(_buyToken);
+        bool buyExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
@@ -173,10 +179,21 @@ library LibMarket {
                 break; // no market liquidity, bail out
             }
 
+            console.log(" ---- >> MATCHING WITH: %d  ---------------------------------".red(), bestOfferId);
             {
                 uint256 makerBuyAmount = s.offers[bestOfferId].buyAmount;
                 uint256 makerSellAmount = s.offers[bestOfferId].sellAmount;
 
+                console.log(" -- makerBuyAmount:", makerBuyAmount);
+                console.log(" -- makerSellAmount:", makerSellAmount);
+
+                console.log(" -- result.remainingBuyAmount: %d", result.remainingBuyAmount);
+                console.log(" -- result.remainingSellAmount: %d\n", result.remainingSellAmount);
+                console.log(" -1-  makerBuyAmount * result.remainingBuyAmount", makerBuyAmount * result.remainingBuyAmount);
+                console.log(
+                    " -2- other side:",
+                    result.remainingSellAmount * makerSellAmount + makerBuyAmount + result.remainingBuyAmount + result.remainingSellAmount + makerSellAmount
+                );
                 // Check if best available price on the market is better or same,
                 // as the one taker is willing to pay, within error margin of ±1.
                 // This ugly hack is to work around rounding errors. Based on the idea that
@@ -214,6 +231,8 @@ library LibMarket {
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
                     uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
+                    console.log("current buy:", currentBuyAmount.green());
+                    console.log("current sell:", currentSellAmount.green());
                 }
                 // Update how much is left to buy/sell
                 result.remainingSellAmount -= currentSellAmount;
