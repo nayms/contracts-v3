@@ -39,8 +39,11 @@ The current deployment targets:
 Create a `.env` and ensure it contains:
 
 ```
-SEPOLIA_RPC_URL=
-MAINNET_RPC_URL=
+LOCAL_RPC_URL=
+ETH_MAINNET_RPC_URL=
+ETH_GOERLI_RPC_URL=
+ETH_SEPOLIA_RPC_URL=
+ETHERSCAN_API_KEY=
 ```
 
 Create a `nayms_mnemonic.txt` file and ensure it contains the team mnemonic.

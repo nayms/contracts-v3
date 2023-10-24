@@ -91,7 +91,7 @@ module.exports = {
     // shell command to execute before deploy
     preDeploy: '',
     // shell command to execute after deploy
-    postDeploy: '',
+    postDeploy: './script/gemforge/verify-on-etherscan.js',
   },
   // Wallets to use for deployment
   wallets: {
@@ -118,12 +118,12 @@ module.exports = {
     // Sepolia test network
     sepolia: {
       // RPC endpoint URL
-      rpcUrl: () => process.env.SEPOLIA_RPC_URL,
+      rpcUrl: () => process.env.ETH_SEPOLIA_RPC_URL,
     },
     // Mainnet network
     mainnet: {
       // RPC endpoint URL
-      rpcUrl: () => process.env.MAINNET_RPC_URL,
+      rpcUrl: () => process.env.ETH_MAINNET_RPC_URL,
     }
   },
   // Targets to deploy
