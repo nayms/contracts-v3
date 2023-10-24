@@ -93,12 +93,7 @@ contract AdminFacet is Modifiers {
         LibFeeRouter._replaceMakerBP(_newMakerBP);
     }
 
-    function addFeeSchedule(
-        bytes32 _entityId,
-        uint256 _feeScheduleType,
-        bytes32[] calldata _receiver,
-        uint16[] calldata _basisPoints
-    ) external assertSysAdmin {
+    function addFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType, bytes32[] calldata _receiver, uint16[] calldata _basisPoints) external assertSysAdmin {
         LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _receiver, _basisPoints);
     }
 

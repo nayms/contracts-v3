@@ -12,6 +12,7 @@ anvil*.json
 
 # yarn v1, node
 node_modules
+yarn-*.log
 
 # Hardhat files
 cache

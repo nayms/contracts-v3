@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { LibGovernance } from "src/libs/LibGovernance.sol";
 
 contract GovernanceFacet is Modifiers {
     event CreateUpgrade(bytes32 id, address indexed who);
@@ -16,6 +18,10 @@ contract GovernanceFacet is Modifiers {
     function isDiamondInitialized() external view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.diamondInitialized;
+    }
+
+    function calculateUpgradeId(IDiamondCut.FacetCut[] calldata _diamondCut, address _init, bytes calldata _calldata) external pure returns (bytes32) {
+        return LibGovernance._calculateUpgradeId(_diamondCut, _init, _calldata);
     }
 
     function createUpgrade(bytes32 id) external assertSysAdmin {

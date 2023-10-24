@@ -33,7 +33,7 @@
     "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json",
     "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 20",
     "build": "gemforge build",
-    "deploy": "gemforge deploy"
+    "deploy": "./script/gemforge/deploy.js"
   },
   "devDependencies": {
     "chalk": "4",

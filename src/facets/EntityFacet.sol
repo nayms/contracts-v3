@@ -53,11 +53,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _symbol The symbol assigned to the entity token
      * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(
-        bytes32 _objectId,
-        string memory _symbol,
-        string memory _name
-    ) external assertSysAdmin {
+    function enableEntityTokenization(bytes32 _objectId, string memory _symbol, string memory _name) external assertSysAdmin {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
@@ -67,11 +63,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _symbol New entity token symbol
      * @param _name New entity token name
      */
-    function updateEntityTokenInfo(
-        bytes32 _entityId,
-        string memory _symbol,
-        string memory _name
-    ) external assertSysAdmin {
+    function updateEntityTokenInfo(bytes32 _entityId, string memory _symbol, string memory _name) external assertSysAdmin {
         LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
@@ -82,11 +74,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _amount amount of entity tokens to put on sale
      * @param _totalPrice total price of the tokens
      */
-    function startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertSysMgr {
+    function startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) external notLocked(msg.sig) nonReentrant assertSysMgr {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
@@ -116,6 +104,10 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
     function getEntityInfo(bytes32 _entityId) external view returns (Entity memory) {
         return LibEntity._getEntityInfo(_entityId);
     }
+
+    // function getEntityInfo2(bytes32 _entityId) external view returns (Entity memory) {
+    //     return LibEntity._getEntityInfo(_entityId);
+    // }
 
     /**
      * @notice Get the fee schedule
