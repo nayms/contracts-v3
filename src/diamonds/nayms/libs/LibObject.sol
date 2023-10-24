@@ -96,6 +96,8 @@ library LibObject {
             revert MissingSymbolWhenEnablingTokenization(_objectId);
         }
         require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
+        require(bytes(_name).length > 0, "name must not be empty");
+        require(bytes(_name).length < 64, "symbol must be less than 64 characters");
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
         if (!s.existingEntities[_objectId]) {
@@ -104,8 +106,6 @@ library LibObject {
 
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
         require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
-
-        require(bytes(_name).length > 0, "name must not be empty");
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
@@ -120,6 +120,13 @@ library LibObject {
         string memory _name
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        if (bytes(_symbol).length == 0) {
+            revert MissingSymbolWhenEnablingTokenization(_objectId);
+        }
+        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
+        require(bytes(_name).length > 0, "name must not be empty");
+        require(bytes(_name).length < 64, "symbol must be less than 64 characters");
+
         require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
         require(_isObjectTokenizable(_objectId), "object not tokenized");
 
