@@ -4,7 +4,7 @@ const ethers = require('ethers')
 
 const MNEMONIC = fs.readFileSync('./nayms_mnemonic.txt').toString().trim()  
 
-const walletOwnerIndex = 20
+const walletOwnerIndex = 19
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC).address
 
 module.exports = {
@@ -118,12 +118,12 @@ module.exports = {
     // Sepolia test network
     sepolia: {
       // RPC endpoint URL
-      rpcUrl: () => process.env.ETH_SEPOLIA_RPC_URL,
+      rpcUrl: process.env.ETH_SEPOLIA_RPC_URL,
     },
     // Mainnet network
     mainnet: {
       // RPC endpoint URL
-      rpcUrl: () => process.env.ETH_MAINNET_RPC_URL,
+      rpcUrl: process.env.ETH_MAINNET_RPC_URL,
     }
   },
   // Targets to deploy
