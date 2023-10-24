@@ -4421,10 +4421,10 @@ ganache-core@^2.13.2:
     ethereumjs-wallet "0.6.5"
     web3 "1.2.11"
 
-gemforge@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/gemforge/-/gemforge-2.4.0.tgz#602b3b3d4412d5218142b3724d48ad1772ddfaca"
-  integrity sha512-WPLEJ50lUPMEVzzXdCP/bgjd9Ssh+QCbJfJIunHWfzxklwtGXKCdPIgQ+fN5mADVxdOhttV3U1vBWdgzzGasaw==
+gemforge@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/gemforge/-/gemforge-2.5.0.tgz#61618e0a26c40f0bbabef262eeeebb787639ef15"
+  integrity sha512-z+ntWe4IjvuF9xdHQikjZvVUEEDv0pNDrvcdUDvhLjklPICSakppHpb/cHKTsxOGQev4/+RDLXuvOtVAj7pYZA==
   dependencies:
     "@solidity-parser/parser" "^0.16.1"
     chalk "^5.3.0"
