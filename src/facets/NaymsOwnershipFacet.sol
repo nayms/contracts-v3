@@ -9,7 +9,7 @@ import { LibConstants } from "src/libs/LibConstants.sol";
 import { Modifiers } from "src/shared/Modifiers.sol";
 
 contract NaymsOwnershipFacet is IERC173, Modifiers {
-    function transferOwnership(address _newOwner) public override assertSysAdmin {
+    function transferOwnership(address _newOwner) external override assertSysAdmin {
         bytes32 systemID = LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
         bytes32 newAcc1Id = LibHelpers._getIdForAddress(_newOwner);
 
