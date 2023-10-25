@@ -16,6 +16,14 @@ To compile contracts:
 yarn build
 ```
 
+## Testing
+
+To test contracts:
+
+```
+yarn test
+```
+
 ## Devnet
 
 To run the local devnet:

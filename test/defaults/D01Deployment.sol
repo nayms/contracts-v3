@@ -20,10 +20,10 @@ import { InitDiamond } from "src/init/InitDiamond.sol";
 abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     using LibHelpers for *;
 
+    address public naymsAddress;
+
     IDiamondProxy public nayms;
     InitDiamond public initDiamond;
-
-    address public naymsAddress;
 
     //// test constant variables ////
     bytes32 public immutable salt = keccak256(bytes("A salt!"));
@@ -88,7 +88,9 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
 
         console2.log("Deploy diamond");
-        nayms = IDiamondProxy(address(new DiamondProxy(account0)));
+        naymsAddress = address(new DiamondProxy(account0));
+        vm.label(naymsAddress, "Nayms diamond");
+        nayms = IDiamondProxy(naymsAddress);
 
         // deploy all facets
         IDiamondCut.FacetCut[] memory cuts = LibDiamondHelper.deployFacetsAndGetCuts(address(nayms));
