@@ -10,10 +10,10 @@ import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamond
 import { DiamondProxy } from "src/generated/DiamondProxy.sol";
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { LibDiamondHelper } from "src/generated/LibDiamondHelper.sol";
+import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
+import { LibGovernance } from "src/libs/LibGovernance.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
 import { InitDiamond } from "src/init/InitDiamond.sol";
-
-import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
@@ -91,28 +91,22 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         nayms = IDiamondProxy(address(new DiamondProxy(account0)));
 
         // deploy all facets
-        IDiamondCut.FacetCut[] memory cut = LibDiamondHelper.deployFacetsAndGetCuts();
+        IDiamondCut.FacetCut[] memory cuts = LibDiamondHelper.deployFacetsAndGetCuts(address(nayms));
 
         initDiamond = new InitDiamond();
         vm.label(address(initDiamond), "InitDiamond");
         console2.log("InitDiamond:", address(initDiamond));
 
         console2.log("Cut and init");
-        nayms.diamondCut(cut, address(initDiamond), abi.encodeWithSelector(initDiamond.init.selector));
+        nayms.diamondCut(cuts, address(initDiamond), abi.encodeCall(InitDiamond.init, (systemAdmin)));
 
-        console2.log("Schedule and upgrade");
-        scheduleAndUpgradeDiamond(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin)));
-        // }
+        console2.log("Diamond setup complete.");
     }
 
-    function scheduleAndUpgradeDiamond(
-        IDiamondCut.FacetCut[] memory _cut,
-        address _init,
-        bytes memory _calldata
-    ) internal {
+    function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut, address _init, bytes memory _calldata) internal {
         // 1. schedule upgrade
         // 2. upgrade
-        bytes32 upgradeHash = keccak256(abi.encode(_cut, _init, _calldata));
+        bytes32 upgradeHash = LibGovernance._calculateUpgradeId(_cut, _init, _calldata);
         if (upgradeHash == 0xc597f3eb22d11c46f626cd856bd65e9127b04623d83e442686776a2e3b670bbf) {
             console2.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
         } else {

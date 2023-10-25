@@ -10,6 +10,7 @@ import { IDiamondLoupe } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamo
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { DiamondAlreadyInitialized } from "src/init/InitDiamond.sol";
+import { LibGovernance } from "src/libs/LibGovernance.sol";
 
 import { IERC165 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC165.sol";
 import { IERC173 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC173.sol";
@@ -64,7 +65,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
         IDiamondCut.FacetCut[] memory cut;
 
-        bytes32 upgradeHash = keccak256(abi.encode(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin))));
+        bytes32 upgradeHash = LibGovernance._calculateUpgradeId(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin)));
 
         changePrank(systemAdmin);
         nayms.createUpgrade(upgradeHash);
