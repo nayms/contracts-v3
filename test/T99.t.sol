@@ -1,5 +1,5 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity 0.8.20;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.20;
 
 // import { D03ProtocolDefaults, c, LC, Entity } from "./defaults/D03ProtocolDefaults.sol";
 
@@ -37,7 +37,6 @@
 
 //             signatures[0]= initPolicySig(acc.pk,signingHash);
 //             //0xbb51ae847295104088b45a86e9ceb7dfabec7268e84a64243dfa8e653bc624db pk for attacker Backup
-
 
 //             policyStakeholders = Stakeholders(roles, entityIds, signatures);
 //         }

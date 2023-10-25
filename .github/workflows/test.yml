@@ -61,35 +61,12 @@ jobs:
           path-to-lcov: "./lcov-filtered.info"
 
       - name: Slither Static Analyser
-        uses: crytic/slither-action@v0.3.0
         id: slither
-        with:
-          sarif: results.sarif
-          target: src/diamonds/nayms
-          slither-args: --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
-        continue-on-error: true
+        env:
+          SOLC_VERSION: 0.8.20
+        run: make slither
 
       - name: Upload Slither SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ${{ steps.slither.outputs.sarif }}
-
-      # - name: Generate upgrade hashes
-      #   env:
-      #     ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
-      #     ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
-      #     ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-      #   run: |
-      #     make upgrade-hash-mainnet
-      #     make upgrade-hash-goerli
-      #     make upgrade-hash-sepolia
-
-      #     echo "### Upgrade hash" >> $GITHUB_STEP_SUMMARY
-      #     echo " - mainnet \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
-      #     echo "> $(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/1/dry-run/hash-latest.json || echo "Not Available")" >> $GITHUB_STEP_SUMMARY
-
-      #     echo " - goerli \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
-      #     echo "> $(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/5/dry-run/hash-latest.json || echo "Not Available")" >> $GITHUB_STEP_SUMMARY
-
-      #     echo " - sepolia \`$(jq --raw-output '.returns.upgradeHash.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available")\`" >> $GITHUB_STEP_SUMMARY
-      #     echo "> $(jq --raw-output '.returns.cut.value' broadcast/SmartDeploy.s.sol/11155111/dry-run/hash-latest.json || echo "Not Available") >> $GITHUB_STEP_SUMMARY
+          sarif_file: results.sarif

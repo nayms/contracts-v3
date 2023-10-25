@@ -9,8 +9,10 @@
     "test/=./test/",
     "script/=./script/"
   ],
-  "detectors_to_exclude": "assembly,similar-names,naming-convention",
+  "detectors_to_exclude": "solc-version,assembly-usage,naming-convention,low-level-calls",
   "exclude_informational": false,
   "exclude_low": false,
-  "solc_disable_warnings": false
+  "solc_disable_warnings": false,
+  "ignore_compile": true,
+  "sarif": "results.sarif"
 }

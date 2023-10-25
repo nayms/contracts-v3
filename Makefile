@@ -667,7 +667,7 @@ docs: ## generate docs from natspec comments
 	yarn docgen
 
 slither:	## run slither static analysis
-	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
+	slither src/diamonds/nayms --config-file=slither.config.json --fail-none
 
 upgrade-hash-sepolia: ## generate SEPOLIA upgrade hash
 	@forge script SmartDeploy \

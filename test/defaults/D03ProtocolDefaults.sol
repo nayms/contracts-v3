@@ -7,6 +7,7 @@ import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/Mes
 import { IERC20 } from "src/erc20/IERC20.sol";
 
 import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
+import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
 import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
 import { StdStyle } from "forge-std/StdStyle.sol";
 
@@ -144,8 +145,9 @@ abstract contract T02AccessHelpers is D02TestSetup {
         if (m.state == 2) offerState = "Cancelled".red();
         if (m.state == 3) offerState = "Fulfilled".blue();
 
-        string memory sellSymbol;
-        string memory buySymbol;
+        string memory sellSymbol = vm.toString(m.sellToken);
+        string memory buySymbol = vm.toString(m.buyToken);
+
         if (nayms.isSupportedExternalToken(m.sellToken)) {
             sellSymbol = IERC20(LibHelpers._getAddressFromId(m.sellToken)).symbol();
             (, , buySymbol, , ) = nayms.getObjectMeta(m.buyToken);
@@ -154,12 +156,25 @@ abstract contract T02AccessHelpers is D02TestSetup {
             buySymbol = IERC20(LibHelpers._getAddressFromId(m.buyToken)).symbol();
         }
 
-        c.log(string.concat("ID: ", vm.toString(offerId), "  (", offerState, ")"));
-        c.log(string.concat(sellSymbol.red(), ":\t ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
-        c.log(string.concat(buySymbol.green(), ":\t ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
+        c.log("");
+        c.log(string.concat("--".green(), " ID: ", vm.toString(offerId), " (", offerState, ") ", "---------------------------------------------".green()));
+        c.log(string.concat(" ", sellSymbol.red(), ":    ", vm.toString(m.sellAmount), " (", vm.toString(m.sellAmountInitial), ")"));
+        c.log(string.concat(" ", buySymbol.green(), ":    ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
 
         // price is multiplied by 1000 to prevent rounding loss for small amounts in tests
-        c.log(string.concat("Price: ", vm.toString((m.buyAmount * 1000) / m.sellAmount).blue(), "(", vm.toString((m.buyAmountInitial * 1000) / m.sellAmountInitial).blue(), ")\n"));
+        uint256 price = m.sellAmount == 0 ? 0 : ((m.buyAmount * 1000) / m.sellAmount);
+        uint256 priceInitial = m.sellAmountInitial == 0 ? 0 : ((m.buyAmountInitial * 1000) / m.sellAmountInitial);
+        c.log(
+            string.concat(
+                "-- ".green(),
+                "Price: ",
+                vm.toString(price).blue(),
+                " (",
+                vm.toString(priceInitial).blue(),
+                ")",
+                " ------------------------------------------------\n".green()
+            )
+        );
     }
 }
 
@@ -373,6 +388,14 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     }
 
     function initPolicyWithLimit(bytes32 offchainDataHash, uint256 limitAmount) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
+        return initPolicyWithLimitAndAsset(offchainDataHash, limitAmount, wethId);
+    }
+
+    function initPolicyWithLimitAndAsset(
+        bytes32 offchainDataHash,
+        uint256 limitAmount,
+        bytes32 assetId
+    ) internal view returns (Stakeholders memory policyStakeholders, SimplePolicy memory policy) {
         bytes32[] memory roles = new bytes32[](4);
         roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LC.ROLE_BROKER);
@@ -385,33 +408,36 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         entityIds[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
         entityIds[3] = DEFAULT_INSURED_PARTY_ENTITY_ID;
 
-        bytes32[] memory commissionReceivers = new bytes32[](3);
-        commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
-        commissionReceivers[1] = DEFAULT_BROKER_ENTITY_ID;
-        commissionReceivers[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
+        {
+            bytes32[] memory commissionReceivers = new bytes32[](3);
+            commissionReceivers[0] = DEFAULT_UNDERWRITER_ENTITY_ID;
+            commissionReceivers[1] = DEFAULT_BROKER_ENTITY_ID;
+            commissionReceivers[2] = DEFAULT_CAPITAL_PROVIDER_ENTITY_ID;
 
-        uint256[] memory commissions = new uint256[](3);
-        commissions[0] = 10;
-        commissions[1] = 10;
-        commissions[2] = 10;
+            uint256[] memory commissions = new uint256[](3);
+            commissions[0] = 10;
+            commissions[1] = 10;
+            commissions[2] = 10;
 
-        policy.startDate = block.timestamp + 1000;
-        policy.maturationDate = block.timestamp + 1000 + 2 days;
-        policy.asset = wethId;
-        policy.limit = limitAmount;
-        policy.commissionReceivers = commissionReceivers;
-        policy.commissionBasisPoints = commissions;
+            policy.startDate = block.timestamp + 1000;
+            policy.maturationDate = block.timestamp + 1000 + 2 days;
+            policy.asset = assetId;
+            policy.limit = limitAmount;
+            policy.commissionReceivers = commissionReceivers;
+            policy.commissionBasisPoints = commissions;
+        }
 
-        bytes[] memory signatures = new bytes[](4);
+        {
+            bytes[] memory signatures = new bytes[](4);
+            bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, offchainDataHash);
 
-        bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, offchainDataHash);
+            signatures[0] = initPolicySig(0xACC2, signingHash);
+            signatures[1] = initPolicySig(0xACC1, signingHash);
+            signatures[2] = initPolicySig(0xACC3, signingHash);
+            signatures[3] = initPolicySig(0xACC4, signingHash);
 
-        signatures[0] = initPolicySig(0xACC2, signingHash);
-        signatures[1] = initPolicySig(0xACC1, signingHash);
-        signatures[2] = initPolicySig(0xACC3, signingHash);
-        signatures[3] = initPolicySig(0xACC4, signingHash);
-
-        policyStakeholders = Stakeholders(roles, entityIds, signatures);
+            policyStakeholders = Stakeholders(roles, entityIds, signatures);
+        }
     }
 
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
