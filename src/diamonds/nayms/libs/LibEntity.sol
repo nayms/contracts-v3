@@ -59,7 +59,7 @@ library LibEntity {
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
-        uint256 additionalCapacityNeeded = ((simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR);
+        uint256 additionalCapacityNeeded = ((simplePolicy.limit * entity.collateralRatio) / LC.BP_FACTOR);
         uint256 updatedUtilizedCapacity = entity.utilizedCapacity + additionalCapacityNeeded;
 
         // The entity must have enough capacity available to write this policy.
