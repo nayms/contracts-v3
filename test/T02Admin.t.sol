@@ -120,9 +120,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testAddSupportedExternalTokenIfWrapper() public {
-        bytes32 entityId1 = "0xe1";
         changePrank(sm.addr);
-        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
+        bytes32 entityId1 = createTestEntity(account0Id);
         nayms.enableEntityTokenization(entityId1, "E1", "E1 Token");
         nayms.startTokenSale(entityId1, 100 ether, 100 ether);
 
@@ -189,10 +188,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testLockFunctionExternalWithdrawFromEntity() public {
         bytes32 wethId = LibHelpers._getIdForAddress(wethAddress);
 
-        Entity memory entityInfo = initEntity(wethId, 5000, 10000, false);
-        bytes32 systemAdminEntityId = 0xe011000000000000000000000000000000000000000000000000000000000000;
         changePrank(sm.addr);
-        nayms.createEntity(systemAdminEntityId, systemAdminId, entityInfo, bytes32(0));
+        bytes32 systemAdminEntityId = createTestEntity(systemAdminId);
 
         // deposit
         changePrank(systemAdmin); // given the entity admin role above

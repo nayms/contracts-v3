@@ -227,11 +227,6 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
     NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
 
-    /// @dev Helper function to create object Ids with object type prefix.
-    function makeId(bytes12 _objecType, address _addr) internal pure returns (bytes32) {
-        return bytes32((_objecType)) | (bytes32(bytes20(_addr)) >> 96);
-    }
-
     constructor() payable {
         c.log("\n -- D03 Protocol Defaults\n");
         c.log("Test contract address ID, aka account0Id:");
@@ -351,7 +346,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     }
 
     function createTestEntity(bytes32 adminId) internal returns (bytes32) {
-        return createTestEntityWithId(adminId, "0xe1");
+        return createTestEntityWithId(adminId, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe1"))));
     }
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {

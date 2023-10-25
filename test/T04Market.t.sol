@@ -37,10 +37,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     bytes32 internal dividendBankId;
 
-    bytes32 internal entity1 = bytes32("e5");
-    bytes32 internal entity2 = bytes32("e6");
-    bytes32 internal entity3 = bytes32("e7");
-    bytes32 internal entity4 = bytes32("e8");
+    bytes32 internal entity1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e5")));
+    bytes32 internal entity2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e6")));
+    bytes32 internal entity3 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e7")));
+    bytes32 internal entity4 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e8")));
 
     uint256 internal constant testBalance = 100_000 ether;
 
@@ -792,7 +792,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.getLockedBalance(e1Id, wethId), 0, "locked balance should be 0");
 
-        bytes32 policyId1 = "policy1";
+        bytes32 policyId1 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policy1")));
         uint256 policyLimit = 85 ether;
 
         vm.startPrank(su.addr);

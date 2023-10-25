@@ -47,11 +47,13 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
 
     function testSingleCreateEntity() public {
         bytes32 objectId1 = "0x1";
+        vm.expectRevert(abi.encodeWithSelector(InvalidObjectType.selector, objectId1, LC.OBJECT_TYPE_ENTITY));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
+        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(objectId1))), objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
     }
 
     function testMultipleCreateEntity() public {
-        bytes32 objectId1 = "0x1";
+        bytes32 objectId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0x1")));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
         // cannot create an object that already exists in a given context
@@ -62,7 +64,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert(abi.encodePacked(CreatingEntityThatAlreadyExists.selector, (objectId1)));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
-        bytes32 objectId2 = "0x2";
+        bytes32 objectId2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0x2")));
         nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
     }
 
@@ -72,19 +74,19 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testIsObject() public {
-        bytes32 objectId2 = "0x2";
+        bytes32 objectId2 = "0xe1";
         assertFalse(nayms.isObject(objectId2));
-        nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
+        objectId2 = createTestEntity(objectContext1);
+        // nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
         assertTrue(nayms.isObject(objectId2));
     }
 
     function testGetObjectMeta() public {
-        bytes32 objectId2 = "0x2";
+        bytes32 objectId2 = createTestEntity(objectContext1);
 
-        nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
         (bytes32 parent, bytes32 dataHash, string memory tokenSymbol, string memory tokenName, address wrapperAddress) = nayms.getObjectMeta(objectId2);
 
-        assertEq(dataHash, "entity test hash");
+        assertEq(dataHash, "");
         assertEq(parent, "");
         assertEq(tokenSymbol, "");
         assertEq(tokenName, "");
