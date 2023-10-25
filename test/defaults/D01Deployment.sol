@@ -35,7 +35,10 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     address public systemAdmin;
     bytes32 public systemAdminId;
 
-    INayms.FacetCut[] CUT_STRUCT;
+    /// @dev Helper function to create object Ids with object type prefix.
+    function makeId(bytes12 _objecType, address _addr) internal pure returns (bytes32) {
+        return bytes32((_objecType)) | (bytes32(bytes20(_addr)) >> 96);
+    }
 
     struct NaymsAccount {
         bytes32 id;
@@ -46,8 +49,8 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
     function makeNaymsAcc(string memory name) public returns (NaymsAccount memory) {
         (address addr, uint256 privateKey) = makeAddrAndKey(name);
-        vm.label(addr, name);
-        return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: keccak256(bytes(name)), pk: privateKey, addr: addr });
+        return
+            NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(keccak256(bytes(name))))), pk: privateKey, addr: addr });
     }
 
     /// @dev Pass in a NaymsAccount to change the prank to NaymsAccount.addr

@@ -16,8 +16,8 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
 
-    bytes32 internal entityId1 = 0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38;
-    bytes32 internal policyId1 = 0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869;
+    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(bytes32(0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38))));
+    bytes32 internal policyId1 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20(bytes32(0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869))));
     bytes32 public testPolicyDataHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
     bytes32 public policyHashedTypedData;
 
@@ -290,8 +290,8 @@ contract T04EntityTest is D03ProtocolDefaults {
             simplePolicyEnabled: true
         });
 
-        bytes32 eAlice = "ealice";
-        bytes32 eBob = "ebob";
+        bytes32 eAlice = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("ealice")));
+        bytes32 eBob = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("ebob")));
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
         nayms.createEntity(eBob, bobId, entity, "entity test hash");
 
@@ -338,9 +338,9 @@ contract T04EntityTest is D03ProtocolDefaults {
             simplePolicyEnabled: true
         });
 
-        bytes32 eAlice = "eAlice";
-        bytes32 eBob = "eBob";
-        bytes32 eEve = "eEve";
+        bytes32 eAlice = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("eAlice")));
+        bytes32 eBob = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("eBob")));
+        bytes32 eEve = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("eEve")));
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
         nayms.createEntity(eBob, bobId, entity, "entity test hash");
         nayms.createEntity(eEve, eveId, entity, "entity test hash");
@@ -567,7 +567,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory e = nayms.getEntityInfo(entityId1);
         assertEq(e.utilizedCapacity, (10_000 * e.collateralRatio) / LC.BP_FACTOR, "utilized capacity");
 
-        bytes32 policyId2 = "0xC0FFEF";
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("0xC0FFEF")));
         (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(testPolicyDataHash);
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, testPolicyDataHash);
 
@@ -601,7 +601,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
             changePrank(sm.addr);
             // change parent
-            nayms.setEntity(signerId, bytes32("e0"));
+            nayms.setEntity(signerId, entityId1);
             changePrank(su.addr);
             // try creating
             vm.expectRevert();
@@ -678,7 +678,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         changePrank(account0);
         // note: entity with 100% CR should be able to pay the claim - claim amount comes from the locked balance (locked in the policy)
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 21000 - 2, "entity balance of nWETH should DECREASE by pay claim amount");
         assertEq(nayms.getEntityInfo(entityId1).utilizedCapacity, 21000 - 2, "entity utilization should DECREASE when a claim is made");
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 2, "entity locked balance should DECREASE");
@@ -695,7 +695,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 20998 + 200_000, "after deposit, entity balance of nWETH should INCREASE");
 
         changePrank(su.addr);
-        bytes32 policyId2 = LibHelpers._stringToBytes32("policyId2");
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policyId2")));
 
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 200_001);
         vm.expectRevert("not enough capital");
@@ -707,9 +707,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 2 + 200_000, "locked balance should INCREASE");
 
         changePrank(account0);
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId3"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId3"))), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
         changePrank(su.addr);
         nayms.cancelSimplePolicy(policyId1);
@@ -746,13 +746,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
 
         writeTokenBalance(account0, naymsAddress, wethAddress, 1);
         nayms.externalDeposit(wethAddress, 1);
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 21001, "entity balance of nWETH should INCREASE by deposit amount");
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2); // claiming 2
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2); // claiming 2
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 20999, "entity balance of nWETH should DECREASE by pay claim amount");
         assertEq(nayms.getEntityInfo(entityId1).utilizedCapacity, 21000 - 1, "entity utilization should DECREASE when a claim is made");
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1, "entity locked balance should DECREASE");
@@ -768,7 +768,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.updateEntity(entityId1, newEInfo);
         vm.stopPrank();
 
-        bytes32 policyId2 = LibHelpers._stringToBytes32("policyId2");
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policyId2")));
 
         vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 400_003);
@@ -782,10 +782,10 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
         vm.startPrank(su.addr);
         nayms.cancelSimplePolicy(policyId1);
@@ -798,15 +798,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 21_000 - 1);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
 
         writeTokenBalance(account0, naymsAddress, wethAddress, 1);
         nayms.externalDeposit(wethAddress, 1);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
     }
 
     function testSimplePolicyLockedBalancesAfterPaySimpleClaim() public {
@@ -828,26 +828,26 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         changePrank(account0);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 20000);
         nayms.externalDeposit(wethAddress, 20000);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 10500, "locked balance should DECREASE by half");
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId1"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId1"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 10000, "locked balance should DECREASE");
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId2"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 9500, "locked balance should DECREASE");
 
         nayms.internalBalanceOf(entityId1, simplePolicy.asset);
         // note: entity now has balance of 18000, locked balance of 9500
         // attempting to pay a claim that's above the entity's balance, below the policy limit triggers the following error
         vm.expectRevert("_internalTransfer: insufficient balance");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId3"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 19000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId3"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 19000);
     }
 
     function testSimplePolicyPremiumsCommissionsClaims() public {
@@ -912,34 +912,34 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.cancelled = true;
         updateSimplePolicy(policyId1, simplePolicy);
         vm.expectRevert("Policy is cancelled");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         simplePolicy.fundsLocked = true;
         simplePolicy.cancelled = false;
         updateSimplePolicy(policyId1, simplePolicy);
 
         changePrank(account9);
         vm.expectRevert();
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10000);
 
         vm.expectRevert(); // does not have comptroller combined | comptroller cliam role
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, 0, 10000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, 0, 10000);
 
         changePrank(account0);
 
         vm.expectRevert("invalid claim amount");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 0);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 0);
 
         changePrank(account0);
 
         vm.expectRevert("exceeds policy limit");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 100001);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 100001);
 
         uint256 claimAmount = 10000;
         uint256 balanceBeforeClaim = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset);
         simplePolicy = getSimplePolicy(policyId1);
         assertEq(simplePolicy.claimsPaid, 0);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId"))), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
 
         simplePolicy = getSimplePolicy(policyId1);
         assertEq(simplePolicy.claimsPaid, 10000);

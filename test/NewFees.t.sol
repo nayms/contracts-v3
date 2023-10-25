@@ -214,7 +214,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(su.addr);
-        bytes32 policyId = "policy1";
+        bytes32 policyId = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policy1")));
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
         uint256 premiumPaid = 1e18;
@@ -245,7 +245,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(su.addr);
-        bytes32 policyId = "policy1";
+        bytes32 policyId = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policy1")));
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
         uint256 _premiumPaid = 1e18;
@@ -281,7 +281,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(su.addr);
-        bytes32 policyId = "policy1";
+        bytes32 policyId = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policy1")));
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
         uint256 premiumAmount = 1 ether;

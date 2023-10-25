@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../AppStorage.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "src/erc20/LibERC20.sol";
@@ -21,11 +21,11 @@ library LibAdmin {
     event FunctionsUnlocked(bytes4[] functionSelectors);
 
     function _getSystemId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
     }
 
     function _getEmptyId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LibConstants.EMPTY_IDENTIFIER);
+        return LibHelpers._stringToBytes32(LC.EMPTY_IDENTIFIER);
     }
 
     function _updateMaxDividendDenominations(uint8 _newMaxDividendDenominations) internal {
@@ -65,7 +65,7 @@ library LibAdmin {
 
         s.externalTokenSupported[_tokenAddress] = true;
         bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
-        LibObject._createObject(tokenId);
+        LibObject._createObject(tokenId, LC.OBJECT_TYPE_ADDRESS);
         s.supportedExternalTokens.push(_tokenAddress);
         s.tokenSymbolObjectId[symbol] = tokenId;
 

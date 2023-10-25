@@ -62,4 +62,19 @@ interface ISystemFacet {
      * @param _objectId ID of the tokenized object
      */
     function wrapToken(bytes32 _objectId) external;
+
+    /**
+     * @notice Returns the object's type
+     * @dev An object's type is the most significant 12 bytes of its bytes32 ID
+     * @param _objectId ID of the object
+     */
+    function getObjectType(bytes32 _objectId) external pure returns (bytes12);
+
+    /**
+     * @notice Check to see if an object is of a given type
+     * @param _objectId ID of the object
+     * @param _objectType The object type to check against
+     * @return true if the object is of the given type, false otherwise
+     */
+    function isObjectType(bytes32 _objectId, bytes12 _objectType) external pure returns (bool);
 }

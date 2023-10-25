@@ -82,4 +82,23 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
     function wrapToken(bytes32 _objectId) external nonReentrant assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibObject._wrapToken(_objectId);
     }
+
+    /**
+     * @notice Returns the object's type
+     * @dev An object's type is the most significant 12 bytes of its bytes32 ID
+     * @param _objectId ID of the object
+     */
+    function getObjectType(bytes32 _objectId) external pure returns (bytes12) {
+        return LibObject._getObjectType(_objectId);
+    }
+
+    /**
+     * @notice Check to see if an object is of a given type
+     * @param _objectId ID of the object
+     * @param _objectType The object type to check against
+     * @return true if the object is of the given type, false otherwise
+     */
+    function isObjectType(bytes32 _objectId, bytes12 _objectType) external pure returns (bool) {
+        return LibObject._isObjectType(_objectId, _objectType);
+    }
 }
