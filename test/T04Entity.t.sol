@@ -6,6 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
 import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { StdStyle } from "forge-std/StdStyle.sol";
 
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
@@ -15,6 +16,7 @@ import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
+    using StdStyle for *;
 
     bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(bytes32(0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38))));
     bytes32 internal policyId1 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20(bytes32(0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869))));
@@ -1048,5 +1050,47 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("utilized capacity starts at 0");
         nayms.createEntity(entityId1, account0Id, e, "entity test hash");
+    }
+
+    function testSimplePolicyDoubleUnlockFunds() public {
+        getReadyToCreatePolicies();
+
+        vm.stopPrank();
+        vm.startPrank(sa.addr);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+        vm.stopPrank();
+
+        vm.startPrank(em.addr);
+        nayms.assignRole(entityId1, entityId1, LC.ROLE_ENTITY_COMPTROLLER_COMBINED); // </3
+        vm.stopPrank();
+
+        uint256 limitAmount = 2000;
+
+        vm.startPrank(su.addr);
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        uint256 lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+        c.log(" -[ POLICY ]- locked balance:", lockedAmount.green());
+
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("0xC0FFEF")));
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
+        nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+        c.log(" -[ POLICY2 ]- locked balance:", lockedAmount.green());
+
+        vm.warp(block.timestamp + 3 days);
+        nayms.checkAndUpdateSimplePolicyState(policyId1);
+        c.log(" -[ HEARTBEAT ]- done".yellow());
+
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+        // assertEq(lockedAmount, 0, "Invalid locked amount after maturation");
+        c.log(" -[ HEARTBEAT ]- locked balance:", lockedAmount.green());
+
+        nayms.cancelSimplePolicy(policyId1);
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        c.log(" -[ CANCEL ]- locked balance:", lockedAmount.green());
     }
 }
