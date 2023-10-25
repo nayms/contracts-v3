@@ -108,6 +108,8 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
     function test_IsObjectType() public {
         for (uint256 i; i < objectTypes.length; i++) {
             bytes32 objectId = bytes32(objectTypes[i]) | bytes32(uint256(1));
+            assertEq(nayms.getObjectType(objectId), objectTypes[i], "getObjectType");
+            c.logBytes12(nayms.getObjectType(objectId));
             assertEq(nayms.isObjectType(objectId, objectTypes[i]), true, "isObjectType");
         }
     }

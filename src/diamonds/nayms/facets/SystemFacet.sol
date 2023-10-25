@@ -89,7 +89,7 @@ contract SystemFacet is ISystemFacet, Modifiers, ReentrancyGuard {
      * @param _objectId ID of the object
      */
     function getObjectType(bytes32 _objectId) external pure returns (bytes12) {
-        LibObject._getObjectType(_objectId);
+        return LibObject._getObjectType(_objectId);
     }
 
     /**
