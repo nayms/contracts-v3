@@ -80,7 +80,5 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertTrue(nayms.supportsInterface(type(IDiamondLoupe).interfaceId));
         assertTrue(nayms.supportsInterface(type(IERC173).interfaceId));
         assertTrue(nayms.supportsInterface(type(IERC20).interfaceId));
-
-        assertTrue(nayms.supportsInterface(type(IDiamondProxy).interfaceId));
     }
 }

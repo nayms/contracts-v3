@@ -8,13 +8,13 @@ import { MockAccounts } from "./utils/users/MockAccounts.sol";
 contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public {}
 
-    function testTransferOwernshipFailsIfNotSysAdmin() public {
+    function testTransferOwnershipFailsIfNotSysAdmin() public {
         changePrank(signer2);
         vm.expectRevert("not a system admin");
         nayms.transferOwnership(signer1);
     }
 
-    function testTransferOwernshipFailsIfNewOwnerIsSysAdmin() public {
+    function testTransferOwnershipFailsIfNewOwnerIsSysAdmin() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
         changePrank(signer1);
@@ -22,7 +22,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         nayms.transferOwnership(signer1);
     }
 
-    function testTransferOwernshipFailsIfNewOwnerIsSysManager() public {
+    function testTransferOwnershipFailsIfNewOwnerIsSysManager() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
         nayms.assignRole(signer2Id, systemContext, LibConstants.ROLE_SYSTEM_MANAGER);
 
@@ -31,7 +31,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         nayms.transferOwnership(signer2);
     }
 
-    function testTransferOwernship() public {
+    function testTransferOwnership() public {
         nayms.assignRole(signer1Id, systemContext, LibConstants.ROLE_SYSTEM_ADMIN);
 
         changePrank(signer1);
@@ -42,11 +42,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isInGroup(signer2Id, systemContext, LibConstants.GROUP_SYSTEM_ADMINS));
     }
 
-    function testFuzz_TransferOwnership(
-        address newOwner,
-        address notSysAdmin,
-        address anotherSysAdmin
-    ) public {
+    function testFuzz_TransferOwnership(address newOwner, address notSysAdmin, address anotherSysAdmin) public {
         vm.assume(newOwner != anotherSysAdmin && newOwner != account0);
         vm.assume(anotherSysAdmin != address(0));
 
