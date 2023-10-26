@@ -1071,26 +1071,19 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         uint256 lockedAmount = nayms.getLockedBalance(entityId1, wethId);
-        c.log(" -[ POLICY ]- locked balance:", lockedAmount.green());
 
         bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("0xC0FFEF")));
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         lockedAmount = nayms.getLockedBalance(entityId1, wethId);
-        c.log(" -[ POLICY2 ]- locked balance:", lockedAmount.green());
 
         vm.warp(block.timestamp + 3 days);
         nayms.checkAndUpdateSimplePolicyState(policyId1);
-        c.log(" -[ HEARTBEAT ]- done".yellow());
 
         lockedAmount = nayms.getLockedBalance(entityId1, wethId);
-        // assertEq(lockedAmount, 0, "Invalid locked amount after maturation");
-        c.log(" -[ HEARTBEAT ]- locked balance:", lockedAmount.green());
 
+        vm.expectRevert(abi.encodeWithSelector(PolicyCannotCancelAfterMaturation.selector, policyId1));
         nayms.cancelSimplePolicy(policyId1);
-        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
-
-        c.log(" -[ CANCEL ]- locked balance:", lockedAmount.green());
     }
 }
