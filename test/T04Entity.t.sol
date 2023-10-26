@@ -13,6 +13,8 @@ import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 // solhint-disable no-global-import
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+import { StdStyle } from "forge-std/StdStyle.sol";
+
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
@@ -1084,7 +1086,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(entityId1, entityId1, LC.ROLE_ENTITY_COMPTROLLER_COMBINED); // </3
         vm.stopPrank();
 
-        uint256 limitAmount = 2000;
+        uint256 limitAmount = 20000;
 
         vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);

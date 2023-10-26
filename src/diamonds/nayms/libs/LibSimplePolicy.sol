@@ -83,9 +83,14 @@ library LibSimplePolicy {
 
         bytes32 entityId = LibObject._getParent(_policyId);
         Entity memory entity = s.entities[entityId];
-        s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
 
-        s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
+        if (simplePolicy.fundsLocked) {
+            s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
+            s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
+        } else {
+            uint256 availableBalance = LibTokenizedVault._internalBalanceOf(entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(entityId, simplePolicy.asset);
+            require(availableBalance > _amount, "not enough balance");
+        }
 
         LibObject._createObject(_claimId, LC.OBJECT_TYPE_CLAIM);
 
