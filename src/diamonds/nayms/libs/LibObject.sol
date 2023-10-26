@@ -4,10 +4,10 @@ pragma solidity 0.8.20;
 import { AppStorage, LibAppStorage } from "../AppStorage.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { EntityDoesNotExist, ObjectCannotBeTokenized, ObjectTokenSymbolInvalid, ObjectTokenSymbolAlreadyInUse, ObjectTokenNameInvalid } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../../../erc20/ERC20Wrapper.sol";
-import { InvalidObjectType, InvalidObjectIdForAddress } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { InvalidObjectType, InvalidObjectIdForAddress, ObjectTokenSymbolInvalid, ObjectTokenNameInvalid } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 /// @notice Contains internal methods for core Nayms system functionality
 library LibObject {
@@ -96,18 +96,34 @@ library LibObject {
         return s.tokenSymbolObjectId[_symbol] == bytes32(0);
     }
 
+    function _validateTokenNameAndSymbol(
+        bytes32 _objectId,
+        string memory _symbol,
+        string memory _name
+    ) private view {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (bytes(_symbol).length == 0 || bytes(_symbol).length > 16) {
+            revert ObjectTokenSymbolInvalid(_objectId, _symbol);
+        }
+
+        if (bytes(_name).length == 0 || bytes(_name).length > 64) {
+            revert ObjectTokenNameInvalid(_objectId, _name);
+        }
+
+        if (s.tokenSymbolObjectId[_symbol] != bytes32(0)) {
+            revert ObjectTokenSymbolAlreadyInUse(_objectId, _symbol);
+        }
+    }
+
     function _enableObjectTokenization(
         bytes32 _objectId,
         string memory _symbol,
         string memory _name
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (bytes(_symbol).length == 0) {
-            revert MissingSymbolWhenEnablingTokenization(_objectId);
-        }
-        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
-        require(bytes(_name).length > 0, "name must not be empty");
-        require(bytes(_name).length < 64, "symbol must be less than 64 characters");
+
+        _validateTokenNameAndSymbol(_objectId, _symbol, _name);
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
         if (!s.existingEntities[_objectId]) {
@@ -115,7 +131,6 @@ library LibObject {
         }
 
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
-        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
@@ -130,14 +145,9 @@ library LibObject {
         string memory _name
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (bytes(_symbol).length == 0) {
-            revert MissingSymbolWhenEnablingTokenization(_objectId);
-        }
-        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
-        require(bytes(_name).length > 0, "name must not be empty");
-        require(bytes(_name).length < 64, "symbol must be less than 64 characters");
 
-        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
+        _validateTokenNameAndSymbol(_objectId, _symbol, _name);
+
         require(_isObjectTokenizable(_objectId), "object not tokenized");
 
         string memory oldSymbol = s.objectTokenSymbol[_objectId];

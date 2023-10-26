@@ -14,6 +14,8 @@ import { IMarketFacet } from "src/diamonds/nayms/interfaces/IMarketFacet.sol";
 import { ITokenizedVaultFacet } from "src/diamonds/nayms/interfaces/ITokenizedVaultFacet.sol";
 import { ITokenizedVaultIOFacet } from "src/diamonds/nayms/interfaces/ITokenizedVaultIOFacet.sol";
 
+import { ObjectTokenSymbolAlreadyInUse } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+
 library LibAdmin {
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
     event SupportedTokenAdded(address indexed tokenAddress);
@@ -61,7 +63,9 @@ library LibAdmin {
         require(s.objectTokenWrapperId[_tokenAddress] == bytes32(0), "cannot add participation token wrapper as external");
 
         string memory symbol = LibERC20.symbol(_tokenAddress);
-        require(LibObject._tokenSymbolNotUsed(symbol), "token symbol already in use");
+        if (s.tokenSymbolObjectId[symbol] != bytes32(0)) {
+            revert ObjectTokenSymbolAlreadyInUse(LibHelpers._getIdForAddress(_tokenAddress), symbol);
+        }
 
         s.externalTokenSupported[_tokenAddress] = true;
         bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);

@@ -96,21 +96,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         require(success, "Should get commissions from app storage");
     }
 
-    function testEntityTokenSymbolUniqueness() public {
-        changePrank(sm.addr);
-        bytes32 entityId = createTestEntity(account0Id);
-        bytes32 entityId2 = createTestEntityWithId(account0Id, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe2"))));
-        bytes32 entityId3 = createTestEntityWithId(account0Id, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe3"))));
-
-        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token");
-
-        vm.expectRevert("token symbol already in use");
-        nayms.enableEntityTokenization(entityId2, "Entity1", "Entity2 Token");
-
-        vm.expectRevert("token symbol already in use");
-        nayms.enableEntityTokenization(entityId3, "WBTC", "Entity3 Token");
-    }
-
     function testGetLockedBalance() public {
         changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);

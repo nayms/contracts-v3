@@ -120,6 +120,35 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertTrue(hashTypedDataV4 == signingHash);
     }
 
+    function testEntityTokenSymbolAndNameValidation() public {
+        changePrank(sm.addr);
+        bytes32 entityId = createTestEntity(account0Id);
+        bytes32 entityId2 = createTestEntityWithId(account0Id, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe2"))));
+        bytes32 entityId3 = createTestEntityWithId(account0Id, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe3"))));
+
+        string memory symbol = "ptEN1";
+        string memory name = "Entity1 PToken";
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolInvalid.selector, entityId, ""));
+        nayms.enableEntityTokenization(entityId, "", name);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolInvalid.selector, entityId, "12345678901234567"));
+        nayms.enableEntityTokenization(entityId, "12345678901234567", name);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenNameInvalid.selector, entityId, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To"));
+        nayms.enableEntityTokenization(entityId, symbol, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To");
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenNameInvalid.selector, entityId, ""));
+        nayms.enableEntityTokenization(entityId, symbol, "");
+
+        nayms.enableEntityTokenization(entityId, symbol, name);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, entityId2, symbol));
+        nayms.enableEntityTokenization(entityId2, symbol, "Entity2 PToken");
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, entityId3, "WETH"));
+        nayms.enableEntityTokenization(entityId3, "WETH", "Entity3 Token");
+    }
+
     function testEnableEntityTokenization() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, false), "entity test hash");
 
@@ -128,24 +157,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (nonExistentEntity)));
         nayms.enableEntityTokenization(nonExistentEntity, "123456789012345", "1234567890123456");
 
-        vm.expectRevert("symbol must be less than 16 characters");
-        nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
-
         changePrank(signer1);
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer1Id, systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
         changePrank(sm.addr);
 
-        vm.expectRevert("name must not be empty");
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "");
-
-        vm.expectRevert("symbol must be less than 64 characters");
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "123456789012345123456789012345123456789012345123456789012345123456789012345");
-
         nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
 
         vm.expectRevert("object already tokenized");
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "123456789012346", "12345678901234567");
     }
 
     function testUpdateEntityTokenInfo() public {

@@ -95,10 +95,10 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testSupportedTokenSymbolUnique() public {
         changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);
-        nayms.enableEntityTokenization(entityId, "WBTC", "Entity1 Token");
+        nayms.enableEntityTokenization(entityId, wbtc.symbol(), "Entity1 Token");
 
         changePrank(sa.addr);
-        vm.expectRevert("token symbol already in use");
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, LibHelpers._getIdForAddress(wbtcAddress), wbtc.symbol()));
         nayms.addSupportedExternalToken(wbtcAddress);
     }
 

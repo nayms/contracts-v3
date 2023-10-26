@@ -49,8 +49,14 @@ error InvalidObjectIdForAddress(bytes32 objectId);
 /// @dev (non specific) the object is not enabled to be tokenized.
 error ObjectCannotBeTokenized(bytes32 objectId);
 
-/// @dev Passing in a missing symbol when trying to enable an object to be tokenized.
-error MissingSymbolWhenEnablingTokenization(bytes32 objectId);
+/// @dev Provided token symbol is not valid.
+error ObjectTokenSymbolInvalid(bytes32 objectId, string symbol);
+
+/// @dev Provided token symbol is already being used.
+error ObjectTokenSymbolAlreadyInUse(bytes32 objectId, string symbol);
+
+/// @dev Provided token name is not valid.
+error ObjectTokenNameInvalid(bytes32 objectId, string symbol);
 
 /// @dev Passing in 0 amount for deposits is not allowed.
 error ExternalDepositAmountCannotBeZero();
