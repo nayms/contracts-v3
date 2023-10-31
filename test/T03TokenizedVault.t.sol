@@ -271,7 +271,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(account9);
 
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, acc9Id, acc0EntityId, "", LC.GROUP_PAY_DIVIDEND_FROM_ENTITY));
-        nayms.payDividendFromEntity(bytes32("0x1"), 1 ether);
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, address(bytes20("0x1"))), 1 ether);
     }
 
     function testPayDividendsWithZeroParticipationTokenSupply() public {
