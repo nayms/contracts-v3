@@ -13,6 +13,8 @@ import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 // solhint-disable no-global-import
 import "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
+import { StdStyle } from "forge-std/StdStyle.sol";
+
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
@@ -1084,7 +1086,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(entityId1, entityId1, LC.ROLE_ENTITY_COMPTROLLER_COMBINED); // </3
         vm.stopPrank();
 
-        uint256 limitAmount = 2000;
+        uint256 limitAmount = 20000;
 
         vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
@@ -1105,5 +1107,47 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert(abi.encodeWithSelector(PolicyCannotCancelAfterMaturation.selector, policyId1));
         nayms.cancelSimplePolicy(policyId1);
+    }
+
+    function testPayClaimAfterMaturation_IM25127() public {
+        getReadyToCreatePolicies();
+
+        vm.stopPrank();
+        vm.startPrank(sa.addr);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+        vm.stopPrank();
+
+        vm.startPrank(em.addr);
+        nayms.assignRole(entityId1, entityId1, LC.ROLE_ENTITY_COMPTROLLER_COMBINED); // </3
+        vm.stopPrank();
+
+        uint256 limitAmount = 20000;
+
+        vm.startPrank(su.addr);
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        uint256 lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        vm.warp(block.timestamp + 3 days);
+        nayms.checkAndUpdateSimplePolicyState(policyId1);
+
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        bytes32 claimId = makeId(LC.OBJECT_TYPE_CLAIM, address(bytes20("claimId")));
+
+        vm.startPrank(account0);
+        nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 20000);
+        c.log("balance of entity: ", nayms.internalBalanceOf(entityId1, wethId).green());
+
+        uint256 lockedBalance = nayms.getLockedBalance(entityId1, wethId);
+        uint256 utilizedCapacity = nayms.getEntityInfo(entityId1).utilizedCapacity;
+
+        vm.expectRevert("not enough balance");
+        nayms.paySimpleClaim(claimId, policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2000);
+
+        nayms.paySimpleClaim(claimId, policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 500);
+        assertEq(lockedBalance, nayms.getLockedBalance(entityId1, wethId), "locked balance should not change");
+        assertEq(utilizedCapacity, nayms.getEntityInfo(entityId1).utilizedCapacity, "utilized capacity should not change");
     }
 }
