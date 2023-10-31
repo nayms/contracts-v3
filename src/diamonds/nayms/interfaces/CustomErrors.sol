@@ -98,5 +98,8 @@ error CancelCannotBeTrueWhenCreatingSimplePolicy();
 /// @dev (non specific) The policyId must exist.
 error PolicyDoesNotExist(bytes32 policyId);
 
+/// @dev It is not possible to cancel policyId after maturation date has passed
+error PolicyCannotCancelAfterMaturation(bytes32 policyId);
+
 /// @dev There is a duplicate address in the list of signers (the previous signer in the list is not < the next signer in the list).
 error DuplicateSignerCreatingSimplePolicy(address previousSigner, address nextSigner);

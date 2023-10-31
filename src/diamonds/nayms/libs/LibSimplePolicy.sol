@@ -11,7 +11,7 @@ import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibEIP712 } from "src/diamonds/nayms/libs/LibEIP712.sol";
 
-import { EntityDoesNotExist, PolicyDoesNotExist } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { EntityDoesNotExist, PolicyDoesNotExist, PolicyCannotCancelAfterMaturation } from "src/diamonds/nayms/interfaces/CustomErrors.sol";
 
 library LibSimplePolicy {
     event SimplePolicyMatured(bytes32 indexed id);
@@ -98,6 +98,10 @@ library LibSimplePolicy {
         AppStorage storage s = LibAppStorage.diamondStorage();
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         require(!simplePolicy.cancelled, "Policy already cancelled");
+
+        if (block.timestamp >= simplePolicy.maturationDate) {
+            revert PolicyCannotCancelAfterMaturation(_policyId);
+        }
 
         releaseFunds(_policyId);
         simplePolicy.cancelled = true;
