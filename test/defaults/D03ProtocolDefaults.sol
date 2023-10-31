@@ -455,6 +455,17 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         assertEq(nayms.internalBalanceOf(acc.entityId, wethId), balanceBefore + amount, "entity's weth balance is incorrect");
     }
 
+    /// @dev Helper function to deal, approve, and nayms.externalDeposit usdc to a NaymsAccount.entityId.
+    function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) internal {
+        deal(usdcAddress, acc.addr, amount);
+        changePrank(acc.addr);
+        usdc.approve(address(nayms), amount);
+        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, usdcId);
+        nayms.externalDeposit(usdcAddress, amount);
+        uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
+        assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
+    }
+
     /// Pretty print ///
     function hCr(bytes32 objectId) public {
         bytes32[] memory cr = nayms.getPolicyCommissionReceivers(objectId);
