@@ -10,6 +10,7 @@ facetAction=1		# 0 - all, 1 - changed, 2 - listed
 deploymentSalt=0xdeffffffff
 ownerAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdminAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
+updateStateAddress=
 
 .DEFAULT_GOAL := help
 
@@ -38,17 +39,14 @@ gen-i: ## generate solidity interfaces from facet implementations
 		-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
 		--ffi
 
-prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This excludes ACL and Governance facets, which are deployed with the Nayms diamond.
-	node ./cli-tools/prep-build.js ACL Governance
-
-prep-build-all: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
+prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
 	node ./cli-tools/prep-build.js
 
 prep-upgrade: ## Generate upgrade script S03UpgradeDiamond.s.sol with cut information from broadcast json file. Pass in e.g. broadcastJson=broadcast/S01DeployContract.s.sol/31337/run-latest.json
 	node ./cli-tools/prep-upgrade.js ${broadcastJson}
 
 build: ## forge build
-	forge build --names --sizes
+	yarn build
 b: build
 
 bscript: ## build forge scripts
@@ -255,6 +253,32 @@ deploy-mainnet-sim: ## simulate deploy to mainnet
 		-vv \
 		--ffi 
 
+deploy-mainnet-init: ## upgrade to mainnet with a state update via a state updating (init) contract
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast \
+		--slow \
+		--verify --delay 30 --retries 10 \
+		; node cli-tools/postproc-broadcasts.js
+
+deploy-mainnet-init-sim: ## simulate upgrade to mainnet with a state update via a state updating (init) contract
+	@forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		--sender ${ownerAddress} \
+		-vv \
+		--ffi 
+
 deploy-mainnet-fork: ## smart deploy to local mainnet fork
 	@cast rpc anvil_impersonateAccount ${mainnetSysAdmin} && \
 	cast send ${diamondAddress} "transferOwnership(address)" \
@@ -290,6 +314,15 @@ deploy-contract: ## deploy any contract to mainnet
 		--broadcast \
 		--verify --delay 30 --retries 10 \
 		; node cli-tools/postproc-broadcasts.js
+
+deploy-contract-sim: ## simulate deploying any contract to mainnet
+	forge script S01DeployContract \
+		-s "run(string calldata)" ${contractName} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--sender ${senderAddress} \
+		-vv \
+		--ffi
 
 deploy-contract-sepolia: ## deploy any contract to Sepolia
 	forge script S01DeployContract \
@@ -479,6 +512,29 @@ anvil-upgrade-init: ## Anvil - upgrading a diamond WITH InitDiamond
 		--ffi \
 		--broadcast
 
+anvil-upgrade-init-addr: ## Anvil - upgrading a diamond WITH InitDiamond AND pass in init diamond address
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi \
+		--broadcast
+
+anvil-upgrade-init-addr-sim: ## Anvil - simulate upgrading a diamond WITH InitDiamond AND pass in init diamond address. Use this to get the upgrade hash.
+	forge script SmartDeploy \
+		-s "smartDeploy(bool, address, address, address, uint8, string[] memory, bytes32)" false ${ownerAddress} ${systemAdminAddress} ${updateStateAddress} 1 ${facetsToCutIn} ${deploymentSalt} \
+		-f http:\\127.0.0.1:8545 \
+		--chain-id 31337 \
+		--sender ${ownerAddress} \
+		--mnemonic-paths ./nayms_mnemonic.txt \
+		--mnemonic-indexes 19 \
+		-vv \
+		--ffi
+
 anvil-deploy-contract: ## deploy contract to anvil
 	forge script S01DeployContract \
 		-s "run(string calldata)" ${contractName} \
@@ -611,7 +667,7 @@ docs: ## generate docs from natspec comments
 	yarn docgen
 
 slither:	## run slither static analysis
-	slither src/diamonds/nayms --exclude solc-version,assembly-usage,naming-convention,low-level-calls --ignore-compile
+	slither src/diamonds/nayms --config-file=slither.config.json --fail-none
 
 upgrade-hash-sepolia: ## generate SEPOLIA upgrade hash
 	@forge script SmartDeploy \
@@ -670,6 +726,15 @@ update-e: ## update
 		-vvvv \
 		--broadcast
 
+coderecon: ## code recon
+	@forge script CodeRecon \
+		-s "run(string[] memory)" ${contractNames} \
+		-f ${ETH_MAINNET_RPC_URL} \
+		--chain-id 1 \
+		--etherscan-api-key ${ETHERSCAN_API_KEY} \
+		-vv \
+		; node cli-tools/parse-json.js
+
 compb: ## Compare bytecode
 	@forge script CheckBytecode \
 		-s "run(uint8)" ${checkBytecodeAction} \
@@ -693,3 +758,21 @@ checkf: ## Check if facet exists in a diamond
 		--mnemonic-indexes 19 \
 		-vv \
 		--ffi
+	
+bn-mainnet: ## get block number for mainnet and replace FORK_BLOCK_1 in .env
+	@result=$$(cast bn -r mainnet) && \
+	sed -i '' "s/^export FORK_BLOCK_1=.*/export FORK_BLOCK_1=$$result/" .env
+
+bn-sepolia: ## get block number for sepolia and replace FORK_BLOCK_11155111 in .env
+	@result=$$(cast bn -r sepolia) && \
+	sed -i '' "s/^export FORK_BLOCK_11155111=.*/export FORK_BLOCK_11155111=$$result/" .env
+
+tf: ## Toggle forking of tests. true == fork a node, false == no fork
+	@result=$$(grep -q 'BOOL_FORK_TEST=true' .env && echo "false" || echo "true"); \
+	sed -i '' -e "s/BOOL_FORK_TEST=.*/BOOL_FORK_TEST=$$result/" .env; \
+	echo "BOOL_FORK_TEST is now set to $$result"
+
+tu: ## Toggle upgrading the diamond in the forked tests. true == upgrade, false == no upgrade
+	@result=$$(grep -q 'TESTS_FORK_UPGRADE_DIAMOND=true' .env && echo "false" || echo "true"); \
+	sed -i '' -e "s/TESTS_FORK_UPGRADE_DIAMOND=.*/TESTS_FORK_UPGRADE_DIAMOND=$$result/" .env; \
+	echo "TESTS_FORK_UPGRADE_DIAMOND is now set to $$result"

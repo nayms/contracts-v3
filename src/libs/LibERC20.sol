@@ -39,22 +39,13 @@ library LibERC20 {
         }
     }
 
-    function transferFrom(
-        address _token,
-        address _from,
-        address _to,
-        uint256 _value
-    ) internal {
+    function transferFrom(address _token, address _from, address _to, uint256 _value) internal {
         _assertNotEmptyContract(_token);
         (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, _from, _to, _value));
         handleReturn(success, result);
     }
 
-    function transfer(
-        address _token,
-        address _to,
-        uint256 _value
-    ) internal {
+    function transfer(address _token, address _to, uint256 _value) internal {
         _assertNotEmptyContract(_token);
         (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.transfer.selector, _to, _value));
         handleReturn(success, result);

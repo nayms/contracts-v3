@@ -5,6 +5,8 @@ import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamond
 import { Modifiers } from "../shared/Modifiers.sol";
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibGovernance } from "src/libs/LibGovernance.sol";
+import { LibAdmin } from "src/libs/LibAdmin.sol";
+import { LibConstants as LC } from "src/libs/LibConstants.sol";
 
 contract GovernanceFacet is Modifiers {
     event CreateUpgrade(bytes32 id, address indexed who);
@@ -24,7 +26,7 @@ contract GovernanceFacet is Modifiers {
         return LibGovernance._calculateUpgradeId(_diamondCut, _init, _calldata);
     }
 
-    function createUpgrade(bytes32 id) external assertSysAdmin {
+    function createUpgrade(bytes32 id) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.upgradeScheduled[id] > block.timestamp) {
@@ -37,7 +39,7 @@ contract GovernanceFacet is Modifiers {
         emit CreateUpgrade(id, msg.sender);
     }
 
-    function updateUpgradeExpiration(uint256 duration) external assertSysAdmin {
+    function updateUpgradeExpiration(uint256 duration) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(1 minutes < duration && duration < 1 weeks, "invalid upgrade expiration period");
@@ -46,7 +48,7 @@ contract GovernanceFacet is Modifiers {
         emit UpdateUpgradeExpiration(duration);
     }
 
-    function cancelUpgrade(bytes32 id) external assertSysAdmin {
+    function cancelUpgrade(bytes32 id) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.upgradeScheduled[id] > 0, "invalid upgrade ID");

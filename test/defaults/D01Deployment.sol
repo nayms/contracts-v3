@@ -14,11 +14,14 @@ import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 import { LibGovernance } from "src/libs/LibGovernance.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
 import { InitDiamond } from "src/init/InitDiamond.sol";
+import { StdStyle } from "forge-std/StdStyle.sol";
+import { LibConstants as LC } from "src/libs/LibConstants.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
 abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     using LibHelpers for *;
+    using StdStyle for *;
 
     address public naymsAddress;
 
@@ -33,6 +36,11 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     address public systemAdmin;
     bytes32 public systemAdminId;
 
+    /// @dev Helper function to create object Ids with object type prefix.
+    function makeId(bytes12 _objecType, address _addr) internal pure returns (bytes32) {
+        return bytes32((_objecType)) | (bytes32(bytes20(_addr)) >> 96);
+    }
+
     struct NaymsAccount {
         bytes32 id;
         bytes32 entityId;
@@ -42,20 +50,30 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
     function makeNaymsAcc(string memory name) public returns (NaymsAccount memory) {
         (address addr, uint256 privateKey) = makeAddrAndKey(name);
-        return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: keccak256(bytes(name)), pk: privateKey, addr: addr });
+        return
+            NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(keccak256(bytes(name))))), pk: privateKey, addr: addr });
+    }
+
+    /// @dev Pass in a NaymsAccount to change the prank to NaymsAccount.addr
+    function changePrank(NaymsAccount memory na) public {
+        changePrank(na.addr);
     }
 
     constructor() payable {
-        console2.log("block.chainid", block.chainid);
+        c.log("\n -- D01 Deployment Defaults\n");
+        c.log("block.chainid", block.chainid);
 
-        // TODO KP help!
         // bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
+        // c.log("Are tests being run on a fork?".yellow().bold(), BOOL_FORK_TEST);
+        // bool TESTS_FORK_UPGRADE_DIAMOND = vm.envOr({ name: "TESTS_FORK_UPGRADE_DIAMOND", defaultValue: true });
+        // c.log("Are we testing diamond upgrades on a fork?".yellow().bold(), TESTS_FORK_UPGRADE_DIAMOND);
+
         // if (BOOL_FORK_TEST) {
         //     uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
-        //     console2.log("FORK_BLOCK", FORK_BLOCK);
+        //     c.log("FORK_BLOCK", FORK_BLOCK);
 
         //     if (FORK_BLOCK == type(uint256).max) {
-        //         console2.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
+        //         c.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
         //         vm.createSelectFork(getChain(block.chainid).rpcUrl);
         //     } else {
         //         vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
@@ -75,9 +93,9 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         //     keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
         //     IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(naymsAddress, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
         //     vm.startPrank(owner);
-        //     scheduleAndUpgradeDiamond(cut);
+        //     if (TESTS_FORK_UPGRADE_DIAMOND) scheduleAndUpgradeDiamond(cut);
         // } else {
-        console2.log("Local testing (no fork)");
+        c.log("Local testing (no fork)");
 
         deployer = address(this);
         owner = address(this);
@@ -87,7 +105,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         systemAdmin = makeAddr("System Admin 0");
         systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
 
-        console2.log("Deploy diamond");
+        c.log("Deploy diamond");
         naymsAddress = address(new DiamondProxy(account0));
         vm.label(naymsAddress, "Nayms diamond");
         nayms = IDiamondProxy(naymsAddress);
@@ -97,12 +115,12 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
         initDiamond = new InitDiamond();
         vm.label(address(initDiamond), "InitDiamond");
-        console2.log("InitDiamond:", address(initDiamond));
+        c.log("InitDiamond:", address(initDiamond));
 
-        console2.log("Cut and init");
+        c.log("Cut and init");
         nayms.diamondCut(cuts, address(initDiamond), abi.encodeCall(InitDiamond.init, (systemAdmin)));
 
-        console2.log("Diamond setup complete.");
+        c.log("Diamond setup complete.");
     }
 
     function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut, address _init, bytes memory _calldata) internal {
@@ -110,7 +128,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         // 2. upgrade
         bytes32 upgradeHash = LibGovernance._calculateUpgradeId(_cut, _init, _calldata);
         if (upgradeHash == 0xc597f3eb22d11c46f626cd856bd65e9127b04623d83e442686776a2e3b670bbf) {
-            console2.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
+            c.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
         } else {
             changePrank(systemAdmin);
             nayms.createUpgrade(upgradeHash);

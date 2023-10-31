@@ -2,20 +2,14 @@
 pragma solidity 0.8.21;
 
 import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../shared/AppStorage.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 
-import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals } from "../shared/CustomErrors.sol";
+import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals, ObjectTokenSymbolAlreadyInUse } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
-
-// import { IEntityFacet } from "src/diamonds/nayms/interfaces/IEntityFacet.sol";
-// import { ISimplePolicyFacet } from "src/diamonds/nayms/interfaces/ISimplePolicyFacet.sol";
-// import { IMarketFacet } from "src/diamonds/nayms/interfaces/IMarketFacet.sol";
-// import { ITokenizedVaultFacet } from "src/diamonds/nayms/interfaces/ITokenizedVaultFacet.sol";
-// import { ITokenizedVaultIOFacet } from "src/diamonds/nayms/interfaces/ITokenizedVaultIOFacet.sol";
 
 library LibAdmin {
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
@@ -24,11 +18,11 @@ library LibAdmin {
     event FunctionsUnlocked(bytes4[] functionSelectors);
 
     function _getSystemId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER);
+        return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
     }
 
     function _getEmptyId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LibConstants.EMPTY_IDENTIFIER);
+        return LibHelpers._stringToBytes32(LC.EMPTY_IDENTIFIER);
     }
 
     function _updateMaxDividendDenominations(uint8 _newMaxDividendDenominations) internal {
@@ -52,7 +46,7 @@ library LibAdmin {
 
     function _isSupportedExternalToken(bytes32 _tokenId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.externalTokenSupported[LibHelpers._getAddressFromId(_tokenId)];
+        return LibHelpers._isAddress(_tokenId) && s.externalTokenSupported[LibHelpers._getAddressFromId(_tokenId)];
     }
 
     function _addSupportedExternalToken(address _tokenAddress) internal {
@@ -64,11 +58,13 @@ library LibAdmin {
         require(s.objectTokenWrapperId[_tokenAddress] == bytes32(0), "cannot add participation token wrapper as external");
 
         string memory symbol = LibERC20.symbol(_tokenAddress);
-        require(LibObject._tokenSymbolNotUsed(symbol), "token symbol already in use");
+        if (s.tokenSymbolObjectId[symbol] != bytes32(0)) {
+            revert ObjectTokenSymbolAlreadyInUse(LibHelpers._getIdForAddress(_tokenAddress), symbol);
+        }
 
         s.externalTokenSupported[_tokenAddress] = true;
         bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
-        LibObject._createObject(tokenId);
+        LibObject._createObject(tokenId, LC.OBJECT_TYPE_ADDRESS);
         s.supportedExternalTokens.push(_tokenAddress);
         s.tokenSymbolObjectId[symbol] = tokenId;
 

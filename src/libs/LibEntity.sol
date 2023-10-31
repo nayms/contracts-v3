@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import { LibAppStorage, AppStorage } from "../shared/AppStorage.sol";
 import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppStorage.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
@@ -13,8 +13,8 @@ import { LibMarket } from "./LibMarket.sol";
 import { LibSimplePolicy } from "./LibSimplePolicy.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 
-import { ECDSA } from "lib/ozv4/contracts/utils/cryptography/ECDSA.sol";
-import { MessageHashUtils } from "lib/ozv4/contracts/utils/cryptography/MessageHashUtils.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "../shared/CustomErrors.sol";
 
 library LibEntity {
@@ -35,11 +35,7 @@ library LibEntity {
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */
 
-    function _validateSimplePolicyCreation(
-        bytes32 _entityId,
-        SimplePolicy memory simplePolicy,
-        Stakeholders calldata _stakeholders
-    ) internal view {
+    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy memory simplePolicy, Stakeholders calldata _stakeholders) internal view {
         // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
         require(simplePolicy.limit > 0, "limit not > 0");
         require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
@@ -59,21 +55,23 @@ library LibEntity {
         require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
 
         // Calculate the entity's utilized capacity after it writes this policy.
-        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + ((simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR);
+        uint256 additionalCapacityNeeded = ((simplePolicy.limit * entity.collateralRatio) / LC.BP_FACTOR);
+        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + additionalCapacityNeeded;
 
         // The entity must have enough capacity available to write this policy.
         // An entity is not able to write an additional policy that will utilize its capacity beyond its assigned max capacity.
         require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
 
         // The entity's balance must be >= to the updated capacity requirement
-        require(LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) >= updatedUtilizedCapacity, "not enough capital");
+        uint256 availableBalance = LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(_entityId, simplePolicy.asset);
+        require(availableBalance >= additionalCapacityNeeded, "not enough capital");
 
         require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
         require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
-        FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, LibConstants.FEE_TYPE_PREMIUM);
+        FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, LC.FEE_TYPE_PREMIUM);
         uint256 feeReceiversCount = feeSchedule.receiver.length;
         // There must be at least one receiver from the fee schedule
         require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
@@ -90,8 +88,8 @@ library LibEntity {
             commissionReceiversTotalBP += simplePolicy.commissionBasisPoints[i];
         }
 
-        if (commissionReceiversTotalBP > LibConstants.BP_FACTOR / 2) {
-            revert FeeBasisPointsExceedHalfMax(commissionReceiversTotalBP, LibConstants.BP_FACTOR / 2);
+        if (commissionReceiversTotalBP > LC.BP_FACTOR / 2) {
+            revert FeeBasisPointsExceedHalfMax(commissionReceiversTotalBP, LC.BP_FACTOR / 2);
         }
 
         require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
@@ -119,7 +117,7 @@ library LibEntity {
         _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
 
         Entity storage entity = s.entities[_entityId];
-        uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LC.BP_FACTOR;
 
         entity.utilizedCapacity += factoredLimit;
         s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
@@ -127,7 +125,7 @@ library LibEntity {
         // hash contents are implicitly checked by making sure that resolved signer is the stakeholder entity's admin
         bytes32 signingHash = LibSimplePolicy._getSigningHash(_simplePolicy.startDate, _simplePolicy.maturationDate, _simplePolicy.asset, _simplePolicy.limit, _offchainDataHash);
 
-        LibObject._createObject(_policyId, _entityId, signingHash);
+        LibObject._createObject(_policyId, LC.OBJECT_TYPE_POLICY, _entityId, signingHash);
         s.simplePolicies[_policyId].fundsLocked = true;
 
         uint256 rolesCount = _stakeholders.roles.length;
@@ -194,11 +192,7 @@ library LibEntity {
 
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
-    function _startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) internal {
+    function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
@@ -217,17 +211,12 @@ library LibEntity {
         // note: The participation tokens of the entity are minted to the entity. The participation tokens minted have the same ID as the entity.
         LibTokenizedVault._internalMint(_entityId, _entityId, _amount);
 
-        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LibConstants.FEE_TYPE_INITIAL_SALE);
+        (uint256 offerId, , ) = LibMarket._executeLimitOffer(_entityId, _entityId, _amount, entity.assetId, _totalPrice, LC.FEE_TYPE_INITIAL_SALE);
 
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
-    function _createEntity(
-        bytes32 _entityId,
-        bytes32 _entityAdmin,
-        Entity calldata _entity,
-        bytes32 _dataHash
-    ) internal {
+    function _createEntity(bytes32 _entityId, bytes32 _accountAdmin, Entity calldata _entity, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.existingEntities[_entityId]) {
@@ -235,18 +224,18 @@ library LibEntity {
         }
         validateEntity(_entity);
 
-        LibObject._createObject(_entityId, _dataHash);
-        LibObject._setParent(_entityAdmin, _entityId);
+        LibObject._createObject(_entityId, LC.OBJECT_TYPE_ENTITY, _dataHash);
+        LibObject._setParent(_accountAdmin, _entityId);
         s.existingEntities[_entityId] = true;
 
-        LibACL._assignRole(_entityAdmin, _entityId, LibHelpers._stringToBytes32(LibConstants.ROLE_ENTITY_ADMIN));
+        LibACL._assignRole(_accountAdmin, _entityId, LibHelpers._stringToBytes32(LC.ROLE_ENTITY_ADMIN));
 
         // An entity starts without any capacity being utilized
         require(_entity.utilizedCapacity == 0, "utilized capacity starts at 0");
 
         s.entities[_entityId] = _entity;
 
-        emit EntityCreated(_entityId, _entityAdmin);
+        emit EntityCreated(_entityId, _accountAdmin);
     }
 
     /// @dev This currently updates a non cell type entity and a cell type entity, but
@@ -301,7 +290,7 @@ library LibEntity {
 
             // Collateral ratio must be in acceptable range of 1 to 10000 basis points (0.01% to 100% collateralized).
             // Cannot ever be completely uncollateralized (0 basis points), if entity is a cell.
-            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= LibConstants.BP_FACTOR, "collateral ratio should be 1 to 10000");
+            require(1 <= _entity.collateralRatio && _entity.collateralRatio <= LC.BP_FACTOR, "collateral ratio should be 1 to 10000");
 
             // Max capacity is the capital amount that an entity can write across all of their policies.
             // note: We do not directly use the value maxCapacity to determine if the entity can or cannot write a policy.

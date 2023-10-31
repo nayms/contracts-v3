@@ -3,7 +3,8 @@ pragma solidity 0.8.21;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
-import { EntityDoesNotExist, MissingSymbolWhenEnablingTokenization } from "../shared/CustomErrors.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
+import { EntityDoesNotExist, ObjectCannotBeTokenized, ObjectTokenSymbolInvalid, ObjectTokenSymbolAlreadyInUse, ObjectTokenNameInvalid, InvalidObjectType, InvalidObjectIdForAddress } from "../shared/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../utils/ERC20Wrapper.sol";
 
@@ -15,30 +16,29 @@ library LibObject {
     event ObjectCreated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
     event ObjectUpdated(bytes32 objectId, bytes32 parentId, bytes32 dataHash);
 
-    function _createObject(
-        bytes32 _objectId,
-        bytes32 _parentId,
-        bytes32 _dataHash
-    ) internal {
+    function _createObject(bytes32 _objectId, bytes12 _objectType, bytes32 _parentId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        _createObject(_objectId);
+        _createObject(_objectId, _objectType);
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
 
         emit ObjectCreated(_objectId, _parentId, _dataHash);
     }
 
-    function _createObject(bytes32 _objectId, bytes32 _dataHash) internal {
+    function _createObject(bytes32 _objectId, bytes12 _objectType, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        _createObject(_objectId);
+        _createObject(_objectId, _objectType);
         s.objectDataHashes[_objectId] = _dataHash;
 
         emit ObjectCreated(_objectId, 0, _dataHash);
     }
 
-    function _createObject(bytes32 _objectId) internal {
+    function _createObject(bytes32 _objectId, bytes12 _objectType) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(!s.existingObjects[_objectId], "objectId is already being used by another object");
+        if (_objectType == LC.OBJECT_TYPE_ADDRESS && !LibHelpers._isAddress(_objectId)) revert InvalidObjectIdForAddress(_objectId);
+        if (_objectType != LC.OBJECT_TYPE_ADDRESS && !_isObjectType(_objectId, _objectType)) revert InvalidObjectType(_objectId, _objectType);
+
         s.existingObjects[_objectId] = true;
 
         emit ObjectCreated(_objectId, 0, 0);
@@ -86,16 +86,26 @@ library LibObject {
         return s.tokenSymbolObjectId[_symbol] == bytes32(0);
     }
 
-    function _enableObjectTokenization(
-        bytes32 _objectId,
-        string memory _symbol,
-        string memory _name
-    ) internal {
+    function _validateTokenNameAndSymbol(bytes32 _objectId, string memory _symbol, string memory _name) private view {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (bytes(_symbol).length == 0) {
-            revert MissingSymbolWhenEnablingTokenization(_objectId);
+
+        if (bytes(_symbol).length == 0 || bytes(_symbol).length > 16) {
+            revert ObjectTokenSymbolInvalid(_objectId, _symbol);
         }
-        require(bytes(_symbol).length < 16, "symbol must be less than 16 characters");
+
+        if (bytes(_name).length == 0 || bytes(_name).length > 64) {
+            revert ObjectTokenNameInvalid(_objectId, _name);
+        }
+
+        if (s.tokenSymbolObjectId[_symbol] != bytes32(0)) {
+            revert ObjectTokenSymbolAlreadyInUse(_objectId, _symbol);
+        }
+    }
+
+    function _enableObjectTokenization(bytes32 _objectId, string memory _symbol, string memory _name) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        _validateTokenNameAndSymbol(_objectId, _symbol, _name);
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
         if (!s.existingEntities[_objectId]) {
@@ -103,9 +113,6 @@ library LibObject {
         }
 
         require(!_isObjectTokenizable(_objectId), "object already tokenized");
-        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
-
-        require(bytes(_name).length > 0, "name must not be empty");
 
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
@@ -114,13 +121,11 @@ library LibObject {
         emit TokenizationEnabled(_objectId, _symbol, _name);
     }
 
-    function _updateTokenInfo(
-        bytes32 _objectId,
-        string memory _symbol,
-        string memory _name
-    ) internal {
+    function _updateTokenInfo(bytes32 _objectId, string memory _symbol, string memory _name) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        require(_tokenSymbolNotUsed(_symbol), "token symbol already in use");
+
+        _validateTokenNameAndSymbol(_objectId, _symbol, _name);
+
         require(_isObjectTokenizable(_objectId), "object not tokenized");
 
         string memory oldSymbol = s.objectTokenSymbol[_objectId];
@@ -158,17 +163,19 @@ library LibObject {
         return s.existingObjects[_id];
     }
 
-    function _getObjectMeta(bytes32 _id)
-        internal
-        view
-        returns (
-            bytes32 parent,
-            bytes32 dataHash,
-            string memory tokenSymbol,
-            string memory tokenName,
-            address tokenWrapper
-        )
-    {
+    function _getObjectType(bytes32 _objectId) internal pure returns (bytes12 objectType) {
+        bytes32 shifted = _objectId >> 160;
+        assembly {
+            objectType := shl(160, shifted)
+        }
+        return objectType;
+    }
+
+    function _isObjectType(bytes32 _objectId, bytes12 _objectType) internal pure returns (bool) {
+        return (_getObjectType(_objectId) == _objectType);
+    }
+
+    function _getObjectMeta(bytes32 _id) internal view returns (bytes32 parent, bytes32 dataHash, string memory tokenSymbol, string memory tokenName, address tokenWrapper) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         parent = s.objectParent[_id];
         dataHash = s.objectDataHashes[_id];

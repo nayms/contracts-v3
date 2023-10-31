@@ -11,11 +11,7 @@ import { ExternalDepositAmountCannotBeZero, ExternalWithdrawAmountCannotBeZero }
  * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
  */
 library LibTokenizedVaultIO {
-    function _externalDeposit(
-        bytes32 _receiverId,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) internal {
+    function _externalDeposit(bytes32 _receiverId, address _externalTokenAddress, uint256 _amount) internal {
         if (_amount == 0) {
             revert ExternalDepositAmountCannotBeZero();
         }
@@ -34,12 +30,7 @@ library LibTokenizedVaultIO {
         LibTokenizedVault._internalMint(_receiverId, internalTokenId, mintAmount);
     }
 
-    function _externalWithdraw(
-        bytes32 _entityId,
-        address _receiver,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) internal {
+    function _externalWithdraw(bytes32 _entityId, address _receiver, address _externalTokenAddress, uint256 _amount) internal {
         if (_amount == 0) {
             revert ExternalWithdrawAmountCannotBeZero();
         }

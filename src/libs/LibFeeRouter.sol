@@ -85,12 +85,7 @@ library LibFeeRouter {
         }
     }
 
-    function _calculateTradingFees(
-        bytes32 _buyerId,
-        bytes32 _sellToken,
-        bytes32 _buyToken,
-        uint256 _buyAmount
-    ) internal view returns (uint256 totalFees_, uint256 totalBP_) {
+    function _calculateTradingFees(bytes32 _buyerId, bytes32 _sellToken, bytes32 _buyToken, uint256 _buyAmount) internal view returns (uint256 totalFees_, uint256 totalBP_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint256 offerId = s.bestOfferId[_buyToken][_sellToken];
@@ -169,12 +164,7 @@ library LibFeeRouter {
         emit MakerBasisPointsUpdated(tradingCommissionMakerBP);
     }
 
-    function _addFeeSchedule(
-        bytes32 _entityId,
-        uint256 _feeScheduleType,
-        bytes32[] calldata _receiver,
-        uint16[] calldata _basisPoints
-    ) internal {
+    function _addFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType, bytes32[] calldata _receiver, uint16[] calldata _basisPoints) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(_receiver.length == _basisPoints.length, "receivers and basis points mismatch");

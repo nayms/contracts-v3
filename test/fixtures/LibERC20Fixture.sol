@@ -18,20 +18,11 @@ contract LibERC20Fixture {
         return LibERC20.balanceOf(_token, _who);
     }
 
-    function transferFrom(
-        address _token,
-        address _from,
-        address _to,
-        uint256 _value
-    ) external {
+    function transferFrom(address _token, address _from, address _to, uint256 _value) external {
         LibERC20.transferFrom(_token, _from, _to, _value);
     }
 
-    function transfer(
-        address _token,
-        address _to,
-        uint256 _value
-    ) external {
+    function transfer(address _token, address _to, uint256 _value) external {
         LibERC20.transfer(_token, _to, _value);
     }
 }

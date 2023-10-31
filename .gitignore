@@ -57,3 +57,6 @@ cov-html
 
 # Gemforge
 gemforge.deployments.json
+
+# Generated files
+script/deployment/S03UpgradeDiamond.s.sol

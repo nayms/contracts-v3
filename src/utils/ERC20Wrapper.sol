@@ -93,11 +93,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external nonReentrant returns (bool) {
+    function transferFrom(address from, address to, uint256 value) external nonReentrant returns (bool) {
         if (value == 0) {
             revert();
         }
@@ -117,15 +113,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
     }
 
     // refer to https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol#L116
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
         // Unchecked because the only math done is incrementing

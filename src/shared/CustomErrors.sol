@@ -10,6 +10,21 @@ error RoleIsMissing();
 /// @dev Passing in a missing group when trying to assign a role to a group.
 error AssignerGroupIsMissing();
 
+/// @dev Role assigner (msg.sender) must be in the assigners group to unassign a role.
+/// @param assigner Id of the role assigner, LibHelpers._getIdForAddress(msg sender)
+/// @param assignee ObjectId that the role is being assigned to
+/// @param context Context that the role is being assigned in
+/// @param roleInContext Role that is being assigned
+error AssignerCannotUnassignRole(bytes32 assigner, bytes32 assignee, bytes32 context, string roleInContext);
+
+/// @notice Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
+/// @dev In the assertPrivilege modifier, this error message returns the context and the role in the context, not the user's role in the system context.
+/// @param msgSenderId Id of the sender
+/// @param context Context in which the sender is trying to perform an action
+/// @param roleInContext Role of the sender in the context
+/// @param group Group to check the sender's role in
+error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInContext, string group);
+
 /// @dev Passing in a missing address when trying to add a token address to the supported external token list.
 error CannotAddNullSupportedExternalToken();
 
@@ -21,20 +36,36 @@ error CannotAddNullDiscountToken();
 
 /// @dev The entity does not exist when it should.
 error EntityDoesNotExist(bytes32 objectId);
+
 /// @dev Cannot create an entity that already exists.
 error CreatingEntityThatAlreadyExists(bytes32 entityId);
+
+/// @dev The object type is not supported in this function call.
+error InvalidObjectType(bytes32 objectId, bytes12 objectType);
+
+/// @dev The object ID being passed in is expected to be an address type, but the bottom (least significant) 12 bytes are not empty.
+error InvalidObjectIdForAddress(bytes32 objectId);
 
 /// @dev (non specific) the object is not enabled to be tokenized.
 error ObjectCannotBeTokenized(bytes32 objectId);
 
-/// @dev Passing in a missing symbol when trying to enable an object to be tokenized.
-error MissingSymbolWhenEnablingTokenization(bytes32 objectId);
+/// @dev Provided token symbol is not valid.
+error ObjectTokenSymbolInvalid(bytes32 objectId, string symbol);
+
+/// @dev Provided token symbol is already being used.
+error ObjectTokenSymbolAlreadyInUse(bytes32 objectId, string symbol);
+
+/// @dev Provided token name is not valid.
+error ObjectTokenNameInvalid(bytes32 objectId, string symbol);
 
 /// @dev Passing in 0 amount for deposits is not allowed.
 error ExternalDepositAmountCannotBeZero();
 
 /// @dev Passing in 0 amount for withdraws is not allowed.
 error ExternalWithdrawAmountCannotBeZero();
+
+/// @dev The receiver of the withdraw must haveGroupPriviledge with the roles entity admin, comptroller combined, or comptroller withdraw.
+error ExternalWithdrawInvalidReceiver(address receiver);
 
 /// @dev Cannot create a simple policy with policyId of 0
 error PolicyIdCannotBeZero();
@@ -66,6 +97,9 @@ error CancelCannotBeTrueWhenCreatingSimplePolicy();
 
 /// @dev (non specific) The policyId must exist.
 error PolicyDoesNotExist(bytes32 policyId);
+
+/// @dev It is not possible to cancel policyId after maturation date has passed
+error PolicyCannotCancelAfterMaturation(bytes32 policyId);
 
 /// @dev There is a duplicate address in the list of signers (the previous signer in the list is not < the next signer in the list).
 error DuplicateSignerCreatingSimplePolicy(address previousSigner, address nextSigner);

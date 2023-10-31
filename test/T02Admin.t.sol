@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import { D03ProtocolDefaults, LibHelpers, LibConstants } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 
 import { Entity } from "../src/shared/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
@@ -10,10 +10,12 @@ import { IDiamondProxy } from "../src/generated/IDiamondProxy.sol";
 import "../src/shared/CustomErrors.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
+    using LibHelpers for *;
+
     function setUp() public {}
 
     function testGetSystemId() public {
-        assertEq(nayms.getSystemId(), LibHelpers._stringToBytes32(LibConstants.SYSTEM_IDENTIFIER));
+        assertEq(nayms.getSystemId(), LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER));
     }
 
     function testGetMaxDividendDenominationsDefaultValue() public {
@@ -22,7 +24,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testSetMaxDividendDenominationsFailIfNotAdmin() public {
         changePrank(account1);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.setMaxDividendDenominations(100);
         vm.stopPrank();
     }
@@ -54,7 +56,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
         changePrank(account1);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.addSupportedExternalToken(wethAddress);
         vm.stopPrank();
     }
@@ -91,10 +93,12 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSupportedTokenSymbolUnique() public {
+        changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);
-        nayms.enableEntityTokenization(entityId, "WBTC", "Entity1 Token");
+        nayms.enableEntityTokenization(entityId, wbtc.symbol(), "Entity1 Token");
 
-        vm.expectRevert("token symbol already in use");
+        changePrank(sa.addr);
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, LibHelpers._getIdForAddress(wbtcAddress), wbtc.symbol()));
         nayms.addSupportedExternalToken(wbtcAddress);
     }
 
@@ -116,13 +120,14 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testAddSupportedExternalTokenIfWrapper() public {
-        bytes32 entityId1 = "0xe1";
-        nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
+        changePrank(sm.addr);
+        bytes32 entityId1 = createTestEntity(account0Id);
         nayms.enableEntityTokenization(entityId1, "E1", "E1 Token");
         nayms.startTokenSale(entityId1, 100 ether, 100 ether);
 
         vm.recordLogs();
 
+        changePrank(sa.addr);
         nayms.wrapToken(entityId1);
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
@@ -138,7 +143,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {
         bytes32 userId = LibHelpers._getIdForAddress(userAddress);
         changePrank(userAddress);
-        if (nayms.isInGroup(userId, systemContext, LibConstants.GROUP_SYSTEM_ADMINS)) {
+        if (nayms.isInGroup(userId, systemContext, LC.GROUP_SYSTEM_ADMINS)) {
             nayms.lockFunction(bytes4(0x12345678));
 
             assertTrue(nayms.isFunctionLocked(bytes4(0x12345678)));
@@ -146,10 +151,10 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
             nayms.unlockFunction(bytes4(0x12345678));
             assertFalse(nayms.isFunctionLocked(bytes4(0x12345678)));
         } else {
-            vm.expectRevert("not a system admin");
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
             nayms.lockFunction(bytes4(0x12345678));
 
-            vm.expectRevert("not a system admin");
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
             nayms.unlockFunction(bytes4(0x12345678));
         }
     }
@@ -157,7 +162,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testLockFunction() public {
         // must be sys admin
         changePrank(account9);
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account9._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+
         nayms.lockFunction(bytes4(0x12345678));
 
         changePrank(systemAdmin);
@@ -182,11 +188,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testLockFunctionExternalWithdrawFromEntity() public {
         bytes32 wethId = LibHelpers._getIdForAddress(wethAddress);
 
-        Entity memory entityInfo = initEntity(wethId, 5000, 10000, false);
-        bytes32 systemAdminEntityId = 0xe011000000000000000000000000000000000000000000000000000000000000;
-        nayms.createEntity(systemAdminEntityId, systemAdminId, entityInfo, bytes32(0));
+        changePrank(sm.addr);
+        bytes32 systemAdminEntityId = createTestEntity(systemAdminId);
 
         // deposit
+        changePrank(systemAdmin); // given the entity admin role above
         writeTokenBalance(systemAdmin, naymsAddress, wethAddress, 1 ether);
         nayms.externalDeposit(wethAddress, 1 ether);
 

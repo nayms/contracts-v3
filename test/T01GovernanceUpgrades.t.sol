@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import "../src/shared/CustomErrors.sol";
 
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { LibGovernance } from "src/libs/LibGovernance.sol";
+import { LibHelpers } from "src/libs/LibHelpers.sol";
 
 import { PhasedDiamondCutUpgradeFailed } from "src/facets/PhasedDiamondCutFacet.sol";
 
@@ -23,6 +24,8 @@ contract TestFacet {
 }
 
 contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
+    using LibHelpers for *;
+
     uint256 public constant STARTING_BLOCK_TIMESTAMP = 100;
     address public testFacetAddress;
 
@@ -171,7 +174,7 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         nayms.createUpgrade(upgradeId);
 
         changePrank(address(0xAAAAAAAAA));
-        vm.expectRevert("not a system admin");
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, address(0xAAAAAAAAA)._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.updateUpgradeExpiration(1 days);
 
         changePrank(systemAdmin);

@@ -10,9 +10,6 @@
 [submodule "lib/solidity-lib"]
 	path = lib/solidity-lib
 	url = https://github.com/uniswap/solidity-lib
-[submodule "lib/ozv4"]
-	path = lib/ozv4
-	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "lib/v3-periphery-foundry"]
 	path = lib/v3-periphery-foundry
 	url = https://github.com/gakonst/v3-periphery-foundry
@@ -22,3 +19,7 @@
 [submodule "lib/diamond-2-hardhat"]
 	path = lib/diamond-2-hardhat
 	url = https://github.com/mudgen/diamond-2-hardhat
+[submodule "lib/oz"]
+	path = lib/oz
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+	branch = merge/release-v5.0

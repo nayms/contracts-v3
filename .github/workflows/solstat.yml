@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
 
       - name: Make solstat report
-        run: solstat --path ./src/diamonds/nayms/
+        run: solstat --path ./src/
 
       - name: Publish solstat report
         run: cat solstat_report.md >> $GITHUB_STEP_SUMMARY

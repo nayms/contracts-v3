@@ -49,17 +49,17 @@ pragma solidity 0.8.21;
 //     function setUp() public {
 //         vm.label(ownerAddress, "owner");
 //         vm.label(systemAdminAddress, "system admin");
-
-//         vm.createSelectFork("mainnet", 17276760);
-//         vm.chainId(1);
-//         deploy = new S01DeployContract();
-//         schedule = new S02ScheduleUpgrade();
 //     }
 
 //     // note This test overwrites the file in script/deployment/S03UpgradeDiamond.s.sol
 //     function testReplaceDiamondCut() public {
 //         // Deploy contract
-//         (IDiamondCut.FacetCut[] memory cut, bytes32 upgradeHash, bytes32 upgradeHashOld) = deploy.run("PhasedDiamondCutFacet");
+// vm.createSelectFork("mainnet", 17276760);
+// vm.chainId(1);
+// deploy = new S01DeployContract();
+// schedule = new S02ScheduleUpgrade();
+// // Deploy contract
+// (IDiamondCut.FacetCut[] memory cut, bytes32 upgradeHash, bytes32 upgradeHashOld) = deploy.run("PhasedDiamondCutFacet");
 
 //         // Schedule upgrade
 //         schedule.run(systemAdminAddress, upgradeHashOld);

@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 
-import { MessageHashUtils } from "lib/ozv4/contracts/utils/cryptography/MessageHashUtils.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 library LibEIP712 {
     function _domainSeparatorV4() internal view returns (bytes32) {

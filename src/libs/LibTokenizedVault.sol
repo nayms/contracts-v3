@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibAdmin } from "./LibAdmin.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 
@@ -56,12 +56,7 @@ library LibTokenizedVault {
         return s.tokenSupply[_objectId];
     }
 
-    function _internalTransfer(
-        bytes32 _from,
-        bytes32 _to,
-        bytes32 _tokenId,
-        uint256 _amount
-    ) internal returns (bool success) {
+    function _internalTransfer(bytes32 _from, bytes32 _to, bytes32 _tokenId, uint256 _amount) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: insufficient balance");
@@ -80,11 +75,7 @@ library LibTokenizedVault {
         success = true;
     }
 
-    function _internalMint(
-        bytes32 _to,
-        bytes32 _tokenId,
-        uint256 _amount
-    ) internal {
+    function _internalMint(bytes32 _to, bytes32 _tokenId, uint256 _amount) internal {
         require(_to != "", "_internalMint: mint to zero address");
         require(_amount > 0, "_internalMint: mint zero tokens");
 
@@ -99,13 +90,7 @@ library LibTokenizedVault {
         emit InternalTokenBalanceUpdate(_to, _tokenId, s.tokenBalances[_tokenId][_to], "_internalMint", msg.sender);
     }
 
-    function _normalizeDividends(
-        bytes32 _from,
-        bytes32 _to,
-        bytes32 _tokenId,
-        uint256 _amount,
-        bool _updateTotals
-    ) internal {
+    function _normalizeDividends(bytes32 _from, bytes32 _to, bytes32 _tokenId, uint256 _amount, bool _updateTotals) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint256 supply = _internalTokenSupply(_tokenId);
 
@@ -135,11 +120,7 @@ library LibTokenizedVault {
         }
     }
 
-    function _internalBurn(
-        bytes32 _from,
-        bytes32 _tokenId,
-        uint256 _amount
-    ) internal {
+    function _internalBurn(bytes32 _from, bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalBurn: insufficient balance");
@@ -174,13 +155,9 @@ library LibTokenizedVault {
     // totalWithdrawnDividendPerOwner(for new owner) += numberOfSharesMinted * totalDividendPerToken
     //
     // When doing the division these will be dust. Leave the dust in the diamond!!!
-    function _withdrawDividend(
-        bytes32 _ownerId,
-        bytes32 _tokenId,
-        bytes32 _dividendTokenId
-    ) internal {
+    function _withdrawDividend(bytes32 _ownerId, bytes32 _tokenId, bytes32 _dividendTokenId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+        bytes32 dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
         uint256 amountOwned = s.tokenBalances[_tokenId][_ownerId];
         uint256 supply = _internalTokenSupply(_tokenId);
@@ -202,11 +179,7 @@ library LibTokenizedVault {
         }
     }
 
-    function _getWithdrawableDividend(
-        bytes32 _ownerId,
-        bytes32 _tokenId,
-        bytes32 _dividendTokenId
-    ) internal view returns (uint256 withdrawableDividend_) {
+    function _getWithdrawableDividend(bytes32 _ownerId, bytes32 _tokenId, bytes32 _dividendTokenId) internal view returns (uint256 withdrawableDividend_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint256 amount = s.tokenBalances[_tokenId][_ownerId];
@@ -226,19 +199,13 @@ library LibTokenizedVault {
         }
     }
 
-    function _payDividend(
-        bytes32 _guid,
-        bytes32 _from,
-        bytes32 _to,
-        bytes32 _dividendTokenId,
-        uint256 _amount
-    ) internal {
+    function _payDividend(bytes32 _guid, bytes32 _from, bytes32 _to, bytes32 _dividendTokenId, uint256 _amount) internal {
         require(_amount > 0, "dividend amount must be > 0");
         require(LibAdmin._isSupportedExternalToken(_dividendTokenId), "must be supported dividend token");
         require(!LibObject._isObject(_guid), "nonunique dividend distribution identifier");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 dividendBankId = LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER);
+        bytes32 dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
         // If no tokens are issued, then deposit directly.
         // note: This functionality is for the business case where we want to distribute dividends directly to entities.
@@ -268,7 +235,7 @@ library LibTokenizedVault {
         }
 
         // prevent guid reuse/collision
-        LibObject._createObject(_guid);
+        LibObject._createObject(_guid, LC.OBJECT_TYPE_DIVIDEND);
 
         // Events are emitted from the _internalTransfer()
         emit DividendDistribution(_guid, _from, _to, _dividendTokenId, _amount);

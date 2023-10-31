@@ -24,13 +24,7 @@ contract LibFeeRouterFixture {
         return LibFeeRouter._calculateTradingFees(_buyerId, _sellToken, _buyToken, _buyAmount);
     }
 
-    function exposed_payTradingFees(
-        bytes32 _buyer,
-        bytes32 _makerId,
-        bytes32 _takerId,
-        bytes32 _tokenId,
-        uint256 _buyAmount
-    ) external returns (uint256 totalFees_) {
+    function exposed_payTradingFees(bytes32 _buyer, bytes32 _makerId, bytes32 _takerId, bytes32 _tokenId, uint256 _buyAmount) external returns (uint256 totalFees_) {
         return LibFeeRouter._payTradingFees(LibConstants.FEE_TYPE_TRADING, _buyer, _makerId, _takerId, _tokenId, _buyAmount);
     }
 }
