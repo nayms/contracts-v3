@@ -15,7 +15,7 @@ module.exports = {
     // SPDX License - to be inserted in all generated .sol files
     license: 'MIT',
     // Solidity compiler version - to be inserted in all generated .sol files
-    version: '0.8.21',
+    version: '0.8.20',
   },
   // commands to execute
   commands: {

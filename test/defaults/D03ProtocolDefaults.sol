@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
@@ -23,7 +23,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     using LibHelpers for *;
     using StdStyle for *;
 
-    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
+    bytes32 public immutable account0Id;
     bytes32 public naymsTokenId;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
@@ -46,7 +46,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY
     ];
 
-    bytes32 public DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, account0);
+    bytes32 public DEFAULT_ACCOUNT0_ENTITY_ID;
     bytes32 public DEFAULT_UNDERWRITER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE2));
     bytes32 public DEFAULT_BROKER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE3));
     bytes32 public DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE4));
@@ -104,6 +104,8 @@ contract D03ProtocolDefaults is D02TestSetup {
     constructor() payable {
         c.log("\n -- D03 Protocol Defaults\n");
         c.log("Test contract address ID, aka account0Id:");
+
+        account0Id = LibHelpers._getIdForAddress(account0);
         c.logBytes32(account0Id);
 
         naymsTokenId = LibHelpers._getIdForAddress(naymsAddress);
@@ -130,6 +132,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
         hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
         hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+
+        DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, account0);
 
         changePrank(sm.addr);
         nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { DiamondProxy } from "src/generated/DiamondProxy.sol";

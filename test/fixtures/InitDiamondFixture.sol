@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import { InitDiamond } from "src/init/InitDiamond.sol";
 import { NaymsTokenFacet } from "src/facets/NaymsTokenFacet.sol";

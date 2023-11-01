@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage, Entity, SimplePolicy } from "../shared/AppStorage.sol";
 import { LibACL } from "./LibACL.sol";

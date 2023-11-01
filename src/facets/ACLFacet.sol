@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";

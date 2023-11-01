@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import { D01Deployment, LibHelpers, c } from "./D01Deployment.sol";
 import { MockERC20 } from "solmate/test/utils/mocks/MockERC20.sol";
