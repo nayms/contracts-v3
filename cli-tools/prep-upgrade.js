@@ -12,7 +12,7 @@ const filePath = process.argv[2]; // get the file path from CLI argument
 
 const generateS03UpgradeDiamond = (facetCuts, updateStateAddress) => {
     let script = `// SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 /// ------------------------------------------------------------------------------------------------------------
 ///

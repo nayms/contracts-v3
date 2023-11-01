@@ -1,22 +1,23 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity 0.8.20;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.20;
 
-// import "forge-std/Script.sol";
-// import { INayms, IDiamondCut } from "src/diamonds/nayms/INayms.sol";
-// import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+import "forge-std/Script.sol";
+import { DiamondProxy } from "src/generated/DiamondProxy.sol";
+import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
+import { LibHelpers } from "src/libs/LibHelpers.sol";
 
-// contract AddSupportedExternalToken is Script {
-//     function addSupportedExternalToken(address naymsDiamondAddress, address externalToken) public {
-//         vm.startBroadcast(msg.sender);
+contract AddSupportedExternalToken is Script {
+    function addSupportedExternalToken(address naymsDiamondAddress, address externalToken) public {
+        vm.startBroadcast(msg.sender);
 
-//         INayms nayms = INayms(naymsDiamondAddress);
+        IDiamondProxy nayms = IDiamondProxy(naymsDiamondAddress);
 
-//         nayms.addSupportedExternalToken(externalToken);
+        nayms.addSupportedExternalToken(externalToken);
 
-//         bytes32 tokenId = LibHelpers._getIdForAddress(externalToken);
+        bytes32 tokenId = LibHelpers._getIdForAddress(externalToken);
 
-//         if (!nayms.isSupportedExternalToken(tokenId)) {
-//             revert("External token has not been added");
-//         }
-//     }
-// }
+        if (!nayms.isSupportedExternalToken(tokenId)) {
+            revert("External token has not been added");
+        }
+    }
+}
