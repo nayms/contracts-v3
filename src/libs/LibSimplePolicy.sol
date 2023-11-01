@@ -3,14 +3,14 @@ pragma solidity 0.8.21;
 
 import { AppStorage, LibAppStorage, Entity, SimplePolicy } from "../shared/AppStorage.sol";
 import { LibACL } from "./LibACL.sol";
-import { LibConstants } from "./LibConstants.sol";
+import { LibConstants as LC } from "./LibConstants.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibEIP712 } from "./LibEIP712.sol";
 
-import { EntityDoesNotExist, PolicyDoesNotExist } from "../shared/CustomErrors.sol";
+import { EntityDoesNotExist, PolicyDoesNotExist, PolicyCannotCancelAfterMaturation } from "../shared/CustomErrors.sol";
 
 library LibSimplePolicy {
     event SimplePolicyMatured(bytes32 indexed id);
@@ -36,11 +36,7 @@ library LibSimplePolicy {
         }
     }
 
-    function _payPremium(
-        bytes32 _payerEntityId,
-        bytes32 _policyId,
-        uint256 _amount
-    ) internal {
+    function _payPremium(bytes32 _payerEntityId, bytes32 _policyId, uint256 _amount) internal {
         require(_amount > 0, "invalid premium amount");
 
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -62,16 +58,11 @@ library LibSimplePolicy {
         emit SimplePolicyPremiumPaid(_policyId, _amount);
     }
 
-    function _payClaim(
-        bytes32 _claimId,
-        bytes32 _policyId,
-        bytes32 _insuredEntityId,
-        uint256 _amount
-    ) internal {
+    function _payClaim(bytes32 _claimId, bytes32 _policyId, bytes32 _insuredEntityId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(_amount > 0, "invalid claim amount");
-        require(LibACL._isInGroup(_insuredEntityId, _policyId, LibHelpers._stringToBytes32(LibConstants.GROUP_INSURED_PARTIES)), "not an insured party");
+        require(LibACL._isInGroup(_insuredEntityId, _policyId, LibHelpers._stringToBytes32(LC.GROUP_INSURED_PARTIES)), "not an insured party");
 
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         require(!simplePolicy.cancelled, "Policy is cancelled");
@@ -82,11 +73,16 @@ library LibSimplePolicy {
 
         bytes32 entityId = LibObject._getParent(_policyId);
         Entity memory entity = s.entities[entityId];
-        s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
 
-        s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        if (simplePolicy.fundsLocked) {
+            s.lockedBalances[entityId][entity.assetId] -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
+            s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
+        } else {
+            uint256 availableBalance = LibTokenizedVault._internalBalanceOf(entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(entityId, simplePolicy.asset);
+            require(availableBalance > _amount, "not enough balance");
+        }
 
-        LibObject._createObject(_claimId);
+        LibObject._createObject(_claimId, LC.OBJECT_TYPE_CLAIM);
 
         LibTokenizedVault._internalTransfer(entityId, _insuredEntityId, simplePolicy.asset, _amount);
 
@@ -97,6 +93,10 @@ library LibSimplePolicy {
         AppStorage storage s = LibAppStorage.diamondStorage();
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         require(!simplePolicy.cancelled, "Policy already cancelled");
+
+        if (block.timestamp >= simplePolicy.maturationDate) {
+            revert PolicyCannotCancelAfterMaturation(_policyId);
+        }
 
         releaseFunds(_policyId);
         simplePolicy.cancelled = true;
@@ -111,20 +111,14 @@ library LibSimplePolicy {
         SimplePolicy storage simplePolicy = s.simplePolicies[_policyId];
         Entity storage entity = s.entities[entityId];
 
-        uint256 policyLockedAmount = ((simplePolicy.limit - simplePolicy.claimsPaid) * entity.collateralRatio) / LibConstants.BP_FACTOR;
+        uint256 policyLockedAmount = ((simplePolicy.limit - simplePolicy.claimsPaid) * entity.collateralRatio) / LC.BP_FACTOR;
         entity.utilizedCapacity -= policyLockedAmount;
         s.lockedBalances[entityId][entity.assetId] -= policyLockedAmount;
 
         simplePolicy.fundsLocked = false;
     }
 
-    function _getSigningHash(
-        uint256 _startDate,
-        uint256 _maturationDate,
-        bytes32 _asset,
-        uint256 _limit,
-        bytes32 _offchainDataHash
-    ) internal view returns (bytes32) {
+    function _getSigningHash(uint256 _startDate, uint256 _maturationDate, bytes32 _asset, uint256 _limit, bytes32 _offchainDataHash) internal view returns (bytes32) {
         return
             LibEIP712._hashTypedDataV4(
                 keccak256(

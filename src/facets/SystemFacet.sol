@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { Entity } from "../shared/AppStorage.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
@@ -27,7 +29,7 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
         bytes32 _entityAdmin,
         Entity calldata _entityData,
         bytes32 _dataHash
-    ) external assertSysMgr {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
     }
 
@@ -58,17 +60,7 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
      * @return tokenName object token name
      * @return tokenWrapper object token ERC20 wrapper address
      */
-    function getObjectMeta(bytes32 _id)
-        external
-        view
-        returns (
-            bytes32 parent,
-            bytes32 dataHash,
-            string memory tokenSymbol,
-            string memory tokenName,
-            address tokenWrapper
-        )
-    {
+    function getObjectMeta(bytes32 _id) external view returns (bytes32 parent, bytes32 dataHash, string memory tokenSymbol, string memory tokenName, address tokenWrapper) {
         return LibObject._getObjectMeta(_id);
     }
 
@@ -76,7 +68,26 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
      * @notice Wrap an object token as ERC20
      * @param _objectId ID of the tokenized object
      */
-    function wrapToken(bytes32 _objectId) external nonReentrant assertSysMgr {
+    function wrapToken(bytes32 _objectId) external nonReentrant assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibObject._wrapToken(_objectId);
+    }
+
+    /**
+     * @notice Returns the object's type
+     * @dev An object's type is the most significant 12 bytes of its bytes32 ID
+     * @param _objectId ID of the object
+     */
+    function getObjectType(bytes32 _objectId) external pure returns (bytes12) {
+        return LibObject._getObjectType(_objectId);
+    }
+
+    /**
+     * @notice Check to see if an object is of a given type
+     * @param _objectId ID of the object
+     * @param _objectType The object type to check against
+     * @return true if the object is of the given type, false otherwise
+     */
+    function isObjectType(bytes32 _objectId, bytes12 _objectType) external pure returns (bool) {
+        return LibObject._isObjectType(_objectId, _objectType);
     }
 }

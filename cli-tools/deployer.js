@@ -1,10 +1,11 @@
+#!/usr/bin/env node
+
 const { Wallet } = require("ethers");
 const fs = require("fs");
 const chalk = require("chalk");
 const dotenv = require("dotenv");
 
 dotenv.config();
-
 
 if (process.argv.length < 4) {
     console.error(chalk.red(`Must provide deployment action and target network!`));
@@ -25,11 +26,11 @@ const dryRun = otherArgs.includes("--dry-run");
 
 const rpcUrl = fork ? "http://localhost:8545" : process.env[`ETH_${networkId}_RPC_URL`];
 const mnemonicFile = networkId === "1" && !fork ? "nayms_mnemonic_mainnet.txt" : "nayms_mnemonic.txt";
-const mnemonic = fs.readFileSync(mnemonicFile).toString();
+const mnemonicIndex = networkId === "1" && !fork ? 0 : 19;
 
+const mnemonic = fs.readFileSync(mnemonicFile).toString();
 const ownerAddress = Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/19`).address; // acc20
-const systemAdminAddress =
-    networkId === "1"
+const systemAdminAddress = networkId === "1"
         ? "0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929" // mainnet sysAdminB
         : Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`).address; // acc1
 
@@ -37,11 +38,11 @@ if (action === "deploy") {
     console.log(`[ ${chalk.green(networkId + (fork ? "-fork" : ""))} ] Deploying new diamond`);
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
-    const deployNewDiamondCmd = deployDiamond(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    const deployNewDiamondCmd = deployDiamond(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress, mnemonicFile, mnemonicIndex);
     execute(deployNewDiamondCmd);
 
     console.log(`\n[ ${chalk.green("Initializing upgrade")} ]\n`);
-    const initSimCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const initSimCmd = upgrade(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress, mnemonicFile, mnemonicIndex, false);
     const result = execute(initSimCmd);
     const upgradeHash = getUpgradeHash(result);
 
@@ -52,12 +53,12 @@ if (action === "deploy") {
         upgradeHash,
         systemAdminAddress,
         mnemonicFile: mnemonicFile,
-        mnemonicIndex: 0,
+        mnemonicIndex: mnemonicIndex,
     });
     execute(scheduleCommand);
 
     console.log(`\n[ ${chalk.green("Doing upgrade")} ]\n`);
-    const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress);
+    const upgradeCmd = upgrade(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress, mnemonicFile, mnemonicIndex);
     execute(upgradeCmd);
 } else if (action === "upgrade") {
     const addressesRaw = fs.readFileSync("deployedAddresses.json");
@@ -77,7 +78,7 @@ if (action === "deploy") {
     }
 
     console.log(`\n[ ${chalk.green("Deploying contracts")} ]\n`);
-    const upgradeCmd = upgrade(rpcUrl, networkId, ownerAddress, systemAdminAddress, false);
+    const upgradeCmd = upgrade(rpcUrl, networkId, fork, ownerAddress, systemAdminAddress, mnemonicFile, mnemonicIndex, false);
     const result = execute(upgradeCmd);
     const upgradeHash = getUpgradeHash(result);
 
@@ -91,7 +92,7 @@ if (action === "deploy") {
             upgradeHash,
             systemAdminAddress,
             mnemonicFile: mnemonicFile,
-            mnemonicIndex: 0,
+            mnemonicIndex,
             fork,
             diamondAddress: addresses[networkId],
         });
@@ -109,7 +110,7 @@ if (action === "deploy") {
         upgradeHash,
         ownerAddress,
         mnemonicFile: mnemonicFile,
-        mnemonicIndex: networkId === "1" && !fork ? 1 : 19,
+        mnemonicIndex: networkId === "1" && !fork ? 0 : 19,
     });
     if (networkId === "1" && !fork) {
         console.log("Execute the following command to cut in the facets, once the upgrade hash is approved");
@@ -134,11 +135,12 @@ function getUpgradeHash(result) {
     return hashLine[hashLine.length - 1];
 }
 
-function deployDiamond(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function deployDiamond(rpcUrl, networkId, fork, owner, sysAdmin, mnemonicFile, mnemonicIndex, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
         newDeploy: true,
+        fork,
         owner,
         sysAdmin,
         initDiamond: false,
@@ -146,17 +148,18 @@ function deployDiamond(rpcUrl, networkId, owner, sysAdmin, facetsToCutIn = '"[]"
         facetsToCutIn,
         salt,
         sender: owner,
-        mnemonicFile: "./nayms_mnemonic.txt",
-        mnemonicIndex: 19,
+        mnemonicFile,
+        mnemonicIndex,
         broadcast: true,
     });
 }
 
-function upgrade(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
+function upgrade(rpcUrl, networkId, fork, owner, sysAdmin, mnemonicFile, mnemonicIndex, initDiamond = true, broadcast = true, facetsToCutIn = '"[]"', salt = `0xdeffffffff`) {
     return smartDeploy({
         rpcUrl,
         networkId,
         newDeploy: false,
+        fork,
         owner,
         sysAdmin,
         initDiamond,
@@ -164,8 +167,8 @@ function upgrade(rpcUrl, networkId, owner, sysAdmin, initDiamond = true, broadca
         facetsToCutIn,
         salt,
         sender: owner,
-        mnemonicFile: "./nayms_mnemonic.txt",
-        mnemonicIndex: 19,
+        mnemonicFile,
+        mnemonicIndex,
         broadcast,
     });
 }
@@ -190,6 +193,10 @@ function smartDeploy(config) {
     if (config.broadcast) {
         command += ` \\
         --broadcast`;
+    }
+    if(!config.fork) {
+        command += ` \\
+        --verify --delay 30 --retries 10`
     }
 
     return command;

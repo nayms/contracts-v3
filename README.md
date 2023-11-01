@@ -31,14 +31,6 @@ forge update
 make update
 ```
 
-### Generate Interfaces
-
-This step is optional, it updates the interfaces to match the facet implementations. Normally you will not need to run it. It is more to be used during development to ensure the interfaces and their respective implementations are aligned. Be aware that when running this target, natspec documentation in the interfaces gets wiped, and it is needed there for the generated markdown files. After running this task take care and ensure the docs are up to date.
-
-```zsh
-make gen-i
-```
-
 ### Prepare the build
 
 ```zsh
@@ -149,7 +141,7 @@ make deploy-sepolia-sim newDiamond=false initNewDiamond=false facetAction=2 face
 
 Include a bytes32 salt to deploy the diamond with a deterministic address. Including a salt will first deploy a contract that is used to predetermine the diamond deployment address. If a salt is not included, then the script will deploy the diamond non-deterministically. Currently, there is a default deployment salt given in the make file.
 
-> :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` sufix from the target name
+> :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` suffix from the target name
 
 ### Running a Local Node
 
@@ -168,7 +160,7 @@ Following commands are provided for working with `anvil`, to make it more conven
 
 > :warning: Anvil state is kept in `anvil.json` file in project root. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
 
-One of the things you will need, to do proper testing with local node, is to deploy an ERC-20 compatible token along with Nayms contracts and make that token a supported external token. Below is aan example how to do that.
+One of the things you will need, to do proper testing with local node, is to deploy an ERC-20 compatible token along with Nayms contracts and make that token a supported external token. Below is an example of how to do that.
 
 ```zsh
 make anvil-gtoken
@@ -205,7 +197,7 @@ make gas
 
 ### Build Troubleshooting Tips
 
-In case you run into an issue of `forge` not being able to find a compatible version of solidity compiler for one of your contracts/scripts, you may want to install the solidity version manager `svm`. To be able to do so, you will need to have [Rust](https://www.rust-lang.org/tools/install) installed on your system and with it the acompanying package manager `cargo`. Once that is done, to install `svm` run the following command:
+In case you run into an issue of `forge` not being able to find a compatible version of solidity compiler for one of your contracts/scripts, you may want to install the solidity version manager `svm`. To be able to do so, you will need to have [Rust](https://www.rust-lang.org/tools/install) installed on your system and with it the accompanying package manager `cargo`. Once that is done, to install `svm` run the following command:
 
 ```zsh
 cargo install svm-rs

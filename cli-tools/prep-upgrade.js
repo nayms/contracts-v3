@@ -3,14 +3,14 @@ const path = require("path");
 const ethers = require("ethers");
 // Define the FacetCutAction enum
 const facetCutActionEnum = {
-  0: "Add",
-  1: "Replace",
-  2: "Remove",
+    0: "Add",
+    1: "Replace",
+    2: "Remove",
 };
 
 const filePath = process.argv[2]; // get the file path from CLI argument
 
-const generateS03UpgradeDiamond = (facetCuts) => {
+const generateS03UpgradeDiamond = (facetCuts, updateStateAddress) => {
     let script = `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
@@ -47,7 +47,7 @@ contract S03UpgradeDiamond is DeploymentHelpers {
         if (i === 0) {
             script += `        bytes4[] memory f = new bytes4[](${facetCut.functionSelectors.length});\n`;
         } else {
-            script += `       f = new bytes4[](${facetCut.functionSelectors.length});\n`;
+            script += `      f = new bytes4[](${facetCut.functionSelectors.length});\n`;
         }
 
         facetCut.functionSelectors.forEach((selector, j) => {
@@ -59,9 +59,17 @@ contract S03UpgradeDiamond is DeploymentHelpers {
     });
 
     script += `
-        vm.startBroadcast(_ownerAddress);
-        nayms.diamondCut(cut, address(0), new bytes(0));
-        vm.stopBroadcast();
+        vm.startBroadcast(_ownerAddress);`;
+
+    if (updateStateAddress) {
+        script += `
+        nayms.diamondCut(cut, address(${updateStateAddress}), abi.encodeWithSignature("initialize()"));\n`;
+    } else {
+        script += `
+        nayms.diamondCut(cut, address(0), new bytes(0));\n`;
+    }
+
+    script += `        vm.stopBroadcast();
     }
 }
 `;
@@ -101,8 +109,9 @@ fs.readFile(filePath, "utf8", (err, data) => {
             return { facetAddress, action, functionSelectors };
         });
 
+        const updateStateAddress = process.argv[3];
         // Write the script to the S03UpgradeDiamond.s.sol file
-        fs.writeFile(path.join(__dirname, "../script/deployment/S03UpgradeDiamond.s.sol"), generateS03UpgradeDiamond(facetCuts), (err) => {
+        fs.writeFile(path.join(__dirname, "../script/deployment/S03UpgradeDiamond.s.sol"), generateS03UpgradeDiamond(facetCuts, updateStateAddress), (err) => {
             if (err) {
                 console.error(`Error writing file to disk: ${err}`);
             } else {

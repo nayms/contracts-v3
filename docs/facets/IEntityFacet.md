@@ -144,3 +144,9 @@ Get the Entity data for a given entityId
 | --- | --- |
 |`Entity` | struct with metadata of the entity|
 <br></br>
+### getFeeSchedule
+No description
+```solidity
+  function getFeeSchedule(
+  ) external returns (struct FeeSchedule)
+```

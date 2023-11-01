@@ -32,11 +32,7 @@ contract BadToken is IERC20 {
         revert("not supported");
     }
 
-    function transferFrom(
-        address,
-        address,
-        uint256
-    ) external pure returns (bool) {
+    function transferFrom(address, address, uint256) external pure returns (bool) {
         revert("not supported");
     }
 
@@ -44,15 +40,7 @@ contract BadToken is IERC20 {
         revert("not supported");
     }
 
-    function permit(
-        address,
-        address,
-        uint256,
-        uint256,
-        uint8,
-        bytes32,
-        bytes32
-    ) external pure {
+    function permit(address, address, uint256, uint256, uint8, bytes32, bytes32) external pure {
         revert("not supported");
     }
 }

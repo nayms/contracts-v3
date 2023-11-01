@@ -3,13 +3,13 @@ pragma solidity 0.8.21;
 
 import { Vm } from "forge-std/Vm.sol";
 
-import { D03ProtocolDefaults, console2 } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, c, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity } from "src/shared/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/utils/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
-    bytes32 internal entityId1 = "0xe1";
-    bytes32 internal entityId2 = "0xe2";
+    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe1")));
+    bytes32 internal entityId2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe2")));
 
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";
@@ -26,15 +26,22 @@ contract T05TokenWrapper is D03ProtocolDefaults {
     }
 
     function testWrapEntityToken() public {
+        changePrank(sm.addr);
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5_000, 30_000, true), "test");
         nayms.createEntity(entityId2, signer2Id, initEntity(wethId, 5_000, 30_000, true), "test");
 
+        bytes32 eSigner2 = nayms.getEntity(signer2Id);
+        nayms.assignRole(eSigner2, eSigner2, LC.ROLE_ENTITY_CP);
+
+        changePrank(sa.addr);
         vm.expectRevert("must be tokenizable");
         nayms.wrapToken(entityId1);
 
+        changePrank(sm.addr);
         nayms.enableEntityTokenization(entityId1, testSymbol, testName);
-
         nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
+
+        changePrank(sa.addr);
 
         vm.recordLogs();
 

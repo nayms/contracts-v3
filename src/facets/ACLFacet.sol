@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibACL, LibHelpers } from "../libs/LibACL.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
+import { AssignerCannotUnassignRole } from "../shared/CustomErrors.sol";
 
 /**
  * @title Access Control List
@@ -11,6 +13,8 @@ import { Modifiers } from "../shared/Modifiers.sol";
  * @dev Use it to (un)assign or check role membership
  */
 contract ACLFacet is Modifiers {
+    using LibHelpers for *;
+
     /**
      * @notice Assign a `_roleId` to the object in given context
      * @dev Any object ID can be a context, system is a special context with highest priority
@@ -18,13 +22,17 @@ contract ACLFacet is Modifiers {
      * @param _contextId ID of the context in which a role is being assigned
      * @param _role Name of the role being assigned
      */
-    function assignRole(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _role
-    ) external {
+    function assignRole(bytes32 _objectId, bytes32 _contextId, string memory _role) external {
         bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
         require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
+
+        /// @dev First, assigner attempts to unassign the role.
+        bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
+        if (roleId != 0 && !LibACL._canAssign(assignerId, _objectId, _contextId, roleId))
+            revert AssignerCannotUnassignRole(assignerId, _objectId, _contextId, string(roleId._bytes32ToBytes()));
+        LibACL._unassignRole(_objectId, _contextId);
+
+        /// @dev Second, assign the role.
         LibACL._assignRole(_objectId, _contextId, LibHelpers._stringToBytes32(_role));
     }
 
@@ -49,11 +57,7 @@ contract ACLFacet is Modifiers {
      * @param _group name of the role group
      * @return true if object with given ID is a member, false otherwise
      */
-    function isInGroup(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _group
-    ) external view returns (bool) {
+    function isInGroup(bytes32 _objectId, bytes32 _contextId, string memory _group) external view returns (bool) {
         return LibACL._isInGroup(_objectId, _contextId, LibHelpers._stringToBytes32(_group));
     }
 
@@ -65,11 +69,7 @@ contract ACLFacet is Modifiers {
      * @param _group name of the role group
      * @return true if object's parent is a member of this role group, false otherwise
      */
-    function isParentInGroup(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _group
-    ) external view returns (bool) {
+    function isParentInGroup(bytes32 _objectId, bytes32 _contextId, string memory _group) external view returns (bool) {
         return LibACL._isParentInGroup(_objectId, _contextId, LibHelpers._stringToBytes32(_group));
     }
 
@@ -82,13 +82,18 @@ contract ACLFacet is Modifiers {
      * @param _role name of the role to check
      * @return true if user has the right to assign, false otherwise
      */
-    function canAssign(
-        bytes32 _assignerId,
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _role
-    ) external view returns (bool) {
+    function canAssign(bytes32 _assignerId, bytes32 _objectId, bytes32 _contextId, string memory _role) external view returns (bool) {
         return LibACL._canAssign(_assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role));
+    }
+
+    /**
+     * @notice Check whether a user can call a specific function.
+     * @param _userId The object ID of the user who is calling the function.
+     * @param _contextId ID of the context in which permission is checked.
+     * @param _groupId ID of the group in which permission is checked.
+     */
+    function hasGroupPrivilege(bytes32 _userId, bytes32 _contextId, bytes32 _groupId) external view returns (bool) {
+        return LibACL._hasGroupPrivilege(_userId, _contextId, _groupId);
     }
 
     /**
@@ -129,7 +134,7 @@ contract ACLFacet is Modifiers {
      * @param _role name of the role
      * @param _assignerGroup Group who can assign members to this role
      */
-    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertSysAdmin {
+    function updateRoleAssigner(string memory _role, string memory _assignerGroup) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibACL._updateRoleAssigner(_role, _assignerGroup);
     }
 
@@ -140,12 +145,8 @@ contract ACLFacet is Modifiers {
      * @param _group name of the group
      * @param _roleInGroup is member of
      */
-    function updateRoleGroup(
-        string memory _role,
-        string memory _group,
-        bool _roleInGroup
-    ) external assertSysAdmin {
-        require(!strEquals(_group, LibConstants.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
+    function updateRoleGroup(string memory _role, string memory _group, bool _roleInGroup) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        require(!strEquals(_group, LC.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
     }
 

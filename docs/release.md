@@ -1,6 +1,6 @@
 ## Release Process
 
-This document describe the procedure for making a release from Nayms' smart contracts and publishing those as a package in the global NPM repository.
+This document describes the procedure for making a release from Nayms' smart contracts and publishing those as a package in the global NPM repository.
 
 There are several steps to be done here, but most important part of the process is actually automated. Mainly, the person making a release should just make sure everything is in place and eventually make manual updates to the auto-generated release notes, if needed.
 

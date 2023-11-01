@@ -5,7 +5,9 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppSt
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
-import { LibConstants } from "../libs/LibConstants.sol";
+
+import { LibAdmin } from "../libs/LibAdmin.sol";
+import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 import { LibEIP712 } from "src/libs/LibEIP712.sol";
 import { LibFeeRouter } from "src/libs/LibFeeRouter.sol";
@@ -43,7 +45,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external assertSysMgr assertSimplePolicyEnabled(_entityId) {
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
         LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
@@ -53,7 +55,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _symbol The symbol assigned to the entity token
      * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(bytes32 _objectId, string memory _symbol, string memory _name) external assertSysAdmin {
+    function enableEntityTokenization(bytes32 _objectId, string memory _symbol, string memory _name) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._enableObjectTokenization(_objectId, _symbol, _name);
     }
 
@@ -63,7 +65,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _symbol New entity token symbol
      * @param _name New entity token name
      */
-    function updateEntityTokenInfo(bytes32 _entityId, string memory _symbol, string memory _name) external assertSysAdmin {
+    function updateEntityTokenInfo(bytes32 _entityId, string memory _symbol, string memory _name) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibObject._updateTokenInfo(_entityId, _symbol, _name);
     }
 
@@ -74,7 +76,11 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _amount amount of entity tokens to put on sale
      * @param _totalPrice total price of the tokens
      */
-    function startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) external notLocked(msg.sig) nonReentrant assertSysMgr {
+    function startTokenSale(
+        bytes32 _entityId,
+        uint256 _amount,
+        uint256 _totalPrice
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
@@ -92,7 +98,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _entityId ID of the entity
      * @param _updateEntity metadata of the entity that can be updated
      */
-    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertSysMgr {
+    function updateEntity(bytes32 _entityId, Entity calldata _updateEntity) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._updateEntity(_entityId, _updateEntity);
     }
 

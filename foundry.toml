@@ -52,6 +52,7 @@ fs_permissions = [
     { access = "read-write", path = "./facetsdeployed.txt" },
     { access = "read-write", path = "./deployedAddresses.json" },
     { access = "read-write", path = "./deployedAddressesTest.json" },
+    { access = "read-write", path = "./codeReconReport.json" },
     { access = "read", path = "./forge-artifacts/" },
     { access = "read", path = "./broadcast/" },
     { access = "read", path = "./nayms_mnemonic.txt" },

@@ -6,6 +6,7 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
+import { LibAdmin } from "./LibAdmin.sol";
 
 library LibMarket {
     struct MatchingOfferResult {
@@ -126,11 +127,11 @@ library LibMarket {
     function _isOfferPricedLtOrEq(uint256 _lowOfferId, uint256 _highOfferId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 lowSellAmount = s.offers[_lowOfferId].sellAmount;
-        uint256 lowBuyAmount = s.offers[_lowOfferId].buyAmount;
+        uint256 lowSellAmount = s.offers[_lowOfferId].sellAmountInitial;
+        uint256 lowBuyAmount = s.offers[_lowOfferId].buyAmountInitial;
 
-        uint256 highSellAmount = s.offers[_highOfferId].sellAmount;
-        uint256 highBuyAmount = s.offers[_highOfferId].buyAmount;
+        uint256 highSellAmount = s.offers[_highOfferId].sellAmountInitial;
+        uint256 highBuyAmount = s.offers[_highOfferId].buyAmountInitial;
 
         return lowBuyAmount * highSellAmount >= highBuyAmount * lowSellAmount;
     }
@@ -163,7 +164,7 @@ library LibMarket {
         // If the buyToken is entity(p-token)   => limit both buy and sell amounts
         // If the buyToken is external          => limit only sell amount
 
-        bool buyExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool buyExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
         while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
@@ -321,11 +322,7 @@ library LibMarket {
         );
     }
 
-    function _checkBoundsAndUpdateBalances(
-        uint256 _offerId,
-        uint256 _sellAmount,
-        uint256 _buyAmount
-    ) internal {
+    function _checkBoundsAndUpdateBalances(uint256 _offerId, uint256 _sellAmount, uint256 _buyAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
@@ -374,14 +371,7 @@ library LibMarket {
         require(_buyAmount > 0, "buy amount must be >0");
     }
 
-    function _assertValidOffer(
-        bytes32 _entityId,
-        bytes32 _sellToken,
-        uint256 _sellAmount,
-        bytes32 _buyToken,
-        uint256 _buyAmount,
-        uint256 _feeScheduleType
-    ) internal view {
+    function _assertValidOffer(bytes32 _entityId, bytes32 _sellToken, uint256 _sellAmount, bytes32 _buyToken, uint256 _buyAmount, uint256 _feeScheduleType) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // A valid offer can only be made by an existing entity.
@@ -394,9 +384,9 @@ library LibMarket {
         // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
 
         bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
-        bool isSellTokenASupportedExternalToken = LibHelpers._isAddress(_sellToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_sellToken)];
+        bool isSellTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_sellToken);
         bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
-        bool isBuyTokenASupportedExternalToken = LibHelpers._isAddress(_buyToken) && s.externalTokenSupported[LibHelpers._getAddressFromId(_buyToken)];
+        bool isBuyTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
 
         _assertAmounts(_sellAmount, _buyAmount);
 
@@ -433,14 +423,7 @@ library LibMarket {
         bytes32 _buyToken,
         uint256 _buyAmount,
         uint256 _feeScheduleType
-    )
-        internal
-        returns (
-            uint256 offerId_,
-            uint256 buyTokenCommissionsPaid_,
-            uint256 sellTokenCommissionsPaid_
-        )
-    {
+    ) internal returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
 
         MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
