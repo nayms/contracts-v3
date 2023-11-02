@@ -124,6 +124,11 @@ module.exports = {
     mainnet: {
       // RPC endpoint URL
       rpcUrl: process.env.ETH_MAINNET_RPC_URL,
+    },
+    // Base Goerli network
+    baseGoerli: {
+      // RPC endpoint URL
+      rpcUrl: process.env.BASE_GOERLI_RPC_URL,
     }
   },
   // Targets to deploy
@@ -156,6 +161,16 @@ module.exports = {
       // Initialization function arguments
       initArgs: [
         /* TODO: Add mainnet sys admin address */
+      ],
+    },
+    baseGoerli: {
+      // Network to deploy to
+      network: 'baseGoerli',
+      // Wallet to use for deployment
+      wallet: 'wallet1',
+      // Initialization function arguments
+      initArgs: [
+        sysAdminAddress
       ],
     }
   }
