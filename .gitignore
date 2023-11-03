@@ -56,7 +56,7 @@ broadcast/**/dry-run
 cov-html
 
 # Gemforge
-gemforge.deployments.json
+# gemforge.deployments.json
 
 # Generated files
 script/deployment/S03UpgradeDiamond.s.sol
