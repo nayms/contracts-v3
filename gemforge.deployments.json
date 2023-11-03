@@ -160,6 +160,16 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "EntityFacet",
+        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x1e058db594dd578ac6a465a1caa3e228bc2627418f57baeac5882210182bfaa9",
+        "onChain": {
+          "address": "0x5a84Aca1447cD6f14447cb0F76d14b473fE8ff3B",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "DiamondLoupeFacet",
         "fullyQualifiedName": "DiamondLoupeFacet.sol:DiamondLoupeFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -186,16 +196,6 @@
         "txHash": "0x024c5fe581cd77def81a9d534a3b3af751f60081b1a2d300c67cb210d29d34e4",
         "onChain": {
           "address": "0x44389D8054b7889CC0dd4889d1Fcb8F982BC37F9",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "EntityFacet",
-        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xf5e65113995d95ffefe1d4bcdffb756ee19fa0b9310d1460c233dc15ace8e356",
-        "onChain": {
-          "address": "0xaB9e15116D643d521dBD4B050839cf30225d8126",
           "constructorArgs": []
         }
       },
