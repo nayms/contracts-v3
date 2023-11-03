@@ -47,7 +47,7 @@ library LibACL {
         }
 
         if (_contextId == LibAdmin._getSystemId() && _roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
-            if (LibDiamond.contractOwner() == LibHelpers._getAddressFromId(_objectId)) {
+            if (LibHelpers._isAddress(_objectId) && LibDiamond.contractOwner() == LibHelpers._getAddressFromId(_objectId)) {
                 revert OwnerCannotBeSystemAdmin();
             } else {
                 unchecked {

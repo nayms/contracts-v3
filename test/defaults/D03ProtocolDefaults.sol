@@ -47,10 +47,10 @@ contract D03ProtocolDefaults is D02TestSetup {
     ];
 
     bytes32 public DEFAULT_ACCOUNT0_ENTITY_ID;
-    bytes32 public DEFAULT_UNDERWRITER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE2));
-    bytes32 public DEFAULT_BROKER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE3));
-    bytes32 public DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE4));
-    bytes32 public DEFAULT_INSURED_PARTY_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE5));
+    bytes32 public DEFAULT_UNDERWRITER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E2"));
+    bytes32 public DEFAULT_BROKER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E3"));
+    bytes32 public DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E4"));
+    bytes32 public DEFAULT_INSURED_PARTY_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E5"));
 
     // deriving public keys from private keys
     address public immutable signer1 = vm.addr(0xACC2);
@@ -133,7 +133,7 @@ contract D03ProtocolDefaults is D02TestSetup {
         hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
         hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
 
-        DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, account0);
+        DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(account0));
 
         changePrank(sm.addr);
         nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
@@ -337,7 +337,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     function createTestEntity(bytes32 adminId) internal returns (bytes32) {
-        return createTestEntityWithId(adminId, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe1"))));
+        return createTestEntityWithId(adminId, makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe1")));
     }
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {

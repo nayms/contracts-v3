@@ -37,8 +37,11 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
     bytes32 public systemAdminId;
 
     /// @dev Helper function to create object Ids with object type prefix.
-    function makeId(bytes12 _objecType, address _addr) internal pure returns (bytes32) {
-        return bytes32((_objecType)) | (bytes32(bytes20(_addr)) >> 96);
+    function makeId(bytes12 _objecType, bytes20 randomBytes) internal pure returns (bytes32) {
+        if (_objecType != LC.OBJECT_TYPE_ADDRESS) {
+            randomBytes |= bytes20(0x0000000000000000000000000000000000000001);
+        }
+        return bytes32((_objecType)) | (bytes32(randomBytes) >> 96);
     }
 
     struct NaymsAccount {
@@ -50,8 +53,7 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
 
     function makeNaymsAcc(string memory name) public returns (NaymsAccount memory) {
         (address addr, uint256 privateKey) = makeAddrAndKey(name);
-        return
-            NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(keccak256(bytes(name))))), pk: privateKey, addr: addr });
+        return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes(name)))), pk: privateKey, addr: addr });
     }
 
     /// @dev Pass in a NaymsAccount to change the prank to NaymsAccount.addr

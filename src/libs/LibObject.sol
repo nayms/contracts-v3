@@ -37,6 +37,7 @@ library LibObject {
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(!s.existingObjects[_objectId], "objectId is already being used by another object");
         if (_objectType == LC.OBJECT_TYPE_ADDRESS && !LibHelpers._isAddress(_objectId)) revert InvalidObjectIdForAddress(_objectId);
+        if (_objectType != LC.OBJECT_TYPE_ADDRESS && LibHelpers._isAddress(_objectId)) revert InvalidObjectType(_objectId, _objectType);
         if (_objectType != LC.OBJECT_TYPE_ADDRESS && !_isObjectType(_objectId, _objectType)) revert InvalidObjectType(_objectId, _objectType);
 
         s.existingObjects[_objectId] = true;

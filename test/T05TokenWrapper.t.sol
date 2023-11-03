@@ -8,8 +8,8 @@ import { Entity } from "src/shared/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/utils/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
-    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe1")));
-    bytes32 internal entityId2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe2")));
+    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe1"));
+    bytes32 internal entityId2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe2"));
 
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";

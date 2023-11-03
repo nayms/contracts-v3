@@ -49,11 +49,11 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         bytes32 objectId1 = "0x1";
         vm.expectRevert(abi.encodeWithSelector(InvalidObjectType.selector, objectId1, LC.OBJECT_TYPE_ENTITY));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
-        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20(objectId1))), objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
+        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20(objectId1)), objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
     }
 
     function testMultipleCreateEntity() public {
-        bytes32 objectId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0x1")));
+        bytes32 objectId1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x1"));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
         // cannot create an object that already exists in a given context
@@ -64,7 +64,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert(abi.encodePacked(CreatingEntityThatAlreadyExists.selector, (objectId1)));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
-        bytes32 objectId2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0x2")));
+        bytes32 objectId2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x2"));
         nayms.createEntity(objectId2, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
     }
 

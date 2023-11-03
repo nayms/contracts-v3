@@ -34,7 +34,7 @@ library LibHelpers {
 
     function _getAddressFromId(bytes32 _id) internal pure returns (address) {
         if (!_checkBottom12BytesAreEmpty(_id)) {
-            revert("Invalid external token address");
+            revert("Invalid address based ID");
         }
         // returns the bottom 20 bytes of the id
         return address(bytes20(_id));

@@ -23,7 +23,7 @@ contract T01LibHelpers is Test {
         bytes32 bottom12Bytes = id & mask;
 
         if (bottom12Bytes != 0) {
-            vm.expectRevert("Invalid external token address");
+            vm.expectRevert("Invalid address based ID");
             assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));
         } else {
             assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));
