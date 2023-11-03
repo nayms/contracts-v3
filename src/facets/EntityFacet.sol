@@ -111,10 +111,6 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         return LibEntity._getEntityInfo(_entityId);
     }
 
-    function getEntityInfo2(bytes32 _entityId) external view returns (Entity memory) {
-        return LibEntity._getEntityInfo(_entityId);
-    }
-
     /**
      * @notice Get the fee schedule
      * @param _entityId ID of the entity

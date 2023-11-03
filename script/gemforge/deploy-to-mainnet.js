@@ -3,10 +3,23 @@
 const path = require("path");
 const fs = require("fs");
 const rootFolder = path.join(__dirname, "..", "..");
-const { loadTarget, calculateUpgradeId, assertUpgradeIdIsEnabled } = require("./utils");
 
 const enableCutViaGovernance = async (targetId, cutFile) => {
-    const { networkId, network, walletId, proxyAddress, signer, contract } = loadTarget(targetId);
+    const ethers = require("ethers");
+    const config = require(path.join(rootFolder, "gemforge.config.cjs"));
+    const deployments = require(path.join(rootFolder, "gemforge.deployments.json"));
+    const cutData = require(cutFile);
+    const { abi } = require(path.join(rootFolder, "forge-artifacts/IDiamondProxy.sol/IDiamondProxy.json"));
+    const networkId = config.targets[targetId].network;
+    const network = config.networks[networkId];
+    const walletId = config.targets[targetId].wallet;
+    const wallet = config.wallets[walletId];
+
+    const proxyAddress = deployments[targetId].contracts.find((a) => a.name === "DiamondProxy").onChain.address;
+
+    const provider = new ethers.providers.JsonRpcProvider(network.rpcUrl);
+    const signer = ethers.Wallet.fromMnemonic(wallet.config.words).connect(provider);
+    const contract = new ethers.Contract(proxyAddress, abi, signer);
 
     console.log(`Target: ${targetId}`);
     console.log(`Network: ${networkId} - ${network.rpcUrl}`);
@@ -14,16 +27,23 @@ const enableCutViaGovernance = async (targetId, cutFile) => {
     console.log(`System Admin: ${await signer.getAddress()}`);
     console.log(`Proxy: ${proxyAddress}`);
 
-    const upgradeId = await calculateUpgradeId(targetId, cutFile);
-
+    const upgradeId = await contract.calculateUpgradeId(cutData.cuts, cutData.initContractAddress, cutData.initData);
     console.log(`Upgrade id: ${upgradeId}`);
 
-    const tx = await contract.createUpgrade(upgradeId);
-    console.log(`Transaction hash: ${tx.hash}`);
-    await tx.wait();
-    console.log("Transaction mined!");
+    if (networkId === "mainnet") {
+        console.log(`Waiting for MPC signature...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 60 * 24));
+    } else {
+        const tx = await contract.createUpgrade(upgradeId);
+        console.log(`Transaction hash: ${tx.hash}`);
+        await tx.wait();
+        console.log("Transaction mined!");
+    }
 
-    await assertUpgradeIdIsEnabled(targetId, upgradeId);
+    const val = await contract.getUpgrade(upgradeId);
+    if (!val) {
+        throw new Error(`Upgrade not found!`);
+    }
 };
 
 (async () => {
