@@ -160,6 +160,16 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "DiamondLoupeFacet",
+        "fullyQualifiedName": "DiamondLoupeFacet.sol:DiamondLoupeFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x95960c773a6971ed179395de2f4377f6899ec947eadc39f8d5eee9724f422df2",
+        "onChain": {
+          "address": "0x8381e72d52013a6A4855Ae9107A218C897710777",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
