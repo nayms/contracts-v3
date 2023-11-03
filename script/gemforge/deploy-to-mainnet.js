@@ -3,47 +3,34 @@
 const path = require("path");
 const fs = require("fs");
 const rootFolder = path.join(__dirname, "..", "..");
+const { loadTarget, calculateUpgradeId, assertUpgradeIdIsEnabled } = require("./utils");
 
-const enableCutViaGovernance = async (targetId, cutFile) => {
-    const ethers = require("ethers");
-    const config = require(path.join(rootFolder, "gemforge.config.cjs"));
-    const deployments = require(path.join(rootFolder, "gemforge.deployments.json"));
-    const cutData = require(cutFile);
-    const { abi } = require(path.join(rootFolder, "forge-artifacts/IDiamondProxy.sol/IDiamondProxy.json"));
-    const networkId = config.targets[targetId].network;
-    const network = config.networks[networkId];
-    const walletId = config.targets[targetId].wallet;
-    const wallet = config.wallets[walletId];
-
-    const proxyAddress = deployments[targetId].contracts.find((a) => a.name === "DiamondProxy").onChain.address;
-
-    const provider = new ethers.providers.JsonRpcProvider(network.rpcUrl);
-    const signer = ethers.Wallet.fromMnemonic(wallet.config.words).connect(provider);
-    const contract = new ethers.Contract(proxyAddress, abi, signer);
+const _showTargetInfo = async (targetId) => {
+    const { networkId, network, walletId, proxyAddress, signer, contract } = loadTarget(targetId);
 
     console.log(`Target: ${targetId}`);
     console.log(`Network: ${networkId} - ${network.rpcUrl}`);
     console.log(`Wallet: ${walletId}`);
     console.log(`System Admin: ${await signer.getAddress()}`);
     console.log(`Proxy: ${proxyAddress}`);
+};
 
-    const upgradeId = await contract.calculateUpgradeId(cutData.cuts, cutData.initContractAddress, cutData.initData);
+const tellUserToEnableUpgrade = async (targetId, cutFile) => {
+    _showTargetInfo(targetId);
+
+    const upgradeId = await calculateUpgradeId(targetId, cutFile);
+
     console.log(`Upgrade id: ${upgradeId}`);
 
-    if (networkId === "mainnet") {
-        console.log(`Waiting for MPC signature...`);
-        await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 60 * 24));
-    } else {
-        const tx = await contract.createUpgrade(upgradeId);
-        console.log(`Transaction hash: ${tx.hash}`);
-        await tx.wait();
-        console.log("Transaction mined!");
-    }
+    console.log(`Please log into the MPC and enable this upgrade!`);
+};
 
-    const val = await contract.getUpgrade(upgradeId);
-    if (!val) {
-        throw new Error(`Upgrade not found!`);
-    }
+const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
+    _showTargetInfo(targetId);
+
+    const upgradeId = await calculateUpgradeId(targetId, cutFile);
+
+    await assertUpgradeIdIsEnabled(targetId, upgradeId);
 };
 
 (async () => {
@@ -59,36 +46,37 @@ const enableCutViaGovernance = async (targetId, cutFile) => {
 
     const targetArg = process.argv[2];
 
-    if (!targetArg || targetArg === "mainnet") {
-        throw new Error(`Please use deploy-mainnet to deploy to mainnet!`);
+    if (!targetArg || targetArg !== "mainnet") {
+        throw new Error(`Please use deploy to deploy to non-mainnet targets!`);
     }
 
     console.log(`Deploying ${targetArg}`);
 
-    if (process.argv[3] == "--fresh") {
-        console.log(`Fresh...`);
+    const cutFile = path.join(rootFolder, ".gemforge/mainnet-cut.json");
+    if (fs.existsSync(cutFile)) {
+        fs.unlinkSync(cutFile);
+    }
 
-        await $`yarn gemforge deploy ${targetArg} -n`;
-    } else {
-        console.log(`Upgrade...`);
-
-        const cutFile = path.join(rootFolder, ".gemforge/cut.json");
-        if (fs.existsSync(cutFile)) {
-            fs.unlinkSync(cutFile);
+    switch (process.argv[3]) {
+        case "--fresh": {
+            console.log(`Fresh...`);
+            await $`yarn gemforge deploy ${targetArg} -n`;
+            break;
         }
-
-        await $`yarn gemforge deploy ${targetArg} --pause-cut-to-file ${cutFile}`;
-
-        if (!fs.existsSync(cutFile)) {
-            console.log(`Nothing to upgrade!`);
-        } else {
-            console.log(`Enabling cut via governance for ${targetArg}...`);
-
-            await enableCutViaGovernance(targetArg, cutFile);
-
-            console.log(`Resuming deployment for ${targetArg}...`);
-
+        case "--upgrade-start": {
+            console.log(`Upgrade step 1...`);
+            await $`yarn gemforge deploy ${targetArg} --pause-cut-to-file ${cutFile}`;
+            await tellUserToEnableUpgrade(targetArg, cutFile);
+            break;
+        }
+        case "--upgrade-finish": {
+            console.log(`Upgrade step 2...`);
+            await assertThatUpgradeIsEnabled(targetArg, cutFile);
             await $`yarn gemforge deploy ${targetArg} --resume-cut-from-file ${cutFile}`;
+            break;
+        }
+        default: {
+            throw new Error("Expecting one of: --fresh, --upgrade-start, --upgrade-finish");
         }
     }
 

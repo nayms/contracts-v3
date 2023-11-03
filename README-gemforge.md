@@ -58,18 +58,32 @@ Create a `nayms_mnemonic.txt` file and ensure it contains the team mnemonic.
 
 **2. Fresh deployments**
 
-To do a fresh deployment to a given [target](https://gemforge.xyz/configuration/targets/):
+To do a fresh deployment to a given non-mainnet [target](https://gemforge.xyz/configuration/targets/):
 
 ```
 yarn deploy <target> --fresh
 ```
 
+To do a fresh deployment to the mainnet target:
+
+```
+yarn deploy-mainnet --fresh
+```
+
 **3. Upgrades**
 
-To upgrade a deployment on a target:
+To upgrade a deployment on a non-mainnet target:
 
 ```
 yarn deploy <target>
+```
+
+To upgrade the deployment on the mainnet target:
+
+```
+yarn deploy-mainnet --upgrade-start
+# at this point you will be prompted to sign the enable the upgrade id using the MPC wallet
+yarn deploy-mainnet --upgrade-finish
 ```
 
 ## Querying
