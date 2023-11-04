@@ -27,6 +27,19 @@ exports.calculateUpgradeId = async (targetId, cutFile) => {
     return await contract.calculateUpgradeId(cutData.cuts, cutData.initContractAddress, cutData.initData);
 };
 
+exports.enableUpgradeViaGovernance = async (targetId, cutFile) => {
+    const { contract } = loadTarget(targetId);
+
+    const upgradeId = await exports.calculateUpgradeId(targetId, cutFile);
+
+    console.log(`Enabling upgrade in contract, upgrade id: ${upgradeId}`);
+
+    const tx = await contract.createUpgrade(upgradeId);
+    console.log(`Transaction hash: ${tx.hash}`);
+    await tx.wait();
+    console.log("Transaction mined!");
+};
+
 exports.assertUpgradeIdIsEnabled = async (targetId, upgradeId) => {
     const { contract } = loadTarget(targetId);
     const val = await contract.getUpgrade(upgradeId);

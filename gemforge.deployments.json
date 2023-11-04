@@ -19,7 +19,9 @@
         "txHash": "0x71ab76a8a1f6aad0ff5f0c9e82450feb40e1ed33e0ee6cd0ca2f7b83c205be3e",
         "onChain": {
           "address": "0x8b000DeB7dF09FCA280Cbd57451AD8002baB3b2A",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -161,9 +163,9 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x1e058db594dd578ac6a465a1caa3e228bc2627418f57baeac5882210182bfaa9",
+        "txHash": "0x0f633bc1d2426f98759ef6299177de6d91bb666a8179648a62c6d3affac3d30f",
         "onChain": {
-          "address": "0x5a84Aca1447cD6f14447cb0F76d14b473fE8ff3B",
+          "address": "0x3b3b443B3495928E8Ac71A57BD24A955a0B83980",
           "constructorArgs": []
         }
       },
@@ -319,7 +321,9 @@
         "txHash": "0x04eb4da00d7a43cdb3b79a44c96515820d1b80eb952af4135cc39c4cc48f71a9",
         "onChain": {
           "address": "0xeb91C729D4bD06F41C7624E6ef0a40a828479af2",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
