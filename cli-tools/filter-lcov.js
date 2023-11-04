@@ -14,6 +14,8 @@ const exclude = [
   'test/.*',
   'src/utils/.*',
   'src/shared/AppStorage',
+  'src/generated/.*',
+  'src/init/.*',
 ]
 
 let record = false
