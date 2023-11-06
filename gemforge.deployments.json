@@ -482,5 +482,20 @@
         }
       }
     ]
+  },
+  "mainnetFork": {
+    "chainId": 1,
+    "contracts": [
+      {
+        "name": "DiamondProxy",
+        "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
+        "sender": "0x0000000000000000000000000000000000000000",
+        "txHash": "0x0000000000000000000000000000000000000000",
+        "onChain": {
+          "address": "0x39e2f550fef9ee15b459d16bD4B243b04b1f60e5",
+          "constructorArgs": []
+        }
+      }
+    ]
   }
 }

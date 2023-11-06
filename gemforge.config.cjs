@@ -123,6 +123,11 @@ module.exports = {
       // RPC endpoint URL
       rpcUrl: process.env.ETH_MAINNET_RPC_URL,
     },
+    // fork Mainnet network with anvil
+    mainnetFork: {
+      // RPC endpoint URL
+      rpcUrl: "http://localhost:8545",
+    },
     // Base Goerli network
     baseGoerli: {
       // RPC endpoint URL
@@ -150,6 +155,16 @@ module.exports = {
     mainnet: {
       // Network to deploy to
       network: "mainnet",
+      // Wallet to use for deployment
+      wallet: "wallet1",
+      // Initialization function arguments
+      initArgs: [
+        /* TODO: Add mainnet sys admin address */
+      ],
+    },
+    mainnetFork: {
+      // Network to deploy to
+      network: "mainnetFork",
       // Wallet to use for deployment
       wallet: "wallet1",
       // Initialization function arguments
