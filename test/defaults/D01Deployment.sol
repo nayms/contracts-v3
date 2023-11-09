@@ -65,64 +65,66 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         c.log("\n -- D01 Deployment Defaults\n");
         c.log("block.chainid", block.chainid);
 
-        // bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
-        // c.log("Are tests being run on a fork?".yellow().bold(), BOOL_FORK_TEST);
-        // bool TESTS_FORK_UPGRADE_DIAMOND = vm.envOr({ name: "TESTS_FORK_UPGRADE_DIAMOND", defaultValue: true });
-        // c.log("Are we testing diamond upgrades on a fork?".yellow().bold(), TESTS_FORK_UPGRADE_DIAMOND);
+        bool BOOL_FORK_TEST = vm.envOr({ name: "BOOL_FORK_TEST", defaultValue: false });
+        c.log("Are tests being run on a fork?".yellow().bold(), BOOL_FORK_TEST);
+        bool TESTS_FORK_UPGRADE_DIAMOND = vm.envOr({ name: "TESTS_FORK_UPGRADE_DIAMOND", defaultValue: true });
+        c.log("Are we testing diamond upgrades on a fork?".yellow().bold(), TESTS_FORK_UPGRADE_DIAMOND);
 
-        // if (BOOL_FORK_TEST) {
-        //     uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
-        //     c.log("FORK_BLOCK", FORK_BLOCK);
+        if (BOOL_FORK_TEST) {
+            uint256 FORK_BLOCK = vm.envOr({ name: string.concat("FORK_BLOCK_", vm.toString(block.chainid)), defaultValue: type(uint256).max });
+            c.log("FORK_BLOCK", FORK_BLOCK);
 
-        //     if (FORK_BLOCK == type(uint256).max) {
-        //         c.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
-        //         vm.createSelectFork(getChain(block.chainid).rpcUrl);
-        //     } else {
-        //         vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
-        //     }
+            if (FORK_BLOCK == type(uint256).max) {
+                c.log("Using latest block for fork, consider pinning a block number to avoid overloading the RPC endpoint");
+                vm.createSelectFork(getChain(block.chainid).rpcUrl);
+            } else {
+                vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
+            }
 
-        //     naymsAddress = getDiamondAddressFromFile();
-        //     nayms = INayms(naymsAddress);
+            naymsAddress = getDiamondAddressFromFile();
+            nayms = IDiamondProxy(naymsAddress);
 
-        //     deployer = address(this);
-        //     owner = nayms.owner();
-        //     vm.label(owner, "Owner");
-        //     systemAdmin = vm.envOr({ name: string.concat("SYSTEM_ADMIN_", vm.toString(block.chainid)), defaultValue: address(0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929) });
-        //     systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
-        //     vm.label(systemAdmin, "System Admin");
+            deployer = address(this);
+            owner = nayms.owner();
+            vm.label(owner, "Owner");
+            systemAdmin = vm.envOr({ name: string.concat("SYSTEM_ADMIN_", vm.toString(block.chainid)), defaultValue: address(0xE6aD24478bf7E1C0db07f7063A4019C83b1e5929) });
+            systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
+            vm.label(systemAdmin, "System Admin");
 
-        //     string[] memory facetsToCutIn;
-        //     keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
-        //     IDiamondCut.FacetCut[] memory cut = facetDeploymentAndCut(naymsAddress, FacetDeploymentAction.UpgradeFacetsWithChangesOnly, facetsToCutIn);
-        //     vm.startPrank(owner);
-        //     if (TESTS_FORK_UPGRADE_DIAMOND) scheduleAndUpgradeDiamond(cut);
-        // } else {
-        c.log("Local testing (no fork)");
+            keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
+            vm.startPrank(owner);
+            if (TESTS_FORK_UPGRADE_DIAMOND) {
+                IDiamondCut.FacetCut[] memory cut = LibDiamondHelper.deployFacetsAndGetCuts(naymsAddress);
+                scheduleAndUpgradeDiamond(cut);
+            }
+        } else {
+            c.log("Local testing (no fork)");
 
-        deployer = address(this);
-        owner = address(this);
-        vm.startPrank(deployer);
+            deployer = address(this);
+            owner = address(this);
+            vm.startPrank(deployer);
 
-        vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
-        systemAdmin = makeAddr("System Admin 0");
-        systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
+            vm.label(account0, "Account 0 (Test Contract address, deployer, owner)");
+            systemAdmin = makeAddr("System Admin 0");
+            systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
 
-        c.log("Deploy diamond");
-        naymsAddress = address(new DiamondProxy(account0));
-        vm.label(naymsAddress, "Nayms diamond");
-        nayms = IDiamondProxy(naymsAddress);
+            c.log("Deploy diamond");
+            naymsAddress = address(new DiamondProxy(account0));
+            vm.label(naymsAddress, "Nayms diamond");
+            nayms = IDiamondProxy(naymsAddress);
 
-        // deploy all facets
-        IDiamondCut.FacetCut[] memory cuts = LibDiamondHelper.deployFacetsAndGetCuts(address(nayms));
+            // deploy all facets
+            IDiamondCut.FacetCut[] memory cuts = LibDiamondHelper.deployFacetsAndGetCuts(address(nayms));
 
-        initDiamond = new InitDiamond();
-        vm.label(address(initDiamond), "InitDiamond");
-        c.log("InitDiamond:", address(initDiamond));
+            initDiamond = new InitDiamond();
+            vm.label(address(initDiamond), "InitDiamond");
+            c.log("InitDiamond:", address(initDiamond));
 
-        c.log("Cut and init");
-        nayms.diamondCut(cuts, address(initDiamond), abi.encodeCall(InitDiamond.init, (systemAdmin)));
+            c.log("Cut and init");
+            nayms.diamondCut(cuts, address(initDiamond), abi.encodeCall(InitDiamond.init, (systemAdmin)));
 
-        c.log("Diamond setup complete.");
+            c.log("Diamond setup complete.");
+        }
     }
 
     function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut, address _init, bytes memory _calldata) internal {
