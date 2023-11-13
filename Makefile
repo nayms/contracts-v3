@@ -42,9 +42,6 @@ gen-i: ## generate solidity interfaces from facet implementations
 prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
 	node ./cli-tools/prep-build.js
 
-prep-upgrade: ## Generate upgrade script S03UpgradeDiamond.s.sol with cut information from broadcast json file. Pass in e.g. broadcastJson=broadcast/S01DeployContract.s.sol/31337/run-latest.json
-	node ./cli-tools/prep-upgrade.js ${broadcastJson}
-
 build: ## forge build
 	yarn build
 b: build
