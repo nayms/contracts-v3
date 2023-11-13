@@ -3,14 +3,8 @@
 -include .env
 
 # Deployment defaults
-facetsToCutIn="[]"
-newDiamond=false
-initNewDiamond=false
-facetAction=1		# 0 - all, 1 - changed, 2 - listed
-deploymentSalt=0xdeffffffff
 ownerAddress=0x931c3aC09202650148Edb2316e97815f904CF4fa
 systemAdminAddress=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
-updateStateAddress=
 
 .DEFAULT_GOAL := help
 
@@ -33,14 +27,6 @@ formatsol: ## run prettier on src, test and scripts
 
 lintsol: ## run prettier and solhint
 	yarn run lint
-
-gen-i: ## generate solidity interfaces from facet implementations
-	forge script GenerateInterfaces \
-		-s "run(string memory, string memory)" src/diamonds/nayms/interfaces/ 0.8.13 \
-		--ffi
-
-prep-build: ## prepare buld, generate LibGeneratedNaymsFacetHelpers. This includes all facets in the src/diamonds/nayms/facets folder.
-	node ./cli-tools/prep-build.js
 
 build: ## forge build
 	yarn build
@@ -147,7 +133,6 @@ erc20-mainnet-sim: ## simulate deploy mock ERC20
 		--ffi \
 		; node cli-tools/postproc-broadcasts.js
 
-# use the "@" to hide the command from your shell 
 erc20g: ## deploy test ERC20 to Goerli
 	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
 		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
@@ -159,28 +144,6 @@ erc20g: ## deploy test ERC20 to Goerli
 		--broadcast \
 		--verify \
 		-vvvv
-
-deploy-mainnet-fork: ## smart deploy to local mainnet fork
-	@cast rpc anvil_impersonateAccount ${mainnetSysAdmin} && \
-	cast send ${diamondAddress} "transferOwnership(address)" \
-  	${ownerAddress} \
-  	-r http:\\127.0.0.1:8545 \
-  	--unlocked \
-  	--from ${mainnetSysAdmin} && \
-	cast rpc anvil_setBalance ${ownerAddress} 10000000000000000000 -r http:\\127.0.0.1:8545 && \
-	forge script SmartDeploy \
-		-s "smartDeploy(bool, address, address, bool, uint8, string[] memory, bytes32)" ${newDiamond} ${ownerAddress} ${systemAdminAddress} ${initNewDiamond} ${facetAction} ${facetsToCutIn} ${deploymentSalt} \
-		-f http:\\127.0.0.1:8545 \
-		--chain-id 1 \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${ownerAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		-vv \
-		--ffi \
-		--broadcast \
-		--slow \
-		; node cli-tools/postproc-broadcasts.js
 
 anvil:	## run anvil with shared wallet
 	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
@@ -225,17 +188,16 @@ anvil-add-supported-external-token: ## Add a supported external token (anvil)
 		-vv \
 		--broadcast
 
-goerli-replace-ownership: ## Replace transferOwnership()
-	forge script ReplaceOwnershipFacet \
+add-supported-external-token: ## Add a supported external token (goerli)
+	@forge script AddSupportedExternalToken \
+		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
 		-vv \
-		--ffi \
-		--broadcast \
-		--verify --delay 30 --retries 10
+		--broadcast
 
 create-entity: ## create an entity on the Nayms platform (using some default values, on anvil)
 	forge script CreateEntity \
@@ -248,15 +210,14 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		-vv \
 		--broadcast
 
-add-supported-external-token: ## Add a supported external token (goerli)
-	@forge script AddSupportedExternalToken \
-		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
+update-entity: ## update
+	forge script UpdateEntity \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${ownerAddress} \
 		--mnemonic-paths ./nayms_mnemonic.txt \
 		--mnemonic-indexes 19 \
-		-vv \
+		-vvvv \
 		--broadcast
 
 update-commissions: ## update trading and premium commissions
@@ -270,9 +231,6 @@ update-commissions: ## update trading and premium commissions
 		-vv \
 		--broadcast
 
-subgraph: ## generate diamond ABI for the subgraph
-	yarn subgraph:abi
-
 docs: ## generate docs from natspec comments
 	yarn docgen
 
@@ -284,16 +242,6 @@ verify-dry-run:	## dry run verify script, prints out commands to be executed
 
 verify:	## verify contracts on chain (goerli)
 	node cli-tools/verify.js
-
-update-e: ## update
-	forge script UpdateEntity \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
-		--sender ${ownerAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		-vvvv \
-		--broadcast
 
 coderecon: ## code recon
 	@forge script CodeRecon \

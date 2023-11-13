@@ -44,6 +44,7 @@ bin/
 .idea/modules.xml
 .idea/runConfigurations.xml
 .idea/vcs.xml
+.metals
 
 broadcast/**/31337/*
 
