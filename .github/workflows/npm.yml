@@ -42,11 +42,11 @@ jobs:
       - name: Install Node dependencies
         run: yarn
 
-      - name: Prepare build
-        run: make prep-build
-
       - name: Build solidity contracts
         run: make build
+
+      - name: Filter ABI
+        run: make filter-abi
 
       - name: Publish to NPM
         run: npm publish

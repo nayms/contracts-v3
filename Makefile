@@ -293,3 +293,8 @@ tu: ## Toggle upgrading the diamond in the forked tests. true == upgrade, false 
 	@result=$$(grep -q 'TESTS_FORK_UPGRADE_DIAMOND=true' .env && echo "false" || echo "true"); \
 	sed -i '' -e "s/TESTS_FORK_UPGRADE_DIAMOND=.*/TESTS_FORK_UPGRADE_DIAMOND=$$result/" .env; \
 	echo "TESTS_FORK_UPGRADE_DIAMOND is now set to $$result"
+
+filter-abi:
+	@jq '[.[] | select(.name !="facets")]' src/generated/abi.json | \
+    jq '[.[] | select(.name !="calculateUpgradeId")]' | \
+    jq '[.[] | select(.name !="diamondCut")]' > src/generated/nayms.json
