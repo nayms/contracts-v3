@@ -12,6 +12,7 @@ anvil*.json
 
 # yarn v1, node
 node_modules
+yarn-*.log
 
 # Hardhat files
 cache
@@ -34,6 +35,7 @@ facetsdeployed.txt
 .vscode/slither-results.json
 
 .history
+.DS_Store
 
 bin/
 .idea/.gitignore
@@ -53,8 +55,8 @@ broadcast/**/dry-run
 # coverage report
 cov-html
 
-# macOS
-.DS_Store
+# Gemforge
+# gemforge.deployments.json
 
 # Generated files
 script/deployment/S03UpgradeDiamond.s.sol

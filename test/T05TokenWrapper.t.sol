@@ -4,12 +4,12 @@ pragma solidity 0.8.20;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, c, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
+import { Entity } from "src/shared/FreeStructs.sol";
+import { ERC20Wrapper } from "../src/utils/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
-    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe1")));
-    bytes32 internal entityId2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe2")));
+    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe1"));
+    bytes32 internal entityId2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe2"));
 
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";

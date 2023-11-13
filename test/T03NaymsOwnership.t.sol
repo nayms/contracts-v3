@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import "src/shared/CustomErrors.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
@@ -11,7 +11,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
 
     function setUp() public {}
 
-    function testTransferOwernshipFailsIfNotSysAdmin() public {
+    function testTransferOwnershipFailsIfNotSysAdmin() public {
         changePrank(signer2);
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer2Id, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.transferOwnership(signer1);
@@ -45,11 +45,7 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isInGroup(signer2Id, systemContext, LC.GROUP_SYSTEM_ADMINS));
     }
 
-    function testFuzz_TransferOwnership(
-        address newOwner,
-        address notSysAdmin,
-        address anotherSysAdmin
-    ) public {
+    function testFuzz_TransferOwnership(address newOwner, address notSysAdmin, address anotherSysAdmin) public {
         vm.assume(newOwner != anotherSysAdmin && newOwner != account0);
         vm.assume(anotherSysAdmin != address(0));
 

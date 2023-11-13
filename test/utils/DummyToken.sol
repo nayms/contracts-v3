@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { IERC20 } from "src/erc20/IERC20.sol";
+import { IERC20 } from "src/interfaces/IERC20.sol";
 
 contract DummyToken is IERC20 {
     string public name = "Dummy";
@@ -27,11 +27,7 @@ contract DummyToken is IERC20 {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool) {
+    function transferFrom(address from, address to, uint256 value) external returns (bool) {
         if (value == 0) {
             revert();
         }
@@ -48,13 +44,5 @@ contract DummyToken is IERC20 {
         totalSupply += value;
     }
 
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {}
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {}
 }

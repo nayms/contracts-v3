@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import "../src/shared/CustomErrors.sol";
 
 contract T02UserTest is D03ProtocolDefaults, MockAccounts {
     function setUp() public {}

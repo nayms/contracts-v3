@@ -6,7 +6,7 @@ import { Vm } from "forge-std/Vm.sol";
 import { StdStyle } from "forge-std/Test.sol";
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/shared/FreeStructs.sol";
 
 import { StdStyle } from "forge-std/StdStyle.sol";
 
@@ -39,10 +39,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
     bytes32 internal dividendBankId;
 
-    bytes32 internal entity1 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e5")));
-    bytes32 internal entity2 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e6")));
-    bytes32 internal entity3 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e7")));
-    bytes32 internal entity4 = makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("e8")));
+    bytes32 internal entity1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e5"));
+    bytes32 internal entity2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e6"));
+    bytes32 internal entity3 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e7"));
+    bytes32 internal entity4 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e8"));
 
     uint256 internal constant testBalance = 100_000 ether;
 
@@ -533,10 +533,10 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, 1_000 ether);
 
         vm.expectRevert("sell amount exceeds uint128 limit");
-        nayms.executeLimitOffer(wethId, 2**128 + 1000, entity1, dt.entity1MintAndSaleAmt);
+        nayms.executeLimitOffer(wethId, 2 ** 128 + 1000, entity1, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("buy amount exceeds uint128 limit");
-        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, 2**128 + 1000);
+        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, entity1, 2 ** 128 + 1000);
 
         vm.expectRevert("sell amount must be >0");
         nayms.executeLimitOffer(wethId, 0, entity1, dt.entity1MintAndSaleAmt);
@@ -675,14 +675,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getBestOfferId(wethId, entity1), 0, "invalid best offer ID");
     }
 
-    function assertOfferFilled(
-        uint256 offerId,
-        bytes32 creator,
-        bytes32 sellToken,
-        uint256 initSellAmount,
-        bytes32 buyToken,
-        uint256 initBuyAmount
-    ) private {
+    function assertOfferFilled(uint256 offerId, bytes32 creator, bytes32 sellToken, uint256 initSellAmount, bytes32 buyToken, uint256 initBuyAmount) private {
         MarketInfo memory offer = nayms.getOffer(offerId);
         assertEq(offer.creator, creator, "offer creator invalid");
         assertEq(offer.sellToken, sellToken, "invalid sell token");
@@ -794,7 +787,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.getLockedBalance(e1Id, wethId), 0, "locked balance should be 0");
 
-        bytes32 policyId1 = makeId(LC.OBJECT_TYPE_POLICY, address(bytes20("policy1")));
+        bytes32 policyId1 = makeId(LC.OBJECT_TYPE_POLICY, bytes20("simple_policy1"));
         uint256 policyLimit = 85 ether;
 
         vm.startPrank(su.addr);
@@ -964,5 +957,15 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
         // uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
         // require(lockedBalance <= internalBalance, "double lock balance attack successful");
+    }
+
+    function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) private {
+        deal(usdcAddress, acc.addr, amount);
+        changePrank(acc.addr);
+        usdc.approve(address(nayms), amount);
+        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, usdcId);
+        nayms.externalDeposit(usdcAddress, amount);
+        uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
+        assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
     }
 }

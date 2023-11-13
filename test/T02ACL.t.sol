@@ -4,8 +4,8 @@ import { console2 } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { Entity } from "../src/diamonds/nayms/AppStorage.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { Entity } from "../src/shared/AppStorage.sol";
+import "../src/shared/CustomErrors.sol";
 import { DSILib } from "test/utils/DSILib.sol";
 
 /// @dev Testing for Nayms RBAC - Access Control List (ACL)

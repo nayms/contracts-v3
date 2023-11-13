@@ -2,21 +2,29 @@
 pragma solidity 0.8.20;
 
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
-import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
+import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import { IERC20 } from "src/erc20/IERC20.sol";
 
-import { LibAdmin } from "src/diamonds/nayms/libs/LibAdmin.sol";
-import { LibObject } from "src/diamonds/nayms/libs/LibObject.sol";
-import { LibConstants as LC } from "src/diamonds/nayms/libs/LibConstants.sol";
+import { LibAdmin } from "src/libs/LibAdmin.sol";
+import { LibObject } from "src/libs/LibObject.sol";
+import { LibConstants as LC } from "src/libs/LibConstants.sol";
 import { StdStyle } from "forge-std/StdStyle.sol";
+
+import { IERC20 } from "src/interfaces/IERC20.sol";
 
 // solhint-disable no-console
 // solhint-disable state-visibility
 
-abstract contract T02AccessHelpers is D02TestSetup {
+/// @notice Default test setup part 03
+///         Protocol / project level defaults
+///         Setup internal token IDs, entities,
+contract D03ProtocolDefaults is D02TestSetup {
     using LibHelpers for *;
     using StdStyle for *;
+
+    bytes32 public immutable account0Id;
+    bytes32 public naymsTokenId;
 
     bytes32 public immutable systemContext = LibAdmin._getSystemId();
 
@@ -37,6 +45,121 @@ abstract contract T02AccessHelpers is D02TestSetup {
         LC.GROUP_EXTERNAL_DEPOSIT,
         LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY
     ];
+
+    bytes32 public DEFAULT_ACCOUNT0_ENTITY_ID;
+    bytes32 public DEFAULT_UNDERWRITER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E2"));
+    bytes32 public DEFAULT_BROKER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E3"));
+    bytes32 public DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E4"));
+    bytes32 public DEFAULT_INSURED_PARTY_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("E5"));
+
+    // deriving public keys from private keys
+    address public immutable signer1 = vm.addr(0xACC2);
+    address public immutable signer2 = vm.addr(0xACC1);
+    address public immutable signer3 = vm.addr(0xACC3);
+    address public immutable signer4 = vm.addr(0xACC4);
+
+    bytes32 public immutable signer1Id = LibHelpers._getIdForAddress(vm.addr(0xACC2));
+    bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
+    bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
+    bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
+
+    // 0x4e61796d73204c74640000000000000000000000000000000000000000000000
+    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LC.NAYMS_LTD_IDENTIFIER);
+    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LC.NDF_IDENTIFIER);
+    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LC.STM_IDENTIFIER);
+    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LC.SSF_IDENTIFIER);
+
+    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
+
+    address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
+
+    Entity entity;
+
+    bytes32[] public defaultFeeRecipients;
+    uint16[] public defaultPremiumFeeBPs;
+    uint16[] public defaultTradingFeeBPs;
+
+    FeeSchedule premiumFeeScheduleDefault;
+    FeeSchedule tradingFeeScheduleDefault;
+
+    NaymsAccount sa = makeNaymsAcc("System Admin");
+    NaymsAccount sm = makeNaymsAcc("System Manager");
+    NaymsAccount su = makeNaymsAcc("System Underwriter");
+
+    NaymsAccount ea = makeNaymsAcc("Entity Admin");
+    NaymsAccount em = makeNaymsAcc("Entity Manager");
+
+    NaymsAccount ts = makeNaymsAcc("Tenant Sponsor");
+    NaymsAccount tcp = makeNaymsAcc("Tenant CP");
+    NaymsAccount ti = makeNaymsAcc("Tenant Insured");
+    NaymsAccount tb = makeNaymsAcc("Tenant Broker");
+    NaymsAccount tc = makeNaymsAcc("Tenant Consultant");
+
+    NaymsAccount cc = makeNaymsAcc("Comptroller Combined");
+    NaymsAccount cw = makeNaymsAcc("Comptroller Withdraw");
+    NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
+    NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
+
+    constructor() payable {
+        c.log("\n -- D03 Protocol Defaults\n");
+        c.log("Test contract address ID, aka account0Id:");
+
+        account0Id = LibHelpers._getIdForAddress(account0);
+        c.logBytes32(account0Id);
+
+        naymsTokenId = LibHelpers._getIdForAddress(naymsAddress);
+        c.log("Nayms Token ID:");
+        c.logBytes32(naymsTokenId);
+
+        vm.label(signer1, "Account 1 (Underwriter Rep)");
+        vm.label(signer2, "Account 2 (Broker Rep)");
+        vm.label(signer3, "Account 3 (Capital Provider Rep)");
+        vm.label(signer4, "Account 4 (Insured Party Rep)");
+
+        changePrank(systemAdmin);
+        nayms.addSupportedExternalToken(wethAddress);
+        nayms.addSupportedExternalToken(usdcAddress);
+
+        entity = Entity({
+            assetId: LibHelpers._getIdForAddress(wethAddress),
+            collateralRatio: LC.BP_FACTOR,
+            maxCapacity: 100 ether,
+            utilizedCapacity: 0,
+            simplePolicyEnabled: true
+        });
+
+        hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
+        hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
+        hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
+
+        DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(account0));
+
+        changePrank(sm.addr);
+        nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
+        nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
+
+        // Setup fee schedules
+        defaultFeeRecipients = b32Array1(NAYMS_LTD_IDENTIFIER);
+        defaultPremiumFeeBPs = u16Array1(300);
+        defaultTradingFeeBPs = u16Array1(30);
+
+        premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
+        tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
+
+        changePrank(sa.addr);
+        // For Premiums
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
+
+        // For Marketplace
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
+
+        c.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
+    }
 
     /// @dev Print roles
     function hRoles(address id) public view {
@@ -72,11 +195,7 @@ abstract contract T02AccessHelpers is D02TestSetup {
         c.log(string.concat("Parent role in system context (not checked by assertPrivilege)", hGetRoleInContext(parent, systemContext).blue()));
     }
 
-    function hAssignRole(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        string memory _role
-    ) internal {
+    function hAssignRole(bytes32 _objectId, bytes32 _contextId, string memory _role) internal {
         nayms.assignRole(_objectId, _contextId, _role);
         roleToUsers[_role].push(_objectId);
         roleToUsersAddr[_role].push(_objectId._getAddressFromId());
@@ -91,12 +210,7 @@ abstract contract T02AccessHelpers is D02TestSetup {
         nayms.unassignRole(_objectId, _contextId);
     }
 
-    function hCreateEntity(
-        bytes32 _entityId,
-        bytes32 _entityAdmin,
-        Entity memory _entityData,
-        bytes32 _dataHash
-    ) internal {
+    function hCreateEntity(bytes32 _entityId, bytes32 _entityAdmin, Entity memory _entityData, bytes32 _dataHash) internal {
         nayms.createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
         roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin);
 
@@ -108,12 +222,7 @@ abstract contract T02AccessHelpers is D02TestSetup {
     }
 
     /// @dev Create an entity for a NaymsAccount, and assign _entityId to NaymsAccount.entityId
-    function hCreateEntity(
-        bytes32 _entityId,
-        NaymsAccount memory _entityAdmin,
-        Entity memory _entityData,
-        bytes32 _dataHash
-    ) internal {
+    function hCreateEntity(bytes32 _entityId, NaymsAccount memory _entityAdmin, Entity memory _entityData, bytes32 _dataHash) internal {
         bytes32 previousParent = nayms.getEntity(_entityAdmin.id);
         nayms.createEntity(_entityId, _entityAdmin.id, _entityData, _dataHash);
         roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin.id);
@@ -176,127 +285,6 @@ abstract contract T02AccessHelpers is D02TestSetup {
             )
         );
     }
-}
-
-/// @notice Default test setup part 03
-///         Protocol / project level defaults
-///         Setup internal token IDs, entities,
-contract D03ProtocolDefaults is T02AccessHelpers {
-    using StdStyle for *;
-
-    bytes32 public immutable account0Id = LibHelpers._getIdForAddress(account0);
-    bytes32 public naymsTokenId;
-
-    bytes32 public DEFAULT_ACCOUNT0_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, account0);
-    bytes32 public DEFAULT_UNDERWRITER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE2));
-    bytes32 public DEFAULT_BROKER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE3));
-    bytes32 public DEFAULT_CAPITAL_PROVIDER_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE4));
-    bytes32 public DEFAULT_INSURED_PARTY_ENTITY_ID = makeId(LC.OBJECT_TYPE_ENTITY, address(0xE5));
-
-    // deriving public keys from private keys
-    address public immutable signer1 = vm.addr(0xACC2);
-    address public immutable signer2 = vm.addr(0xACC1);
-    address public immutable signer3 = vm.addr(0xACC3);
-    address public immutable signer4 = vm.addr(0xACC4);
-
-    bytes32 public immutable signer1Id = LibHelpers._getIdForAddress(vm.addr(0xACC2));
-    bytes32 public immutable signer2Id = LibHelpers._getIdForAddress(vm.addr(0xACC1));
-    bytes32 public immutable signer3Id = LibHelpers._getIdForAddress(vm.addr(0xACC3));
-    bytes32 public immutable signer4Id = LibHelpers._getIdForAddress(vm.addr(0xACC4));
-
-    // 0x4e61796d73204c74640000000000000000000000000000000000000000000000
-    bytes32 public immutable NAYMS_LTD_IDENTIFIER = LibHelpers._stringToBytes32(LC.NAYMS_LTD_IDENTIFIER);
-    bytes32 public immutable NDF_IDENTIFIER = LibHelpers._stringToBytes32(LC.NDF_IDENTIFIER);
-    bytes32 public immutable STM_IDENTIFIER = LibHelpers._stringToBytes32(LC.STM_IDENTIFIER);
-    bytes32 public immutable SSF_IDENTIFIER = LibHelpers._stringToBytes32(LC.SSF_IDENTIFIER);
-
-    bytes32 public immutable DIVIDEND_BANK_IDENTIFIER = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
-
-    address public constant USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    bytes32 public immutable USDC_IDENTIFIER = LibHelpers._getIdForAddress(USDC_ADDRESS);
-
-    Entity entity;
-
-    bytes32[] public defaultFeeRecipients;
-    uint16[] public defaultPremiumFeeBPs;
-    uint16[] public defaultTradingFeeBPs;
-
-    FeeSchedule premiumFeeScheduleDefault;
-    FeeSchedule tradingFeeScheduleDefault;
-
-    NaymsAccount sa = makeNaymsAcc("System Admin");
-    NaymsAccount sm = makeNaymsAcc("System Manager");
-    NaymsAccount su = makeNaymsAcc("System Underwriter");
-
-    NaymsAccount ea = makeNaymsAcc("Entity Admin");
-    NaymsAccount em = makeNaymsAcc("Entity Manager");
-
-    NaymsAccount ts = makeNaymsAcc("Tenant Sponsor");
-    NaymsAccount tcp = makeNaymsAcc("Tenant CP");
-    NaymsAccount ti = makeNaymsAcc("Tenant Insured");
-    NaymsAccount tb = makeNaymsAcc("Tenant Broker");
-    NaymsAccount tc = makeNaymsAcc("Tenant Consultant");
-
-    NaymsAccount cc = makeNaymsAcc("Comptroller Combined");
-    NaymsAccount cw = makeNaymsAcc("Comptroller Withdraw");
-    NaymsAccount cClaim = makeNaymsAcc("Comptroller Claim");
-    NaymsAccount cd = makeNaymsAcc("Comptroller Dividend");
-
-    constructor() payable {
-        c.log("\n -- D03 Protocol Defaults\n");
-        c.log("Test contract address ID, aka account0Id:");
-        c.logBytes32(account0Id);
-
-        naymsTokenId = LibHelpers._getIdForAddress(naymsAddress);
-        c.log("Nayms Token ID:");
-        c.logBytes32(naymsTokenId);
-
-        vm.label(signer1, "Account 1 (Underwriter Rep)");
-        vm.label(signer2, "Account 2 (Broker Rep)");
-        vm.label(signer3, "Account 3 (Capital Provider Rep)");
-        vm.label(signer4, "Account 4 (Insured Party Rep)");
-
-        changePrank(systemAdmin);
-        nayms.addSupportedExternalToken(wethAddress);
-        nayms.addSupportedExternalToken(usdcAddress);
-
-        entity = Entity({
-            assetId: LibHelpers._getIdForAddress(wethAddress),
-            collateralRatio: LC.BP_FACTOR,
-            maxCapacity: 100 ether,
-            utilizedCapacity: 0,
-            simplePolicyEnabled: true
-        });
-
-        hAssignRole(sa.id, systemContext, LC.ROLE_SYSTEM_ADMIN);
-        hAssignRole(sm.id, systemContext, LC.ROLE_SYSTEM_MANAGER);
-        hAssignRole(su.id, systemContext, LC.ROLE_SYSTEM_UNDERWRITER);
-
-        changePrank(sm.addr);
-        nayms.createEntity(DEFAULT_ACCOUNT0_ENTITY_ID, account0Id, entity, "entity test hash");
-        nayms.createEntity(DEFAULT_UNDERWRITER_ENTITY_ID, signer1Id, entity, "entity test hash");
-        nayms.createEntity(DEFAULT_BROKER_ENTITY_ID, signer2Id, entity, "entity test hash");
-        nayms.createEntity(DEFAULT_CAPITAL_PROVIDER_ENTITY_ID, signer3Id, entity, "entity test hash");
-        nayms.createEntity(DEFAULT_INSURED_PARTY_ENTITY_ID, signer4Id, entity, "entity test hash");
-
-        // Setup fee schedules
-        defaultFeeRecipients = b32Array1(NAYMS_LTD_IDENTIFIER);
-        defaultPremiumFeeBPs = u16Array1(300);
-        defaultTradingFeeBPs = u16Array1(30);
-
-        premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
-        tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
-
-        changePrank(sa.addr);
-        // For Premiums
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
-
-        // For Marketplace
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
-
-        c.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
-    }
 
     function b32Array1(bytes32 _value) internal pure returns (bytes32[] memory) {
         bytes32[] memory arr = new bytes32[](1);
@@ -304,11 +292,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         return arr;
     }
 
-    function b32Array3(
-        bytes32 _value1,
-        bytes32 _value2,
-        bytes32 _value3
-    ) internal pure returns (bytes32[] memory) {
+    function b32Array3(bytes32 _value1, bytes32 _value2, bytes32 _value3) internal pure returns (bytes32[] memory) {
         bytes32[] memory arr_ = new bytes32[](3);
         arr_[0] = _value1;
         arr_[1] = _value2;
@@ -322,11 +306,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         return arr;
     }
 
-    function u16Array3(
-        uint16 _value1,
-        uint16 _value2,
-        uint16 _value3
-    ) internal pure returns (uint16[] memory) {
+    function u16Array3(uint16 _value1, uint16 _value2, uint16 _value3) internal pure returns (uint16[] memory) {
         uint16[] memory arr = new uint16[](3);
         arr[0] = _value1;
         arr[1] = _value2;
@@ -340,11 +320,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         return arr;
     }
 
-    function u256Array3(
-        uint256 _value1,
-        uint256 _value2,
-        uint256 _value3
-    ) internal pure returns (uint256[] memory) {
+    function u256Array3(uint256 _value1, uint256 _value2, uint256 _value3) internal pure returns (uint256[] memory) {
         uint256[] memory arr = new uint256[](3);
         arr[0] = _value1;
         arr[1] = _value2;
@@ -361,7 +337,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     }
 
     function createTestEntity(bytes32 adminId) internal returns (bytes32) {
-        return createTestEntityWithId(adminId, makeId(LC.OBJECT_TYPE_ENTITY, address(bytes20("0xe1"))));
+        return createTestEntityWithId(adminId, makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe1")));
     }
 
     function createTestEntityWithId(bytes32 adminId, bytes32 entityId) internal returns (bytes32) {
@@ -370,12 +346,7 @@ contract D03ProtocolDefaults is T02AccessHelpers {
         return entityId;
     }
 
-    function initEntity(
-        bytes32 _assetId,
-        uint256 _collateralRatio,
-        uint256 _maxCapacity,
-        bool _simplePolicyEnabled
-    ) public pure returns (Entity memory e) {
+    function initEntity(bytes32 _assetId, uint256 _collateralRatio, uint256 _maxCapacity, bool _simplePolicyEnabled) public pure returns (Entity memory e) {
         e.assetId = _assetId;
         e.collateralRatio = _collateralRatio;
         e.maxCapacity = _maxCapacity;
@@ -443,27 +414,6 @@ contract D03ProtocolDefaults is T02AccessHelpers {
     function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, MessageHashUtils.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
-    }
-
-    /// @dev Helper function to deal, approve, and nayms.externalDeposit weth to a NaymsAccount.entityId.
-    function fundEntityWeth(NaymsAccount memory acc, uint256 amount) internal {
-        deal(address(weth), acc.addr, amount);
-        changePrank(acc.addr);
-        weth.approve(address(nayms), amount);
-        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, wethId);
-        nayms.externalDeposit(address(weth), amount);
-        assertEq(nayms.internalBalanceOf(acc.entityId, wethId), balanceBefore + amount, "entity's weth balance is incorrect");
-    }
-
-    /// @dev Helper function to deal, approve, and nayms.externalDeposit usdc to a NaymsAccount.entityId.
-    function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) internal {
-        deal(usdcAddress, acc.addr, amount);
-        changePrank(acc.addr);
-        usdc.approve(address(nayms), amount);
-        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, usdcId);
-        nayms.externalDeposit(usdcAddress, amount);
-        uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
-        assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
     }
 
     /// Pretty print ///

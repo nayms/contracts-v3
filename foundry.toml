@@ -48,7 +48,7 @@ sparse_mode = false
 # Setting this option enables decoding of error traces from mainnet deployed / verfied contracts via etherscan
 # permissions for read-write
 fs_permissions = [
-    { access = "read-write", path = "./src/diamonds/nayms/interfaces/" },
+    { access = "read-write", path = "./src/interfaces/" },
     { access = "read-write", path = "./facetsdeployed.txt" },
     { access = "read-write", path = "./deployedAddresses.json" },
     { access = "read-write", path = "./deployedAddressesTest.json" },
