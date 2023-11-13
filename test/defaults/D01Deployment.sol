@@ -4,13 +4,13 @@ pragma solidity 0.8.20;
 // solhint-disable no-console
 // solhint-disable no-global-import
 
+import "forge-std/Test.sol";
 import "./D00GlobalDefaults.sol";
 
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { DiamondProxy } from "src/generated/DiamondProxy.sol";
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { LibDiamondHelper } from "src/generated/LibDiamondHelper.sol";
-import { DeploymentHelpers } from "script/utils/DeploymentHelpers.sol";
 import { LibGovernance } from "src/libs/LibGovernance.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
 import { InitDiamond } from "src/init/InitDiamond.sol";
@@ -19,7 +19,7 @@ import { LibConstants as LC } from "src/libs/LibConstants.sol";
 
 /// @notice Default test setup part 01
 ///         Deploy and initialize Nayms platform
-abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
+abstract contract D01Deployment is D00GlobalDefaults, Test {
     using LibHelpers for *;
     using StdStyle for *;
 
@@ -61,6 +61,17 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
         changePrank(na.addr);
     }
 
+    function getDiamondAddressFromFile() internal view returns (address diamondAddress) {
+        string memory keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
+        string memory deployFile = "deployedAddresses.json";
+
+        // Read in current diamond address
+        string memory deployData = vm.readFile(deployFile);
+
+        bytes memory parsed = vm.parseJson(deployData, keyToReadDiamondAddress);
+        diamondAddress = abi.decode(parsed, (address));
+    }
+
     constructor() payable {
         c.log("\n -- D01 Deployment Defaults\n");
         c.log("block.chainid", block.chainid);
@@ -91,7 +102,6 @@ abstract contract D01Deployment is D00GlobalDefaults, DeploymentHelpers {
             systemAdminId = LibHelpers._getIdForAddress(systemAdmin);
             vm.label(systemAdmin, "System Admin");
 
-            keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
             vm.startPrank(owner);
             if (TESTS_FORK_UPGRADE_DIAMOND) {
                 IDiamondCut.FacetCut[] memory cut = LibDiamondHelper.deployFacetsAndGetCuts(naymsAddress);
