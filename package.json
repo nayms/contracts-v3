@@ -1,6 +1,6 @@
 {
   "name": "@nayms/contracts",
-  "version": "3.6.5",
+  "version": "3.7.0",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts-v3.git",
   "author": "Kevin Park <kevin@fruitful.gg>",
@@ -9,12 +9,12 @@
     "access": "public"
   },
   "files": [
-    "forge-artifacts/**",
-    "broadcast/**",
-    "deployedAddresses.json",
-    "gemforge.deployments.json",
     "index.js",
-    "src/generated/IDiamondProxy.sol"
+    "gemforge.deployments.json",
+    "src/generated/abi.json",
+    "src/generated/nayms.json",
+    "forge-artifacts/LibConstants.sol/LibConstants.json",
+    "forge-artifacts/IERC20.sol/IERC20.json"
   ],
   "scripts": {
     "prettier": "yarn prettier:test && yarn prettier:src && yarn prettier:script",
@@ -29,8 +29,7 @@
     "solhint:check": "solhint --config ./.solhint.json 'src/**/*.sol'",
     "lint": "yarn prettier && yarn run solhint",
     "lint:check": "yarn prettier:check && yarn run solhint:check",
-    "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/do gen.js",
-    "subgraph:abi": "node ./cli-tools/prep-subgraph-abi.js && prettier --write NaymsDiamond.json",
+    "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/docgen.js",
     "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 30 -m ./nayms_mnemonic.txt",
     "build": "gemforge build",
     "deploy": "./script/gemforge/deploy.js",
