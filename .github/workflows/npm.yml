@@ -41,6 +41,9 @@ jobs:
 
       - name: Install Node dependencies
         run: yarn
+      
+      - name: Drop-in Test Wallet
+        run: echo "test test test test test test test test test test test junk" > ./nayms_mnemonic.txt
 
       - name: Build solidity contracts
         run: make build
