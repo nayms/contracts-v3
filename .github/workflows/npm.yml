@@ -47,6 +47,11 @@ jobs:
 
       - name: Build solidity contracts
         run: make build
+        env:
+          ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
+          ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
+          ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
+          BASE_GOERLI_RPC_URL: ${{ secrets.BASE_GOERLI_RPC_URL }}
 
       - name: Filter ABI
         run: make filter-abi
