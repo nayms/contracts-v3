@@ -118,8 +118,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
         changePrank(systemAdmin);
-        nayms.addSupportedExternalToken(wethAddress);
-        nayms.addSupportedExternalToken(usdcAddress);
+        if (!nayms.isSupportedExternalToken(wethId)) nayms.addSupportedExternalToken(wethAddress);
+        try nayms.addSupportedExternalToken(usdcAddress) {} catch {}
 
         entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
