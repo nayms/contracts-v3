@@ -436,7 +436,7 @@ contract D03ProtocolDefaults is D02TestSetup {
     }
 
     /// Pretty print ///
-    function hCr(bytes32 objectId) public {
+    function hCr(bytes32 objectId) public view {
         bytes32[] memory cr = nayms.getPolicyCommissionReceivers(objectId);
         c.log(string.concat(vm.toString(objectId), "'s commission receivers:").blue());
         for (uint256 i; i < cr.length; i++) {
