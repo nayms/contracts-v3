@@ -297,4 +297,4 @@ tu: ## Toggle upgrading the diamond in the forked tests. true == upgrade, false 
 filter-abi:
 	@jq '[.[] | select(.name !="facets")]' src/generated/abi.json | \
     jq '[.[] | select(.name !="calculateUpgradeId")]' | \
-    jq '[.[] | select(.name !="diamondCut")]' > src/generated/nayms.json
+    jq '[.[] | select(.name !="diamondCut")]' > src/generated/naymsDiamond.json

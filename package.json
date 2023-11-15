@@ -12,7 +12,7 @@
     "index.js",
     "gemforge.deployments.json",
     "src/generated/abi.json",
-    "src/generated/nayms.json",
+    "src/generated/naymsDiamond.json",
     "forge-artifacts/LibConstants.sol/LibConstants.json",
     "forge-artifacts/IERC20.sol/IERC20.json"
   ],
