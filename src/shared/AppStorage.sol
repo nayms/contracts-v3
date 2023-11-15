@@ -16,46 +16,46 @@ struct AppStorage {
     uint256 reentrancyStatus;
     //// NAYMS ERC20 TOKEN ////
     string name;
-    mapping(address => mapping(address => uint256)) allowance;
+    mapping(address account => mapping(address spender => uint256)) allowance;
     uint256 totalSupply;
-    mapping(bytes32 => bool) internalToken;
-    mapping(address => uint256) balances;
+    mapping(bytes32 objectId => bool isInternalToken) internalToken;
+    mapping(address account => uint256) balances;
     //// Object ////
-    mapping(bytes32 => bool) existingObjects; // objectId => is an object?
-    mapping(bytes32 => bytes32) objectParent; // objectId => parentId
-    mapping(bytes32 => bytes32) objectDataHashes;
-    mapping(bytes32 => string) objectTokenSymbol;
-    mapping(bytes32 => string) objectTokenName;
-    mapping(bytes32 => address) objectTokenWrapper;
-    mapping(bytes32 => bool) existingEntities; // entityId => is an entity?
-    mapping(bytes32 => bool) existingSimplePolicies; // simplePolicyId => is a simple policy?
+    mapping(bytes32 objectId => bool isObject) existingObjects; // objectId => is an object?
+    mapping(bytes32 objectId => bytes32 objectsParent) objectParent; // objectId => parentId
+    mapping(bytes32 objectId => bytes32 objectsDataHash) objectDataHashes;
+    mapping(bytes32 objectId => string tokenSymbol) objectTokenSymbol;
+    mapping(bytes32 objectId => string tokenName) objectTokenName;
+    mapping(bytes32 objectId => address tokenWrapperAddress) objectTokenWrapper;
+    mapping(bytes32 entityId => bool isEntity) existingEntities; // entityId => is an entity?
+    mapping(bytes32 policyId => bool isPolicy) existingSimplePolicies; // simplePolicyId => is a simple policy?
     //// ENTITY ////
-    mapping(bytes32 => Entity) entities; // objectId => Entity struct
+    mapping(bytes32 entityId => Entity) entities; // objectId => Entity struct
     //// SIMPLE POLICY ////
-    mapping(bytes32 => SimplePolicy) simplePolicies; // objectId => SimplePolicy struct
+    mapping(bytes32 policyId => SimplePolicy) simplePolicies; // objectId => SimplePolicy struct
     //// External Tokens ////
-    mapping(address => bool) externalTokenSupported;
+    mapping(address externalTokenAddress => bool isSupportedExternalToken) externalTokenSupported;
     address[] supportedExternalTokens;
     //// TokenizedObject ////
-    mapping(bytes32 => mapping(bytes32 => uint256)) tokenBalances; // tokenId => (ownerId => balance)
-    mapping(bytes32 => uint256) tokenSupply; // tokenId => Total Token Supply
+    mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint256)) tokenBalances; // tokenId => (ownerId => balance)
+    mapping(bytes32 tokenId => uint256) tokenSupply; // tokenId => Total Token Supply
     //// Dividends ////
     uint8 maxDividendDenominations;
-    mapping(bytes32 => bytes32[]) dividendDenominations; // object => tokenId of the dividend it allows
-    mapping(bytes32 => mapping(bytes32 => uint8)) dividendDenominationIndex; // entity ID => (token ID => index of dividend denomination)
-    mapping(bytes32 => mapping(uint8 => bytes32)) dividendDenominationAtIndex; // entity ID => (index of dividend denomination => token id)
-    mapping(bytes32 => mapping(bytes32 => uint256)) totalDividends; // token ID => (denomination ID => total dividend)
-    mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => uint256))) withdrawnDividendPerOwner; // entity => (tokenId => (owner => total withdrawn dividend)) NOT per share!!! this is TOTAL
+    mapping(bytes32 objectId => bytes32[]) dividendDenominations; // object => tokenId of the dividend it allows
+    mapping(bytes32 entityId => mapping(bytes32 tokenId => uint8 index)) dividendDenominationIndex; // entity ID => (token ID => index of dividend denomination)
+    mapping(bytes32 entityId => mapping(uint8 index => bytes32 tokenId)) dividendDenominationAtIndex; // entity ID => (index of dividend denomination => token id)
+    mapping(bytes32 tokenId => mapping(bytes32 dividendDenominationId => uint256)) totalDividends; // token ID => (denomination ID => total dividend)
+    mapping(bytes32 entityId => mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint256))) withdrawnDividendPerOwner; // entity => (tokenId => (owner => total withdrawn dividend)) NOT per share!!! this is TOTAL
     //// ACL Configuration////
-    mapping(bytes32 => mapping(bytes32 => bool)) groups; //role => (group => isRoleInGroup)
-    mapping(bytes32 => bytes32) canAssign; //role => Group that can assign/unassign that role
+    mapping(bytes32 roleId => mapping(bytes32 groupId => bool isRoleInGroup)) groups; //role => (group => isRoleInGroup)
+    mapping(bytes32 roleId => bytes32 assignerGroupId) canAssign; //role => Group that can assign/unassign that role
     //// User Data ////
-    mapping(bytes32 => mapping(bytes32 => bytes32)) roles; // userId => (contextId => role)
+    mapping(bytes32 objectId => mapping(bytes32 contextId => bytes32 roleId)) roles; // userId => (contextId => role)
     //// MARKET ////
     uint256 lastOfferId;
-    mapping(uint256 => MarketInfo) offers; // offer Id => MarketInfo struct
-    mapping(bytes32 => mapping(bytes32 => uint256)) bestOfferId; // sell token => buy token => best offer Id
-    mapping(bytes32 => mapping(bytes32 => uint256)) span; // sell token => buy token => span
+    mapping(uint256 offerId => MarketInfo) offers; // offer Id => MarketInfo struct
+    mapping(bytes32 sellTokenId => mapping(bytes32 buyTokenId => uint256)) bestOfferId; // sell token => buy token => best offer Id
+    mapping(bytes32 sellTokenId => mapping(bytes32 buyTokenId => uint256)) span; // sell token => buy token => span
     address naymsToken; // represents the address key for this NAYMS token in AppStorage
     bytes32 naymsTokenId; // represents the bytes32 key for this NAYMS token in AppStorage
     /// Trading Commissions (all in basis points) ///
@@ -70,14 +70,14 @@ struct AppStorage {
     uint16 premiumCommissionNDFBP; // note DEPRECATED
     uint16 premiumCommissionSTMBP; // note DEPRECATED
     // A policy can pay out additional commissions on premiums to entities having a variety of roles on the policy
-    mapping(bytes32 => mapping(bytes32 => uint256)) lockedBalances; // keep track of token balance that is locked, ownerId => tokenId => lockedAmount
+    mapping(bytes32 ownerId => mapping(bytes32 tokenId => uint256)) lockedBalances; // keep track of token balance that is locked, ownerId => tokenId => lockedAmount
     /// Simple two phase upgrade scheme
-    mapping(bytes32 => uint256) upgradeScheduled; // id of the upgrade => the time that the upgrade is valid until.
+    mapping(bytes32 upgradeId => uint256 timestamp) upgradeScheduled; // id of the upgrade => the time that the upgrade is valid until.
     uint256 upgradeExpiration; // the period of time that an upgrade is valid until.
     uint256 sysAdmins; // counter for the number of sys admin accounts currently assigned
-    mapping(address => bytes32) objectTokenWrapperId; // reverse mapping token wrapper address => object ID
-    mapping(string => bytes32) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
-    mapping(bytes32 => mapping(uint256 => FeeSchedule)) feeSchedules; // map entity ID to a fee schedule type and then to array of FeeReceivers (feeScheduleType (1-premium, 2-trading, n-others))
+    mapping(address tokenWrapperAddress => bytes32 tokenId) objectTokenWrapperId; // reverse mapping token wrapper address => object ID
+    mapping(string tokenSymbol => bytes32 objectId) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
+    mapping(bytes32 entityId => mapping(uint256 feeScheduleTypeId => FeeSchedule)) feeSchedules; // map entity ID to a fee schedule type and then to array of FeeReceivers (feeScheduleType (1-premium, 2-trading, n-others))
 }
 
 struct FunctionLockedStorage {
