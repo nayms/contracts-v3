@@ -61,15 +61,10 @@ abstract contract D01Deployment is D00GlobalDefaults, Test {
         changePrank(na.addr);
     }
 
-    function getDiamondAddressFromFile() internal view returns (address diamondAddress) {
-        string memory keyToReadDiamondAddress = string.concat(".", vm.toString(block.chainid));
-        string memory deployFile = "deployedAddresses.json";
+    function getDiamondAddress() internal view returns (address diamondAddress) {
+        diamondAddress = vm.envAddress(string.concat("TESTS_FORK_DIAMOND_ADDRESS_", vm.toString(block.chainid)));
 
-        // Read in current diamond address
-        string memory deployData = vm.readFile(deployFile);
-
-        bytes memory parsed = vm.parseJson(deployData, keyToReadDiamondAddress);
-        diamondAddress = abi.decode(parsed, (address));
+        c.log(string.concat("Diamond address from env ", "TESTS_FORK_DIAMOND_ADDRESS_", vm.toString(block.chainid)).yellow().bold(), diamondAddress);
     }
 
     constructor() payable {
@@ -92,7 +87,7 @@ abstract contract D01Deployment is D00GlobalDefaults, Test {
                 vm.createSelectFork(getChain(block.chainid).rpcUrl, FORK_BLOCK);
             }
 
-            naymsAddress = getDiamondAddressFromFile();
+            naymsAddress = getDiamondAddress();
             nayms = IDiamondProxy(naymsAddress);
 
             deployer = address(this);
