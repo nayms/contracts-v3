@@ -468,7 +468,21 @@
       }
     ]
   },
-  "mainnet": {
+  "goerli": {
+    "chainId": 5,
+    "contracts": [
+      {
+        "name": "DiamondProxy",
+        "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
+        "sender": "0x0000000000000000000000000000000000000000",
+        "txHash": "0x0000000000000000000000000000000000000000",
+        "onChain": {
+          "address": "0x428c9347a76943E4c625C11813A303Ca12B8675f",
+          "constructorArgs": []
+        }
+      }
+    ]
+  },  "mainnet": {
     "chainId": 1,
     "contracts": [
       {
