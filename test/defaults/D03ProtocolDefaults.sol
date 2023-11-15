@@ -416,6 +416,25 @@ contract D03ProtocolDefaults is D02TestSetup {
         sig_ = abi.encodePacked(r, s, v);
     }
 
+    function fundEntityWeth(NaymsAccount memory acc, uint256 amount) internal {
+        deal(address(weth), acc.addr, amount);
+        changePrank(acc.addr);
+        weth.approve(address(nayms), amount);
+        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, wethId);
+        nayms.externalDeposit(address(weth), amount);
+        assertEq(nayms.internalBalanceOf(acc.entityId, wethId), balanceBefore + amount, "entity's weth balance is incorrect");
+    }
+
+    function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) internal {
+        deal(usdcAddress, acc.addr, amount);
+        changePrank(acc.addr);
+        usdc.approve(address(nayms), amount);
+        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, usdcId);
+        nayms.externalDeposit(usdcAddress, amount);
+        uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
+        assertEq(balanceAfter, balanceBefore + amount, "entity's usdc balance is incorrect");
+    }
+
     /// Pretty print ///
     function hCr(bytes32 objectId) public {
         bytes32[] memory cr = nayms.getPolicyCommissionReceivers(objectId);

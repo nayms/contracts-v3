@@ -51,15 +51,6 @@ contract NewFeesTest is D03ProtocolDefaults {
         changePrank(sa.addr);
     }
 
-    function fundEntityWeth(NaymsAccount memory acc, uint256 amount) private {
-        deal(address(weth), acc.addr, amount);
-        changePrank(acc.addr);
-        weth.approve(address(nayms), amount);
-        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, wethId);
-        nayms.externalDeposit(address(weth), amount);
-        assertEq(nayms.internalBalanceOf(acc.entityId, wethId), balanceBefore + amount, "entity's weth balance is incorrect");
-    }
-
     function test_setFeeSchedule_OnlySystemAdmin() public {
         changePrank(address(0xdead));
 

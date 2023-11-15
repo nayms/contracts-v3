@@ -958,14 +958,4 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
         // require(lockedBalance <= internalBalance, "double lock balance attack successful");
     }
-
-    function fundEntityUsdc(NaymsAccount memory acc, uint256 amount) private {
-        deal(usdcAddress, acc.addr, amount);
-        changePrank(acc.addr);
-        usdc.approve(address(nayms), amount);
-        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, usdcId);
-        nayms.externalDeposit(usdcAddress, amount);
-        uint256 balanceAfter = nayms.internalBalanceOf(acc.entityId, usdcId);
-        assertEq(balanceAfter, balanceBefore + amount, "entity's weth balance is incorrect");
-    }
 }
