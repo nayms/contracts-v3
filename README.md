@@ -58,24 +58,24 @@ Check `.env.example` to see some of the environment variables you should have se
 ├── cli-tools
 ├── script
 │   ├── deployment
+│   ├── gemforge
+│   │   ├── utils
 │   └── utils
 ├── src
-│   ├── diamonds
-│   │   ├── nayms
-│   │   │   ├── facets
-│   │   │   ├── interfaces
-│   │   │   └── libs
-│   │   └── shared
-│   │       ├── facets
-│   │       ├── interfaces
-│   │       └── libs
-│   ├── erc20
+│   ├── facets
+│   ├── generated
+│   ├── init
+│   ├── interfaces
+│   ├── libs
+│   ├── shared
 │   └── utils
 └── test
-    ├── defaults
-    ├── fixtures
-    └── utils
-        └── users
+    ├── defaults
+    ├── fixtures
+    ├── mocks
+    │   └── data
+    └── utils
+        └── users
 ```
 
 ## Solidity Scripting
