@@ -512,5 +512,30 @@
         }
       }
     ]
+  },
+  "sepoliaFork": {
+    "chainId": 11155111,
+    "contracts": [
+      {
+        "name": "AdminFacet",
+        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x51f50e24ac672c47040cab4a0837c1f7414700b7992aab0b8adbe38195fe38c1",
+        "onChain": {
+          "address": "0x9E178F061E0dE6cA3FC0a4A324B6259aa4cDc365",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "DiamondProxy",
+        "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
+        "sender": "0x0000000000000000000000000000000000000000",
+        "txHash": "0x0000000000000000000000000000000000000000",
+        "onChain": {
+          "address": "0x7E5462DA297440D2a27fE27d1F291Cf67202302B",
+          "constructorArgs": []
+        }
+      }
+    ]
   }
 }

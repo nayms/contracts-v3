@@ -118,6 +118,10 @@ module.exports = {
       // RPC endpoint URL
       rpcUrl: process.env.ETH_SEPOLIA_RPC_URL,
     },
+    sepoliaFork: {
+      // RPC endpoint URL
+      rpcUrl: "http://localhost:8545",
+    },
     // Mainnet network
     mainnet: {
       // RPC endpoint URL
@@ -147,6 +151,14 @@ module.exports = {
     sepolia: {
       // Network to deploy to
       network: "sepolia",
+      // Wallet to use for deployment
+      wallet: "wallet1",
+      // Initialization function arguments
+      initArgs: [sysAdminAddress],
+    },
+    sepoliaFork: {
+      // Network to deploy to
+      network: "sepoliaFork",
       // Wallet to use for deployment
       wallet: "wallet1",
       // Initialization function arguments
