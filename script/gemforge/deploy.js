@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable node/shebang */
 
 const path = require("path");
 const fs = require("fs");
