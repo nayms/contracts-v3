@@ -12,8 +12,8 @@
         throw new Error("GEMFORGE_DEPLOY_TARGET env var not set");
     }
 
-    // skip localhost
-    if (target === "local") {
+    // skip for localhost and forks
+    if (target === "local" || /fork/i.test(target)) {
         console.log("Skipping verification on", target);
         return;
     }
