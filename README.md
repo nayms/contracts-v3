@@ -5,143 +5,78 @@
 
 This repository contains Nayms V3 smart contracts.
 
-## Get Started
+This is a [Foundry](https://book.getfoundry.sh/) based project, so make sure you have it installed.
 
-### Install Foundry
+### Set up your project configuration
 
-```zsh
-curl -L https://foundry.paradigm.xyz | bash
+Check `.env.example` to see some of the environment variables you should have set in `.env` in order to run some of the commands.
+
+Create a `.env` and ensure it contains:
+
+```
+LOCAL_RPC_URL=
+ETH_MAINNET_RPC_URL=
+ETH_GOERLI_RPC_URL=
+ETH_SEPOLIA_RPC_URL=
+ETHERSCAN_API_KEY=
 ```
 
-#### Update Foundry
-
-```zsh
-foundryup
-```
-
-### Install Forge dependencies
-
-```zsh
-forge update
-```
-
-### Update Rust, Foundry, and Forge dependencies
-
-```zsh
-make update
-```
-
-### Prepare the build
-
-```zsh
-make prep-build
-```
+Create a `nayms_mnemonic.txt` file and ensure it contains the team mnemonic.
 
 ### Build Project
 
 ```zsh
 make build
 ```
+This will generate the diamond proxy interface, diamond helper library and the abi file.
 
-### Formatter and Linter
-
-Run `yarn` to install `package.json` which includes our formatter and linter. We will switch over to Foundry's sol formatter and linter once released.
-
-## Set your environment variables
-
-Check `.env.example` to see some of the environment variables you should have set in `.env` in order to run some of the commands.
-
-## Current Directory Structure
-
-```md
-.
-├── cli-tools
-├── script
-│   ├── deployment
-│   ├── gemforge
-│   │   ├── utils
-│   └── utils
-├── src
-│   ├── facets
-│   ├── generated
-│   ├── init
-│   ├── interfaces
-│   ├── libs
-│   ├── shared
-│   └── utils
-└── test
-    ├── defaults
-    ├── fixtures
-    ├── mocks
-    │   └── data
-    └── utils
-        └── users
-```
-
-## Solidity Scripting
-
-You can now write scripts with Solidity.
+### Test Project
 
 ```zsh
-forge script <name of script in script folder>
+make test
 ```
 
-Give a valid Alchemy Eth mainnet API key in `.env` ALCHEMY_ETH_MAINNET_API_KEY, then try running:
+### Deploy the diamond
 
-```zsh
-make swap
+Smart contracts in this repository implement the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) a.k.a. the diamond standard and uses [Gemforge](https://gemforge.xyz/) for deployment. You can read more about it in the official docs.
+
+A script - `script/gemforge/deploy.js` - is provided as a convenience for handling the Nayms phased deployments flow. You can call this directly or just use `yarn deploy ...`
+
+Currently supported deployment targets are:
+
+- `local`: local anvil node
+- `sepolia`: sepolia
+- `mainnet`: mainnet
+- `baseGoerli`: Base Goerli testnet
+- `sepoliaFork`: a local fork of sepolia
+- `mainnetFork`: a local for of mainnet
+
+#### Querying
+
+To see how the current deployed Diamond differs from the compiled code for a target:
+
+```
+yarn query <target>
 ```
 
-## Nayms Deployment Flow
+#### Fresh deployments
 
-Current deployment flow:
+To do a fresh deployment to a given [target](https://gemforge.xyz/configuration/targets/):
 
-Simulate the deployment:
-
-```zsh
-make deploy-sim newDiamond=<bool> initNewDiamond=<bool> facetAction=<enum> facetsToCutIn=<string[]> deploymentSalt=<bytes32>
+```
+yarn deploy <target> --fresh
 ```
 
-|                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| _newDiamond_              |                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `true`                    | Deploy a new Nayms diamond                                                                                                                                                                                                                                                                                                                                                                                      |
-| `false`                   | Read the address from deployedAddresses.json                                                                                                                                                                                                                                                                                                                                                                    |
-|                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| _initNewDiamond_          |                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `true`                    | Deploy a new InitDiamond and call `initialize()` when calling `diamondCut()`                                                                                                                                                                                                                                                                                                                                    |
-| `false`                   | Does not call `initialize()` when calling `diamondCut()`                                                                                                                                                                                                                                                                                                                                                        |
-|                           |                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| _facetAction_             | See [`FacetDeploymentAction`](https://github.com/nayms/contracts-v3/tree/main/script/utils/DeploymentHelpers.sol) enum                                                                                                                                                                                                                                                                                          |
-| `0`                       | DeployAllFacets                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `1`                       | UpgradeFacetsWithChangesOnly                                                                                                                                                                                                                                                                                                                                                                                    |
-| `2`                       | UpgradeFacetsListedOnly                                                                                                                                                                                                                                                                                                                                                                                         |
-| _facetsToCutIn_           | Requires facetAction=`2`                                                                                                                                                                                                                                                                                                                                                                                        |
-| `["Facet1","Facet2",...]` | List of facets to cut into the diamond. For example, facetsToCutIn=`"["ACL", "System"]"` will cut in the ACLFacet and SystemFacet. _Note_: It will remove facet methods that do not exist in the "current" facet, replace methods that exist in both the "current" and "previous" facet, and add methods that only exist in the "current" facet. "Current" is referring to the facet in the current repository. |
+#### Upgrades
 
-Below are several examples on how you would use the smart deploy scripts.
+To upgrade a deployment on a target:
 
-For a __fresh new deployment__ of the entire project, execute this command:
-
-```zsh
-make deploy-sepolia-sim newDiamond=true initNewDiamond=true facetAction=0
+```
+yarn deploy <target> --upgrade-start
+yarn deploy <target> --upgrade-finish
 ```
 
-To __upgrade the facets that have been changed__ since the last deployment, run the following:
-
-```zsh
-make deploy-sepolia-sim newDiamond=false initNewDiamond=false facetAction=1
-```
-
-To __upgrade specific set of facets__, run command like this one:
-
-```zsh
-make deploy-sepolia-sim newDiamond=false initNewDiamond=false facetAction=2 facetsToCutIn="["Market","Entity"]"
-```
-
-Include a bytes32 salt to deploy the diamond with a deterministic address. Including a salt will first deploy a contract that is used to predetermine the diamond deployment address. If a salt is not included, then the script will deploy the diamond non-deterministically. Currently, there is a default deployment salt given in the make file.
-
-> :warning: Examples above are __dry-run__ probes, to actually do a deploy remove the `-sim` suffix from the target name
+_Note: For mainnet you will need to enable the upgrade using the MPC wallet. For non-mainnet targets the script will automatically do this for you._
 
 ### Running a Local Node
 
@@ -157,37 +92,27 @@ Following commands are provided for working with `anvil`, to make it more conven
 | `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
 | `make anvil-gtoken` | Deploy `GToken` to local node |
 | `make anvil-add-supported-external-token` | Add `GToken` as supported external token |
+| `make anvil-fork-sepolia`| Fork `Sepolia` test net locally |
+| `make anvil-fork-mainnet`| Fork `Mainnet` locally |
 
-> :warning: Anvil state is kept in `anvil.json` file in project root. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
+> :warning: Anvil state is kept in `anvil.json` file in project root, except for forks. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
 
 One of the things you will need, to do proper testing with local node, is to deploy an ERC-20 compatible token along with Nayms contracts and make that token a supported external token. Below is an example of how to do that.
 
-```zsh
-make anvil-gtoken
+#### Bootstrapping a local node
 
-make anvil-add-supported-external-token \
-        naymsDiamondAddress=0x942757fa0b73257AC3393730dCC59c8Aa15de6f5 \
-        externalToken=0x5Dc9485A39f64A5BF0E34904949aF7Cc62EE6Bd7
-```
+When working with local node, there are a few things you might need to do in preparation to be able to actually use it with client applications. As a convenience, a script is provided automating the following tasks.
 
-After making a token supported, you might want to mint some coins to a wallet address to make deposits etc. To mint some coins use `cast` tool from Foundry.
+- Deploy the diamond to local node
+- Deploy test ERC20 compatible token (`GTOKEN`) to local node
+- Make this token a supported external token
+- Mint some tokens to `acc1`, `acc2`, `acc3` and `acc4` from the `nayms_mnemonic.txt`
 
-```zsh
-cast send 0x5Dc9485A39f64A5BF0E34904949aF7Cc62EE6Bd7 "mint(address,uint256)" \
-        '0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f' '1000000000000000000000000' \
-        -r http:\\127.0.0.1:8545 \
-        --from 0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
-```
-
-Check balance to confirm previous action was successful
+Run it from project root folder against fresh new local node instance, otherwise some steps might fail:
 
 ```zsh
-cast call 0x5Dc9485A39f64A5BF0E34904949aF7Cc62EE6Bd7 "balanceOf(address)(uint256)" \
-        '0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f' \
-        -r http:\\127.0.0.1:8545
+cli-tools/anvil_bootstrap.sh
 ```
-
-## Development Flow
 
 ### Output, compare gas snapshots
 
@@ -212,7 +137,7 @@ svm list
 Make sure the version you need is in this list, or choose the closest one and install it:
 
 ```zsh
-svm install "0.7.6"
+svm install "0.8.20"
 ```
 
 ### Fork testing
