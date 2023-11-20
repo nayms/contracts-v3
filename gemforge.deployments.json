@@ -9,9 +9,7 @@
         "txHash": "0x147d5ab4233c3028cad72002959cb3d49381ec2e49188ad7043cdf08a0f2ae4d",
         "onChain": {
           "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -321,9 +319,7 @@
         "txHash": "0x04eb4da00d7a43cdb3b79a44c96515820d1b80eb952af4135cc39c4cc48f71a9",
         "onChain": {
           "address": "0xeb91C729D4bD06F41C7624E6ef0a40a828479af2",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -516,16 +512,6 @@
   "sepoliaFork": {
     "chainId": 11155111,
     "contracts": [
-      {
-        "name": "AdminFacet",
-        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x51f50e24ac672c47040cab4a0837c1f7414700b7992aab0b8adbe38195fe38c1",
-        "onChain": {
-          "address": "0x9E178F061E0dE6cA3FC0a4A324B6259aa4cDc365",
-          "constructorArgs": []
-        }
-      },
       {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
