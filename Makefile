@@ -160,10 +160,10 @@ anvil-dbg:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
 anvil-fork-mainnet: ## fork mainnet locally with anvil
-	anvil -f ${ETH_MAINNET_RPC_URL}
+	anvil -f ${ETH_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
 
 anvil-fork-sepolia: ## fork sepolia locally with anvil
-	anvil -f ${ETH_SEPOLIA_RPC_URL}
+	anvil -f ${ETH_SEPOLIA_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
 
 anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \
