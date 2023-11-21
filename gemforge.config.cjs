@@ -106,90 +106,56 @@ module.exports = {
       },
     },
   },
-  // Networks/chains
   networks: {
-    // Local network
-    local: {
-      // RPC endpoint URL
-      rpcUrl: "http://localhost:8545",
-    },
-    // Sepolia test network
-    sepolia: {
-      // RPC endpoint URL
-      rpcUrl: process.env.ETH_SEPOLIA_RPC_URL,
-    },
-    sepoliaFork: {
-      // RPC endpoint URL
-      rpcUrl: "http://localhost:8545",
-    },
-    // Mainnet network
-    mainnet: {
-      // RPC endpoint URL
-      rpcUrl: process.env.ETH_MAINNET_RPC_URL,
-    },
-    // fork Mainnet network with anvil
-    mainnetFork: {
-      // RPC endpoint URL
-      rpcUrl: "http://localhost:8545",
-    },
-    // Base Goerli network
-    baseGoerli: {
-      // RPC endpoint URL
-      rpcUrl: process.env.BASE_GOERLI_RPC_URL,
-    },
+    local: { rpcUrl: "http://localhost:8545" },
+    sepolia: { rpcUrl: process.env.ETH_SEPOLIA_RPC_URL },
+    sepoliaFork: { rpcUrl: "http://localhost:8545" },
+    mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
+    mainnetFork: { rpcUrl: "http://localhost:8545" },
+    baseGoerli: { rpcUrl: process.env.BASE_GOERLI_RPC_URL },
+    base: { rpcUrl: process.env.BASE_MAINNET_RPC_URL },
+    baseFork: { rpcUrl: "http://localhost:8545" },
   },
   // Targets to deploy
   targets: {
     local: {
-      // Network to deploy to
       network: "local",
-      // Wallet to use for deployment
       wallet: "wallet1",
-      // Initialization function arguments
       initArgs: [sysAdminAddress],
     },
     sepolia: {
-      // Network to deploy to
       network: "sepolia",
-      // Wallet to use for deployment
       wallet: "wallet1",
-      // Initialization function arguments
       initArgs: [sysAdminAddress],
     },
     sepoliaFork: {
-      // Network to deploy to
       network: "sepoliaFork",
-      // Wallet to use for deployment
       wallet: "wallet1",
-      // Initialization function arguments
       initArgs: [sysAdminAddress],
     },
     mainnet: {
-      // Network to deploy to
       network: "mainnet",
-      // Wallet to use for deployment
       wallet: "wallet1",
-      // Initialization function arguments
-      initArgs: [
-        /* TODO: Add mainnet sys admin address */
-      ],
+      initArgs: [sysAdminAddress],
     },
     mainnetFork: {
-      // Network to deploy to
       network: "mainnetFork",
-      // Wallet to use for deployment
       wallet: "wallet1",
-      // Initialization function arguments
-      initArgs: [
-        /* TODO: Add mainnet sys admin address */
-      ],
+      initArgs: [],
     },
     baseGoerli: {
-      // Network to deploy to
       network: "baseGoerli",
-      // Wallet to use for deployment
       wallet: "wallet1",
-      // Initialization function arguments
+      initArgs: [sysAdminAddress],
+    },
+    base: {
+      network: "base",
+      wallet: "wallet1",
+      initArgs: [sysAdminAddress],
+    },
+    baseFork: {
+      network: "baseFork",
+      wallet: "wallet1",
       initArgs: [sysAdminAddress],
     },
   },
