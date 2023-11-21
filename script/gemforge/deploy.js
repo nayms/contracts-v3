@@ -7,7 +7,7 @@ const rootFolder = path.join(__dirname, "..", "..");
 const { loadTarget, calculateUpgradeId, assertUpgradeIdIsEnabled, enableUpgradeViaGovernance } = require("./utils");
 
 const _showTargetInfo = async (targetId) => {
-    const { networkId, network, walletId, proxyAddress, signer, contract } = loadTarget(targetId);
+    const { networkId, network, walletId, proxyAddress, signer } = loadTarget(targetId);
 
     console.log(`Target: ${targetId}`);
     console.log(`Network: ${networkId} - ${network.rpcUrl}`);

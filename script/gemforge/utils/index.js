@@ -12,11 +12,11 @@ const loadTarget = (exports.loadTarget = (targetId) => {
     const walletId = config.targets[targetId].wallet;
     const wallet = config.wallets[walletId];
 
-    const proxyAddress = deployments[targetId].contracts.find((a) => a.name === "DiamondProxy").onChain.address;
+    const proxyAddress = deployments[targetId]?.contracts.find((a) => a.name === "DiamondProxy")?.onChain.address;
 
     const provider = new ethers.providers.JsonRpcProvider(network.rpcUrl);
     const signer = ethers.Wallet.fromMnemonic(wallet.config.words).connect(provider);
-    const contract = new ethers.Contract(proxyAddress, abi, signer);
+    const contract = proxyAddress ? new ethers.Contract(proxyAddress, abi, signer) : null;
 
     return { networkId, network, walletId, wallet, proxyAddress, signer, contract };
 });
