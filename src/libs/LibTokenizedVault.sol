@@ -259,7 +259,7 @@ library LibTokenizedVault {
         return s.lockedBalances[_accountId][_tokenId];
     }
 
-    function _totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) external view returns (uint256) {
+    function _totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         return s.totalDividends[_tokenId][_dividendDenominationId];
