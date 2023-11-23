@@ -21,16 +21,19 @@ const loadTarget = (exports.loadTarget = (targetId) => {
     return { networkId, network, walletId, wallet, proxyAddress, signer, contract };
 });
 
-exports.calculateUpgradeId = async (targetId, cutFile) => {
+exports.calculateUpgradeId = async (cutFile) => {
     const cutData = require(cutFile);
-    const { contract } = loadTarget(targetId);
-    return await contract.calculateUpgradeId(cutData.cuts, cutData.initContractAddress, cutData.initData);
+    const encodedData = ethers.utils.defaultAbiCoder.encode(
+        ["tuple(address facetAddress, uint8 action, bytes4[] functionSelectors)[]", "address", "bytes"],
+        [cutData.cuts, cutData.initContractAddress, cutData.initData]
+    );
+    return ethers.utils.keccak256(encodedData);
 };
 
 exports.enableUpgradeViaGovernance = async (targetId, cutFile) => {
     const { contract } = loadTarget(targetId);
 
-    const upgradeId = await exports.calculateUpgradeId(targetId, cutFile);
+    const upgradeId = await exports.calculateUpgradeId(cutFile);
 
     console.log(`Enabling upgrade in contract, upgrade id: ${upgradeId}`);
 

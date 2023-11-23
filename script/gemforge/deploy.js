@@ -17,7 +17,7 @@ const _showTargetInfo = async (targetId) => {
 };
 
 const tellUserToEnableUpgrade = async (targetId, cutFile) => {
-    const upgradeId = await calculateUpgradeId(targetId, cutFile);
+    const upgradeId = await calculateUpgradeId(cutFile);
 
     console.log(`Upgrade id: ${upgradeId}`);
 
@@ -29,7 +29,7 @@ const tellUserToEnableUpgrade = async (targetId, cutFile) => {
 };
 
 const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
-    const upgradeId = await calculateUpgradeId(targetId, cutFile);
+    const upgradeId = await calculateUpgradeId(cutFile);
 
     await assertUpgradeIdIsEnabled(targetId, upgradeId);
 };
