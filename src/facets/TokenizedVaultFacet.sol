@@ -145,4 +145,13 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._internalTransfer(_fromEntityId, _toEntityId, _tokenId, _amount);
     }
+
+    /**
+     * @notice Get the total amount of dividends paid to a cell.
+     * @param _tokenId The entity ID of the cell. In otherwords, the participation token ID.
+     * @param _dividendDenominationId The ID of the dividend token that the dividends were paid in.
+     */
+    function totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) external view returns (uint256) {
+        return LibTokenizedVault._totalDividends(_tokenId, _dividendDenominationId);
+    }
 }
