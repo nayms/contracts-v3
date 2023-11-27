@@ -81,6 +81,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(su.addr);
     }
 
+    function testObjectTokenSymbol() public {
+        bytes32 objectId = createTestEntity(account0Id);
+        string memory symbol = "ptEN1";
+        string memory name = "Entity1 PToken";
+
+        nayms.enableEntityTokenization(objectId, symbol, name);
+        assertEq(nayms.getObjectTokenSymbol(objectId), symbol);
+    }
+
     function testDomainSeparator() public {
         bytes32 domainSeparator = nayms.domainSeparatorV4();
         // bytes32 expected = bytes32(0x38c40ddfc309275c926499b83dd3de3a9c824318ef5204fd7ae58f823f845291);

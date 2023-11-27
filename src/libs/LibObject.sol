@@ -184,4 +184,9 @@ library LibObject {
         tokenName = s.objectTokenName[_id];
         tokenWrapper = s.objectTokenWrapper[_id];
     }
+
+    function _objectTokenSymbol(bytes32 _objectId) internal view returns (string memory) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.objectTokenSymbol[_objectId];
+    }
 }
