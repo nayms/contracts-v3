@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable node/shebang */
+const chalk = require("chalk");
 
 const path = require("path");
 const fs = require("fs");
@@ -13,13 +14,13 @@ const _showTargetInfo = async (targetId) => {
     console.log(`Network: ${networkId} - ${network.rpcUrl}`);
     console.log(`Wallet: ${walletId}`);
     console.log(`System Admin: ${await signer.getAddress()}`);
-    console.log(`Proxy: ${proxyAddress}`);
+    console.log(`\nDiamond Proxy: ${chalk.green(proxyAddress)}\n`);
 };
 
 const tellUserToEnableUpgrade = async (targetId, cutFile) => {
     const upgradeId = await calculateUpgradeId(cutFile);
 
-    console.log(`Upgrade id: ${upgradeId}`);
+    console.log(`\nUpgrade id: ${chalk.green(upgradeId)}\n`);
 
     if (targetId === "mainnet") {
         console.log(`Please log into the MPC and enable this upgrade!`);
