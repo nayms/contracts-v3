@@ -112,7 +112,10 @@ module.exports = {
     sepoliaFork: { rpcUrl: "http://localhost:8545" },
     mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
     mainnetFork: { rpcUrl: "http://localhost:8545" },
-    baseGoerli: { rpcUrl: process.env.BASE_GOERLI_RPC_URL },
+    baseGoerli: {
+      rpcUrl: process.env.BASE_GOERLI_RPC_URL,
+      verifierUrl: "https://api-goerli.basescan.org/api",
+    },
     base: { rpcUrl: process.env.BASE_MAINNET_RPC_URL },
     baseFork: { rpcUrl: "http://localhost:8545" },
   },
