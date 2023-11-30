@@ -5,6 +5,7 @@
     const { $ } = await import("execa");
 
     const deploymentInfo = require("../../gemforge.deployments.json");
+    const gemforgeConfig = require("../../gemforge.config.cjs");
 
     const target = process.env.GEMFORGE_DEPLOY_TARGET;
     if (!target) {
@@ -19,7 +20,10 @@
 
     console.log(`Verifying for target ${target} ...`);
 
-    const contracts = (deploymentInfo[target] || {}).contracts || [];
+    const verifierUrl = gemforgeConfig.networks?.[target]?.verifierUrl;
+    const verificationArg = verifierUrl ? `--verifier-url=${verifierUrl}` : "--verifier etherscan";
+
+    const contracts = deploymentInfo[target]?.contracts || [];
 
     for (const { name, onChain } of contracts) {
         let args = "0x";
@@ -30,7 +34,7 @@
 
         console.log(`Verifying ${name} at ${onChain.address} with args ${args}`);
 
-        await $`forge verify-contract ${onChain.address} ${name} --constructor-args ${args} --chain-id ${deploymentInfo[target].chainId} --verifier etherscan --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --watch`;
+        await $`forge verify-contract ${onChain.address} ${name} --constructor-args ${args} --chain-id ${deploymentInfo[target].chainId} ${verificationArg} --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --watch`;
 
         console.log(`Verified!`);
     }
