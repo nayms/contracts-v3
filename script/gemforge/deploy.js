@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-/* eslint-disable node/shebang */
-const chalk = require("chalk");
 
+const chalk = require("chalk");
 const path = require("path");
 const fs = require("fs");
 const rootFolder = path.join(__dirname, "..", "..");
@@ -9,7 +8,6 @@ const { loadTarget, calculateUpgradeId, assertUpgradeIdIsEnabled, enableUpgradeV
 
 const _showTargetInfo = async (targetId) => {
     const { networkId, network, walletId, proxyAddress, signer } = loadTarget(targetId);
-
     console.log(`Target: ${targetId}`);
     console.log(`Network: ${networkId} - ${network.rpcUrl}`);
     console.log(`Wallet: ${walletId}`);

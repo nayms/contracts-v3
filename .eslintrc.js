@@ -5,6 +5,9 @@ module.exports = {
         mocha: true,
         node: true,
     },
+    eslint: {
+        runtime: "node"
+    },
     extends: ["standard", "plugin:prettier/recommended", "plugin:node/recommended"],
     parserOptions: {
         ecmaVersion: 12,
