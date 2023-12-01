@@ -57,13 +57,13 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testAddSupportedExternalTokenFailIfNotAdmin() public {
         changePrank(account1);
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
-        nayms.addSupportedExternalToken(wethAddress);
+        nayms.addSupportedExternalToken(wethAddress, 1e13);
         vm.stopPrank();
     }
 
     function testAddSupportedExternalTokenFailIfTokenAddressHasNoCode() public {
         vm.expectRevert("LibERC20: ERC20 token address has no code");
-        nayms.addSupportedExternalToken(address(0xdddddaaaaa));
+        nayms.addSupportedExternalToken(address(0xdddddaaaaa), 1e13);
     }
 
     function testAddSupportedExternalToken() public {
@@ -71,7 +71,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1e13);
         address[] memory v = nayms.getSupportedExternalTokens();
         assertEq(v.length, orig.length + 1);
         assertEq(v[v.length - 1], wbtcAddress);
@@ -87,7 +87,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         assertFalse(nayms.isSupportedExternalToken(id));
 
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1e13);
 
         assertTrue(nayms.isSupportedExternalToken(id));
     }
@@ -95,11 +95,11 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testSupportedTokenSymbolUnique() public {
         changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);
-        nayms.enableEntityTokenization(entityId, wbtc.symbol(), "Entity1 Token");
+        nayms.enableEntityTokenization(entityId, wbtc.symbol(), "Entity1 Token", 1e6);
 
         changePrank(sa.addr);
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, LibHelpers._getIdForAddress(wbtcAddress), wbtc.symbol()));
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1e13);
     }
 
     function testAddSupportedExternalTokenIfAlreadyAdded() public {
@@ -107,7 +107,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
 
         vm.recordLogs();
 
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1e13);
 
         address[] memory v = nayms.getSupportedExternalTokens();
         assertEq(v.length, orig.length + 1);
@@ -122,7 +122,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     function testAddSupportedExternalTokenIfWrapper() public {
         changePrank(sm.addr);
         bytes32 entityId1 = createTestEntity(account0Id);
-        nayms.enableEntityTokenization(entityId1, "E1", "E1 Token");
+        nayms.enableEntityTokenization(entityId1, "E1", "E1 Token", 1e6);
         nayms.startTokenSale(entityId1, 100 ether, 100 ether);
 
         vm.recordLogs();
@@ -137,7 +137,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         address loggedWrapperAddress = abi.decode(entries[0].data, (address));
 
         vm.expectRevert("cannot add participation token wrapper as external");
-        nayms.addSupportedExternalToken(loggedWrapperAddress);
+        nayms.addSupportedExternalToken(loggedWrapperAddress, 1e13);
     }
 
     function testOnlySystemAdminCanCallLockAndUnlockFunction(address userAddress) public {

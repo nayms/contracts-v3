@@ -44,7 +44,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.createEntity(acc2.entityId, acc2.id, entityInfo, testHash);
         nayms.createEntity(acc3.entityId, acc3.id, entityInfo, testHash);
 
-        nayms.enableEntityTokenization(acc1.entityId, "ESPT", "Entity Selling Par Tokens");
+        nayms.enableEntityTokenization(acc1.entityId, "ESPT", "Entity Selling Par Tokens", 1e6);
 
         (stakeholders, simplePolicy) = initPolicy(testHash);
 

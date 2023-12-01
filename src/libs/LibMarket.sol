@@ -8,6 +8,8 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 
+import { MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
+
 library LibMarket {
     struct MatchingOfferResult {
         uint256 remainingBuyAmount;
@@ -34,6 +36,9 @@ library LibMarket {
 
     /// @notice order has been cancelled
     event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
+
+    /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
+    event MinimumSellUpdated(bytes32 objectId, uint256 minimumSell);
 
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -245,7 +250,7 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeScheduleType;
 
-        if (_buyAmount < LibConstants.DUST || _sellAmount < LibConstants.DUST) {
+        if (_buyAmount < s.objectMinimumSell[_buyToken] || _sellAmount < s.objectMinimumSell[_sellToken]) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -306,7 +311,7 @@ library LibMarket {
         }
 
         // close offer if it has become dust
-        if (s.offers[_offerId].sellAmount < LibConstants.DUST) {
+        if (s.offers[_offerId].sellAmount < s.objectMinimumSell[s.offers[_offerId].sellToken]) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
             _cancelOffer(_offerId);
         }
@@ -453,5 +458,14 @@ library LibMarket {
     function _isActiveOffer(uint256 _offerId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
+    }
+
+    function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (_minimumSell == 0) revert MinimumSellCannotBeZero();
+
+        s.objectMinimumSell[_objectId] = _minimumSell;
+
+        emit MinimumSellUpdated(_objectId, _minimumSell);
     }
 }
