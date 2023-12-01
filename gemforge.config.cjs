@@ -3,6 +3,7 @@ const fs = require("fs");
 const ethers = require("ethers");
 
 const MNEMONIC = fs.readFileSync("./nayms_mnemonic.txt").toString().trim();
+const MNEMONIC_MAINNET = fs.readFileSync("./nayms_mnemonic_mainnet.txt").toString().trim();
 
 const walletOwnerIndex = 19;
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC).address;
@@ -93,18 +94,20 @@ module.exports = {
   },
   // Wallets to use for deployment
   wallets: {
-    // Wallet named "wallet1"
     wallet1: {
-      // Wallet type - mnemonic
       type: "mnemonic",
-      // Wallet config
       config: {
-        // Mnemonic phrase
         words: MNEMONIC,
-        // 0-based index of the account to use
         index: walletOwnerIndex,
       },
-    },
+      wallet2: {
+        type: "mnemonic",
+        config: {
+          words: MNEMONIC_MAINNET,
+          index: 0
+        }
+      }
+    }
   },
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
@@ -122,7 +125,6 @@ module.exports = {
     },
     baseFork: { rpcUrl: "http://localhost:8545" },
   },
-  // Targets to deploy
   targets: {
     local: {
       network: "local",
@@ -141,7 +143,7 @@ module.exports = {
     },
     mainnet: {
       network: "mainnet",
-      wallet: "wallet1",
+      wallet: "wallet2",
       initArgs: [sysAdminAddress],
     },
     mainnetFork: {
