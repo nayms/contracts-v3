@@ -100,12 +100,12 @@ module.exports = {
         words: MNEMONIC,
         index: walletOwnerIndex,
       },
-      wallet2: {
-        type: "mnemonic",
-        config: {
-          words: MNEMONIC_MAINNET,
-          index: 0
-        }
+    },
+    wallet2: {
+      type: "mnemonic",
+      config: {
+        words: MNEMONIC_MAINNET,
+        index: 0
       }
     }
   },
