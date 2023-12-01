@@ -116,7 +116,10 @@ module.exports = {
       rpcUrl: process.env.BASE_GOERLI_RPC_URL,
       verifierUrl: "https://api-goerli.basescan.org/api",
     },
-    base: { rpcUrl: process.env.BASE_MAINNET_RPC_URL },
+    base: {
+      rpcUrl: process.env.BASE_MAINNET_RPC_URL,
+      verifierUrl: "https://api.basescan.org/api"
+    },
     baseFork: { rpcUrl: "http://localhost:8545" },
   },
   // Targets to deploy
