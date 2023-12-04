@@ -959,7 +959,35 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // require(lockedBalance <= internalBalance, "double lock balance attack successful");
     }
 
-    function testDust_IM24703() public {
-        testStartTokenSale();
+    function testMinimumSellAmounts_IM24703() public {
+        vm.startPrank(sm.addr);
+        nayms.setMinimumSell(usdcId, 1e6);
+        assertEq(nayms.objectMinimumSell(usdcId), 1e6, "unexpected minimum sell amount");
+        bytes32 e1Id = createTestEntity(ea.id);
+        ea.entityId = e1Id;
+        nayms.enableEntityTokenization(e1Id, "E1", "Entity 1", 1e12);
+
+        hSetEntity(tcp, e1Id);
+        // Selling 10 pTokens for 1_000_000 USDC
+        nayms.startTokenSale(e1Id, 10e18, 1_000_000e6);
+
+        hAssignRole(tcp.id, e1Id, LC.ROLE_ENTITY_CP);
+
+        fundEntityUsdc(ea, 1_000_000e6);
+        // If the amount being sold is less than the minimum sell amount, the offer is expected to go into the
+        // "fulfilled" state
+        vm.startPrank(tcp.addr);
+        (uint256 lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6 - 1, e1Id, 10e18);
+        MarketInfo memory m = logOfferDetails(lastOfferId);
+        assertEq(m.state, LC.OFFER_STATE_FULFILLED, "unexpected offer state");
+        (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6, e1Id, 1e12 + 1);
+        m = logOfferDetails(lastOfferId);
+        assertEq(m.state, LC.OFFER_STATE_ACTIVE, "unexpected offer state");
+        (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6 + 1, e1Id, 1e12);
+        m = logOfferDetails(lastOfferId);
+        assertEq(m.state, LC.OFFER_STATE_ACTIVE, "unexpected offer state");
+        (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6, e1Id, 1e12 - 1);
+        m = logOfferDetails(lastOfferId);
+        assertEq(m.state, LC.OFFER_STATE_FULFILLED, "unexpected offer state");
     }
 }
