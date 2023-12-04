@@ -176,9 +176,4 @@ library LibAdmin {
 
         emit FunctionsUnlocked(lockedFunctions);
     }
-
-    function _objectMinimumSell(bytes32 _objectId) internal view returns (uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.objectMinimumSell[_objectId];
-    }
 }

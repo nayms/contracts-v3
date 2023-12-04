@@ -106,8 +106,4 @@ contract AdminFacet is Modifiers {
     function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._removeFeeSchedule(_entityId, _feeScheduleType);
     }
-
-    function objectMinimumSell(bytes32 _objectId) external view returns (uint256) {
-        return LibAdmin._objectMinimumSell(_objectId);
-    }
 }

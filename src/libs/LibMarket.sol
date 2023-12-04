@@ -460,6 +460,11 @@ library LibMarket {
         return s.offers[_offerId].state == LibConstants.OFFER_STATE_ACTIVE;
     }
 
+    function _objectMinimumSell(bytes32 _objectId) internal view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.objectMinimumSell[_objectId];
+    }
+
     function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         if (_minimumSell == 0) revert MinimumSellCannotBeZero();

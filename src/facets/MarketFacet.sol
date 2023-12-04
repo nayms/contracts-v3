@@ -125,6 +125,14 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
+     * @notice Get the minimum amount of tokens that can be sold on the market.
+     * @param _objectId ID of the object (Par token or external token)
+     */
+    function objectMinimumSell(bytes32 _objectId) external view returns (uint256) {
+        return LibMarket._objectMinimumSell(_objectId);
+    }
+
+    /**
      * @notice Set the minimum amount of tokens that can be sold on the market.
      * @param _objectId ID of the object (Par token or external token)
      * @param _minimumSell The minimum amount of tokens that can be sold on the market.
