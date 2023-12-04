@@ -248,8 +248,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         acc.entityId = entityId;
     }
 
-    function logOfferDetails(uint256 offerId) public view {
-        MarketInfo memory m = nayms.getOffer(offerId);
+    function logOfferDetails(uint256 offerId) public view returns (MarketInfo memory m) {
+        m = nayms.getOffer(offerId);
         string memory offerState;
         if (m.state == 1) offerState = "Active".green();
         if (m.state == 2) offerState = "Cancelled".red();
