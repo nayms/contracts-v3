@@ -16,7 +16,7 @@ library LibSimplePolicy {
     event SimplePolicyMatured(bytes32 indexed id);
     event SimplePolicyCancelled(bytes32 indexed id);
     event SimplePolicyPremiumPaid(bytes32 indexed id, uint256 amount);
-    event SimplePolicyClaimPaid(bytes32 indexed _claimId, bytes32 indexed policyId, bytes32 indexed insuredId, uint256 amount);
+    event SimplePolicyClaimPaid(bytes32 indexed claimId, bytes32 indexed policyId, bytes32 indexed insuredId, uint256 amount);
 
     function _getSimplePolicyInfo(bytes32 _policyId) internal view returns (SimplePolicy memory simplePolicyInfo) {
         AppStorage storage s = LibAppStorage.diamondStorage();

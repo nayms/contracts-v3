@@ -11,7 +11,7 @@ library LibFeeRouter {
     event FeePaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount, uint256 feeType);
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
-    event FeeScheduleAdded(bytes32 _entityId, uint256 _feeType, FeeSchedule feeSchedule);
+    event FeeScheduleAdded(bytes32 entityId, uint256 feeType, FeeSchedule feeSchedule);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
