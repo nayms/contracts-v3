@@ -55,8 +55,13 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _symbol The symbol assigned to the entity token
      * @param _name The name assigned to the entity token
      */
-    function enableEntityTokenization(bytes32 _objectId, string memory _symbol, string memory _name) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
-        LibObject._enableObjectTokenization(_objectId, _symbol, _name);
+    function enableEntityTokenization(
+        bytes32 _objectId,
+        string memory _symbol,
+        string memory _name,
+        uint256 _minimumSell
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+        LibObject._enableObjectTokenization(_objectId, _symbol, _name, _minimumSell);
     }
 
     /**

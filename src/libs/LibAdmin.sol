@@ -7,7 +7,7 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 
-import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals, ObjectTokenSymbolAlreadyInUse } from "../shared/CustomErrors.sol";
+import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals, ObjectTokenSymbolAlreadyInUse, MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 
@@ -16,6 +16,7 @@ library LibAdmin {
     event SupportedTokenAdded(address indexed tokenAddress);
     event FunctionsLocked(bytes4[] functionSelectors);
     event FunctionsUnlocked(bytes4[] functionSelectors);
+    event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
 
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
@@ -49,13 +50,15 @@ library LibAdmin {
         return LibHelpers._isAddress(_tokenId) && s.externalTokenSupported[LibHelpers._getAddressFromId(_tokenId)];
     }
 
-    function _addSupportedExternalToken(address _tokenAddress) internal {
+    function _addSupportedExternalToken(address _tokenAddress, uint256 _minimumSell) internal {
         if (LibERC20.decimals(_tokenAddress) > 18) {
             revert CannotSupportExternalTokenWithMoreThan18Decimals();
         }
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(!s.externalTokenSupported[_tokenAddress], "external token already added");
         require(s.objectTokenWrapperId[_tokenAddress] == bytes32(0), "cannot add participation token wrapper as external");
+
+        if (_minimumSell == 0) revert MinimumSellCannotBeZero();
 
         string memory symbol = LibERC20.symbol(_tokenAddress);
         if (s.tokenSymbolObjectId[symbol] != bytes32(0)) {
@@ -67,6 +70,7 @@ library LibAdmin {
         LibObject._createObject(tokenId, LC.OBJECT_TYPE_ADDRESS);
         s.supportedExternalTokens.push(_tokenAddress);
         s.tokenSymbolObjectId[symbol] = tokenId;
+        s.objectMinimumSell[tokenId] = _minimumSell;
 
         emit SupportedTokenAdded(_tokenAddress);
     }

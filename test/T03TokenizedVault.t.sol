@@ -54,7 +54,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nWBTC = LibHelpers._getIdForAddress(wbtcAddress);
         dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1);
         entityWbtc = Entity({
             assetId: LibHelpers._getIdForAddress(wbtcAddress),
             collateralRatio: LC.BP_FACTOR,
@@ -100,7 +100,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getLockedBalance(entityId, entityId), 0);
 
         // now start token sale to create an offer
-        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token");
+        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token", 1);
         nayms.startTokenSale(entityId, 100, 100);
 
         assertEq(nayms.getLockedBalance(entityId, entityId), 100);
@@ -249,7 +249,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     function testOnlyRolesInGroupPayDividendFromEntityCanPayDividend() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(acc0EntityId, "E1", "E1");
+        nayms.enableEntityTokenization(acc0EntityId, "E1", "E1", 1e6);
         nayms.startTokenSale(acc0EntityId, 1 ether, 1 ether);
 
         bytes32 acc9Id = LibHelpers._getIdForAddress(account9);
@@ -328,7 +328,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(sm.addr);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(acc0EntityId, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -414,7 +414,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(eAlice, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -495,7 +495,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
@@ -579,7 +579,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
 
         // check token supply of participation token (entity token)
@@ -683,8 +683,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(sm.addr);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
-        nayms.enableEntityTokenization(eDavid, "eDavid", "eDavid");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
+        nayms.enableEntityTokenization(eDavid, "eDavid", "eDavid", 1);
 
         nayms.startTokenSale(eAlice, 20_000, 20_000);
         nayms.startTokenSale(eDavid, 20_000, 20_000);
@@ -802,7 +802,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        // nayms.setMinimumSell(nWETH, 1);
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
         nayms.startTokenSale(eAlice, 20_000, 20_000);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
@@ -814,6 +815,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(eAlice, eAlice), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
 
         changePrank(sm.addr);
+
         nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
         nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
 
@@ -907,7 +909,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(sm.addr);
         // 1. ---- start token sale ----
-        nayms.enableEntityTokenization(entity0Id, "e0token", "e0token");
+        nayms.enableEntityTokenization(entity0Id, "e0token", "e0token", 1);
 
         nayms.startTokenSale(entity0Id, _parTokenSupply, _parTokenSupply);
         assertEq(nayms.internalTokenSupply(entity0Id), _parTokenSupply, "Entity 1 participation tokens should be minted");
@@ -1000,7 +1002,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // STAGE 1: Alice is starting an eAlice token sale.
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
         uint256 tokenAmount = 1e18;
         nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
         changePrank(alice);
@@ -1025,6 +1027,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(alice);
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
+
+        nayms.objectMinimumSell(nWETH);
+        nayms.objectMinimumSell(eAlice);
         nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
 
         // STAGE 4: Alice selling the newly purchased eAlice token back to Bob.
@@ -1055,7 +1060,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         eAlice = nayms.getEntity(account0Id);
         eBob = nayms.getEntity(signer1Id);
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);

@@ -118,8 +118,9 @@ contract D03ProtocolDefaults is D02TestSetup {
         vm.label(signer4, "Account 4 (Insured Party Rep)");
 
         changePrank(systemAdmin);
-        if (!nayms.isSupportedExternalToken(wethId)) nayms.addSupportedExternalToken(wethAddress);
-        try nayms.addSupportedExternalToken(usdcAddress) {} catch {}
+
+        if (!nayms.isSupportedExternalToken(wethId)) nayms.addSupportedExternalToken(wethAddress, 1);
+        try nayms.addSupportedExternalToken(usdcAddress, 1) {} catch {}
 
         entity = Entity({
             assetId: LibHelpers._getIdForAddress(wethAddress),
@@ -247,8 +248,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         acc.entityId = entityId;
     }
 
-    function logOfferDetails(uint256 offerId) public view {
-        MarketInfo memory m = nayms.getOffer(offerId);
+    function logOfferDetails(uint256 offerId) public view returns (MarketInfo memory m) {
+        m = nayms.getOffer(offerId);
         string memory offerState;
         if (m.state == 1) offerState = "Active".green();
         if (m.state == 2) offerState = "Cancelled".red();

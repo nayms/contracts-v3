@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
-import { EntityDoesNotExist, ObjectCannotBeTokenized, ObjectTokenSymbolInvalid, ObjectTokenSymbolAlreadyInUse, ObjectTokenNameInvalid, InvalidObjectType, InvalidObjectIdForAddress } from "../shared/CustomErrors.sol";
+import { EntityDoesNotExist, ObjectCannotBeTokenized, ObjectTokenSymbolInvalid, ObjectTokenSymbolAlreadyInUse, ObjectTokenNameInvalid, InvalidObjectType, InvalidObjectIdForAddress, MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../utils/ERC20Wrapper.sol";
 
@@ -103,10 +103,12 @@ library LibObject {
         }
     }
 
-    function _enableObjectTokenization(bytes32 _objectId, string memory _symbol, string memory _name) internal {
+    function _enableObjectTokenization(bytes32 _objectId, string memory _symbol, string memory _name, uint256 _minimumSell) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         _validateTokenNameAndSymbol(_objectId, _symbol, _name);
+
+        if (_minimumSell == 0) revert MinimumSellCannotBeZero();
 
         // Ensure the entity exists before tokenizing the entity, otherwise revert.
         if (!s.existingEntities[_objectId]) {
@@ -118,6 +120,7 @@ library LibObject {
         s.objectTokenSymbol[_objectId] = _symbol;
         s.objectTokenName[_objectId] = _name;
         s.tokenSymbolObjectId[_symbol] = _objectId;
+        s.objectMinimumSell[_objectId] = _minimumSell;
 
         emit TokenizationEnabled(_objectId, _symbol, _name);
     }

@@ -86,7 +86,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         string memory symbol = "ptEN1";
         string memory name = "Entity1 PToken";
 
-        nayms.enableEntityTokenization(objectId, symbol, name);
+        nayms.enableEntityTokenization(objectId, symbol, name, 1e6);
         assertEq(nayms.getObjectTokenSymbol(objectId), symbol);
     }
 
@@ -142,24 +142,24 @@ contract T04EntityTest is D03ProtocolDefaults {
         string memory symbol = "ptEN1";
         string memory name = "Entity1 PToken";
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolInvalid.selector, entityId, ""));
-        nayms.enableEntityTokenization(entityId, "", name);
+        nayms.enableEntityTokenization(entityId, "", name, 1e6);
 
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolInvalid.selector, entityId, "12345678901234567"));
-        nayms.enableEntityTokenization(entityId, "12345678901234567", name);
+        nayms.enableEntityTokenization(entityId, "12345678901234567", name, 1e6);
 
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenNameInvalid.selector, entityId, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To"));
-        nayms.enableEntityTokenization(entityId, symbol, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To");
+        nayms.enableEntityTokenization(entityId, symbol, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To", 1e6);
 
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenNameInvalid.selector, entityId, ""));
-        nayms.enableEntityTokenization(entityId, symbol, "");
+        nayms.enableEntityTokenization(entityId, symbol, "", 1e6);
 
-        nayms.enableEntityTokenization(entityId, symbol, name);
+        nayms.enableEntityTokenization(entityId, symbol, name, 1e6);
 
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, entityId2, symbol));
-        nayms.enableEntityTokenization(entityId2, symbol, "Entity2 PToken");
+        nayms.enableEntityTokenization(entityId2, symbol, "Entity2 PToken", 1e6);
 
         vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, entityId3, "WETH"));
-        nayms.enableEntityTokenization(entityId3, "WETH", "Entity3 Token");
+        nayms.enableEntityTokenization(entityId3, "WETH", "Entity3 Token", 1e6);
     }
 
     function testEnableEntityTokenization() public {
@@ -168,22 +168,22 @@ contract T04EntityTest is D03ProtocolDefaults {
         // Attempt to tokenize an entity when the entity does not exist. Should throw an error.
         bytes32 nonExistentEntity = bytes32("ffffaaa");
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (nonExistentEntity)));
-        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345", "1234567890123456", 1e6);
 
         changePrank(signer1);
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer1Id, systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456", 1e6);
         changePrank(sm.addr);
 
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456", 1e6);
 
         vm.expectRevert("object already tokenized");
-        nayms.enableEntityTokenization(entityId1, "123456789012346", "12345678901234567");
+        nayms.enableEntityTokenization(entityId1, "123456789012346", "12345678901234567", 1e6);
     }
 
     function testUpdateEntityTokenInfo() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, false), "entity test hash");
-        nayms.enableEntityTokenization(entityId1, "TT", "Test Token");
+        nayms.enableEntityTokenization(entityId1, "TT", "Test Token", 1e6);
 
         string memory newTokenSymbol = "nTT";
         string memory newTokenName = "New Test Token";
@@ -214,7 +214,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         c.log(" >>> CREATED");
 
         changePrank(systemAdmin);
-        nayms.addSupportedExternalToken(address(wbtc));
+        nayms.addSupportedExternalToken(address(wbtc), 1);
         changePrank(sm.addr);
         vm.expectRevert("assetId change not allowed");
         nayms.updateEntity(entityId1, initEntity(wbtcId, 10_000, 0, false));
@@ -449,7 +449,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         vm.startPrank(sa.addr);
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1e13);
         simplePolicy.asset = wbtcId;
         vm.startPrank(su.addr);
         vm.expectRevert("asset not matching with entity");
@@ -993,7 +993,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert(abi.encodeWithSelector(ObjectCannotBeTokenized.selector, entityId1));
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
-        nayms.enableEntityTokenization(entityId1, "e1token", "e1token");
+        nayms.enableEntityTokenization(entityId1, "e1token", "e1token", 1e2);
 
         changePrank(account9);
         vm.expectRevert();

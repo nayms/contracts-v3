@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import { Modifiers } from "../shared/Modifiers.sol";
 import { CalculatedFees, MarketInfo } from "../shared/AppStorage.sol";
+import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
@@ -121,5 +122,22 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
 
     function getMakerBP() external view returns (uint16) {
         return LibFeeRouter._getMakerBP();
+    }
+
+    /**
+     * @notice Get the minimum amount of tokens that can be sold on the market.
+     * @param _objectId ID of the object (Par token or external token)
+     */
+    function objectMinimumSell(bytes32 _objectId) external view returns (uint256) {
+        return LibMarket._objectMinimumSell(_objectId);
+    }
+
+    /**
+     * @notice Set the minimum amount of tokens that can be sold on the market.
+     * @param _objectId ID of the object (Par token or external token)
+     * @param _minimumSell The minimum amount of tokens that can be sold on the market.
+     */
+    function setMinimumSell(bytes32 _objectId, uint256 _minimumSell) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+        LibMarket._setMinimumSell(_objectId, _minimumSell);
     }
 }
