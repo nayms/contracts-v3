@@ -8,7 +8,13 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 
+// solhint-disable no-console
+import { console2 as console } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 library LibMarket {
+    using StdStyle for *;
+
     struct MatchingOfferResult {
         uint256 remainingBuyAmount;
         uint256 remainingSellAmount;
@@ -214,9 +220,32 @@ library LibMarket {
                     uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
+
                 // Update how much is left to buy/sell
+
                 result.remainingSellAmount -= currentSellAmount;
-                result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
+                // result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
+
+                // if the actual price is more favourable than the asking price, to prevent underflow we need to:
+                //  - normalize current buy amount
+                //  - and reduce remaining buy amount by that normalized value
+                //
+                //   ask price = initial buy amount / initial sell amount
+                //   actual price = current buy amount / current sell amount
+                //
+                // if ask price < actual price => normalize currentBuyAmount before reducing remainingBuyAmount by it
+                if (_buyAmount * currentSellAmount < currentBuyAmount * _sellAmount) {
+                    // normalization factor = asking price / actual price:
+                    // = (initial buy amount/initial sell amount) / (current buy amount / current sell amount)
+                    // = initial buy amount * current sell amount / initial sell amount / current buy amount
+                    // that means that normalized buy amount:
+                    // = current buy amount * normalization factor
+                    // normalized buy amount = currentBuyAmount * (initial buy amount * current sell amount / initial sell amount / current buy amount)
+                    // which equals to below:
+                    result.remainingBuyAmount -= (_buyAmount * currentSellAmount) / _sellAmount;
+                } else {
+                    result.remainingBuyAmount -= currentBuyAmount;
+                }
             }
         }
     }
@@ -431,6 +460,7 @@ library LibMarket {
         sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
         offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeScheduleType);
+        // console.log(" -- CREATE NEW offer - ID:", offerId_.green());
 
         // if still some left
         AppStorage storage s = LibAppStorage.diamondStorage();

@@ -257,7 +257,8 @@ contract D03ProtocolDefaults is D02TestSetup {
         string memory sellSymbol = vm.toString(m.sellToken);
         string memory buySymbol = vm.toString(m.buyToken);
 
-        if (nayms.isSupportedExternalToken(m.sellToken)) {
+        bool sellExternal = nayms.isSupportedExternalToken(m.sellToken);
+        if (sellExternal) {
             sellSymbol = IERC20(LibHelpers._getAddressFromId(m.sellToken)).symbol();
             (, , buySymbol, , ) = nayms.getObjectMeta(m.buyToken);
         } else {
@@ -271,8 +272,16 @@ contract D03ProtocolDefaults is D02TestSetup {
         c.log(string.concat(" ", buySymbol.green(), ":    ", vm.toString(m.buyAmount), " (", vm.toString(m.buyAmountInitial), ")"));
 
         // price is multiplied by 1000 to prevent rounding loss for small amounts in tests
-        uint256 price = m.sellAmount == 0 ? 0 : ((m.buyAmount * 1000) / m.sellAmount);
-        uint256 priceInitial = m.sellAmountInitial == 0 ? 0 : ((m.buyAmountInitial * 1000) / m.sellAmountInitial);
+        uint256 price;
+        uint256 priceInitial;
+        if (sellExternal) {
+            price = m.buyAmount == 0 ? 0 : ((m.sellAmount * 1000) / m.buyAmount);
+            priceInitial = m.buyAmountInitial == 0 ? 0 : ((m.sellAmountInitial * 1000) / m.buyAmountInitial);
+        } else {
+            price = m.sellAmount == 0 ? 0 : ((m.buyAmount * 1000) / m.sellAmount);
+            priceInitial = m.sellAmountInitial == 0 ? 0 : ((m.buyAmountInitial * 1000) / m.sellAmountInitial);
+        }
+
         c.log(
             string.concat(
                 "-- ".green(),
