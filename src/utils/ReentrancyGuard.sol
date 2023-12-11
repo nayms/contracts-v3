@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
-import { LibAppStorage } from "src/diamonds/nayms/AppStorage.sol";
+import { LibAppStorage } from "../shared/AppStorage.sol";
 
 // From OpenZeppelin: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol
 

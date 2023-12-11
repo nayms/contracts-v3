@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, c, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { ERC20Wrapper } from "../src/erc20/ERC20Wrapper.sol";
+import { Entity } from "src/shared/FreeStructs.sol";
+import { ERC20Wrapper } from "../src/utils/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {
-    bytes32 internal entityId1 = "0xe1";
-    bytes32 internal entityId2 = "0xe2";
+    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe1"));
+    bytes32 internal entityId2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe2"));
 
     string internal testSymbol = "E1";
     string internal testName = "Entity 1 Token";
@@ -38,7 +38,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         nayms.wrapToken(entityId1);
 
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(entityId1, testSymbol, testName);
+        nayms.enableEntityTokenization(entityId1, testSymbol, testName, 1e6);
         nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
 
         changePrank(sa.addr);

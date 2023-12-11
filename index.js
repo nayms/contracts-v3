@@ -1,6 +1,6 @@
 module.exports = {
-  Nayms: require("./forge-artifacts/INayms.sol/INayms.json"),
+  Nayms: require("./src/generated/abi.json"),
   ERC20: require("./forge-artifacts/IERC20.sol/IERC20.json"),
   Constants: require("./forge-artifacts/LibConstants.sol/LibConstants.json"),
-  addresses: require("./deployedAddresses.json"),
+  targets: require("./gemforge.deployments.json"),
 };

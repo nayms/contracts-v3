@@ -39,14 +39,16 @@ rpc_storage_caching = { chains = "all", endpoints = "all" }
 no_storage_caching = false
 # use ipfs method to generate the metadata hash, solc's default.
 # To not include the metadata hash, to allow for deterministic code: https://docs.soliditylang.org/en/latest/metadata.html, use "none"
-bytecode_hash = "ipfs"
+bytecode_hash = "none"
+# Whether to append the metadata hash to the bytecode
+cbor_metadata = false
 # If this option is enabled, Solc is instructed to generate output (bytecode) only for the required contracts
 # this can reduce compile time for `forge test` a bit but is considered experimental at this point.
 sparse_mode = false
 # Setting this option enables decoding of error traces from mainnet deployed / verfied contracts via etherscan
 # permissions for read-write
 fs_permissions = [
-    { access = "read-write", path = "./src/diamonds/nayms/interfaces/" },
+    { access = "read-write", path = "./src/interfaces/" },
     { access = "read-write", path = "./facetsdeployed.txt" },
     { access = "read-write", path = "./deployedAddresses.json" },
     { access = "read-write", path = "./deployedAddressesTest.json" },
@@ -57,7 +59,7 @@ fs_permissions = [
 ]
 
 [profile.test]
-solc = '0.8.17'
+solc = '0.8.20'
 auto_detect_solc = false
 optimizer = false
 ffi = true

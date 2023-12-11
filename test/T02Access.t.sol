@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 // import { c as c } from "forge-std/c.sol";
 import { D03ProtocolDefaults, LibHelpers, LC, c } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, SimplePolicy, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import { Entity, SimplePolicy, Stakeholders } from "src/shared/FreeStructs.sol";
+import "src/shared/CustomErrors.sol";
 
 // updateRoleGroup | isRoleInGroup | groups [role][group] = bool
 // updateRoleAssigner | canGroupAssignRole | canAssign [role] = group

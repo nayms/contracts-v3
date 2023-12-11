@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { D01Deployment, LibHelpers, c } from "./D01Deployment.sol";
 import { MockERC20 } from "solmate/test/utils/mocks/MockERC20.sol";
@@ -16,6 +16,10 @@ abstract contract D02TestSetup is D01Deployment {
     address public wbtcAddress;
     bytes32 public wbtcId;
 
+    MockERC20 public usdc;
+    address public usdcAddress;
+    bytes32 public usdcId;
+
     constructor() payable {
         changePrank(address(this));
         weth = new MockERC20("Wrapped ETH", "WETH", 18);
@@ -26,7 +30,12 @@ abstract contract D02TestSetup is D01Deployment {
         wbtcAddress = address(wbtc);
         wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
 
+        usdc = new MockERC20("USD Coin", "USDC", 6);
+        usdcAddress = address(usdc);
+        usdcId = LibHelpers._getIdForAddress(usdcAddress);
+
         vm.label(wethAddress, "WETH");
         vm.label(wbtcAddress, "WBTC");
+        vm.label(usdcAddress, "USDC");
     }
 }

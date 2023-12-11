@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { Test } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { LibHelpers } from "../src/diamonds/nayms/libs/LibHelpers.sol";
+import { LibHelpers } from "../src/libs/LibHelpers.sol";
 
 contract T01LibHelpers is Test {
     function testGetIdForObjectAtIndexFuzz(uint256 i) public {
@@ -23,7 +23,7 @@ contract T01LibHelpers is Test {
         bytes32 bottom12Bytes = id & mask;
 
         if (bottom12Bytes != 0) {
-            vm.expectRevert("Invalid external token address");
+            vm.expectRevert("Invalid address based ID");
             assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));
         } else {
             assertEq(LibHelpers._getAddressFromId(id), address(bytes20(id)));

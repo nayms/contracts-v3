@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, CalculatedFees } from "src/diamonds/nayms/AppStorage.sol";
-import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import "src/shared/CustomErrors.sol";
 
 // solhint-disable max-states-count
 // solhint-disable no-console
@@ -17,9 +17,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     bytes32 internal nWBTC;
     bytes32 internal dividendBankId;
 
-    bytes32 internal entity1 = bytes32("e5");
-    bytes32 internal entity2 = bytes32("e6");
-    bytes32 internal entity3 = bytes32("e7");
+    bytes32 internal entity1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e5"));
+    bytes32 internal entity2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e6"));
+    bytes32 internal entity3 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e7"));
 
     uint256 internal constant collateralRatio_500 = 500;
     uint256 internal constant maxCapital_3000eth = 3_000 ether;
@@ -54,7 +54,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nWBTC = LibHelpers._getIdForAddress(wbtcAddress);
         dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
-        nayms.addSupportedExternalToken(wbtcAddress);
+        nayms.addSupportedExternalToken(wbtcAddress, 1);
         entityWbtc = Entity({
             assetId: LibHelpers._getIdForAddress(wbtcAddress),
             collateralRatio: LC.BP_FACTOR,
@@ -63,9 +63,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
             simplePolicyEnabled: true
         });
         changePrank(sm.addr);
-        nayms.createEntity(bytes32("0x11111"), davidId, entityWbtc, "entity wbtc test hash");
-        nayms.createEntity(bytes32("0x22222"), emilyId, entityWbtc, "entity wbtc test hash");
-        nayms.createEntity(bytes32("0x33333"), faithId, entityWbtc, "entity wbtc test hash");
+        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x11111")), davidId, entityWbtc, "entity wbtc test hash");
+        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x22222")), emilyId, entityWbtc, "entity wbtc test hash");
+        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x33333")), faithId, entityWbtc, "entity wbtc test hash");
 
         alice = account0;
         aliceId = account0Id;
@@ -87,28 +87,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         scheduleAndUpgradeDiamond(cut);
     }
 
-    function externalDepositDirect(
-        bytes32 to,
-        address token,
-        uint256 amount
-    ) internal {
+    function externalDepositDirect(bytes32 to, address token, uint256 amount) internal {
         (bool success, ) = address(nayms).call(abi.encodeWithSelector(tokenizedVaultFixture.externalDepositDirect.selector, to, token, amount));
         require(success, "Should get commissions from app storage");
-    }
-
-    function testEntityTokenSymbolUniqueness() public {
-        changePrank(sm.addr);
-        bytes32 entityId = createTestEntity(account0Id);
-        bytes32 entityId2 = createTestEntityWithId(account0Id, "0xe2");
-        bytes32 entityId3 = createTestEntityWithId(account0Id, "0xe3");
-
-        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token");
-
-        vm.expectRevert("token symbol already in use");
-        nayms.enableEntityTokenization(entityId2, "Entity1", "Entity2 Token");
-
-        vm.expectRevert("token symbol already in use");
-        nayms.enableEntityTokenization(entityId3, "WBTC", "Entity3 Token");
     }
 
     function testGetLockedBalance() public {
@@ -119,7 +100,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getLockedBalance(entityId, entityId), 0);
 
         // now start token sale to create an offer
-        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token");
+        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token", 1);
         nayms.startTokenSale(entityId, 100, 100);
 
         assertEq(nayms.getLockedBalance(entityId, entityId), 100);
@@ -167,17 +148,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     // note: when creating entities for another userId, e.g. Alice is creating an entity for Bob, Alice needs to make sure they create the internal Nayms Id of Bob correctly.
-    function testFuzzSingleExternalDeposit(
-        bytes32 _entity1,
-        bytes32 _entity2,
-        address _signer1,
-        address _signer2,
-        uint256 _depositAmount
-    ) public {
+    function testFuzzSingleExternalDeposit(bytes20 _entity1Partial, bytes20 _entity2Partial, address _signer1, address _signer2, uint256 _depositAmount) public {
+        bytes32 _entity1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(_entity1Partial));
+        bytes32 _entity2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(_entity2Partial));
         vm.assume(_entity1 > 0 && _entity2 > 0 && _entity1 != _entity2); // else revert: object already exists
         vm.assume(!nayms.isObject(_entity1) && !nayms.isObject(_entity2));
         vm.assume(_depositAmount > 5); // else revert: _internalMint: mint zero tokens, note: > 5 to ensure the externalDepositAmount isn't 0, see code below
 
+        // _entity1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(_entity1));
+        // _entity2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(_entity2));
         vm.assume(_signer1 != address(0) && _signer1 != address(999999));
         vm.assume(_signer2 != address(0) && _signer2 != address(999999));
         vm.assume(_signer1 != _signer2);
@@ -270,7 +249,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     function testOnlyRolesInGroupPayDividendFromEntityCanPayDividend() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(acc0EntityId, "E1", "E1");
+        nayms.enableEntityTokenization(acc0EntityId, "E1", "E1", 1e6);
         nayms.startTokenSale(acc0EntityId, 1 ether, 1 ether);
 
         bytes32 acc9Id = LibHelpers._getIdForAddress(account9);
@@ -304,7 +283,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // check token supply of participation token (entity token)
         assertEq(nayms.internalTokenSupply(acc0EntityId), 0, "Testing when the participation token supply is 0, but par token supply is NOT 0");
 
-        bytes32 randomGuid = bytes32("0x1");
+        bytes32 randomGuid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1"));
 
         address nonAdminAddress = vm.addr(0xACC9);
         bytes32 nonAdminId = LibHelpers._getIdForAddress(nonAdminAddress);
@@ -349,12 +328,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(sm.addr);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(acc0EntityId, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
         assertEq(nayms.internalTokenSupply(acc0EntityId), 1 ether, "");
-        bytes32 randomGuid = bytes32("0x1");
+        bytes32 randomGuid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1"));
 
         changePrank(em.addr);
         nayms.assignRole(acc0EntityId, acc0EntityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
@@ -435,7 +414,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(eAlice, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -451,7 +430,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(eAlice, eAlice, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
-        bytes32 randomGuid = bytes32("0x1");
+        bytes32 randomGuid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1"));
         nayms.payDividendFromEntity(randomGuid, 1 ether); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether - 1 ether, "eAlice's nWETH balance should DECREASE (transfer to dividend bank)");
 
@@ -516,7 +495,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
         nayms.startTokenSale(eAlice, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
@@ -538,14 +517,14 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
         changePrank(alice);
-        nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
 
-        nayms.payDividendFromEntity(bytes32("0x2"), 60_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 60_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
 
@@ -600,7 +579,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
 
         // check token supply of participation token (entity token)
@@ -635,7 +614,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
             uint256 balanceOfEbob = nayms.internalBalanceOf(eBob, eAlice);
 
             changePrank(alice);
-            bytes32 randomGuid = bytes32("0x1");
+            bytes32 randomGuid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1"));
             nayms.payDividendFromEntity(randomGuid, dividendAmount); // eAlice is paying out a dividend
 
             uint256 calc = (balanceOfEbob * dividendAmount) / eAliceParTokenSaleAmount;
@@ -704,8 +683,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(sm.addr);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
-        nayms.enableEntityTokenization(eDavid, "eDavid", "eDavid");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
+        nayms.enableEntityTokenization(eDavid, "eDavid", "eDavid", 1);
 
         nayms.startTokenSale(eAlice, 20_000, 20_000);
         nayms.startTokenSale(eDavid, 20_000, 20_000);
@@ -740,14 +719,14 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
         vm.startPrank(alice);
-        nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
 
         assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
 
-        nayms.payDividendFromEntity(bytes32("0x2"), 60_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 60_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
 
@@ -761,7 +740,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 100_000);
         vm.prank(david);
-        nayms.payDividendFromEntity(bytes32("0x3"), 40_000); // eDavid is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x3")), 40_000); // eDavid is paying out a dividend
         assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 40_000);
 
@@ -769,7 +748,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eFaith, eDavid, nWBTC), 34_000);
 
         vm.prank(david);
-        nayms.payDividendFromEntity(bytes32("0x4"), 60_000); // eDavid is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x4")), 60_000); // eDavid is paying out a dividend
         assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 100_000);
 
@@ -823,7 +802,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        // nayms.setMinimumSell(nWETH, 1);
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
         nayms.startTokenSale(eAlice, 20_000, 20_000);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
@@ -835,6 +815,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(eAlice, eAlice), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
 
         changePrank(sm.addr);
+
         nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
         nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
 
@@ -853,7 +834,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
 
         changePrank(alice);
-        nayms.payDividendFromEntity(bytes32("0x1"), 40_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 40_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
 
@@ -861,9 +842,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
 
         vm.expectRevert("nonunique dividend distribution identifier");
-        nayms.payDividendFromEntity(bytes32("0x1"), 60_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 60_000); // eAlice is paying out a dividend
 
-        nayms.payDividendFromEntity(bytes32("0x2"), 60_000); // eAlice is paying out a dividend
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 60_000); // eAlice is paying out a dividend
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
 
@@ -886,19 +867,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         scopeTo(_input, 1_000, type(uint128).max);
     }
 
-    function scopeTo(
-        uint256 _input,
-        uint256 _min,
-        uint256 _max
-    ) internal pure {
+    function scopeTo(uint256 _input, uint256 _min, uint256 _max) internal pure {
         vm.assume(_min <= _input && _input <= _max);
     }
 
-    function testFuzzWithdrawableDividends(
-        uint256 _parTokenSupply,
-        uint256 _holdersShare,
-        uint256 _dividendAmount
-    ) public {
+    function testFuzzWithdrawableDividends(uint256 _parTokenSupply, uint256 _holdersShare, uint256 _dividendAmount) public {
         // -- Test Case -----------------------------
         // 1. start token sale
         // 2. distribute dividends
@@ -923,8 +896,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         });
 
         changePrank(sm.addr);
-        bytes32 entity0Id = bytes32("0xe1");
-        bytes32 entity1Id = bytes32("0xe2");
+        bytes32 entity0Id = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe1"));
+        bytes32 entity1Id = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe2"));
         nayms.createEntity(entity0Id, account0Id, e, "test");
         nayms.createEntity(entity1Id, signer1Id, e, "test");
 
@@ -936,7 +909,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         changePrank(sm.addr);
         // 1. ---- start token sale ----
-        nayms.enableEntityTokenization(entity0Id, "e0token", "e0token");
+        nayms.enableEntityTokenization(entity0Id, "e0token", "e0token", 1);
 
         nayms.startTokenSale(entity0Id, _parTokenSupply, _parTokenSupply);
         assertEq(nayms.internalTokenSupply(entity0Id), _parTokenSupply, "Entity 1 participation tokens should be minted");
@@ -951,7 +924,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(entity0Id, nWETH), _dividendAmount, "entity0 nWETH balance should INCREASE (mint)");
 
         // distribute dividends to entity0 shareholders
-        bytes32 guid = bytes32("0xc0ffee");
+        bytes32 guid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0xc0ffe"));
         nayms.payDividendFromEntity(guid, _dividendAmount);
 
         // entity1 has no share, thus no withdrawable dividend at this point
@@ -991,7 +964,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // 5.  ---- distribute another round of dividends  ----
         vm.startPrank(account0);
         c.log(nayms.internalBalanceOf(entity0Id, nWETH));
-        bytes32 guid2 = bytes32("0xbEEf");
+        bytes32 guid2 = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0xbEEf"));
         nayms.payDividendFromEntity(guid2, _dividendAmount);
 
         // 6.  ---- SHOULD have more withdrawable dividends now!  ----
@@ -1029,14 +1002,14 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // STAGE 1: Alice is starting an eAlice token sale.
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
         uint256 tokenAmount = 1e18;
         nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
         changePrank(alice);
         nayms.externalDeposit(wethAddress, 1 ether);
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether, "eAlice's nWETH balance should INCREASE");
         // eAlice is paying out a dividend with guid 0x1
-        nayms.payDividendFromEntity("0x1", 1 ether);
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 1 ether);
 
         // STAGE 2: Bob is trying to buy all of the newly sold eAlice Tokens.
         changePrank(bob);
@@ -1054,6 +1027,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(alice);
         writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
+
+        nayms.objectMinimumSell(nWETH);
+        nayms.objectMinimumSell(eAlice);
         nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
 
         // STAGE 4: Alice selling the newly purchased eAlice token back to Bob.
@@ -1065,7 +1041,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // STAGE 5: Alice wants to pay a dividend to the eAlice token holders.
         changePrank(alice);
-        nayms.payDividendFromEntity("0x2", 1 ether); // eAlice is paying out a dividend with new guid "0x2"
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 1 ether); // eAlice is paying out a dividend with new guid "0x2"
         // Note that up to this point, Bob has not received any dividend because the initial dividend is already all taken by Alice.
 
         // STAGE 6: Bob tries to get this new dividend since he now has all the eAlice
@@ -1084,7 +1060,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         eAlice = nayms.getEntity(account0Id);
         eBob = nayms.getEntity(signer1Id);
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice");
+        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
         nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
@@ -1108,10 +1084,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // 4. Alice pays 100 WETH as a dividend;
         changePrank(alice);
-        nayms.payDividendFromEntity("0x1", 100 ether);
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 100 ether);
 
         // 5. Alice pays 100 WETH as a dividend;
-        nayms.payDividendFromEntity("0x2", 100 ether);
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 100 ether);
 
         // 6. Bob buys all 100 ALICE from Alice. Here, during the transfer,
         //    Alice would have withdrawn the 200 WETH dividend owed to her,
@@ -1134,7 +1110,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // 8. Alice pays 500 WETH as a dividend;
         changePrank(alice);
-        nayms.payDividendFromEntity("0x3", eAliceStartAmount);
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x3")), eAliceStartAmount);
 
         // 9. Alice tries to withdraw the 500 WETH dividend, should withdraw all 500 WETH
         nayms.withdrawDividend(eAlice, eAlice, nWETH);

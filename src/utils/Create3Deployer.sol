@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { CREATE3 } from "solmate/utils/CREATE3.sol";
 
 contract Create3Deployer {
-    function deployContract(
-        bytes32 salt,
-        bytes memory creationCode,
-        uint256 value
-    ) external returns (address deployed) {
+    function deployContract(bytes32 salt, bytes memory creationCode, uint256 value) external returns (address deployed) {
         deployed = CREATE3.deploy(salt, creationCode, value);
     }
 

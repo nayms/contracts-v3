@@ -1,23 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import { Vm } from "forge-std/Vm.sol";
 
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/shared/FreeStructs.sol";
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
+import { StdStyle } from "forge-std/StdStyle.sol";
 
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
 // solhint-disable no-global-import
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
+import "../src/shared/CustomErrors.sol";
+
+import { StdStyle } from "forge-std/StdStyle.sol";
 
 // solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
+    using StdStyle for *;
 
-    bytes32 internal entityId1 = 0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38;
-    bytes32 internal policyId1 = 0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869;
+    bytes32 internal entityId1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(bytes32(0xe10d947335abff84f4d0ebc75f32f3a549614348ab29e220c4b20b0acbd1fa38)));
+    bytes32 internal policyId1 = makeId(LC.OBJECT_TYPE_POLICY, bytes20(bytes32(0x1ea6c707069e49cdc3a4ad357dbe9f52e3a3679636e37698a9ca254b9cb33869)));
     bytes32 public testPolicyDataHash = 0x00a420601de63bf726c0be38414e9255d301d74ad0d820d633f3ab75effd6f5b;
     bytes32 public policyHashedTypedData;
 
@@ -77,6 +81,15 @@ contract T04EntityTest is D03ProtocolDefaults {
         changePrank(su.addr);
     }
 
+    function testObjectTokenSymbol() public {
+        bytes32 objectId = createTestEntity(account0Id);
+        string memory symbol = "ptEN1";
+        string memory name = "Entity1 PToken";
+
+        nayms.enableEntityTokenization(objectId, symbol, name, 1e6);
+        assertEq(nayms.getObjectTokenSymbol(objectId), symbol);
+    }
+
     function testDomainSeparator() public {
         bytes32 domainSeparator = nayms.domainSeparatorV4();
         // bytes32 expected = bytes32(0x38c40ddfc309275c926499b83dd3de3a9c824318ef5204fd7ae58f823f845291);
@@ -120,34 +133,57 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertTrue(hashTypedDataV4 == signingHash);
     }
 
+    function testEntityTokenSymbolAndNameValidation() public {
+        changePrank(sm.addr);
+        bytes32 entityId = createTestEntity(account0Id);
+        bytes32 entityId2 = createTestEntityWithId(account0Id, makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe2")));
+        bytes32 entityId3 = createTestEntityWithId(account0Id, makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0xe3")));
+
+        string memory symbol = "ptEN1";
+        string memory name = "Entity1 PToken";
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolInvalid.selector, entityId, ""));
+        nayms.enableEntityTokenization(entityId, "", name, 1e6);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolInvalid.selector, entityId, "12345678901234567"));
+        nayms.enableEntityTokenization(entityId, "12345678901234567", name, 1e6);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenNameInvalid.selector, entityId, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To"));
+        nayms.enableEntityTokenization(entityId, symbol, "Entity1 Token Entity1 Token Entity1 Token Entity1 Token Entity1 To", 1e6);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenNameInvalid.selector, entityId, ""));
+        nayms.enableEntityTokenization(entityId, symbol, "", 1e6);
+
+        nayms.enableEntityTokenization(entityId, symbol, name, 1e6);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, entityId2, symbol));
+        nayms.enableEntityTokenization(entityId2, symbol, "Entity2 PToken", 1e6);
+
+        vm.expectRevert(abi.encodeWithSelector(ObjectTokenSymbolAlreadyInUse.selector, entityId3, "WETH"));
+        nayms.enableEntityTokenization(entityId3, "WETH", "Entity3 Token", 1e6);
+    }
+
     function testEnableEntityTokenization() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, false), "entity test hash");
 
         // Attempt to tokenize an entity when the entity does not exist. Should throw an error.
         bytes32 nonExistentEntity = bytes32("ffffaaa");
         vm.expectRevert(abi.encodePacked(EntityDoesNotExist.selector, (nonExistentEntity)));
-        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345", "1234567890123456");
-
-        vm.expectRevert("symbol must be less than 16 characters");
-        nayms.enableEntityTokenization(entityId1, "1234567890123456", "1234567890123456");
+        nayms.enableEntityTokenization(nonExistentEntity, "123456789012345", "1234567890123456", 1e6);
 
         changePrank(signer1);
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, signer1Id, systemContext, "", LC.GROUP_SYSTEM_MANAGERS));
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456", 1e6);
         changePrank(sm.addr);
 
-        vm.expectRevert("name must not be empty");
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "");
-
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456", 1e6);
 
         vm.expectRevert("object already tokenized");
-        nayms.enableEntityTokenization(entityId1, "123456789012345", "1234567890123456");
+        nayms.enableEntityTokenization(entityId1, "123456789012346", "12345678901234567", 1e6);
     }
 
     function testUpdateEntityTokenInfo() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, 5000, 10000, false), "entity test hash");
-        nayms.enableEntityTokenization(entityId1, "TT", "Test Token");
+        nayms.enableEntityTokenization(entityId1, "TT", "Test Token", 1e6);
 
         string memory newTokenSymbol = "nTT";
         string memory newTokenName = "New Test Token";
@@ -178,7 +214,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         c.log(" >>> CREATED");
 
         changePrank(systemAdmin);
-        nayms.addSupportedExternalToken(address(wbtc));
+        nayms.addSupportedExternalToken(address(wbtc), 1);
         changePrank(sm.addr);
         vm.expectRevert("assetId change not allowed");
         nayms.updateEntity(entityId1, initEntity(wbtcId, 10_000, 0, false));
@@ -290,8 +326,8 @@ contract T04EntityTest is D03ProtocolDefaults {
             simplePolicyEnabled: true
         });
 
-        bytes32 eAlice = "ealice";
-        bytes32 eBob = "ebob";
+        bytes32 eAlice = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("ealice"));
+        bytes32 eBob = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("ebob"));
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
         nayms.createEntity(eBob, bobId, entity, "entity test hash");
 
@@ -338,9 +374,9 @@ contract T04EntityTest is D03ProtocolDefaults {
             simplePolicyEnabled: true
         });
 
-        bytes32 eAlice = "eAlice";
-        bytes32 eBob = "eBob";
-        bytes32 eEve = "eEve";
+        bytes32 eAlice = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("eAlice"));
+        bytes32 eBob = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("eBob"));
+        bytes32 eEve = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("eEve"));
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
         nayms.createEntity(eBob, bobId, entity, "entity test hash");
         nayms.createEntity(eEve, eveId, entity, "entity test hash");
@@ -375,14 +411,17 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testCreateSimplePolicyValidation() public {
         nayms.createEntity(entityId1, account0Id, initEntity(wethId, LC.BP_FACTOR, LC.BP_FACTOR, false), "entity test hash");
 
-        changePrank(su.addr);
-        // enable simple policy creation
+        vm.startPrank(su.addr);
         vm.expectRevert("simple policy creation disabled");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
-        changePrank(sm.addr);
-        nayms.updateEntity(entityId1, initEntity(wethId, LC.BP_FACTOR, LC.BP_FACTOR, true));
-        changePrank(su.addr);
+        vm.stopPrank();
 
+        // enable simple policy creation
+        vm.startPrank(sm.addr);
+        nayms.updateEntity(entityId1, initEntity(wethId, LC.BP_FACTOR, LC.BP_FACTOR, true));
+        vm.stopPrank();
+
+        vm.startPrank(su.addr);
         // stakeholders entity ids array different length to signatures array
         bytes[] memory sig = stakeholders.signatures;
         stakeholders.signatures = new bytes[](0);
@@ -407,43 +446,44 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("external token is not supported");
         simplePolicy.asset = LibHelpers._getIdForAddress(wbtcAddress);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        vm.stopPrank();
 
-        changePrank(sa.addr);
-        nayms.addSupportedExternalToken(wbtcAddress);
+        vm.startPrank(sa.addr);
+        nayms.addSupportedExternalToken(wbtcAddress, 1e13);
         simplePolicy.asset = wbtcId;
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         vm.expectRevert("asset not matching with entity");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         simplePolicy.asset = wethId;
 
         // test caller is not system underwriter
-        changePrank(account9);
+        vm.startPrank(account9);
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account9._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_UNDERWRITERS));
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         // test capacity
         vm.expectRevert("not enough available capacity");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        changePrank(sm.addr);
+        vm.startPrank(sm.addr);
         // update max capacity
         nayms.updateEntity(entityId1, initEntity(wethId, 5000, 300000, true));
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         // test collateral ratio constraint
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        changePrank(sm.addr);
+        vm.startPrank(sm.addr);
         // fund the policy sponsor entity
         nayms.updateEntity(entityId1, initEntity(wethId, 5000, 300000, true));
-        changePrank(account0);
+        vm.startPrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 100000);
         assertEq(weth.balanceOf(account0), 100000);
         nayms.externalDeposit(wethAddress, 100000);
         assertEq(nayms.internalBalanceOf(entityId1, wethId), 100000);
 
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
 
         // start date too early
         uint256 blockTimestampBeforeWarp;
@@ -476,19 +516,19 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32[] memory r;
         uint16[] memory bp;
 
-        changePrank(systemAdmin);
+        vm.startPrank(systemAdmin);
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         vm.expectRevert("must have fee schedule receivers");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         // add back fee receiver
         r = b32Array1(NAYMS_LTD_IDENTIFIER);
         bp = u16Array1(300);
-        changePrank(systemAdmin);
+        vm.startPrank(systemAdmin);
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
 
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         vm.expectRevert("number of commissions don't match");
         bytes32[] memory commissionReceiversOrig = simplePolicy.commissionReceivers;
         simplePolicy.commissionReceivers = new bytes32[](0);
@@ -536,6 +576,8 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(simplePolicyInfo.claimsPaid, simplePolicy.claimsPaid, "Claims paid amounts should match");
         assertEq(simplePolicyInfo.premiumsPaid, simplePolicy.premiumsPaid, "Premiums paid amounts should match");
 
+        nayms.cancelSimplePolicy(policyId1);
+
         bytes32[] memory roles = new bytes32[](2);
         roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
         roles[1] = LibHelpers._stringToBytes32(LC.ROLE_BROKER);
@@ -561,7 +603,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         Entity memory e = nayms.getEntityInfo(entityId1);
         assertEq(e.utilizedCapacity, (10_000 * e.collateralRatio) / LC.BP_FACTOR, "utilized capacity");
 
-        bytes32 policyId2 = "0xC0FFEF";
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, bytes20("0xC0FFEF"));
         (Stakeholders memory stakeholders2, SimplePolicy memory policy2) = initPolicy(testPolicyDataHash);
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders2, policy2, testPolicyDataHash);
 
@@ -595,7 +637,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
             changePrank(sm.addr);
             // change parent
-            nayms.setEntity(signerId, bytes32("e0"));
+            nayms.setEntity(signerId, entityId1);
             changePrank(su.addr);
             // try creating
             vm.expectRevert();
@@ -672,7 +714,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         changePrank(account0);
         // note: entity with 100% CR should be able to pay the claim - claim amount comes from the locked balance (locked in the policy)
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 21000 - 2, "entity balance of nWETH should DECREASE by pay claim amount");
         assertEq(nayms.getEntityInfo(entityId1).utilizedCapacity, 21000 - 2, "entity utilization should DECREASE when a claim is made");
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 2, "entity locked balance should DECREASE");
@@ -689,7 +731,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 20998 + 200_000, "after deposit, entity balance of nWETH should INCREASE");
 
         changePrank(su.addr);
-        bytes32 policyId2 = LibHelpers._stringToBytes32("policyId2");
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, bytes20("policyId2"));
 
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 200_001);
         vm.expectRevert("not enough capital");
@@ -701,9 +743,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 2 + 200_000, "locked balance should INCREASE");
 
         changePrank(account0);
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId3"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId3")), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
         changePrank(su.addr);
         nayms.cancelSimplePolicy(policyId1);
@@ -719,12 +761,16 @@ contract T04EntityTest is D03ProtocolDefaults {
 
     function testSimplePolicyEntityCapitalUtilization50CR() public {
         getReadyToCreatePolicies();
-        changePrank(sa.addr);
+        vm.stopPrank();
+        vm.startPrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
-        changePrank(em.addr);
-        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        vm.stopPrank();
 
-        changePrank(su.addr);
+        vm.startPrank(em.addr);
+        nayms.assignRole(nayms.getEntity(account0Id), nayms.getEntity(account0Id), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        vm.stopPrank();
+
+        vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42002);
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
@@ -733,21 +779,20 @@ contract T04EntityTest is D03ProtocolDefaults {
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 42000);
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000, "locked balance should INCREASE");
+        vm.stopPrank();
 
-        changePrank(account0);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2);
 
         writeTokenBalance(account0, naymsAddress, wethAddress, 1);
         nayms.externalDeposit(wethAddress, 1);
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 21001, "entity balance of nWETH should INCREASE by deposit amount");
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2); // claiming 2
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2); // claiming 2
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 20999, "entity balance of nWETH should DECREASE by pay claim amount");
         assertEq(nayms.getEntityInfo(entityId1).utilizedCapacity, 21000 - 1, "entity utilization should DECREASE when a claim is made");
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1, "entity locked balance should DECREASE");
 
-        changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 200_000);
         nayms.externalDeposit(wethAddress, 200_000);
         assertEq(nayms.internalBalanceOf(entityId1, simplePolicy.asset), 20999 + 200_000, "after deposit, entity balance of nWETH should INCREASE");
@@ -755,12 +800,13 @@ contract T04EntityTest is D03ProtocolDefaults {
         // increase max cap from 30_000 to 221_000
         Entity memory newEInfo = nayms.getEntityInfo(entityId1);
         newEInfo.maxCapacity = 221_000;
-        changePrank(sm.addr);
+        vm.startPrank(sm.addr);
         nayms.updateEntity(entityId1, newEInfo);
+        vm.stopPrank();
 
-        bytes32 policyId2 = LibHelpers._stringToBytes32("policyId2");
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, bytes20("policyId2"));
 
-        changePrank(su.addr);
+        vm.startPrank(su.addr);
         (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, 400_003);
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
@@ -769,36 +815,34 @@ contract T04EntityTest is D03ProtocolDefaults {
         // note: brings us to 100% max capacity
         nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1 + 200_000, "locked balance should INCREASE");
-
-        changePrank(account0);
-        vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        vm.stopPrank();
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
-        changePrank(su.addr);
+        vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+
+        vm.startPrank(su.addr);
         nayms.cancelSimplePolicy(policyId1);
+        vm.stopPrank();
 
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 21000 - 1 + 200_000 - 20999, "after cancelling policy, the locked balance should DECREASE");
 
-        changePrank(account0);
         vm.expectRevert("_internalBurn: insufficient balance available, funds locked");
         nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 21_000);
-
         nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 21_000 - 1);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
 
-        changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 1);
         nayms.externalDeposit(wethAddress, 1);
 
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 3);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId2, DEFAULT_INSURED_PARTY_ENTITY_ID, 1);
     }
 
     function testSimplePolicyLockedBalancesAfterPaySimpleClaim() public {
@@ -820,26 +864,26 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         changePrank(account0);
         vm.expectRevert("_internalTransfer: insufficient balance available, funds locked");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, 20000);
         nayms.externalDeposit(wethAddress, 20000);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 21000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 10500, "locked balance should DECREASE by half");
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId1"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId1")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 10000, "locked balance should DECREASE");
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId2"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 9500, "locked balance should DECREASE");
 
         nayms.internalBalanceOf(entityId1, simplePolicy.asset);
         // note: entity now has balance of 18000, locked balance of 9500
         // attempting to pay a claim that's above the entity's balance, below the policy limit triggers the following error
         vm.expectRevert("_internalTransfer: insufficient balance");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId3"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 19000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId3")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 19000);
     }
 
     function testSimplePolicyPremiumsCommissionsClaims() public {
@@ -904,34 +948,34 @@ contract T04EntityTest is D03ProtocolDefaults {
         simplePolicy.cancelled = true;
         updateSimplePolicy(policyId1, simplePolicy);
         vm.expectRevert("Policy is cancelled");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         simplePolicy.fundsLocked = true;
         simplePolicy.cancelled = false;
         updateSimplePolicy(policyId1, simplePolicy);
 
         changePrank(account9);
         vm.expectRevert();
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 10000);
 
         vm.expectRevert(); // does not have comptroller combined | comptroller cliam role
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, 0, 10000);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, 0, 10000);
 
         changePrank(account0);
 
         vm.expectRevert("invalid claim amount");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 0);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 0);
 
         changePrank(account0);
 
         vm.expectRevert("exceeds policy limit");
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 100001);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 100001);
 
         uint256 claimAmount = 10000;
         uint256 balanceBeforeClaim = nayms.internalBalanceOf(DEFAULT_INSURED_PARTY_ENTITY_ID, simplePolicy.asset);
         simplePolicy = getSimplePolicy(policyId1);
         assertEq(simplePolicy.claimsPaid, 0);
 
-        nayms.paySimpleClaim(LibHelpers._stringToBytes32("claimId"), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
+        nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, claimAmount);
 
         simplePolicy = getSimplePolicy(policyId1);
         assertEq(simplePolicy.claimsPaid, 10000);
@@ -949,7 +993,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert(abi.encodeWithSelector(ObjectCannotBeTokenized.selector, entityId1));
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
 
-        nayms.enableEntityTokenization(entityId1, "e1token", "e1token");
+        nayms.enableEntityTokenization(entityId1, "e1token", "e1token", 1e2);
 
         changePrank(account9);
         vm.expectRevert();
@@ -1037,5 +1081,82 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.expectRevert("utilized capacity starts at 0");
         nayms.createEntity(entityId1, account0Id, e, "entity test hash");
+    }
+
+    function testSimplePolicyDoubleUnlockFunds() public {
+        getReadyToCreatePolicies();
+
+        vm.stopPrank();
+        vm.startPrank(sa.addr);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+        vm.stopPrank();
+
+        vm.startPrank(em.addr);
+        nayms.assignRole(entityId1, entityId1, LC.ROLE_ENTITY_COMPTROLLER_COMBINED); // </3
+        vm.stopPrank();
+
+        uint256 limitAmount = 20000;
+
+        vm.startPrank(su.addr);
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        uint256 lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        bytes32 policyId2 = makeId(LC.OBJECT_TYPE_POLICY, bytes20("0xC0FFEF"));
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
+        nayms.createSimplePolicy(policyId2, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        vm.warp(block.timestamp + 3 days);
+        nayms.checkAndUpdateSimplePolicyState(policyId1);
+
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        vm.expectRevert(abi.encodeWithSelector(PolicyCannotCancelAfterMaturation.selector, policyId1));
+        nayms.cancelSimplePolicy(policyId1);
+    }
+
+    function testPayClaimAfterMaturation_IM25127() public {
+        getReadyToCreatePolicies();
+
+        vm.stopPrank();
+        vm.startPrank(sa.addr);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+        vm.stopPrank();
+
+        vm.startPrank(em.addr);
+        nayms.assignRole(entityId1, entityId1, LC.ROLE_ENTITY_COMPTROLLER_COMBINED); // </3
+        vm.stopPrank();
+
+        uint256 limitAmount = 20000;
+
+        vm.startPrank(su.addr);
+        (stakeholders, simplePolicy) = initPolicyWithLimit(testPolicyDataHash, limitAmount);
+        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+
+        uint256 lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        vm.warp(block.timestamp + 3 days);
+        nayms.checkAndUpdateSimplePolicyState(policyId1);
+
+        lockedAmount = nayms.getLockedBalance(entityId1, wethId);
+
+        bytes32 claimId = makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId"));
+
+        vm.startPrank(account0);
+        nayms.externalWithdrawFromEntity(entityId1, account0, wethAddress, 20000);
+        c.log("balance of entity: ", nayms.internalBalanceOf(entityId1, wethId).green());
+
+        uint256 lockedBalance = nayms.getLockedBalance(entityId1, wethId);
+        uint256 utilizedCapacity = nayms.getEntityInfo(entityId1).utilizedCapacity;
+
+        vm.expectRevert("not enough balance");
+        nayms.paySimpleClaim(claimId, policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 2000);
+
+        nayms.paySimpleClaim(claimId, policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 500);
+        assertEq(lockedBalance, nayms.getLockedBalance(entityId1, wethId), "locked balance should not change");
+        assertEq(utilizedCapacity, nayms.getEntityInfo(entityId1).utilizedCapacity, "utilized capacity should not change");
     }
 }

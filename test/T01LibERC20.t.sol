@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 // solhint-disable no-global-import
 import { Vm } from "forge-std/Vm.sol";
@@ -7,7 +7,8 @@ import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { BadToken } from "./utils/BadToken.sol";
 import { LibERC20Fixture } from "./fixtures/LibERC20Fixture.sol";
-import { IDiamondCut } from "src/diamonds/nayms/INayms.sol";
+
+import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 
 contract T01LibERC20 is D03ProtocolDefaults {
     DummyToken private token;

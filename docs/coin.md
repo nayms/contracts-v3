@@ -8,7 +8,7 @@ The Token is powered by platform commissions (fees):
 - the Surplus Sub Fund (SSF)
   Fees that are allocated to the token mechanism are divided between the STM and the NDF.
 
-The STM allows external owners of NAYM to stake their assets in exchange for the portion of the Fees that the STM resceives, payed as a dividend.
+The STM allows external owners of NAYM to stake their assets in exchange for the portion of the Fees that the STM receives, paid as a dividend.
 
 The NAYM coin is an ERC20 contract to enable use outside the ecosystem. It is implemented as a facet of the application.
 

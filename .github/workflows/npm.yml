@@ -26,12 +26,12 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: "16.x"
+          node-version: 20
           registry-url: "https://registry.npmjs.org"
           always-auth: true
 
       - name: Install solc
-        run: svm install 0.7.6 && svm install 0.8.17 && svm use 0.8.17
+        run: svm install 0.7.6 && svm install 0.8.20 && svm use 0.8.20
 
       - name: Fix ownership
         run: git config --global --add safe.directory /__w/contracts-v3/contracts-v3
@@ -41,14 +41,22 @@ jobs:
 
       - name: Install Node dependencies
         run: yarn
-
-      - name: Prepare build
-        run: make prep-build
+      
+      - name: Drop-in Test Wallet
+        run: echo "test test test test test test test test test test test junk" > ./nayms_mnemonic.txt
 
       - name: Build solidity contracts
         run: make build
+        env:
+          ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
+          ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
+          ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
+          BASE_GOERLI_RPC_URL: ${{ secrets.BASE_GOERLI_RPC_URL }}
+
+      - name: Filter ABI
+        run: make filter-abi
 
       - name: Publish to NPM
-        run: npm publish
+        run: rm src/generated/.gitignore && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

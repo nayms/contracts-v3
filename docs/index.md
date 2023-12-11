@@ -35,7 +35,7 @@ In brief:
 
 ### External ERC20 tokens as internal objects
 
-When an ERC20 token is transferred into Nayms, an internal token amount equal to the amount transfered is minted, the ID of which is derived from the address. The internal ledger then keeps track of ownership as long as the currency is in deposit. When the ERC20 is withdrawn from Nayms, the amount is burned and transferred out ouf the contract. All balances and transfers are then done on the internal ledger.
+When an ERC20 token is transferred into Nayms, an internal token amount equal to the amount transferred is minted, the ID of which is derived from the address. The internal ledger then keeps track of ownership as long as the currency is in deposit. When the ERC20 is withdrawn from Nayms, the amount is burned and transferred out ouf the contract. All balances and transfers are then done on the internal ledger.
 
 ## Access Control List (ACL)
 
@@ -108,7 +108,7 @@ The types of entities are:
 - Broker
 - Underwriter
 - Insured Party
-  Functionality differs in the app depending on Entity type byt not on chain.
+  Functionality differs in the app depending on Entity type but not on chain.
 
 #### Policy Types
 

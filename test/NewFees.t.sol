@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 // solhint-disable no-console
 import { console2 } from "forge-std/console2.sol";
 
 import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, FeeSchedule, CalculatedFees } from "../src/diamonds/nayms/AppStorage.sol";
-import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/diamonds/nayms/interfaces/FreeStructs.sol";
-import "src/diamonds/nayms/interfaces/CustomErrors.sol";
-import { LibHelpers } from "src/diamonds/nayms/libs/LibHelpers.sol";
+import { Entity, FeeSchedule, CalculatedFees } from "../src/shared/AppStorage.sol";
+import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "../src/shared/FreeStructs.sol";
+import "src/shared/CustomErrors.sol";
+import { LibHelpers } from "src/libs/LibHelpers.sol";
 
 import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
@@ -44,20 +44,11 @@ contract NewFeesTest is D03ProtocolDefaults {
         nayms.createEntity(acc2.entityId, acc2.id, entityInfo, testHash);
         nayms.createEntity(acc3.entityId, acc3.id, entityInfo, testHash);
 
-        nayms.enableEntityTokenization(acc1.entityId, "ESPT", "Entity Selling Par Tokens");
+        nayms.enableEntityTokenization(acc1.entityId, "ESPT", "Entity Selling Par Tokens", 1e6);
 
         (stakeholders, simplePolicy) = initPolicy(testHash);
 
         changePrank(sa.addr);
-    }
-
-    function fundEntityWeth(NaymsAccount memory acc, uint256 amount) private {
-        deal(address(weth), acc.addr, amount);
-        changePrank(acc.addr);
-        weth.approve(address(nayms), amount);
-        uint256 balanceBefore = nayms.internalBalanceOf(acc.entityId, wethId);
-        nayms.externalDeposit(address(weth), amount);
-        assertEq(nayms.internalBalanceOf(acc.entityId, wethId), balanceBefore + amount, "entity's weth balance is incorrect");
     }
 
     function test_setFeeSchedule_OnlySystemAdmin() public {
@@ -214,7 +205,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(su.addr);
-        bytes32 policyId = "policy1";
+        bytes32 policyId = makeId(LC.OBJECT_TYPE_POLICY, bytes20("policy1"));
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
         uint256 premiumPaid = 1e18;
@@ -228,12 +219,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(cf.feeAllocations.length, simplePolicy.commissionReceivers.length + customRecipient.length, "fee allocation length incorrect");
     }
 
-    function test_calculatePremiumFees_MultipleReceivers(
-        uint16 _fee,
-        uint16 _fee1,
-        uint16 _fee2,
-        uint16 _fee3
-    ) public {
+    function test_calculatePremiumFees_MultipleReceivers(uint16 _fee, uint16 _fee1, uint16 _fee2, uint16 _fee3) public {
         vm.assume(0 <= _fee && _fee <= LC.BP_FACTOR / 2);
         vm.assume(_fee1 < LC.BP_FACTOR / 2 && _fee2 < LC.BP_FACTOR / 2 && _fee3 < LC.BP_FACTOR / 2);
         vm.assume(0 <= (_fee1 + _fee2 + _fee3) && (_fee1 + _fee2 + _fee3) <= LC.BP_FACTOR / 2);
@@ -245,7 +231,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(su.addr);
-        bytes32 policyId = "policy1";
+        bytes32 policyId = makeId(LC.OBJECT_TYPE_POLICY, bytes20("policy1"));
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
         uint256 _premiumPaid = 1e18;
@@ -281,7 +267,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         fundEntityWeth(acc1, 1 ether);
 
         changePrank(su.addr);
-        bytes32 policyId = "policy1";
+        bytes32 policyId = makeId(LC.OBJECT_TYPE_POLICY, bytes20("policy1"));
         nayms.createSimplePolicy(policyId, acc1.entityId, stakeholders, simplePolicy, testHash);
 
         uint256 premiumAmount = 1 ether;
