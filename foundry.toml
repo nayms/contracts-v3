@@ -7,7 +7,7 @@ remappings = ["forge-std/=lib/forge-std/src/"]
 libraries = []
 cache = true
 force = false
-evm_version = 'london'
+evm_version = 'paris'
 auto_detect_solc = true
 offline = true
 optimizer = true
