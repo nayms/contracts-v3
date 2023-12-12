@@ -9,9 +9,7 @@
         "txHash": "0x147d5ab4233c3028cad72002959cb3d49381ec2e49188ad7043cdf08a0f2ae4d",
         "onChain": {
           "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -321,9 +319,7 @@
         "txHash": "0x98873f00e84337dde1885cc509a9ead082008f9b5ef7aec6fff03499cce35915",
         "onChain": {
           "address": "0x99AEa617F26CF33d9e077D09776dFed6CAf8D3CC",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -678,9 +674,7 @@
         "txHash": "0x977e0b4ba49eab5c9411da8d643c5747f1bbc02b72f0b5bfd783b7789b8b6645",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": [
-            "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"
-          ]
+          "constructorArgs": ["0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"]
         }
       },
       {
@@ -821,6 +815,21 @@
         "onChain": {
           "address": "0x81E1F74BC675cC55AfEE4D39d475911e904d5Cd1",
           "constructorArgs": []
+        }
+      }
+    ]
+  },
+  "baseFork": {
+    "chainId": 8453,
+    "contracts": [
+      {
+        "name": "DiamondProxy",
+        "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x23a3b79f63ae77f4220f2fa218b085bf769716a1212d3296b8bb064883638ef7",
+        "onChain": {
+          "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       }
     ]
