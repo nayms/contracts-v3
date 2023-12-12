@@ -125,6 +125,7 @@ module.exports = {
     base: {
       rpcUrl: process.env.BASE_MAINNET_RPC_URL,
       verifierUrl: "https://api.basescan.org/api",
+      verifierApiKey: process.env.BASESCAN_API_KEY,
     },
     baseFork: { rpcUrl: "http://localhost:8545" },
   },
