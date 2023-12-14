@@ -58,12 +58,12 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
 
     switch (process.argv[3]) {
         case "--fresh": {
-            console.log(`Fresh...`);
+            console.log(`Mode: Fresh Deploy`);
             await $`yarn gemforge deploy ${targetArg} -n`;
             break;
         }
         case "--upgrade-start": {
-            console.log(`Upgrade step 1...`);
+            console.log(`Mode: Upgrade - Deploy Facets`);
             if (fs.existsSync(cutFile)) {
                 fs.unlinkSync(cutFile);
             }
@@ -76,7 +76,7 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
             break;
         }
         case "--upgrade-finish": {
-            console.log(`Upgrade step 2...`);
+            console.log(`Mode: Upgrade - Diamond Cut`);
             if (!fs.existsSync(cutFile)) {
                 throw new Error(`Cut JSON file not found - please run the first upgrade step first!`);
             }
