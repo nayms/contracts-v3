@@ -170,7 +170,7 @@ library LibMarket {
         // If the buyToken is external          => limit only sell amount
 
         bool buyExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
-        while (result.remainingSellAmount != 0 && (buyExternalToken || result.remainingBuyAmount != 0)) {
+        while (result.remainingSellAmount >= s.objectMinimumSell[_sellToken] && (buyExternalToken || result.remainingBuyAmount >= s.objectMinimumSell[_buyToken])) {
             // there is at least one offer stored for token pair
             uint256 bestOfferId = s.bestOfferId[_buyToken][_sellToken];
             if (bestOfferId == 0) {
@@ -216,6 +216,13 @@ library LibMarket {
                     // Similar operations, but for the non-external token case (the fee is always paid in external tokens)
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
+
+                    if ((currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount != 0 && currentSellAmount != 0) {
+                        if ((currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount < currentBuyAmount) {
+                            currentBuyAmount = (currentSellAmount * s.offers[bestOfferId].sellAmount) / s.offers[bestOfferId].buyAmount;
+                        }
+                    }
+
                     uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
