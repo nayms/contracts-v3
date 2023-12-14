@@ -44,9 +44,10 @@ contract AdminFacet is Modifiers {
     /**
      * @notice Add another token to the supported tokens list
      * @param _tokenAddress address of the token to support
+     * @param _minimumSell minimum amount of tokens that can be sold on the marketplace
      */
-    function addSupportedExternalToken(address _tokenAddress) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        LibAdmin._addSupportedExternalToken(_tokenAddress);
+    function addSupportedExternalToken(address _tokenAddress, uint256 _minimumSell) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        LibAdmin._addSupportedExternalToken(_tokenAddress, _minimumSell);
     }
 
     /**

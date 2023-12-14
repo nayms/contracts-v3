@@ -38,18 +38,19 @@ make test
 
 ### Deploy the diamond
 
-Smart contracts in this repository implement the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) a.k.a. the diamond standard and uses [Gemforge](https://gemforge.xyz/) for deployment. You can read more about it in the official docs.
+Smart contracts in this repository implement the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) a.k.a. the diamond standard and use [Gemforge](https://gemforge.xyz/) for deployment. You can read more about it in the official docs.
 
 A script - `script/gemforge/deploy.js` - is provided as a convenience for handling the Nayms phased deployments flow. You can call this directly or just use `yarn deploy ...`
 
 Currently supported deployment targets are:
 
-- `local`: local anvil node
-- `sepolia`: sepolia
-- `mainnet`: mainnet
+- `local`: Local Anvil Node
+- `sepolia`: Sepolia
+- `mainnet`: Mainnet
+- `base`: Base
 - `baseGoerli`: Base Goerli testnet
-- `sepoliaFork`: a local fork of sepolia
-- `mainnetFork`: a local for of mainnet
+- `sepoliaFork`: a local fork of Sepolia
+- `mainnetFork`: a local for of Mainnet
 
 #### Querying
 

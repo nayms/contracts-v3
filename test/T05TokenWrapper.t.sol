@@ -38,7 +38,7 @@ contract T05TokenWrapper is D03ProtocolDefaults {
         nayms.wrapToken(entityId1);
 
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(entityId1, testSymbol, testName);
+        nayms.enableEntityTokenization(entityId1, testSymbol, testName, 1e6);
         nayms.startTokenSale(entityId1, tokenAmount, tokenAmount);
 
         changePrank(sa.addr);

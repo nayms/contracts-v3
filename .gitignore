@@ -10,9 +10,11 @@ anvil*.json
 # SECURITY
 *mnemonic*.txt
 
-# yarn v1, node
+# yarn v1, yalc, node
 node_modules
 yarn-*.log
+.yalc
+yalc.lock
 
 # Hardhat files
 cache

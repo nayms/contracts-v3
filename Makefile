@@ -182,7 +182,7 @@ anvil-gtoken:	## deploy dummy erc20 token to local node
 
 anvil-add-supported-external-token: ## Add a supported external token (anvil)
 	@forge script AddSupportedExternalToken \
-		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
+		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken, uint256 minimumSell)" ${naymsDiamondAddress} ${externalToken} 10000000000000 \
 		-f http:\\127.0.0.1:8545 \
 		--chain-id 31337 \
 		--sender ${systemAdminAddress} \
@@ -193,7 +193,7 @@ anvil-add-supported-external-token: ## Add a supported external token (anvil)
 
 add-supported-external-token: ## Add a supported external token (goerli)
 	@forge script AddSupportedExternalToken \
-		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken)" ${naymsDiamondAddress} ${externalToken} \
+		-s "addSupportedExternalToken(address naymsDiamondAddress, address externalToken, uint256 minimumSell)" ${naymsDiamondAddress} ${externalToken} 10000000000000 \
 		-f ${ETH_GOERLI_RPC_URL} \
 		--chain-id 5 \
 		--sender ${ownerAddress} \

@@ -14,14 +14,15 @@
 
     // skip for localhost and forks
     if (target === "local" || /fork/i.test(target)) {
-        console.log("Skipping verification on", target);
+        console.log("Skipping contract verification on", target);
         return;
     }
 
-    console.log(`Verifying for target ${target} ...`);
+    console.log(`Verifying target: ${target}`);
 
     const verifierUrl = gemforgeConfig.networks?.[target]?.verifierUrl;
-    const verificationArg = verifierUrl ? `--verifier-url=${verifierUrl}` : "--verifier etherscan";
+    const verifierApiKey = gemforgeConfig.networks?.[target]?.verifierApiKey || process.env.ETHERSCAN_API_KEY;
+    const verificationArg = verifierUrl ? `--verifier-url=${verifierUrl}` : `--verifier=etherscan`;
 
     const contracts = deploymentInfo[target]?.contracts || [];
 
@@ -34,7 +35,7 @@
 
         console.log(`Verifying ${name} at ${onChain.address} with args ${args}`);
 
-        await $`forge verify-contract ${onChain.address} ${name} --constructor-args ${args} --chain-id ${deploymentInfo[target].chainId} ${verificationArg} --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --watch`;
+        await $`forge verify-contract ${onChain.address} ${name} --constructor-args ${args} --chain-id ${deploymentInfo[target].chainId} ${verificationArg} --etherscan-api-key ${verifierApiKey} --watch`;
 
         console.log(`Verified!`);
     }

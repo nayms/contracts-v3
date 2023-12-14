@@ -37,7 +37,7 @@ contract CreateEntity is Script {
 
         vm.startPrank(msg.sender);
 
-        nayms.addSupportedExternalToken(address(wbtc));
+        nayms.addSupportedExternalToken(address(wbtc), 1e13);
         nayms.createEntity(eAlice, aliceId, entity, "entity test hash");
     }
 }
