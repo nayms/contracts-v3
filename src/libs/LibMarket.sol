@@ -231,21 +231,21 @@ library LibMarket {
                 result.remainingSellAmount -= currentSellAmount;
                 // result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
 
-                // if the actual price is more favourable than the asking price, to prevent underflow we need to:
+                // if the actual(maker) price is more favourable to the taker than what he is willing to pay, to prevent underflow we need to:
                 //  - normalize current buy amount
                 //  - and reduce remaining buy amount by that normalized value
                 //
-                //   ask price = initial buy amount / initial sell amount
-                //   actual price = current buy amount / current sell amount
+                //   taker price = initial buy amount / initial sell amount
+                //   maker price = current buy amount / current sell amount
                 //
-                // if ask price < actual price => normalize currentBuyAmount before reducing remainingBuyAmount by it
+                // if taker price < maker price => normalize currentBuyAmount before reducing remainingBuyAmount by it
                 if (_buyAmount * currentSellAmount < currentBuyAmount * _sellAmount) {
-                    // normalization factor = asking price / actual price:
+                    // normalization factor = taker price / maker price:
                     // = (initial buy amount/initial sell amount) / (current buy amount / current sell amount)
                     // = initial buy amount * current sell amount / initial sell amount / current buy amount
                     // that means that normalized buy amount:
                     // = current buy amount * normalization factor
-                    // normalized buy amount = currentBuyAmount * (initial buy amount * current sell amount / initial sell amount / current buy amount)
+                    // normalized buy amount = current buy amount * (initial buy amount * current sell amount / initial sell amount / current buy amount)
                     // which equals to below:
                     result.remainingBuyAmount -= (_buyAmount * currentSellAmount) / _sellAmount;
                 } else {
@@ -465,7 +465,6 @@ library LibMarket {
         sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
         offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeScheduleType);
-        // console.log(" -- CREATE NEW offer - ID:", offerId_.green());
 
         // if still some left
         AppStorage storage s = LibAppStorage.diamondStorage();
