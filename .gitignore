@@ -21,6 +21,7 @@ cache
 artifacts
 
 # Foundry files
+broadcast
 forge-artifacts
 out
 
