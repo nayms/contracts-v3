@@ -69,7 +69,7 @@ cast send $GTOKEN "mint(address,uint256)" \
         "$ACC5" '1000000000000000000000000' \
         -r http:\\127.0.0.1:8545 \
         --mnemonic-path ./nayms_mnemonic.txt \
-        --mnemonic-index 3 \
+        --mnemonic-index 4 \
         --chain-id 31337 \
         --from $ACC5
 
