@@ -658,6 +658,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         c.log(string.concat("e1 weth after:  ", nayms.internalBalanceOf(entity1, wethId).green()));
         c.log(string.concat("e2 weth after:  ", nayms.internalBalanceOf(entity2, wethId).green()));
 
+        logOfferDetails(1);
+        logOfferDetails(2);
         logOfferDetails(3);
         logOfferDetails(4);
     }
