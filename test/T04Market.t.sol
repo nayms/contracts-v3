@@ -615,8 +615,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSecondaryTradeAveragePrice() public {
-        uint256 sellAmount = 1000 ether;
-        uint256 buyAmount = 1000 ether;
+        uint256 tokenAmount = 1000 ether;
 
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
 
@@ -627,7 +626,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.enableEntityTokenization(entity1, "e1token", "e1token", 1e13);
 
         // SELL: P 1000 / E 1000
-        nayms.startTokenSale(entity1, sellAmount, buyAmount);
+        nayms.startTokenSale(entity1, tokenAmount, tokenAmount);
 
         // create (x2) counter offer
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
@@ -636,20 +635,22 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 6);
 
         // BUY: P 1000 / E 1000  (price = 1)
-        nayms.executeLimitOffer(wethId, sellAmount * 1, entity1, sellAmount * 1);
+        nayms.executeLimitOffer(wethId, tokenAmount * 1, entity1, tokenAmount * 1);
+        assertOfferFilled(1, entity1, entity1, tokenAmount, wethId, tokenAmount);
+        assertOfferFilled(2, entity2, wethId, tokenAmount, entity1, tokenAmount);
 
         // BUY: P 1000 / E 5000 (price = 5)
-        nayms.executeLimitOffer(wethId, sellAmount * 5, entity1, sellAmount * 1);
+        nayms.executeLimitOffer(wethId, tokenAmount * 5, entity1, tokenAmount * 1);
 
         // ext token balance of maker
         c.log(string.concat("e1 weth before: ", nayms.internalBalanceOf(entity1, wethId).green()));
         c.log(string.concat("e2 weth before: ", nayms.internalBalanceOf(entity2, wethId).green()));
 
-        c.log(" ------ AFTER THIS ------ ".red());
-
         changePrank(sm.addr);
         // SELL: P 2000 / E 2000 (price = 1)
-        nayms.startTokenSale(entity1, sellAmount * 2, buyAmount * 2);
+        nayms.startTokenSale(entity1, tokenAmount * 2, tokenAmount * 2);
+        assertOfferFilled(3, entity1, entity1, tokenAmount, wethId, tokenAmount * 5);
+        assertOfferPartiallyFilled(4, entity1, entity1, tokenAmount, tokenAmount * 2, wethId, tokenAmount, tokenAmount * 2);
 
         // price > 1  => scale down buy  amount
         // price < 1  => scale down sell amount
