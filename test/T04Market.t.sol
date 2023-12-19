@@ -9,7 +9,9 @@ import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/shared/FreeStructs.sol";
 
 import { StdStyle } from "forge-std/StdStyle.sol";
+import { IERC20 } from "src/interfaces/IERC20.sol";
 
+import { Math } from "oz/contracts/utils/math/Math.sol";
 /* 
     Terminology:
     wethId: bytes32 ID of WETH
@@ -989,5 +991,98 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6, e1Id, 1e12 - 1);
         m = logOfferDetails(lastOfferId);
         assertEq(m.state, LC.OFFER_STATE_FULFILLED, "unexpected offer state");
+    }
+
+    function testDivisionLoss_IM24522() public {
+        // -- ID: 15 (Active) ---------------------------------------------
+        // NSA01:    10000000000000000000000000 (10000000000000000000000000)
+        // USDC:    10000000000000 (10000000000000)
+        // -- Price: 0 (0) ------------------------------------------------
+
+        // 1 wei USDC : 1e12 PAR Token
+        // 1e6   USDC : 1e18 PAR Token
+        // usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        // usdcId = LibHelpers._getIdForAddress(usdcAddress);
+        IERC20 usdcMainnet = IERC20(usdcAddress);
+
+        Entity memory entityData = Entity({ assetId: usdcId, collateralRatio: 5_000, maxCapacity: 100_000 * 1e6, utilizedCapacity: 0, simplePolicyEnabled: true });
+
+        NaymsAccount memory parToken = makeNaymsAcc("Par Token");
+        vm.startPrank(sm.addr);
+
+        // createEntity
+        hCreateEntity(parToken.entityId, parToken.id, entityData, "test entity");
+
+        nayms.enableEntityTokenization(parToken.entityId, "Entity1", "Entity1 Token", 1);
+        nayms.startTokenSale(parToken.entityId, 10_000_000e18, 10_000_000e6);
+        uint256 offerIdOfParToken = nayms.getLastOfferId();
+        logOfferDetails(nayms.getLastOfferId());
+
+        vm.startPrank(sm.addr);
+
+        // bytes32 e1Id = 0xdea30058ce67bbce0dbae527d1ac265828ca8d4d82375d9df75f6451759a8b30;
+        bytes32 e1Id = parToken.entityId;
+        ea.entityId = e1Id;
+        hSetEntity(ea, e1Id);
+        hSetEntity(tcp, e1Id);
+
+        hAssignRole(tcp.id, e1Id, LC.ROLE_ENTITY_CP);
+
+        nayms.setMinimumSell(usdcId, 1);
+        nayms.setMinimumSell(e1Id, 1e12);
+        NaymsAccount memory user1 = makeNaymsAcc("user1");
+
+        vm.startPrank(sm.addr);
+        hCreateEntity(user1.entityId, user1.id, initEntity(usdcId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        deal(usdcAddress, user1.addr, 1_000_000e18);
+        vm.startPrank(user1.addr);
+        usdcMainnet.approve(address(nayms), 1_000_000e18);
+        nayms.externalDeposit(usdcAddress, 1_000_000e18);
+
+        vm.startPrank(user1.addr);
+        c.log("-- Before 1st offer ------");
+        c.log(string.concat("user1 USDC bal ", vm.toString(nayms.internalBalanceOf(user1.entityId, usdcId))));
+        c.log(string.concat("e1Id  USDC bal ", vm.toString(nayms.internalBalanceOf(e1Id, usdcId))));
+        c.log(string.concat("user1 PAR  bal ", vm.toString(nayms.internalBalanceOf(user1.entityId, e1Id))));
+        c.log(string.concat("e1Id  PAR  bal ", vm.toString(nayms.internalBalanceOf(e1Id, e1Id))));
+
+        nayms.executeLimitOffer(usdcId, 1e6, e1Id, 1e12);
+
+        c.log("-- After 1st offer ------");
+        c.log(string.concat("user1 USDC bal ", vm.toString(nayms.internalBalanceOf(user1.entityId, usdcId))));
+        c.log(string.concat("e1Id  USDC bal ", vm.toString(nayms.internalBalanceOf(e1Id, usdcId))));
+        c.log(string.concat("user1 PAR  bal ", vm.toString(nayms.internalBalanceOf(user1.entityId, e1Id))));
+        c.log(string.concat("e1Id  PAR  bal ", vm.toString(nayms.internalBalanceOf(e1Id, e1Id))));
+
+        MarketInfo memory m = logOfferDetails(nayms.getLastOfferId());
+        logOfferDetails(offerIdOfParToken);
+        assertEq(m.sellAmount, 1e6 - 1, "expected to sell 1 wei USDC for 1e12 PAR Token");
+
+        assertEq(nayms.internalBalanceOf(user1.entityId, usdcId), 1_000_000e18 - 1);
+        assertEq(nayms.internalBalanceOf(e1Id, usdcId), 1); // increases by 1
+        assertEq(nayms.internalBalanceOf(user1.entityId, e1Id), 1e12);
+        assertEq(nayms.internalBalanceOf(e1Id, e1Id), 10_000_000e18 - 1e12);
+
+        assertEq(m.state, LC.OFFER_STATE_FULFILLED);
+
+        c.log("-- user1 execute an offer that has a rounding issue ");
+        nayms.executeLimitOffer(usdcId, 1e6, e1Id, 2e12 - 1); // 2e12 - 1 This should spend 1 wei USDC for 1e12 PAR token. Before, it would spend 1 wei USDC for 2e12 - 1 PAR token
+        // nayms.executeLimitOffer(usdcId, 1e6, e1Id, 2e12); // 2e12 This should spend 2 wei USDC
+
+        c.log("-- After 2nd offer ------");
+        c.log(string.concat("user1 USDC bal ", vm.toString(nayms.internalBalanceOf(user1.entityId, usdcId))));
+        c.log(string.concat("e1Id  USDC bal ", vm.toString(nayms.internalBalanceOf(e1Id, usdcId))));
+        c.log(string.concat("user1 PAR  bal ", vm.toString(nayms.internalBalanceOf(user1.entityId, e1Id))));
+        c.log(string.concat("e1Id  PAR  bal ", vm.toString(nayms.internalBalanceOf(e1Id, e1Id))));
+
+        m = logOfferDetails(nayms.getLastOfferId());
+        logOfferDetails(offerIdOfParToken);
+
+        assertEq(nayms.internalBalanceOf(user1.entityId, usdcId), 1_000_000e18 - 2);
+        assertEq(nayms.internalBalanceOf(e1Id, usdcId), 2); // increases by 1
+        assertEq(nayms.internalBalanceOf(user1.entityId, e1Id), 2e12);
+        assertEq(nayms.internalBalanceOf(e1Id, e1Id), 10_000_000e18 - 2e12);
+
+        assertEq(m.state, LC.OFFER_STATE_FULFILLED);
     }
 }
