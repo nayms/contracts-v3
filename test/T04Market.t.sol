@@ -649,7 +649,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sm.addr);
         // SELL: P 2000 / E 2000 (price = 1)
         nayms.startTokenSale(entity1, tokenAmount * 2, tokenAmount * 2);
-        assertOfferFilled(3, entity1, entity1, tokenAmount, wethId, tokenAmount * 5);
+        assertOfferFilled(3, entity2, wethId, tokenAmount * 5, entity1, tokenAmount);
         assertOfferPartiallyFilled(4, entity1, entity1, tokenAmount, tokenAmount * 2, wethId, tokenAmount, tokenAmount * 2);
 
         // price > 1  => scale down buy  amount
