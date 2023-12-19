@@ -250,7 +250,10 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeScheduleType;
 
-        if (_buyAmount < s.objectMinimumSell[_buyToken] || _sellAmount < s.objectMinimumSell[_sellToken]) {
+        if (
+            _buyAmount < (s.objectMinimumSell[_buyToken] == 0 ? 1 : s.objectMinimumSell[_buyToken]) ||
+            _sellAmount < (s.objectMinimumSell[_sellToken] == 0 ? 1 : s.objectMinimumSell[_sellToken])
+        ) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -311,7 +314,7 @@ library LibMarket {
         }
 
         // close offer if it has become dust
-        if (s.offers[_offerId].sellAmount < s.objectMinimumSell[s.offers[_offerId].sellToken]) {
+        if (s.offers[_offerId].sellAmount < (s.objectMinimumSell[s.offers[_offerId].sellToken] == 0 ? 1 : s.objectMinimumSell[s.offers[_offerId].sellToken])) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
             _cancelOffer(_offerId);
         }
