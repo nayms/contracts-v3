@@ -160,22 +160,12 @@
     "chainId": 11155111,
     "contracts": [
       {
-        "name": "AdminFacet",
-        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x5010724f17b56a36903e100943633e25ae9e00762f3d0d1fc1a90bea29c43f45",
-        "onChain": {
-          "address": "0x9E178F061E0dE6cA3FC0a4A324B6259aa4cDc365",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x654f983acbf6072026af8dad6b0df2c1addad75475ba9c05dc0c5813056d9720",
+        "txHash": "0xad32ef9b24ce88e74c91d13433e9bf074eafeb6015f25cc0fd815e82a1a139d9",
         "onChain": {
-          "address": "0xC9237Fc16E4b8DE1c92D80EE0448f3B118c0D8c9",
+          "address": "0x727ea5132E863AEe0A70BEDDc88c53cF976c16b4",
           "constructorArgs": []
         }
       },
@@ -183,9 +173,19 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x3266c96c1a2ee1ffc70035fe2927feac555900ef8deefb002dab1b6297498785",
+        "txHash": "0x17855a674181f0283566536319ad94c759a734f186bbcc15bdbf6ef29501ad43",
         "onChain": {
-          "address": "0x35D3Af9D8bea9bEB8135d6963500912a2c158216",
+          "address": "0x3d9259b660687988AB5b2A79D080ABB77B0Bac76",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "AdminFacet",
+        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x5010724f17b56a36903e100943633e25ae9e00762f3d0d1fc1a90bea29c43f45",
+        "onChain": {
+          "address": "0x9E178F061E0dE6cA3FC0a4A324B6259aa4cDc365",
           "constructorArgs": []
         }
       },
@@ -318,9 +318,9 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xe683b63b751c7e86a81657c59b40144de828c7ee63bfe2a45c6bc0b0e4b9dbc4",
+        "txHash": "0xb5a70d1691b3f5e21d99220cca015dc3f099e0c1a096b3d3489f8d3f566e3dff",
         "onChain": {
-          "address": "0x0397dDa927dbc11F9C427216E7e91329B42cecE4",
+          "address": "0xBeaE8a162A4AA54113A35c0137bFB24d83f4ef68",
           "constructorArgs": []
         }
       },
@@ -328,9 +328,9 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xaace26a936d834eee5ac15627ee87b95b9f06e8b3495d635de212f8871886256",
+        "txHash": "0x66ffd42723cbb96d9f9d35f975b74382614ba24e2e5ab3400dd89eb634195714",
         "onChain": {
-          "address": "0x640874e50a75Ee70c9fd587f0F85472E6b935Ed1",
+          "address": "0x13f656cbefd78b81c9a20cB70bDC7c442296FB66",
           "constructorArgs": []
         }
       },
