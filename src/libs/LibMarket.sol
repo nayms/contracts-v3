@@ -257,7 +257,7 @@ library LibMarket {
                     result.remainingSellAmount -= currentSellAmount;
                 }
 
-                // events are emmited, to keep track of average price actually payed,
+                // events are emmited to keep track of average price actually paid,
                 // in case matched is done with more preferable offers, otherwise this information is be lost
                 emit OrderMatched(_offerId, bestOfferId, currentSellAmount, currentBuyAmount); // taker offer
                 emit OrderMatched(bestOfferId, _offerId, currentBuyAmount, currentSellAmount); // maker offer

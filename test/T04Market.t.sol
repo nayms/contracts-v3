@@ -184,7 +184,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(systemAdmin);
     }
 
-    function testCommissionsPayed() public {
+    function testCommissionsPaid() public {
         testStartTokenSale();
 
         // scenario where marketplace fee strat is (% external tokens bought or sold)
@@ -222,7 +222,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commissions");
 
-        // assert trading commissions payed
+        // assert trading commissions paid
         uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LC.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions");
 
@@ -236,7 +236,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // assert Entity1 holds `buyAmount` of nE1
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
 
-        // test commission payed by taker on "secondary market"
+        // test commission paid by taker on "secondary market"
         uint256 e2WethBeforeTrade = nayms.internalBalanceOf(entity2, wethId); // 9.7e20
         uint256 e3WethBeforeTrade = nayms.internalBalanceOf(entity3, wethId); // 3e21
 

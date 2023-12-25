@@ -113,7 +113,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      * @param _sellToken The asset being sold.
      * @param _buyToken The asset being bought.
      * @param _buyAmount The amount that the fees payments are calculated from.
-     * @return totalFees_ total fee to be payed
+     * @return totalFees_ total fee to be paid
      * @return totalBP_ total basis points
      */
     function calculateTradingFees(bytes32 _buyerId, bytes32 _sellToken, bytes32 _buyToken, uint256 _buyAmount) external view returns (uint256 totalFees_, uint256 totalBP_) {
