@@ -909,48 +909,48 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(signer3);
         nayms.executeLimitOffer(usdcId, 350, entity1, 350); // it will be the best offer
         vm.stopPrank();
-        logOfferDetails(nayms.getLastOfferId());
+        // logOfferDetails(nayms.getLastOfferId());
 
         vm.startPrank(signer2); //honest user's offer (sellAmount1, buyAmount1) = (200, 101)
         nayms.executeLimitOffer(entity1, 200, usdcId, 101); // it will be the best offer
         vm.stopPrank();
-        logOfferDetails(nayms.getLastOfferId());
+        // logOfferDetails(nayms.getLastOfferId());
 
         vm.startPrank(signer3); //attacker adds a better offer (sellAmount2, buyAmount2) = (200, 100)
         nayms.executeLimitOffer(entity1, 200, usdcId, 100); // it will be the best offer now
         vm.stopPrank();
-        logOfferDetails(nayms.getLastOfferId());
+        // logOfferDetails(nayms.getLastOfferId());
 
         // this one causes rounding isseue and is incorrectly added to the order book
         vm.startPrank(signer4);
         nayms.executeLimitOffer(usdcId, 100, entity1, 199);
         vm.stopPrank();
-        logOfferDetails(nayms.getLastOfferId());
+        // logOfferDetails(nayms.getLastOfferId());
 
         vm.startPrank(signer3);
         nayms.executeLimitOffer(entity1, 150, usdcId, 100);
         vm.stopPrank();
-        logOfferDetails(nayms.getLastOfferId());
+        // logOfferDetails(nayms.getLastOfferId());
 
         uint256 bestId = nayms.getBestOfferId(entity1, usdcId);
         uint256 prev1 = nayms.getOffer(bestId).rankPrev;
         uint256 prev2 = nayms.getOffer(prev1).rankPrev;
 
-        c.log(" --------- ".red());
+        // c.log(" --------- ".red());
         logOfferDetails(bestId);
         logOfferDetails(prev1);
-        // logOfferDetails(prev2);
+        logOfferDetails(prev2);
 
-        // MarketInfo memory o1 = nayms.getOffer(bestId);
-        // MarketInfo memory o2 = nayms.getOffer(prev1);
-        // MarketInfo memory o3 = nayms.getOffer(prev2);
+        MarketInfo memory o1 = nayms.getOffer(bestId);
+        MarketInfo memory o2 = nayms.getOffer(prev1);
+        MarketInfo memory o3 = nayms.getOffer(prev2);
 
-        // uint256 price1 = (o1.buyAmountInitial * 1000) / o1.sellAmountInitial;
-        // uint256 price2 = (o2.buyAmountInitial * 1000) / o2.sellAmountInitial;
-        // uint256 price3 = (o3.buyAmountInitial * 1000) / o3.sellAmountInitial;
+        uint256 price1 = (o1.buyAmountInitial * 1000) / o1.sellAmountInitial;
+        uint256 price2 = (o2.buyAmountInitial * 1000) / o2.sellAmountInitial;
+        uint256 price3 = (o3.buyAmountInitial * 1000) / o3.sellAmountInitial;
 
-        // require(price1 < price2, string.concat("best order incorrect: ", vm.toString(price1)));
-        // require(price2 < price3, string.concat("second best order incorrect: ", vm.toString(price2)));
+        require(price1 < price2, string.concat("best order incorrect: ", vm.toString(price1)));
+        require(price2 < price3, string.concat("second best order incorrect: ", vm.toString(price2)));
     }
 
     function testDoubleLockedBalance_IM24430() public {
@@ -1003,9 +1003,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(bytes32("1"), attacker.entityId, stakeholders, simplePolicy, "offChainHash");
 
-        // uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
-        // uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
-        // require(lockedBalance <= internalBalance, "double lock balance attack successful");
+        uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
+        uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
+        require(lockedBalance <= internalBalance, "double lock balance attack successful");
     }
 
     function testMinimumSellAmounts_IM24703() public {
