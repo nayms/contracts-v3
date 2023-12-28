@@ -23,3 +23,6 @@
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/Vectorized/solady
+[submodule "lib/diamond-2-hardhat"]
+	path = lib/diamond-2-hardhat
+	url = https://github.com/nayms/diamond-2-hardhat
