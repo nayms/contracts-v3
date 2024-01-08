@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
+import { LibUniswap } from "../libs/LibUniswap.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
@@ -55,5 +56,9 @@ contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
         if (!LibACL._hasGroupPrivilege(LibHelpers._getIdForAddress(_receiver), _entityId, LibHelpers._stringToBytes32(LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY)))
             revert ExternalWithdrawInvalidReceiver(_receiver);
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
+    }
+
+    function flashSwap(address pool0, uint24 fee1, address tokenIn, address tokenOut, uint amountIn) external {
+        LibUniswap.flashSwap(pool0, fee1, tokenIn, tokenOut, amountIn);
     }
 }

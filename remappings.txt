@@ -8,3 +8,5 @@ solady/=lib/solady/
 solidity-lib/=lib/solidity-lib/contracts/
 solidity-stringutils/=lib/solidity-stringutils/
 solmate/=lib/solmate/src/
+@uniswap/v3-periphery/=lib/v3-periphery/
+@uniswap/v3-core/=lib/v3-core/
