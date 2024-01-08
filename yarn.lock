@@ -2666,10 +2666,10 @@ functions-have-names@^1.2.3:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
-gemforge@^2.6.4:
-  version "2.6.4"
-  resolved "https://registry.npmjs.org/gemforge/-/gemforge-2.6.4.tgz"
-  integrity sha512-82rIhbB2X4mrgZcSywMuelkfxiE6eeGaP1qyiGpvAq9cGR2YJOCsK532IJZ/nQCBF9uaRJM8t6fyaqkD1kosXw==
+gemforge@^2.6.5:
+  version "2.6.5"
+  resolved "https://registry.yarnpkg.com/gemforge/-/gemforge-2.6.5.tgz#9fa403ab074233ec41e97604f045c778bc9cb5c7"
+  integrity sha512-iZAw7/3B6CPtKtVTplZspq0GwLUqDVjQT8QWXkQPtl4MMDzZtwDzdh9MW9M90Gd5GDI7eR/C+ou/XAc94UNeMA==
   dependencies:
     "@solidity-parser/parser" "^0.16.1"
     chalk "^5.3.0"
@@ -4899,6 +4899,7 @@ strict-uri-encode@^1.0.0:
   integrity sha512-R3f198pcvnB+5IpnBlRkphuE9n46WyVl8I39W/ZUTZLz4nqSP/oLYUrcnJrw462Ds8he4YKMov2efsTIw1BDGQ==
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -5923,6 +5924,7 @@ wordwrap@^1.0.0:
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==

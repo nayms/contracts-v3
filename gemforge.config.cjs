@@ -111,6 +111,12 @@ module.exports = {
         index: 0,
       },
     },
+    wallet3: {
+      type: "private-key",
+      config: {
+        key: process.env.ETH_DEPLOYER_PK || "",
+      },
+    },
   },
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
