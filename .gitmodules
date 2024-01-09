@@ -33,3 +33,6 @@
 [submodule "lib/v3-core"]
 	path = lib/v3-core
 	url = https://github.com/uniswap/v3-core
+[submodule "lib/oz-3.4"]
+	path = lib/oz-3.4
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
