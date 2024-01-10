@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import { ECDSA } from "@openzeppelin5/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin5/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import { LibAdmin } from "src/libs/LibAdmin.sol";
 import { LibObject } from "src/libs/LibObject.sol";

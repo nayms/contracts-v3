@@ -1,9 +1,9 @@
 forge-std/=lib/forge-std/src/
-@openzeppelin/contracts/=lib/oz/contracts/
+@openzeppelin/contracts/=lib/oz-3.4/contracts/
+@openzeppelin5/contracts/=lib/oz/contracts/
 diamond-2-hardhat/=lib/diamond-2-hardhat/contracts/
 ds-test/=lib/ds-test/src/
 erc4626-tests/=lib/oz/lib/erc4626-tests/
-oz/=lib/oz/
 solady/=lib/solady/
 solidity-lib/=lib/solidity-lib/contracts/
 solidity-stringutils/=lib/solidity-stringutils/
