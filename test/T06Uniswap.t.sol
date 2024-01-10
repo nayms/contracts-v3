@@ -80,22 +80,22 @@ contract UniswapFixture {
     }
 }
 
-contract UniswapV3FlashSwapTest is D03ProtocolDefaults, MockAccounts, SwapRouterFixture {
+contract UniswapV3FlashSwapTest is D03ProtocolDefaults, MockAccounts, UniswapFixture {
     using StdStyle for *;
 
     address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address private constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address private constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
-    IERC20 private realWeth = IERC20(WETH);
-    IERC20 private realDai = IERC20(DAI);
-    IERC20 private realUsdc = IERC20(USDC);
+    WETH9 private realWeth = WETH9(WETH);
+    IERC20Minimal private realDai = IERC20Minimal(DAI);
+    IERC20Minimal private realUsdc = IERC20Minimal(USDC);
 
     function setUp() public {}
 
     function testSingleHop() public {
-        weth.deposit{ value: 1e18 }();
-        weth.approve(address(this), 1e18);
+        realWeth.deposit{ value: 1e18 }();
+        realWeth.approve(address(this), 1e18);
 
         uint amountOut = LibUniswap.swapExactInputSingleHop(WETH, DAI, 3000, 1e18);
 
