@@ -49,13 +49,14 @@ sparse_mode = false
 # permissions for read-write
 fs_permissions = [
     { access = "read-write", path = "./src/interfaces/" },
-    { access = "read-write", path = "./facetsdeployed.txt" },
-    { access = "read-write", path = "./deployedAddresses.json" },
-    { access = "read-write", path = "./deployedAddressesTest.json" },
     { access = "read-write", path = "./codeReconReport.json" },
     { access = "read", path = "./forge-artifacts/" },
-    { access = "read", path = "./broadcast/" },
     { access = "read", path = "./nayms_mnemonic.txt" },
+    { access = "read", path = "./test/contracts/WETH9.json" },
+    { access = "read", path = "lib/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json" },
+    { access = "read", path = "lib/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json" },
+    { access = "read", path = "lib/v3-periphery/artifacts/contracts/NonfungibleTokenPositionDescriptor.sol/NonfungibleTokenPositionDescriptor.json" },
+    { access = "read", path = "lib/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json" },
 ]
 
 [profile.test]

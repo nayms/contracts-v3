@@ -57,8 +57,4 @@ contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
             revert ExternalWithdrawInvalidReceiver(_receiver);
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
     }
-
-    function flashSwap(address pool0, uint24 fee1, address tokenIn, address tokenOut, uint amountIn) external {
-        LibUniswap.flashSwap(pool0, fee1, tokenIn, tokenOut, amountIn);
-    }
 }
