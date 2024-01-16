@@ -22,13 +22,13 @@ import "test/utils/uniswap/Tick.sol";
 import "test/utils/uniswap/Math.sol";
 
 // import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import { IUniswapV3Factory } from "test/contracts/uniswap-interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3Factory } from "test/uniswap/interfaces/IUniswapV3Factory.sol";
 // import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import { ISwapRouter } from "test/contracts/uniswap-interfaces/ISwapRouter.sol";
+import { ISwapRouter } from "test/uniswap/interfaces/ISwapRouter.sol";
 // import { INonfungibleTokenPositionDescriptor } from "@uniswap/v3-periphery/contracts/interfaces/INonfungibleTokenPositionDescriptor.sol";
-import { INonfungibleTokenPositionDescriptor } from "test/contracts/uniswap-interfaces/INonfungibleTokenPositionDescriptor.sol";
+import { INonfungibleTokenPositionDescriptor } from "test/uniswap/interfaces/INonfungibleTokenPositionDescriptor.sol";
 // import { INonfungiblePositionManager } from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-import { INonfungiblePositionManager } from "test/contracts/uniswap-interfaces/INonfungiblePositionManager.sol";
+import { INonfungiblePositionManager } from "test/uniswap/interfaces/INonfungiblePositionManager.sol";
 
 string constant weth9Artifact = "test/contracts/WETH9.json";
 // string constant v3FactoryArtifact = "test/contracts/uniswap-v3/UniswapV3Factory.sol/UniswapV3Factory.json";
@@ -102,13 +102,13 @@ contract UniswapFixture is D03ProtocolDefaults {
         tokens.push(TestERC20(token1));
         tokens.push(TestERC20(token0));
 
-        console.log("setting up NFT Descriptor");
+        console.log("setting up NFT Position Descriptor");
         // nftDescriptor = new NonfungibleTokenPositionDescriptor(address(tokens[0]), bytes32("ETH"));
         // address _nftDescriptor = deployCode(nftPositionDescriptorArtifact, abi.encode(address(tokens[0]), bytes32("ETH")));
         // nftDescriptor = INonfungibleTokenPositionDescriptor(_nftDescriptor);
         nftDescriptor = INonfungibleTokenPositionDescriptor(0x91ae842A5Ffd8d12023116943e72A606179294f3);
 
-        console.log("setting up NFT");
+        console.log("setting up NFT Position Manager");
         // nft = new NonfungiblePositionManager(address(factory), address(weth9), address(nftDescriptor));
         // address _nft = deployCode(nftPositionManagerArtifact, abi.encode(address(factory), address(weth9), address(nftDescriptor)));
         // nft = INonfungiblePositionManager(_nft);
@@ -172,12 +172,12 @@ contract T06Uniswap is MockAccounts, UniswapFixture {
     }
 
     function createLiquidityPool() public {
-        tokens[0].mint(account0, 100000 ether);
-        tokens[0].approve(address(nft), 10000 ether);
-        tokens[1].mint(account0, 100000 ether);
-        tokens[1].approve(address(nft), 10000 ether);
+        tokens[0].mint(account0, 100_000 ether);
+        tokens[0].approve(address(nft), 10_000 ether);
+        tokens[1].mint(account0, 100_000 ether);
+        tokens[1].approve(address(nft), 10_000 ether);
         // nayms.approve(address(nft), 10000 ether);
 
-        createPool(address(tokens[0]), address(tokens[1]), 1000, 1000);
+        createPool(address(tokens[0]), address(tokens[1]), 1_000, 1_000);
     }
 }
