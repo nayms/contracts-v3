@@ -5,6 +5,7 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppSt
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
+import { LibHelpers } from "../libs/LibHelpers.sol";
 
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
@@ -132,5 +133,13 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      */
     function getObjectTokenSymbol(bytes32 _objectId) external view returns (string memory) {
         return LibObject._objectTokenSymbol(_objectId);
+    }
+
+    function approveSelfOnboarding(address _userAddress) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
+        LibEntity._approveSelfOnboarding(_userAddress);
+    }
+
+    function onboard() external {
+        LibEntity._onboardUser(msg.sender);
     }
 }

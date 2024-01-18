@@ -37,8 +37,14 @@ error CannotAddNullDiscountToken();
 /// @dev The entity does not exist when it should.
 error EntityDoesNotExist(bytes32 objectId);
 
+/// @dev The entity self onboarding not approved
+error EntityOnboardingNotApproved(address userAddress);
+
+/// @dev The entity self onboarding already approved
+error EntityOnboardingAlreadyApproved(address userAddress);
+
 /// @dev Cannot create an entity that already exists.
-error CreatingEntityThatAlreadyExists(bytes32 entityId);
+error EntityExistsAlready(bytes32 entityId);
 
 /// @dev The object type is not supported in this function call.
 error InvalidObjectType(bytes32 objectId, bytes12 objectType);

@@ -15,7 +15,23 @@ import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "../shared/CustomErrors.sol";
+
+// prettier-ignore
+import { 
+    FeeBasisPointsExceedHalfMax, 
+    EntityDoesNotExist, 
+    DuplicateSignerCreatingSimplePolicy, 
+    PolicyIdCannotBeZero, 
+    ObjectCannotBeTokenized, 
+    EntityExistsAlready, 
+    SimplePolicyStakeholderSignatureInvalid, 
+    SimplePolicyClaimsPaidShouldStartAtZero, 
+    SimplePolicyPremiumsPaidShouldStartAtZero, 
+    CancelCannotBeTrueWhenCreatingSimplePolicy, 
+    UtilizedCapacityGreaterThanMaxCapacity, 
+    EntityOnboardingAlreadyApproved,
+    EntityOnboardingNotApproved 
+} from "../shared/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -216,11 +232,11 @@ library LibEntity {
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
-    function _createEntity(bytes32 _entityId, bytes32 _accountAdmin, Entity calldata _entity, bytes32 _dataHash) internal {
+    function _createEntity(bytes32 _entityId, bytes32 _accountAdmin, Entity memory _entity, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.existingEntities[_entityId]) {
-            revert CreatingEntityThatAlreadyExists(_entityId);
+            revert EntityExistsAlready(_entityId);
         }
         validateEntity(_entity);
 
@@ -280,7 +296,7 @@ library LibEntity {
         emit EntityUpdated(_entityId);
     }
 
-    function validateEntity(Entity calldata _entity) internal view {
+    function validateEntity(Entity memory _entity) internal view {
         // If a non cell type entity is converted into a cell type entity, then the following checks must be performed.
         if (_entity.assetId != 0) {
             // entity has an underlying asset, which means it's a cell
@@ -317,5 +333,42 @@ library LibEntity {
     function _isEntity(bytes32 _entityId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.existingEntities[_entityId];
+    }
+
+    function _approveSelfOnboarding(address _userAddress) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 entityId = _addressAsEntityID(_userAddress);
+
+        if (s.selfOnboardingAllowed[_userAddress]) {
+            revert EntityOnboardingAlreadyApproved(_userAddress);
+        }
+
+        if (s.existingEntities[entityId]) {
+            revert EntityExistsAlready(entityId);
+        }
+
+        s.selfOnboardingAllowed[_userAddress] = true;
+    }
+
+    function _onboardUser(address _userAddress) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (!s.selfOnboardingAllowed[_userAddress]) {
+            revert EntityOnboardingNotApproved(_userAddress);
+        }
+        bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
+        bytes32 entityId = _addressAsEntityID(_userAddress);
+
+        Entity memory entity;
+        _createEntity(entityId, userId, entity, 0);
+
+        LibACL._assignRole(entityId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER));
+
+        s.selfOnboardingAllowed[_userAddress] = false;
+    }
+
+    function _addressAsEntityID(address _userAddress) internal pure returns (bytes32) {
+        return bytes32(abi.encode(LC.OBJECT_TYPE_ENTITY, bytes20(_userAddress)));
     }
 }
