@@ -124,9 +124,10 @@ module.exports = {
     sepoliaFork: { rpcUrl: "http://localhost:8545" },
     mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
     mainnetFork: { rpcUrl: "http://localhost:8545" },
-    baseGoerli: {
-      rpcUrl: process.env.BASE_GOERLI_RPC_URL,
-      verifierUrl: "https://api-goerli.basescan.org/api",
+    baseSepolia: {
+      rpcUrl: process.env.BASE_SEPOLIA_RPC_URL,
+      verifierUrl: "https://api-sepolia.basescan.org/api",
+      verifierApiKey: process.env.BASESCAN_API_KEY,
     },
     base: {
       rpcUrl: process.env.BASE_MAINNET_RPC_URL,
@@ -161,8 +162,8 @@ module.exports = {
       wallet: "wallet1",
       initArgs: [],
     },
-    baseGoerli: {
-      network: "baseGoerli",
+    baseSepolia: {
+      network: "baseSepolia",
       wallet: "wallet1",
       initArgs: [sysAdminAddress],
     },
