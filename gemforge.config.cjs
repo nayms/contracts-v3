@@ -2,14 +2,16 @@ require("dotenv").config();
 const fs = require("fs");
 const ethers = require("ethers");
 
-const MNEMONIC = fs.readFileSync("./nayms_mnemonic.txt").toString().trim();
-const MNEMONIC_MAINNET = fs
-  .readFileSync("./nayms_mnemonic_mainnet.txt")
-  .toString()
-  .trim();
+const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
+  ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
+  : "test test test test test test test test test test test junk";
+
+const MNEMONIC_MAINNET = fs.existsSync("./nayms_mnemonic_mainnet.txt")
+  ? fs.readFileSync("./nayms_mnemonic_mainnet.txt").toString().trim()
+  : "test test test test test test test test test test test junk";
 
 const walletOwnerIndex = 19;
-const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC).address;
+const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
 
 module.exports = {
   // Configuration file version
