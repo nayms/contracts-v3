@@ -43,7 +43,9 @@ jobs:
         run: yarn
       
       - name: Drop-in Test Wallet
-        run: echo "test test test test test test test test test test test junk" > ./nayms_mnemonic.txt
+        run: |
+          echo "test test test test test test test test test test test junk" > ./nayms_mnemonic.txt
+          echo "test test test test test test test test test test test junk" > ./nayms_mnemonic_mainnet.txt
 
       - name: Build solidity contracts
         run: make build
