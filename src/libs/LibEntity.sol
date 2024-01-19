@@ -42,10 +42,42 @@ library LibEntity {
      * @param entityAdmin Unique ID of the entity administrator
      */
     event EntityCreated(bytes32 indexed entityId, bytes32 entityAdmin);
+    /**
+     * @notice An entity has been updated
+     * @dev Emitted when entity is updated
+     * @param entityId Unique ID for the entity
+     */
     event EntityUpdated(bytes32 indexed entityId);
+    /**
+     * @notice New policy has been created
+     * @dev Emitted when policy is created
+     * @param id Unique ID for the policy
+     * @param entityId ID of the entity
+     */
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
+    /**
+     * @notice New token sale has been started
+     * @dev Emitted when token sale is started
+     * @param entityId Unique ID for the entity
+     * @param offerId ID of the sale offer
+     * @param tokenSymbol symbol of the token
+     * @param tokenName name of the token
+     */
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
+    /**
+     * @notice Collateral ratio has been updated
+     * @dev Emitted when collateral ratio is updated
+     * @param entityId ID of the entity
+     * @param collateralRatio required collateral ratio
+     * @param utilizedCapacity capacity utilization according to the new ratio
+     */
     event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
+    /**
+     * @notice Token holder self onboarding approved
+     * @dev Emitted when self onboarding is approved for a user
+     * @param userAddress a user approved to self onboard
+     */
+    event SelfOnboardingApproved(address indexed userAddress);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
@@ -349,6 +381,8 @@ library LibEntity {
         }
 
         s.selfOnboardingAllowed[_userAddress] = true;
+
+        emit SelfOnboardingApproved(_userAddress);
     }
 
     function _onboardUser(address _userAddress) internal {
@@ -357,6 +391,7 @@ library LibEntity {
         if (!s.selfOnboardingAllowed[_userAddress]) {
             revert EntityOnboardingNotApproved(_userAddress);
         }
+
         bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
         bytes32 entityId = _addressAsEntityID(_userAddress);
 
@@ -369,6 +404,6 @@ library LibEntity {
     }
 
     function _addressAsEntityID(address _userAddress) internal pure returns (bytes32) {
-        return bytes32(abi.encode(LC.OBJECT_TYPE_ENTITY, bytes20(_userAddress)));
+        return bytes32(abi.encodePacked(LC.OBJECT_TYPE_ENTITY, bytes20(_userAddress)));
     }
 }

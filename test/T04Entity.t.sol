@@ -8,6 +8,7 @@ import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { StdStyle } from "forge-std/StdStyle.sol";
 
+import { LibEntity } from "src/libs/LibEntity.sol";
 import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 
 // solhint-disable no-global-import
@@ -1158,5 +1159,50 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimpleClaim(claimId, policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 500);
         assertEq(lockedBalance, nayms.getLockedBalance(entityId1, wethId), "locked balance should not change");
         assertEq(utilizedCapacity, nayms.getEntityInfo(entityId1).utilizedCapacity, "utilized capacity should not change");
+    }
+
+    function testSelfOnboardingNotApproved() public {
+        vm.stopPrank();
+        vm.startPrank(signer1);
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, signer1));
+        nayms.onboard();
+        vm.stopPrank();
+    }
+
+    function testSelfOnboardingAlreadyApproved() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        vm.startPrank(em.addr);
+        nayms.approveSelfOnboarding(signer1);
+
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, signer1));
+        nayms.approveSelfOnboarding(signer1);
+        vm.stopPrank();
+    }
+
+    function testSelfOnboardingSuccess() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        vm.startPrank(em.addr);
+        nayms.approveSelfOnboarding(signer1);
+        vm.stopPrank();
+
+        vm.startPrank(signer1);
+        nayms.onboard();
+        vm.stopPrank();
+
+        bytes32 entityId = LibEntity._addressAsEntityID(signer1);
+        assertTrue(nayms.isInGroup(entityId, systemContext, LC.GROUP_TOKEN_HOLDERS));
+    }
+
+    function testSelfOnboardingEntityExistsAlready() public {
+        testSelfOnboardingSuccess();
+
+        bytes32 entityId = LibEntity._addressAsEntityID(signer1);
+
+        vm.startPrank(em.addr);
+        vm.expectRevert(abi.encodeWithSelector(EntityExistsAlready.selector, entityId));
+        nayms.approveSelfOnboarding(signer1);
+        vm.stopPrank();
     }
 }
