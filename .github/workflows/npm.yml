@@ -42,17 +42,13 @@ jobs:
       - name: Install Node dependencies
         run: yarn
       
-      - name: Drop-in Test Wallet
-        run: |
-          echo "test test test test test test test test test test test junk" > ./nayms_mnemonic.txt
-          echo "test test test test test test test test test test test junk" > ./nayms_mnemonic_mainnet.txt
-
       - name: Build solidity contracts
         run: make build
         env:
           ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
           ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
           ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
+          BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
 
       - name: Filter ABI
