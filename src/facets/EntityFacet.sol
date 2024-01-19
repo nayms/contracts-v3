@@ -5,7 +5,6 @@ import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppSt
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
 
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
