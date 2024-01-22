@@ -370,7 +370,7 @@ library LibEntity {
     function _approveSelfOnboarding(address _userAddress) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        bytes32 entityId = _addressAsEntityID(_userAddress);
+        bytes32 entityId = LibEntity._addressAsEntityID(_userAddress);
 
         if (s.selfOnboardingAllowed[_userAddress]) {
             revert EntityOnboardingAlreadyApproved(_userAddress);
@@ -393,10 +393,10 @@ library LibEntity {
         }
 
         bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
-        bytes32 entityId = _addressAsEntityID(_userAddress);
+        bytes32 entityId = LibEntity._addressAsEntityID(_userAddress);
 
         Entity memory entity;
-        _createEntity(entityId, userId, entity, 0);
+        LibEntity._createEntity(entityId, userId, entity, 0);
 
         LibACL._assignRole(entityId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER));
 
