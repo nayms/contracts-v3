@@ -134,10 +134,17 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         return LibObject._objectTokenSymbol(_objectId);
     }
 
+    /**
+     * @notice Approve a usser address for self-onboarding
+     * @param _userAddress user account address
+     */
     function approveSelfOnboarding(address _userAddress) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
         LibEntity._approveSelfOnboarding(_userAddress);
     }
 
+    /**
+     * @notice Create a token holder entity for a user account
+     */
     function onboard() external {
         LibEntity._onboardUser(msg.sender);
     }
