@@ -2,13 +2,16 @@ require("dotenv").config();
 const fs = require("fs");
 const ethers = require("ethers");
 
+const testMnemonic =
+  "test test test test test test test test test test test junk";
+
 const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
   ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
-  : "test test test test test test test test test test test junk";
+  : testMnemonic;
 
 const MNEMONIC_MAINNET = fs.existsSync("./nayms_mnemonic_mainnet.txt")
   ? fs.readFileSync("./nayms_mnemonic_mainnet.txt").toString().trim()
-  : "test test test test test test test test test test test junk";
+  : testMnemonic;
 
 const walletOwnerIndex = 19;
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
@@ -95,7 +98,7 @@ module.exports = {
     // shell command to execute before deploy
     preDeploy: "",
     // shell command to execute after deploy
-    postDeploy: "./script/gemforge/verify-on-etherscan.js",
+    postDeploy: "./script/gemforge/verify.js",
   },
   // Wallets to use for deployment
   wallets: {
@@ -113,12 +116,12 @@ module.exports = {
         index: 0,
       },
     },
-    wallet3: {
-      type: "private-key",
-      config: {
-        key: process.env.ETH_DEPLOYER_PK || "",
-      },
-    },
+    // wallet3: {
+    //   type: "private-key",
+    //   config: {
+    //     key: process.env.ETH_DEPLOYER_PK || "",
+    //   },
+    // },
   },
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
@@ -128,13 +131,28 @@ module.exports = {
     mainnetFork: { rpcUrl: "http://localhost:8545" },
     baseSepolia: {
       rpcUrl: process.env.BASE_SEPOLIA_RPC_URL,
-      verifierUrl: "https://api-sepolia.basescan.org/api",
-      verifierApiKey: process.env.BASESCAN_API_KEY,
+      verifiers: [
+        {
+          verifierName: "etherscan",
+          verifierUrl: "https://api-sepolia.basescan.org/api",
+          verifierApiKey: process.env.BASESCAN_API_KEY,
+        },
+        {
+          verifierName: "blockscout",
+          verifierUrl: "https://base-sepolia.blockscout.com/api",
+          verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
+        },
+      ],
     },
     base: {
       rpcUrl: process.env.BASE_MAINNET_RPC_URL,
-      verifierUrl: "https://api.basescan.org/api",
-      verifierApiKey: process.env.BASESCAN_API_KEY,
+      verifiers: [
+        {
+          verifierName: "etherscan",
+          verifierUrl: "https://api.basescan.org/api",
+          verifierApiKey: process.env.BASESCAN_API_KEY,
+        },
+      ],
     },
     baseFork: { rpcUrl: "http://localhost:8545" },
   },
