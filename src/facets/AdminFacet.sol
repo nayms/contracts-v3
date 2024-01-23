@@ -106,4 +106,19 @@ contract AdminFacet is Modifiers {
     function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._removeFeeSchedule(_entityId, _feeScheduleType);
     }
+
+    /**
+     * @notice Approve a usser address for self-onboarding
+     * @param _userAddress user account address
+     */
+    function approveSelfOnboarding(address _userAddress) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
+        LibAdmin._approveSelfOnboarding(_userAddress);
+    }
+
+    /**
+     * @notice Create a token holder entity for a user account
+     */
+    function onboard() external {
+        LibAdmin._onboardUser(msg.sender);
+    }
 }

@@ -1191,14 +1191,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.onboard();
         vm.stopPrank();
 
-        bytes32 entityId = LibEntity._addressAsEntityID(signer1);
+        bytes32 entityId = LibHelpers._getAddressAsEntityID(signer1);
         assertTrue(nayms.isInGroup(entityId, systemContext, LC.GROUP_TOKEN_HOLDERS));
     }
 
     function testSelfOnboardingEntityExistsAlready() public {
         testSelfOnboardingSuccess();
 
-        bytes32 entityId = LibEntity._addressAsEntityID(signer1);
+        bytes32 entityId = LibHelpers._getAddressAsEntityID(signer1);
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(EntityExistsAlready.selector, entityId));

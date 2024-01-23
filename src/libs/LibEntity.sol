@@ -72,12 +72,6 @@ library LibEntity {
      * @param utilizedCapacity capacity utilization according to the new ratio
      */
     event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
-    /**
-     * @notice Token holder self onboarding approved
-     * @dev Emitted when self onboarding is approved for a user
-     * @param userAddress a user approved to self onboard
-     */
-    event SelfOnboardingApproved(address indexed userAddress);
 
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
@@ -365,45 +359,5 @@ library LibEntity {
     function _isEntity(bytes32 _entityId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.existingEntities[_entityId];
-    }
-
-    function _approveSelfOnboarding(address _userAddress) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        bytes32 entityId = LibEntity._addressAsEntityID(_userAddress);
-
-        if (s.selfOnboardingAllowed[_userAddress]) {
-            revert EntityOnboardingAlreadyApproved(_userAddress);
-        }
-
-        if (s.existingEntities[entityId]) {
-            revert EntityExistsAlready(entityId);
-        }
-
-        s.selfOnboardingAllowed[_userAddress] = true;
-
-        emit SelfOnboardingApproved(_userAddress);
-    }
-
-    function _onboardUser(address _userAddress) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        if (!s.selfOnboardingAllowed[_userAddress]) {
-            revert EntityOnboardingNotApproved(_userAddress);
-        }
-
-        bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
-        bytes32 entityId = LibEntity._addressAsEntityID(_userAddress);
-
-        Entity memory entity;
-        LibEntity._createEntity(entityId, userId, entity, 0);
-
-        LibACL._assignRole(entityId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER));
-
-        s.selfOnboardingAllowed[_userAddress] = false;
-    }
-
-    function _addressAsEntityID(address _userAddress) internal pure returns (bytes32) {
-        return bytes32(abi.encodePacked(LC.OBJECT_TYPE_ENTITY, bytes20(_userAddress)));
     }
 }

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { LibConstants as LC } from "./LibConstants.sol";
+
 /// @notice Pure functions
 library LibHelpers {
     function _getIdForObjectAtIndex(uint256 _index) internal pure returns (bytes32) {
@@ -9,6 +11,10 @@ library LibHelpers {
 
     function _getIdForAddress(address _addr) internal pure returns (bytes32) {
         return bytes32(bytes20(_addr));
+    }
+
+    function _getAddressAsEntityID(address _userAddress) internal pure returns (bytes32) {
+        return bytes32(abi.encodePacked(LC.OBJECT_TYPE_ENTITY, bytes20(_userAddress)));
     }
 
     function _getSenderId() internal view returns (bytes32) {
