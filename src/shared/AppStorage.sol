@@ -79,6 +79,12 @@ struct AppStorage {
     mapping(string tokenSymbol => bytes32 objectId) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
     mapping(bytes32 entityId => mapping(uint256 feeScheduleTypeId => FeeSchedule)) feeSchedules; // map entity ID to a fee schedule type and then to array of FeeReceivers (feeScheduleType (1-premium, 2-trading, n-others))
     mapping(bytes32 objectId => uint256 minimumSell) objectMinimumSell; // map object ID to minimum sell amount
+    /// Staking
+    mapping(bytes32 tokenId => mapping(bytes32 ownerId => mapping(uint64 interval => uint256 boost))) stakeBoost; // [tokenId][ownerId][interval] Boost per interval
+    mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint64)) stakePaid; // [tokenid][ownerId] Index of the last paid interval for each staker
+    mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint64)) lastCollectedInterval; // [tokenid][ownerId] Index of the last paid interval for each staker
+    mapping(bytes32 tokenId => uint64) lastIntervalPaid; // [tokenid][ownerId] Index of the last paid interval for each staker
+    mapping(bytes32 tokenId => StakeConfig) stakeConfigs; // [tokenid] StakeConfig for staking of a token token
 }
 
 struct FunctionLockedStorage {

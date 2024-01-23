@@ -56,9 +56,11 @@ library LibTokenizedVault {
         return s.tokenSupply[_objectId];
     }
 
+    error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
     function _internalTransfer(bytes32 _from, bytes32 _to, bytes32 _tokenId, uint256 _amount) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        if (s.tokenBalances[_tokenId][_from] < _amount) revert InsufficientBalance(_tokenId, _from, s.tokenBalances[_tokenId][_from], _amount);
         require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: insufficient balance");
         require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransfer: insufficient balance available, funds locked");
 

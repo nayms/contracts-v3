@@ -61,6 +61,9 @@ abstract contract D01Deployment is D00GlobalDefaults, Test {
         changePrank(na.addr);
     }
 
+    function startPrank(NaymsAccount memory na) public {
+        vm.startPrank(na.addr);
+    }
     function getDiamondAddress() internal view returns (address diamondAddress) {
         diamondAddress = vm.envAddress(string.concat("TESTS_FORK_DIAMOND_ADDRESS_", vm.toString(block.chainid)));
 

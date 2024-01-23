@@ -15,6 +15,7 @@ library LibConstants {
     bytes12 internal constant OBJECT_TYPE_PREMIUM = "PREMIUM";
     bytes12 internal constant OBJECT_TYPE_ROLE = "ROLE";
     bytes12 internal constant OBJECT_TYPE_GROUP = "GROUP";
+    bytes12 internal constant OBJECT_TYPE_STAKED = "VTOK";
 
     /// Reserved IDs
     string internal constant EMPTY_IDENTIFIER = "";
