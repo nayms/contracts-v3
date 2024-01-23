@@ -107,7 +107,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         nayms.updateStakingParams(NAYMSID);
 
         nayms.internalBalanceOf(alice.id, NAYMSID);
-        nayms.stake(alice.id, NAYMSID, 1 ether);
+        nayms.stake(NAYMSID, 1 ether);
         // nayms.stake(deployer._getIdForAddress(), NAYMSID, 1 ether);
     }
 
@@ -115,7 +115,12 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         vm.warp(1);
         nayms.updateStakingParams(NAYMSID);
 
-        nayms.stake(alice.id, NAYMSID, 1 ether);
+        startPrank(alice);
+        nayms.stake(NAYMSID, 100);
+
+        nayms.internalBalanceOf(alice.id, NAYMSID);
+
+        nayms.currentOwedBoost(NAYMSID, alice.id);
     }
     // function test_stake() public {
     //     // Stake

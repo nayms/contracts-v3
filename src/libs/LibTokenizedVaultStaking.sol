@@ -152,15 +152,14 @@ library LibTokenizedVaultStaking {
         interval1 = currentInterval + 1;
         interval2 = interval1 + 1;
 
-        bytes32 parentId = LibObject._getParent(_ownerId);
         // 0. Withdraw all current distributions first
         // _withdrawDistributions(_ownerId, _tokenId, _dividendTokenId);
-        LibTokenizedVault._withdrawAllDividends(parentId, _tokenId);
+        LibTokenizedVault._withdrawAllDividends(_ownerId, _tokenId);
 
         // 1. Transfer tokens to vTokenId and mint new vTokens for the staker
-        LibTokenizedVault._internalTransfer(parentId, vTokenId0, _tokenId, _amount);
+        LibTokenizedVault._internalTransfer(_ownerId, vTokenId0, _tokenId, _amount);
         // Mint tokens at the current interval to the staker
-        LibTokenizedVault._internalMint(parentId, vTokenId, _amount);
+        LibTokenizedVault._internalMint(_ownerId, vTokenId, _amount);
 
         // 2. Set next two boosts
         // Get the portion that corresponds to the next two intervals and add the boost to each
@@ -173,6 +172,7 @@ library LibTokenizedVaultStaking {
         uint256 boost2 = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_tokenId))) / s.stakeConfigs[_tokenId].interval;
         uint256 boost1 = boostTotal - boost2;
 
+        // Update
         s.stakeBoost[_tokenId][_ownerId][interval1] += boost1;
         s.stakeBoost[_tokenId][_ownerId][interval2] += boost2;
 
@@ -232,12 +232,12 @@ library LibTokenizedVaultStaking {
 
     /**
      *
-     * @param _ownerId Owner of the tokens
      * @param _tokenId ID of the token
+     * @param _ownerId Owner of the tokens
      * @return owedBoost_ Amount of boost owed since the last collected interval
      * @return currentBoost_
      */
-    function _currentOwedBoost(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256 owedBoost_, uint256 currentBoost_) {
+    function _currentOwedBoost(bytes32 _tokenId, bytes32 _ownerId) internal view returns (uint256 owedBoost_, uint256 currentBoost_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint256 nextBoostIncrement;
 
@@ -256,23 +256,9 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _owedBoostAtInterval(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256 owedBoost_, uint256 currentBoost_) {
+    function _stakeBoost(bytes32 _tokenId, bytes32 _ownerId, uint64 interval) internal view returns (uint256 owedBoost_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 nextBoostIncrement;
-
-        // 1. Get the last interval where distribution was collected by the user.
-        uint64 lastCollectedInterval = s.stakePaid[_tokenId][_ownerId];
-
-        // 2. Get the last interval where a distribution was paid
-        uint64 lastIntervalPaid = s.stakePaid[_tokenId][_tokenId];
-
-        // 3. Iterate through and add the boosts that the user should have until here
-        // Todo: double check this loop
-        for (uint64 i = lastCollectedInterval; i < lastIntervalPaid; ++i) {
-            nextBoostIncrement = s.stakeBoost[_tokenId][_ownerId][i];
-            currentBoost_ = s.stakeBoost[_tokenId][_ownerId][i + 1] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
-            owedBoost_ += currentBoost_;
-        }
+        owedBoost_ = s.stakeBoost[_tokenId][_ownerId][interval];
     }
 
     function _currentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256 vTokenBalance_) {

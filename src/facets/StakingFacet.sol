@@ -2,9 +2,12 @@
 pragma solidity 0.8.20;
 
 import { LibTokenizedVaultStaking, StakeConfig } from "../libs/LibTokenizedVaultStaking.sol";
-
+import { LibHelpers } from "../libs/LibHelpers.sol";
+import { LibObject } from "../libs/LibObject.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
-contract StakingFacet {
+contract StakingFacet is Modifiers {
+    using LibHelpers for address;
+
     function vTokenId(bytes32 _tokenId, uint64 _interval) external pure returns (bytes32) {
         return LibTokenizedVaultStaking._vTokenId(_tokenId, _interval);
     }
@@ -28,8 +31,9 @@ contract StakingFacet {
         interval_ = LibTokenizedVaultStaking._currentInterval(_tokenId);
     }
 
-    function stake(bytes32 _ownerId, bytes32 _tokenId, uint256 _amount) external {
-        LibTokenizedVaultStaking._stake(_ownerId, _tokenId, _amount);
+    function stake(bytes32 _tokenId, uint256 _amount) external {
+        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        LibTokenizedVaultStaking._stake(parentId, _tokenId, _amount);
     }
 
     function calculateStartTimeOfInterval(bytes32 _tokenId, uint64 _interval) external view returns (uint256 startTime_) {
@@ -51,12 +55,12 @@ contract StakingFacet {
         LibTokenizedVaultStaking._payDistribution(_guid, _from, _ownerId, _tokenId, _rewardTokenId, _amount);
     }
 
-    function currentOwedBoost(bytes32 _ownerId, bytes32 _tokenId) external view returns (uint256 owedBoost_, uint256 currentBoost_) {
-        (owedBoost_, currentBoost_) = LibTokenizedVaultStaking._currentOwedBoost(_ownerId, _tokenId);
+    function currentOwedBoost(bytes32 _tokenId, bytes32 _ownerId) external view returns (uint256 owedBoost_, uint256 currentBoost_) {
+        (owedBoost_, currentBoost_) = LibTokenizedVaultStaking._currentOwedBoost(_tokenId, _ownerId);
     }
 
-    function owedBoostAtInterval(bytes32 _ownerId, bytes32 _tokenId) external view returns (uint256 owedBoost_, uint256 currentBoost_) {
-        (owedBoost_, currentBoost_) = LibTokenizedVaultStaking._owedBoostAtInterval(_ownerId, _tokenId);
+    function stakeBoost(bytes32 _tokenId, bytes32 _ownerId, uint64 _interval) external view returns (uint256 owedBoost_) {
+        owedBoost_ = LibTokenizedVaultStaking._stakeBoost(_tokenId, _ownerId, _interval);
     }
 
     // function currrentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (uint256 vTokenBalance_) {
