@@ -29,7 +29,7 @@ library LibTokenizedVaultStaking {
     //     uint64  interval;
     // }
 
-    event StakingParamsInitialized(bytes32 indexed tokenId, uint64 a, uint64 r, uint64 divider, uint64 interval);
+    event StakingParamsUpdated(bytes32 indexed tokenId, uint64 a, uint64 r, uint64 divider, uint64 interval);
 
     event StakingStarted(bytes32 indexed tokenId, uint256 initDate);
     /**
@@ -62,8 +62,8 @@ library LibTokenizedVaultStaking {
      * @dev Initialize AppStorage.stakeConfigs for a token. These are the staking configurations for a token.
      * @param _tokenId The internal ID of the token
      */
-    function _initStakingParams(bytes32 _tokenId) internal {
-        _initStakingParams(_tokenId, 150000000, 850000000, 1000000000, 30 days);
+    function _updateStakingParams(bytes32 _tokenId) internal {
+        _updateStakingParams(_tokenId, 150000000, 850000000, 1000000000, 30 days);
     }
 
     /// @notice The staking configuration for a token is already initialized.
@@ -78,21 +78,16 @@ library LibTokenizedVaultStaking {
      * @param divider The divider for the boost
      * @param intervalSeconds The interval in seconds
      */
-    function _initStakingParams(bytes32 _tokenId, uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) internal {
+    function _updateStakingParams(bytes32 _tokenId, uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) internal {
         // Staking for an ID can only be initialized once
         // Stake.lastStakePaid on bucket 0, for the tokenid, is set to the init timestamp.
         // It is possible for stakers to exist before staking is initialized, but they will only start earming rewards after initialization
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // todo validate args
+        _validateStakingParams(a, r, divider, intervalSeconds);
+        s.stakeConfigs[_tokenId] = StakeConfig({ initDate: 0, a: a, r: r, divider: divider, interval: intervalSeconds });
 
-        if (s.stakeConfigs[_tokenId].a != 0 && s.stakeConfigs[_tokenId].r != 0 && s.stakeConfigs[_tokenId].divider != 0 && s.stakeConfigs[_tokenId].interval != 0) {
-            s.stakeConfigs[_tokenId] = StakeConfig({ initDate: 0, a: a, r: r, divider: divider, interval: intervalSeconds });
-        } else {
-            revert StakingAlreadyInitialized(_tokenId);
-        }
-
-        emit StakingParamsInitialized(_tokenId, a, r, divider, intervalSeconds);
+        emit StakingParamsUpdated(_tokenId, a, r, divider, intervalSeconds);
     }
 
     function _startStaking(bytes32 _tokenId) internal {
@@ -137,6 +132,8 @@ library LibTokenizedVaultStaking {
     }
 
     event DebugBoost2(uint256 boostTotal, uint256 blockTimestamp, uint64 startTimeOfCurrentInterval, uint64 interval);
+
+    /// @dev Users should be able to stake prior to the stake/boost starting.
     function _stake(bytes32 _ownerId, bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         // uint256 boost1;
@@ -147,7 +144,7 @@ library LibTokenizedVaultStaking {
         uint64 interval2;
         // The balance at bucket 0 is used to store the original balance that was staked.  If this is zero, the user has never staked.
         // vtokenId00 also owns the original capital of the staker
-        bytes32 vTokenId0 = _vTokenId(_tokenId, 0);
+        bytes32 vTokenId0 = _vTokenId(_tokenId, 0); // Staking bank ID
 
         uint64 currentInterval = _currentInterval(_tokenId);
         bytes32 vTokenId = _vTokenId(_tokenId, currentInterval);
@@ -158,12 +155,12 @@ library LibTokenizedVaultStaking {
         bytes32 parentId = LibObject._getParent(_ownerId);
         // 0. Withdraw all current distributions first
         // _withdrawDistributions(_ownerId, _tokenId, _dividendTokenId);
-        LibTokenizedVault._withdrawAllDividends(_ownerId, _tokenId);
+        LibTokenizedVault._withdrawAllDividends(parentId, _tokenId);
 
         // 1. Transfer tokens to vTokenId and mint new vTokens for the staker
         LibTokenizedVault._internalTransfer(parentId, vTokenId0, _tokenId, _amount);
         // Mint tokens at the current interval to the staker
-        LibTokenizedVault._internalMint(_ownerId, vTokenId, _amount);
+        LibTokenizedVault._internalMint(parentId, vTokenId, _amount);
 
         // 2. Set next two boosts
         // Get the portion that corresponds to the next two intervals and add the boost to each
@@ -189,7 +186,7 @@ library LibTokenizedVaultStaking {
 
     // Unstakes the full amount for a staker
     function _unstakeAll(bytes32 _ownerId, bytes32 _tokenId) internal {
-        bytes32 vTokenId0 = _vTokenId(_tokenId, 0);
+        bytes32 vTokenId0 = _vTokenId(_tokenId, 0); // Staking bank ID
 
         // withdraw all dividends
         _withdrawAllDistributions(_ownerId, _tokenId);
@@ -334,5 +331,23 @@ library LibTokenizedVaultStaking {
             // emit InternalTokenBalanceUpdate(_ownerId, _dividendTokenId, s.tokenBalances[_dividendTokenId][_ownerId], "_withdrawDividend", msg.sender);
             // emit DividendWithdrawn(_ownerId, _tokenId, amountOwned, _dividendTokenId, withdrawableDividend);
         }
+    }
+
+    error InvalidAValue();
+    error InvalidRValue();
+    error InvalidDividerValue();
+    error APlusRCannotBeGreaterThanDivider();
+    error InvalidIntervalSecondsValue();
+
+    function _validateStakingParams(uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) internal pure {
+        if (a == 0) revert InvalidAValue();
+
+        if (r == 0) revert InvalidRValue();
+
+        if (divider == 0) revert InvalidDividerValue();
+
+        if (a + r > divider) revert APlusRCannotBeGreaterThanDivider();
+
+        if (intervalSeconds == 0) revert InvalidIntervalSecondsValue();
     }
 }

@@ -9,8 +9,8 @@ contract StakingFacet {
         return LibTokenizedVaultStaking._vTokenId(_tokenId, _interval);
     }
 
-    function initStakingParams(bytes32 _tokenId) external {
-        LibTokenizedVaultStaking._initStakingParams(_tokenId);
+    function updateStakingParams(bytes32 _tokenId) external {
+        LibTokenizedVaultStaking._updateStakingParams(_tokenId);
     }
     // function initStaking(bytes32 _tokenId, uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) external {
     //     LibTokenizedVaultStaking._initStaking(_tokenId, a, r, divider, intervalSeconds);

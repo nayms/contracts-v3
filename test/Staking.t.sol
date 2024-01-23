@@ -78,8 +78,8 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         assertEq(entityIdExtracted, entityId);
     }
 
-    function test_initStaking() public {
-        nayms.initStakingParams(VTOKENID);
+    function test_updateStaking() public {
+        nayms.updateStakingParams(VTOKENID);
 
         StakeConfig memory stakeConfig = nayms.stakeConfigs(VTOKENID);
 
@@ -88,7 +88,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
 
     function test_currentInterval() public {
         vm.warp(1);
-        nayms.initStakingParams(VTOKENID);
+        nayms.updateStakingParams(VTOKENID);
         StakeConfig memory stakeConfig = nayms.stakeConfigs(VTOKENID);
 
         assertEq(nayms.currentInterval(VTOKENID), 0);
@@ -104,7 +104,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         // Stake
         // Initialize staking for token 00
         vm.warp(1);
-        nayms.initStakingParams(NAYMSID);
+        nayms.updateStakingParams(NAYMSID);
 
         nayms.internalBalanceOf(alice.id, NAYMSID);
         nayms.stake(alice.id, NAYMSID, 1 ether);
@@ -112,13 +112,16 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     }
 
     function test_StakeBeforeInitStaking() public {
+        vm.warp(1);
+        nayms.updateStakingParams(NAYMSID);
+
         nayms.stake(alice.id, NAYMSID, 1 ether);
     }
     // function test_stake() public {
     //     // Stake
     //     // Initialize staking for token 00
     //     vm.warp(1);
-    //     nayms.initStakingParams(VTOKENID);
+    //     nayms.updateStakingParams(VTOKENID);
 
     //     NaymsAccount memory alice = makeNaymsAcc("Alice");
 
