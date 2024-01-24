@@ -51,8 +51,9 @@ contract StakingFacet is Modifiers {
         rewardsBalance_ = LibTokenizedVaultStaking._rewardsBalance(_ownerId, _tokenId, _dividendTokenId);
     }
 
-    function payDistribution(bytes32 _guid, bytes32 _from, bytes32 _ownerId, bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) external {
-        LibTokenizedVaultStaking._payDistribution(_guid, _from, _ownerId, _tokenId, _rewardTokenId, _amount);
+    function payDistribution(bytes32 _guid, bytes32 _ownerId, bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) external {
+        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        LibTokenizedVaultStaking._payDistribution(_guid, parentId, _ownerId, _tokenId, _rewardTokenId, _amount);
     }
 
     function currentOwedBoost(bytes32 _tokenId, bytes32 _ownerId) external view returns (uint256 owedBoost_, uint256 currentBoost_) {

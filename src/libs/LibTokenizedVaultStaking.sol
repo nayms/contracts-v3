@@ -131,10 +131,12 @@ library LibTokenizedVaultStaking {
         intervalTime_ = _calculateStartTimeOfInterval(_tokenId, _currentInterval(_tokenId));
     }
 
-    event DebugBoost2(uint256 boostTotal, uint256 blockTimestamp, uint64 startTimeOfCurrentInterval, uint64 interval);
-
+    event DebugStake(bytes32 tokenId, bytes32 ownerId);
+    event DebugBoost(uint256 boostTotal, uint256 blockTimestamp, uint64 startTimeOfCurrentInterval, uint64 interval);
+    event DebugBoost2(uint256 boost1, uint256 boost2);
     /// @dev Users should be able to stake prior to the stake/boost starting.
     function _stake(bytes32 _ownerId, bytes32 _tokenId, uint256 _amount) internal {
+        emit DebugStake(_tokenId, _ownerId);
         AppStorage storage s = LibAppStorage.diamondStorage();
         // uint256 boost1;
         // uint256 boost2;
@@ -167,11 +169,12 @@ library LibTokenizedVaultStaking {
         boostTotal = _amount * s.stakeConfigs[_tokenId].a;
 
         {
-            emit DebugBoost2(boostTotal, block.timestamp, _calculateStartTimeOfCurrentInterval(_tokenId), s.stakeConfigs[_tokenId].interval);
+            emit DebugBoost(boostTotal, block.timestamp, _calculateStartTimeOfCurrentInterval(_tokenId), s.stakeConfigs[_tokenId].interval);
         }
         uint256 boost2 = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_tokenId))) / s.stakeConfigs[_tokenId].interval;
         uint256 boost1 = boostTotal - boost2;
 
+        emit DebugBoost2(boost1, boost2);
         // Update
         s.stakeBoost[_tokenId][_ownerId][interval1] += boost1;
         s.stakeBoost[_tokenId][_ownerId][interval2] += boost2;

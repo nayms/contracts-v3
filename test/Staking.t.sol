@@ -30,26 +30,48 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     bytes32 immutable VTOKENID = makeId2(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes("test"))));
     bytes32 NAYMSID;
 
-    NaymsAccount alice;
+    NaymsAccount bob;
+    NaymsAccount sue;
+    NaymsAccount lou;
 
     function setUp() public {
         NAYMSID = address(nayms)._getIdForAddress();
 
-        alice = makeNaymsAcc("Alice");
+        bob = makeNaymsAcc("Bob");
+        sue = makeNaymsAcc("Sue");
+        lou = makeNaymsAcc("Lou");
         vm.startPrank(deployer);
-        nayms.transfer(alice.addr, 100_000_000e18);
+        nayms.transfer(bob.addr, 10_000_000e18);
+        nayms.transfer(sue.addr, 10_000_000e18);
+        nayms.transfer(lou.addr, 10_000_000e18);
 
         startPrank(sa);
         nayms.addSupportedExternalToken(naymsAddress, 1e13);
 
         vm.startPrank(sm.addr);
-        hCreateEntity(alice, entity, "Alice data");
-        vm.startPrank(alice.addr);
-        nayms.approve(naymsAddress, 100_000_000e18);
+        hCreateEntity(bob.entityId, bob, entity, "Bob data");
+        hCreateEntity(sue.entityId, sue, entity, "Sue data");
+        hCreateEntity(lou.entityId, lou, entity, "Lou data");
+        hCreateEntity(sm.entityId, sm, entity, "System Manager data");
+        vm.startPrank(bob.addr);
+        nayms.approve(naymsAddress, 10_000_000e18);
         // note: the tokens get transferred to the user's parent entity
-        nayms.externalDeposit(naymsAddress, 100_000_000e18);
+        nayms.externalDeposit(naymsAddress, 10_000_000e18);
+        vm.startPrank(sue.addr);
+        nayms.approve(naymsAddress, 10_000_000e18);
+        nayms.externalDeposit(naymsAddress, 10_000_000e18);
+        vm.startPrank(lou.addr);
+        nayms.approve(naymsAddress, 10_000_000e18);
+        nayms.externalDeposit(naymsAddress, 10_000_000e18);
+
+        // for now, assume sm pays the distributions
+        startPrank(sm);
+        fundEntityUsdc(sm, 100_000_000e6);
     }
 
+    function test_setUp() public {
+        // c.logBytes32(bob.entityId);
+    }
     function vtokenId(bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32) {
         bytes memory vTokenBytes = abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, _tokenId << 96);
         return bytes32(vTokenBytes);
@@ -106,7 +128,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         vm.warp(1);
         nayms.updateStakingParams(NAYMSID);
 
-        nayms.internalBalanceOf(alice.id, NAYMSID);
+        nayms.internalBalanceOf(bob.id, NAYMSID);
         nayms.stake(NAYMSID, 1 ether);
         // nayms.stake(deployer._getIdForAddress(), NAYMSID, 1 ether);
     }
@@ -115,12 +137,35 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         vm.warp(1);
         nayms.updateStakingParams(NAYMSID);
 
-        startPrank(alice);
+        startPrank(bob);
         nayms.stake(NAYMSID, 100);
 
-        nayms.internalBalanceOf(alice.id, NAYMSID);
+        nayms.internalBalanceOf(bob.entityId, NAYMSID);
 
-        nayms.currentOwedBoost(NAYMSID, alice.id);
+        nayms.getEntity(bob.id);
+        nayms.currentOwedBoost(NAYMSID, bob.entityId);
+        nayms.stakeBoost(NAYMSID, bob.entityId, 0);
+        nayms.stakeBoost(NAYMSID, bob.entityId, 1);
+        nayms.stakeBoost(NAYMSID, bob.entityId, 2);
+        nayms.stakeBoost(NAYMSID, NAYMSID, 0);
+        nayms.stakeBoost(NAYMSID, NAYMSID, 1);
+        nayms.stakeBoost(NAYMSID, NAYMSID, 2);
+
+        vm.warp(10 days);
+        startPrank(sue);
+        nayms.stake(NAYMSID, 200);
+
+        vm.warp(20 days);
+        // todo set permissions for startStaking
+        nayms.startStaking(NAYMSID);
+
+        vm.warp(40 days);
+        startPrank(lou);
+        nayms.stake(NAYMSID, 400);
+
+        vm.warp(50 days);
+        startPrank(sm);
+        // nayms.payDistribution("1", , sm.entityId, USDC_IDENTIFIER, 100e6);
     }
     // function test_stake() public {
     //     // Stake
@@ -128,7 +173,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     //     vm.warp(1);
     //     nayms.updateStakingParams(VTOKENID);
 
-    //     NaymsAccount memory alice = makeNaymsAcc("Alice");
+    //     NaymsAccount memory bob = makeNaymsAcc("Bob");
 
     //     (, , , , address wrapperAddress) = nayms.getObjectMeta(VTOKENID);
     //     ERC20Wrapper wrapper = ERC20Wrapper(wrapperAddress);
@@ -137,10 +182,10 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     //     nayms.addSupportedExternalToken(wrapperAddress, 1e13);
 
     //     vm.startPrank(sm.addr);
-    //     hCreateEntity(alice, entity, "Alice data");
-    //     vm.startPrank(alice.addr);
+    //     hCreateEntity(bob, entity, "Bob data");
+    //     vm.startPrank(bob.addr);
     //     nayms.externalDeposit(naymsAddress, 100_000_000e18);
-    //     // nayms.stake(alice.id, VTOKENID, 1 ether);
+    //     // nayms.stake(bob.id, VTOKENID, 1 ether);
     //     nayms.stake(deployer._getIdForAddress(), VTOKENID, 1 ether);
     // }
 }
