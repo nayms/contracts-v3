@@ -55,6 +55,7 @@ library LibTokenizedVaultStaking {
      * @param _interval The interval of staking.
      */
     function _vTokenId(bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32 vTokenId_) {
+        // todo fix this for NAYM token ID since it's right padded with 0s instead of left padded
         vTokenId_ = bytes32(abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, _tokenId << 96));
     }
 
@@ -204,8 +205,10 @@ library LibTokenizedVaultStaking {
         // Todo: not yet implemented
     }
 
-    function _payDistribution(bytes32 _guid, bytes32 _from, bytes32 _ownerId, bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) internal {
-        // function payDistribution(bytes32 _guid, bytes32 _from, bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) internal {
+    error PaymentBeforeFirstInterval(uint64 currentInterval);
+    error PaymentAlreadyMadeInCurrentInterval(uint64 lastIntervalPaid, uint64 currentInterval);
+
+    function _payDistribution(bytes32 _guid, bytes32 _from, bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // Todo: vTokens should NOT be able to collect their own dividends.
@@ -213,13 +216,13 @@ library LibTokenizedVaultStaking {
 
         // At least one interval must be paid before distribution is paid
         uint64 currentInterval = _currentInterval(_tokenId);
-        require(currentInterval > 0, "cannot pay before first interval");
-        require(currentInterval > s.lastIntervalPaid[_tokenId], "cannot pay two distributions per interval");
+        if (currentInterval == 0) revert PaymentBeforeFirstInterval(currentInterval);
+        if (currentInterval <= s.lastIntervalPaid[_tokenId]) revert PaymentAlreadyMadeInCurrentInterval(s.lastIntervalPaid[_tokenId], currentInterval);
 
         bytes32 vTokenId0 = _vTokenId(_tokenId, 0);
         bytes32 vTokenId = _vTokenId(_tokenId, currentInterval);
 
-        (uint256 owedBoost, uint256 currentBoost) = _currentOwedBoost(_ownerId, _tokenId);
+        (uint256 owedBoost, uint256 currentBoost) = _overallOwedBoost(_tokenId, currentInterval);
         // Set new last interval paid after calculating the boost with the actual last interval paid.
         s.lastIntervalPaid[_tokenId] = currentInterval;
 
@@ -255,6 +258,24 @@ library LibTokenizedVaultStaking {
         for (uint64 i = lastCollectedInterval; i < lastIntervalPaid; ++i) {
             nextBoostIncrement = s.stakeBoost[_tokenId][_ownerId][i];
             currentBoost_ = s.stakeBoost[_tokenId][_ownerId][i + 1] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
+            owedBoost_ += currentBoost_;
+        }
+    }
+
+    /// @dev This is the overall boost owed to the token (not per user)
+    // todo rename to totalBoostOwed?
+    function _overallOwedBoost(bytes32 _tokenId, uint64 currentInterval) internal view returns (uint256 owedBoost_, uint256 currentBoost_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 nextBoostIncrement;
+
+        // Get the last interval where a distribution was paid
+        uint64 lastIntervalPaid = s.lastIntervalPaid[_tokenId];
+
+        // Iterate through and add the boosts
+        // Todo: double check this loop
+        for (uint64 i = lastIntervalPaid; i < currentInterval; ++i) {
+            nextBoostIncrement = s.stakeBoost[_tokenId][_tokenId][i];
+            currentBoost_ = s.stakeBoost[_tokenId][_tokenId][i + 1] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
             owedBoost_ += currentBoost_;
         }
     }
