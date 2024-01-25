@@ -212,16 +212,16 @@ library LibTokenizedVaultStaking {
         // We should add a method to transfer tokens WITH their dividend
 
         // At least one interval must be paid before distribution is paid
-        require(_currentInterval(_tokenId) > 0, "cannot pay before first interval");
-        require(s.stakePaid[_tokenId][_tokenId] == 0, "cannot pay two distributions per interval");
-
-        // s.stakePaid[_tokenId][_tokenId] = _amount;
-        bytes32 vTokenId0 = _vTokenId(_tokenId, 0);
-
         uint64 currentInterval = _currentInterval(_tokenId);
+        require(currentInterval > 0, "cannot pay before first interval");
+        require(currentInterval > s.lastIntervalPaid[_tokenId], "cannot pay two distributions per interval");
+
+        bytes32 vTokenId0 = _vTokenId(_tokenId, 0);
         bytes32 vTokenId = _vTokenId(_tokenId, currentInterval);
 
         (uint256 owedBoost, uint256 currentBoost) = _currentOwedBoost(_ownerId, _tokenId);
+        // Set new last interval paid after calculating the boost with the actual last interval paid.
+        s.lastIntervalPaid[_tokenId] = currentInterval;
 
         // Mint the owedBost to the vTokenId before distributing
         LibTokenizedVault._internalMint(vTokenId0, vTokenId, owedBoost);
@@ -277,7 +277,7 @@ library LibTokenizedVaultStaking {
 
         // The boost has already been minted to the vTokenId when the last dividend was paid, so the tokens exist, and dividend is calculated properly.
         // We just need to transfer this to the owner without triggering a dividend payment to the vTokenId
-        uint64 lastStakePaid = s.stakePaid[_tokenId][_tokenId];
+        uint64 lastIntervalPaid = s.lastIntervalPaid[_tokenId];
 
         (uint256 owedBoost, uint256 currentBoost) = _currentOwedBoost(_ownerId, _tokenId);
         bytes32 vTokenId = _vTokenId(_tokenId, _currentInterval(_tokenId));
@@ -289,10 +289,10 @@ library LibTokenizedVaultStaking {
         LibTokenizedVault._withdrawAllDividends(_ownerId, vTokenId);
 
         // Add the stake boost on the last paid interval for the user
-        s.stakeBoost[_tokenId][_ownerId][lastStakePaid] += currentBoost;
+        s.stakeBoost[_tokenId][_ownerId][lastIntervalPaid] += currentBoost;
 
         // Set the current stake paid for the staker
-        s.stakePaid[_tokenId][_ownerId] = lastStakePaid;
+        s.lastCollectedInterval[_tokenId][_ownerId] = lastIntervalPaid;
     }
 
     // This is an update to the tokenized vault facet

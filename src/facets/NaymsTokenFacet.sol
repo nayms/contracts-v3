@@ -27,7 +27,7 @@ contract NaymsTokenFacet {
     }
 
     function symbol() external pure returns (string memory) {
-        return "NAYMS";
+        return "NAYM";
     }
     function decimals() external pure returns (uint8) {
         return 18;

@@ -82,10 +82,10 @@ struct AppStorage {
     /// Staking
     mapping(bytes32 tokenId => StakeConfig) stakeConfigs; // [tokenid] StakeConfig for staking of a token token
     mapping(bytes32 tokenId => mapping(bytes32 ownerId => mapping(uint64 interval => uint256 boost))) stakeBoost; // [tokenId][ownerId][interval] Boost per interval
-    // split stakeBoost into two separate mapping vars for clarity for now.
+    // split stakePaid into two separate mapping vars for clarity for now.
     mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint64)) stakePaid; // [tokenid][ownerId] Index of the last paid interval for each staker
     mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint64)) lastCollectedInterval; // [tokenid][ownerId] Index of the last paid interval for each staker
-    mapping(bytes32 tokenId => uint64) lastIntervalPaid; // [tokenid][ownerId] Index of the last paid interval for each staker
+    mapping(bytes32 tokenId => uint64) lastIntervalPaid; // [tokenid] Index of the last paid interval for each staker
 }
 
 struct FunctionLockedStorage {
