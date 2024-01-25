@@ -29,7 +29,6 @@ import {
     SimplePolicyPremiumsPaidShouldStartAtZero, 
     CancelCannotBeTrueWhenCreatingSimplePolicy, 
     UtilizedCapacityGreaterThanMaxCapacity, 
-    EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved 
 } from "../shared/CustomErrors.sol";
 

@@ -19,7 +19,8 @@ import {
     MinimumSellCannotBeZero,
     EntityExistsAlready,
     EntityOnboardingAlreadyApproved,
-    EntityOnboardingNotApproved
+    EntityOnboardingNotApproved,
+    InvalidSelfOnboardRoleApproval
 } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
@@ -31,6 +32,7 @@ library LibAdmin {
     event FunctionsUnlocked(bytes4[] functionSelectors);
     event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
     event SelfOnboardingApproved(address indexed userAddress);
+    event SelfOnboardingCompleted(address indexed userAddress, bytes32 roleId);
 
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
@@ -191,12 +193,20 @@ library LibAdmin {
         emit FunctionsUnlocked(lockedFunctions);
     }
 
-    function _approveSelfOnboarding(address _userAddress) internal {
+    function _approveSelfOnboarding(address _userAddress, string calldata _role) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 roleId = LibHelpers._stringToBytes32(_role);
+        bool tokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bool capitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+
+        if (!tokenHolder && !capitalProvider) {
+            revert InvalidSelfOnboardRoleApproval(_role);
+        }
 
         bytes32 entityId = LibHelpers._getAddressAsEntityID(_userAddress);
 
-        if (s.selfOnboardingAllowed[_userAddress]) {
+        if (s.selfOnboardingAllowed[_userAddress] != 0) {
             revert EntityOnboardingAlreadyApproved(_userAddress);
         }
 
@@ -204,7 +214,7 @@ library LibAdmin {
             revert EntityExistsAlready(entityId);
         }
 
-        s.selfOnboardingAllowed[_userAddress] = true;
+        s.selfOnboardingAllowed[_userAddress] = roleId;
 
         emit SelfOnboardingApproved(_userAddress);
     }
@@ -212,19 +222,21 @@ library LibAdmin {
     function _onboardUser(address _userAddress) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (!s.selfOnboardingAllowed[_userAddress]) {
+        if (s.selfOnboardingAllowed[_userAddress] == 0) {
             revert EntityOnboardingNotApproved(_userAddress);
         }
 
         bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
         bytes32 entityId = LibHelpers._getAddressAsEntityID(_userAddress);
 
-        // prettier-ignore
         Entity memory entity;
         LibEntity._createEntity(entityId, userId, entity, 0);
 
-        LibACL._assignRole(entityId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER));
+        bytes32 roleId = s.selfOnboardingAllowed[_userAddress];
+        LibACL._assignRole(entityId, LibAdmin._getSystemId(), roleId);
 
-        s.selfOnboardingAllowed[_userAddress] = false;
+        delete s.selfOnboardingAllowed[_userAddress];
+
+        emit SelfOnboardingCompleted(_userAddress, roleId);
     }
 }

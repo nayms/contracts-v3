@@ -1169,30 +1169,44 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
     }
 
+    function testSelfOnboardingInvalidGroup() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        vm.startPrank(em.addr);
+        vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, LC.ROLE_SYSTEM_MANAGER));
+        nayms.approveSelfOnboarding(signer1, LC.ROLE_SYSTEM_MANAGER);
+        vm.stopPrank();
+    }
+
     function testSelfOnboardingAlreadyApproved() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(signer1);
+        nayms.approveSelfOnboarding(signer1, LC.ROLE_ENTITY_TOKEN_HOLDER);
 
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, signer1));
-        nayms.approveSelfOnboarding(signer1);
+        nayms.approveSelfOnboarding(signer1, LC.ROLE_ENTITY_CP);
         vm.stopPrank();
     }
 
     function testSelfOnboardingSuccess() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
+        _selfOnboard(signer1, LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
+        _selfOnboard(signer2, LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
+    }
+
+    function _selfOnboard(address _userAddress, string memory roleName, string memory groupName) private {
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(signer1);
+        nayms.approveSelfOnboarding(_userAddress, roleName);
         vm.stopPrank();
 
-        vm.startPrank(signer1);
+        vm.startPrank(_userAddress);
         nayms.onboard();
         vm.stopPrank();
 
-        bytes32 entityId = LibHelpers._getAddressAsEntityID(signer1);
-        assertTrue(nayms.isInGroup(entityId, systemContext, LC.GROUP_TOKEN_HOLDERS));
+        bytes32 entityId = LibHelpers._getAddressAsEntityID(_userAddress);
+        assertTrue(nayms.isInGroup(entityId, systemContext, groupName));
     }
 
     function testSelfOnboardingEntityExistsAlready() public {
@@ -1202,7 +1216,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(EntityExistsAlready.selector, entityId));
-        nayms.approveSelfOnboarding(signer1);
+        nayms.approveSelfOnboarding(signer1, LC.ROLE_ENTITY_TOKEN_HOLDER);
         vm.stopPrank();
     }
 }
