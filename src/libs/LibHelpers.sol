@@ -13,10 +13,6 @@ library LibHelpers {
         return bytes32(bytes20(_addr));
     }
 
-    function _getAddressAsEntityID(address _userAddress) internal pure returns (bytes32) {
-        return bytes32(abi.encodePacked(LC.OBJECT_TYPE_ENTITY, bytes20(_userAddress)));
-    }
-
     function _getSenderId() internal view returns (bytes32) {
         return _getIdForAddress(msg.sender);
     }

@@ -1174,49 +1174,66 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, LC.ROLE_SYSTEM_MANAGER));
-        nayms.approveSelfOnboarding(signer1, LC.ROLE_SYSTEM_MANAGER);
+        nayms.approveSelfOnboarding(signer1, randomEntityId(1), LC.ROLE_SYSTEM_MANAGER);
         vm.stopPrank();
     }
 
     function testSelfOnboardingAlreadyApproved() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
+        bytes32 entityId = randomEntityId(2);
+
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(signer1, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
 
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, signer1));
-        nayms.approveSelfOnboarding(signer1, LC.ROLE_ENTITY_CP);
+        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_CP);
         vm.stopPrank();
     }
 
     function testSelfOnboardingSuccess() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        _selfOnboard(signer1, LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
-        _selfOnboard(signer2, LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
+        _selfOnboard(signer1, randomEntityId(1), LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
+        _selfOnboard(signer2, randomEntityId(2), LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
     }
 
-    function _selfOnboard(address _userAddress, string memory roleName, string memory groupName) private {
+    function _selfOnboard(address _userAddress, bytes32 entityId, string memory roleName, string memory groupName) private {
+        vm.recordLogs();
+
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(_userAddress, roleName);
+        nayms.approveSelfOnboarding(_userAddress, entityId, roleName);
         vm.stopPrank();
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        // events: 4 role assignments + 1 policy creation => we want event at index 4
+        assertEq(entries[0].topics.length, 2);
+        // assertEq(entries[0].topics[0], keccak256("SelfOnboardingApproved(address)"));
+        // address eventAddress = abi.decode(entries[0].data, (address));
+        // assertEq(eventAddress, _userAddress);
 
         vm.startPrank(_userAddress);
         nayms.onboard();
         vm.stopPrank();
 
-        bytes32 entityId = LibHelpers._getAddressAsEntityID(_userAddress);
         assertTrue(nayms.isInGroup(entityId, systemContext, groupName));
     }
 
     function testSelfOnboardingEntityExistsAlready() public {
-        testSelfOnboardingSuccess();
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        bytes32 entityId = LibHelpers._getAddressAsEntityID(signer1);
+        bytes32 entityId = randomEntityId(9);
+
+        _selfOnboard(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(EntityExistsAlready.selector, entityId));
-        nayms.approveSelfOnboarding(signer1, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
         vm.stopPrank();
+    }
+
+    function randomEntityId(uint256 salt) public view returns (bytes32) {
+        bytes32 hash = keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, salt));
+        return bytes32(abi.encodePacked(LC.OBJECT_TYPE_ENTITY, bytes20(hash)));
     }
 }

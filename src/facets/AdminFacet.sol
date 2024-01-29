@@ -111,8 +111,12 @@ contract AdminFacet is Modifiers {
      * @notice Approve a usser address for self-onboarding
      * @param _userAddress user account address
      */
-    function approveSelfOnboarding(address _userAddress, string calldata _role) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
-        LibAdmin._approveSelfOnboarding(_userAddress, _role);
+    function approveSelfOnboarding(
+        address _userAddress,
+        bytes32 _entityId,
+        string calldata _role
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
+        LibAdmin._approveSelfOnboarding(_userAddress, _entityId, _role);
     }
 
     /**
