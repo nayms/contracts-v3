@@ -165,7 +165,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
 
         vm.warp(50 days);
         startPrank(sm);
-        nayms.payDistribution("1", NAYMSID, USDC_IDENTIFIER, 100e6);
+        nayms.payDistribution(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("dividend_1")), NAYMSID, usdcId, 100e6);
     }
     // function test_stake() public {
     //     // Stake
