@@ -135,16 +135,12 @@ library LibTokenizedVaultStaking {
     event DebugStake(bytes32 tokenId, bytes32 ownerId);
     event DebugBoost(uint256 boostTotal, uint256 blockTimestamp, uint64 startTimeOfCurrentInterval, uint64 interval);
     event DebugBoost2(uint256 boost1, uint256 boost2);
+    event DebugStakeBoost(uint256 stakeBoostOwner1, uint256 stakeBoostOwner2, uint256 stakeBoostToken1, uint256 stakeBoostToken2);
+
     /// @dev Users should be able to stake prior to the stake/boost starting.
     function _stake(bytes32 _ownerId, bytes32 _tokenId, uint256 _amount) internal {
         emit DebugStake(_tokenId, _ownerId);
         AppStorage storage s = LibAppStorage.diamondStorage();
-        // uint256 boost1;
-        // uint256 boost2;
-        uint256 boostTotal;
-
-        uint64 interval1;
-        uint64 interval2;
         // The balance at bucket 0 is used to store the original balance that was staked.  If this is zero, the user has never staked.
         // vtokenId00 also owns the original capital of the staker
         bytes32 vTokenId0 = _vTokenId(_tokenId, 0); // Staking bank ID
@@ -152,8 +148,8 @@ library LibTokenizedVaultStaking {
         uint64 currentInterval = _currentInterval(_tokenId);
         bytes32 vTokenId = _vTokenId(_tokenId, currentInterval);
 
-        interval1 = currentInterval + 1;
-        interval2 = interval1 + 1;
+        uint64 interval1 = currentInterval + 1;
+        uint64 interval2 = interval1 + 1;
 
         // 0. Withdraw all current distributions first
         // _withdrawDistributions(_ownerId, _tokenId, _dividendTokenId);
@@ -167,25 +163,44 @@ library LibTokenizedVaultStaking {
         // 2. Set next two boosts
         // Get the portion that corresponds to the next two intervals and add the boost to each
         // Also bump up the boost for the tokenId which tracks the total
-        boostTotal = _amount * s.stakeConfigs[_tokenId].a;
+        uint256 boostTotal = _amount * s.stakeConfigs[_tokenId].a;
 
         {
             emit DebugBoost(boostTotal, block.timestamp, _calculateStartTimeOfCurrentInterval(_tokenId), s.stakeConfigs[_tokenId].interval);
         }
-        uint256 boost2 = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_tokenId))) / s.stakeConfigs[_tokenId].interval;
-        uint256 boost1 = boostTotal - boost2;
 
-        emit DebugBoost2(boost1, boost2);
-        // Update
-        s.stakeBoost[_tokenId][_ownerId][interval1] += boost1;
-        s.stakeBoost[_tokenId][_ownerId][interval2] += boost2;
+        // If staking has not started yet, then the total boost is added to the first interval
+        if (s.stakeConfigs[_tokenId].initDate == 0) {
+            s.stakeBoost[_tokenId][_ownerId][interval1] += boostTotal;
+            s.stakeBoost[_tokenId][_tokenId][interval1] += boostTotal;
+            emit DebugBoost2(boostTotal, 0);
+        } else {
+            uint256 boost2 = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_tokenId))) / s.stakeConfigs[_tokenId].interval;
+            uint256 boost1 = boostTotal - boost2;
 
-        // Keep track of the totals! These will be used to calculate the boost for the next pool!
-        s.stakeBoost[_tokenId][_tokenId][interval1] += boost1;
-        s.stakeBoost[_tokenId][_tokenId][interval2] += boost2;
+            emit DebugBoost2(boost1, boost2);
+            {
+                // Update
+                s.stakeBoost[_tokenId][_ownerId][interval1] += boost1;
+                s.stakeBoost[_tokenId][_ownerId][interval2] += boost2;
+
+                // Keep track of the totals! These will be used to calculate the boost for the next pool!
+                s.stakeBoost[_tokenId][_tokenId][interval1] += boost1;
+                s.stakeBoost[_tokenId][_tokenId][interval2] += boost2;
+                // emit DebugStakeBoost(
+                //     s.stakeBoost[_tokenId][_ownerId][interval1],
+                //     s.stakeBoost[_tokenId][_ownerId][interval2],
+                //     s.stakeBoost[_tokenId][_tokenId][interval1],
+                //     s.stakeBoost[_tokenId][_tokenId][interval2]
+                // );
+            }
+        }
 
         // todo total amount staked needs revision
-        // emit InternalTokensStaked(_ownerId, _tokenId, _amount, LibTokenizedVault._internalBalanceOf(_ownerId, vTokenId));
+        {
+            uint256 balance = LibTokenizedVault._internalBalanceOf(_ownerId, vTokenId);
+            emit InternalTokensStaked(_ownerId, _tokenId, _amount, balance);
+        }
     }
 
     // Unstakes the full amount for a staker
@@ -208,6 +223,7 @@ library LibTokenizedVaultStaking {
     error PaymentBeforeFirstInterval(uint64 currentInterval);
     error PaymentAlreadyMadeInCurrentInterval(uint64 lastIntervalPaid, uint64 currentInterval);
 
+    event DebugDistribution(uint64 currentInterval, uint256 totalBoost, uint256 currentBoost);
     function _payDistribution(bytes32 _guid, bytes32 _from, bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -231,6 +247,7 @@ library LibTokenizedVaultStaking {
 
         // Add the current boost to the current interval
         s.stakeBoost[_tokenId][_tokenId][currentInterval] += currentBoost;
+        emit DebugDistribution(currentInterval, s.stakeBoost[_tokenId][_tokenId][currentInterval], currentBoost);
 
         // Then pay dividend normally and let the dividend mechanism handle the rest
         LibTokenizedVault._payDividend(_guid, _from, vTokenId, _rewardTokenId, _amount);

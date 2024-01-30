@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { StdStorage, stdStorage } from "forge-std/Test.sol";
+import { StdStorage, stdStorage, StdStyle } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults, c, LC, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
 import { StakeConfig } from "src/shared/FreeStructs.sol";
@@ -26,8 +26,10 @@ using LibHelpers for address;
 
 contract T01DeploymentTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
+    using StdStyle for *;
 
     bytes32 immutable VTOKENID = makeId2(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes("test"))));
+    bytes32 VTOKENID0;
     bytes32 NAYMSID;
 
     NaymsAccount bob;
@@ -37,6 +39,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     function setUp() public {
         NAYMSID = address(nayms)._getIdForAddress();
 
+        VTOKENID0 = vtokenId(NAYMSID, 0);
         bob = makeNaymsAcc("Bob");
         sue = makeNaymsAcc("Sue");
         lou = makeNaymsAcc("Lou");
@@ -106,6 +109,7 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         StakeConfig memory stakeConfig = nayms.stakeConfigs(VTOKENID);
 
         assertEq(stakeConfig.initDate, block.timestamp);
+        assertEq(stakeConfig.a + stakeConfig.r, stakeConfig.divider);
     }
 
     function test_currentInterval() public {
@@ -133,39 +137,78 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         // nayms.stake(deployer._getIdForAddress(), NAYMSID, 1 ether);
     }
 
+    /// @dev Add consecutive boosts.
+    function addBoosts(bytes32 tokenId, bytes32 ownerId, uint64 startingInterval) internal view returns (uint256 totalBoost) {
+        totalBoost = nayms.stakeBoost(tokenId, ownerId, startingInterval) + nayms.stakeBoost(tokenId, ownerId, startingInterval + 1);
+    }
+
+    function printBoosts(bytes32 tokenId, bytes32 ownerId) internal view {
+        c.log("~~~ Boosts ~~~".blue().bold());
+        c.log(string.concat("   Current Timestamp: ", vm.toString(block.timestamp / 1 days), " days"));
+        // todo fix the token id
+        c.log("         Total Staked", nayms.internalTokenSupply(VTOKENID0));
+        c.log("     Current Interval", nayms.currentInterval(tokenId));
+        c.log("  Boost at Interval 1", nayms.stakeBoost(tokenId, ownerId, nayms.currentInterval(tokenId) + 1));
+        c.log("  Boost at Interval 2", nayms.stakeBoost(tokenId, ownerId, nayms.currentInterval(tokenId) + 2));
+        c.log("          Boost Total", addBoosts(tokenId, ownerId, nayms.currentInterval(tokenId) + 1));
+    }
+
     function test_StakeBeforeInitStaking() public {
         vm.warp(1);
         nayms.updateStakingParams(NAYMSID);
 
         startPrank(bob);
         nayms.stake(NAYMSID, 100);
+        printBoosts(NAYMSID, NAYMSID);
 
-        nayms.internalBalanceOf(bob.entityId, NAYMSID);
-
-        nayms.getEntity(bob.id);
-        nayms.currentOwedBoost(NAYMSID, bob.entityId);
-        nayms.stakeBoost(NAYMSID, bob.entityId, 0);
-        nayms.stakeBoost(NAYMSID, bob.entityId, 1);
-        nayms.stakeBoost(NAYMSID, bob.entityId, 2);
-        nayms.stakeBoost(NAYMSID, NAYMSID, 0);
-        nayms.stakeBoost(NAYMSID, NAYMSID, 1);
-        nayms.stakeBoost(NAYMSID, NAYMSID, 2);
+        assertEq(nayms.internalBalanceOf(bob.entityId, VTOKENID0), 100);
+        assertEq(nayms.internalTokenSupply(VTOKENID0), 100);
+        // Check boosts for bob
+        assertEq(addBoosts(NAYMSID, bob.entityId, 1), nayms.stakeConfigs(NAYMSID).a * 100); // multiply by the amount staked
+        // Check overall total boosts for NAYMSID
+        assertEq(addBoosts(NAYMSID, NAYMSID, 1), nayms.stakeConfigs(NAYMSID).a * 100);
 
         vm.warp(10 days);
         startPrank(sue);
         nayms.stake(NAYMSID, 200);
+        printBoosts(NAYMSID, NAYMSID);
+
+        assertEq(nayms.internalBalanceOf(sue.entityId, VTOKENID0), 200);
+        assertEq(nayms.internalTokenSupply(VTOKENID0), 100 + 200);
+        // Check boosts for sue
+        assertEq(addBoosts(NAYMSID, sue.entityId, 1), nayms.stakeConfigs(NAYMSID).a * 200); // multiply by the amount staked
+        // Check overall total boosts for NAYMSID
+        assertEq(addBoosts(NAYMSID, NAYMSID, 1), nayms.stakeConfigs(NAYMSID).a * 300); // note total staked
 
         vm.warp(20 days);
         // todo set permissions for startStaking
         nayms.startStaking(NAYMSID);
+        c.log(" ~~ Staking has STARTED".blue());
 
         vm.warp(40 days);
         startPrank(lou);
         nayms.stake(NAYMSID, 400);
+        printBoosts(NAYMSID, NAYMSID);
+
+        assertEq(nayms.internalBalanceOf(lou.entityId, VTOKENID0), 400);
+        assertEq(nayms.internalTokenSupply(VTOKENID0), 100 + 200 + 400);
+        assertEq(nayms.stakeBoost(NAYMSID, lou.entityId, 1), 2e10);
+        assertEq(nayms.stakeBoost(NAYMSID, lou.entityId, 2), 4e10);
+        assertEq(addBoosts(NAYMSID, lou.entityId, 1), nayms.stakeConfigs(NAYMSID).a * 400); // multiply by the amount staked
+        // Check overall total boosts for NAYMSID
+        assertEq(nayms.stakeBoost(NAYMSID, NAYMSID, 1), 65e9);
+        assertEq(nayms.stakeBoost(NAYMSID, NAYMSID, 2), 4e10);
+        assertEq(addBoosts(NAYMSID, NAYMSID, 1), nayms.stakeConfigs(NAYMSID).a * 700); // note total staked
 
         vm.warp(50 days);
         startPrank(sm);
-        nayms.payDistribution(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("dividend_1")), NAYMSID, usdcId, 100e6);
+        // todo the IDs of distributions should have a different ID prefix. Currently it's the same as dividends
+        nayms.payDistribution(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), NAYMSID, usdcId, 100e6);
+        printBoosts(NAYMSID, NAYMSID);
+        // vm.warp(80 days);
+        // nayms.payDistribution(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), NAYMSID, usdcId, 100e6);
+
+        // nayms.currentOwedBoost(NAYMSID, bob.entityId);
     }
     // function test_stake() public {
     //     // Stake
