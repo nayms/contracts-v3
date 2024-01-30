@@ -24,7 +24,7 @@ function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32)
 
 using LibHelpers for address;
 
-contract T01DeploymentTest is D03ProtocolDefaults {
+contract StakingTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
     using StdStyle for *;
 
@@ -115,15 +115,17 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     function test_currentInterval() public {
         vm.warp(1);
         nayms.updateStakingParams(VTOKENID);
+        nayms.startStaking(VTOKENID);
+
         StakeConfig memory stakeConfig = nayms.stakeConfigs(VTOKENID);
 
-        assertEq(nayms.currentInterval(VTOKENID), 0);
+        assertEq(nayms.currentInterval(VTOKENID), 0, "current interval not 0");
         vm.warp(stakeConfig.initDate + stakeConfig.interval - 1);
-        assertEq(nayms.currentInterval(VTOKENID), 0);
+        assertEq(nayms.currentInterval(VTOKENID), 0, "current interval not 0 again");
         vm.warp(stakeConfig.initDate + stakeConfig.interval);
-        assertEq(nayms.currentInterval(VTOKENID), 1);
+        assertEq(nayms.currentInterval(VTOKENID), 1, "current interval not 1");
         vm.warp(stakeConfig.initDate + stakeConfig.interval * 2);
-        assertEq(nayms.currentInterval(VTOKENID), 2);
+        assertEq(nayms.currentInterval(VTOKENID), 2, "current interval not 2");
     }
 
     function test_stake() public {
