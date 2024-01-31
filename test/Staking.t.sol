@@ -30,6 +30,7 @@ contract StakingTest is D03ProtocolDefaults {
 
     bytes32 immutable VTOKENID = makeId2(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes("test"))));
     bytes32 VTOKENID0;
+    bytes32 VTOKENID1;
     bytes32 NAYMSID;
 
     NaymsAccount bob;
@@ -40,6 +41,8 @@ contract StakingTest is D03ProtocolDefaults {
         NAYMSID = address(nayms)._getIdForAddress();
 
         VTOKENID0 = vtokenId(NAYMSID, 0);
+        VTOKENID1 = vtokenId(NAYMSID, 1);
+
         bob = makeNaymsAcc("Bob");
         sue = makeNaymsAcc("Sue");
         lou = makeNaymsAcc("Lou");
@@ -222,6 +225,10 @@ contract StakingTest is D03ProtocolDefaults {
         printBoosts(NAYMSID, NAYMSID);
 
         assertEq(nayms.lastIntervalPaid(NAYMSID), 1);
+        c.log("total token supply of NAYMSID", nayms.internalTokenSupply(NAYMSID));
+        c.log("total token supply of VTOKENID0", nayms.internalTokenSupply(VTOKENID0));
+        c.log("total token supply of VTOKENID1", nayms.internalTokenSupply(VTOKENID1));
+
         // vm.warp(80 days);
         // nayms.payDistribution(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), NAYMSID, usdcId, 100e6);
 

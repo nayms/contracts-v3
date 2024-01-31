@@ -273,13 +273,13 @@ library LibTokenizedVaultStaking {
         // 3. Iterate through and add the boosts that the user should have until here
         // Todo: double check this loop
         for (uint64 i = lastCollectedInterval; i < lastIntervalPaid; ++i) {
-            nextBoostIncrement = s.stakeBoost[_tokenId][_ownerId][i];
-            currentBoost_ = s.stakeBoost[_tokenId][_ownerId][i + 1] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
+            nextBoostIncrement = s.stakeBoost[_tokenId][_ownerId][i + 1];
+            currentBoost_ = s.stakeBoost[_tokenId][_ownerId][i + 2] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
             owedBoost_ += currentBoost_;
         }
     }
 
-    event DebugOverallOwedBoost(uint256 owedBoost, uint256 currentBoost);
+    event DebugOverallOwedBoost(uint256 nextBoostIncrement, uint256 owedBoost, uint256 currentBoost);
     /// @dev This is the overall boost owed to the token (not per user)
     // todo rename to totalBoostOwed?
     function _overallOwedBoost(bytes32 _tokenId, uint64 currentInterval) internal returns (uint256 owedBoost_, uint256 currentBoost_) {
@@ -292,11 +292,11 @@ library LibTokenizedVaultStaking {
         // Iterate through and add the boosts
         // Todo: double check this loop
         for (uint64 i = lastIntervalPaid; i < currentInterval; ++i) {
-            nextBoostIncrement = s.stakeBoost[_tokenId][_tokenId][i];
-            currentBoost_ = s.stakeBoost[_tokenId][_tokenId][i + 1] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
+            nextBoostIncrement = s.stakeBoost[_tokenId][_tokenId][i + 1];
+            currentBoost_ = s.stakeBoost[_tokenId][_tokenId][i + 2] + ((nextBoostIncrement * s.stakeConfigs[_tokenId].r) / s.stakeConfigs[_tokenId].divider);
             owedBoost_ += currentBoost_;
+            emit DebugOverallOwedBoost(nextBoostIncrement, owedBoost_, currentBoost_);
         }
-        emit DebugOverallOwedBoost(owedBoost_, currentBoost_);
     }
 
     function _stakeBoost(bytes32 _tokenId, bytes32 _ownerId, uint64 interval) internal view returns (uint256 owedBoost_) {
