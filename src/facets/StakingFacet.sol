@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibTokenizedVaultStaking, StakeConfig } from "../libs/LibTokenizedVaultStaking.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -36,6 +37,16 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._stake(parentId, _tokenId, _amount);
     }
 
+    function lastCollectedInterval(bytes32 _tokenId, bytes32 _ownerId) external view returns (uint64 interval_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        interval_ = s.lastCollectedInterval[_tokenId][_ownerId];
+    }
+
+    function lastIntervalPaid(bytes32 _tokenId) external view returns (uint64 interval_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        interval_ = s.lastIntervalPaid[_tokenId];
+    }
+
     function calculateStartTimeOfInterval(bytes32 _tokenId, uint64 _interval) external view returns (uint256 startTime_) {
         startTime_ = LibTokenizedVaultStaking._calculateStartTimeOfInterval(_tokenId, _interval);
     }
@@ -58,6 +69,9 @@ contract StakingFacet is Modifiers {
 
     function currentOwedBoost(bytes32 _tokenId, bytes32 _ownerId) external view returns (uint256 owedBoost_, uint256 currentBoost_) {
         (owedBoost_, currentBoost_) = LibTokenizedVaultStaking._currentOwedBoost(_tokenId, _ownerId);
+    }
+    function overallOwedBoost(bytes32 _tokenId, uint64 _currentInterval) external returns (uint256 owedBoost_, uint256 currentBoost_) {
+        (owedBoost_, currentBoost_) = LibTokenizedVaultStaking._overallOwedBoost(_tokenId, _currentInterval);
     }
 
     function stakeBoost(bytes32 _tokenId, bytes32 _ownerId, uint64 _interval) external view returns (uint256 owedBoost_) {
