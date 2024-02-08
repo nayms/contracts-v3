@@ -81,11 +81,14 @@ struct AppStorage {
     mapping(bytes32 objectId => uint256 minimumSell) objectMinimumSell; // map object ID to minimum sell amount
     /// Staking
     mapping(bytes32 tokenId => StakeConfig) stakeConfigs; // [tokenid] StakeConfig for staking of a token token
-    mapping(bytes32 tokenId => mapping(bytes32 ownerId => mapping(uint64 interval => uint256 boost))) stakeBoost; // [tokenId][ownerId][interval] Boost per interval
-    // split stakePaid into two separate mapping vars for clarity for now.
-    mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint64)) stakePaid; // [tokenid][ownerId] Index of the last paid interval for each staker
-    mapping(bytes32 tokenId => mapping(bytes32 ownerId => uint64)) lastCollectedInterval; // [tokenid][ownerId] Index of the last paid interval for each staker
-    mapping(bytes32 tokenId => uint64) lastIntervalPaid; // [tokenid] Index of the last paid interval for each staker
+
+    // The totals for boost and reward are stored in the index of the tokeID0
+    mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] Boost per interval
+    mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 reward)) stakeRewardShare; // [vTokenId][ownerId] Reward per interval
+    mapping(bytes32 tokenId => mapping(bytes32 _stakerId => uint64 interval)) stakeCollected; // the tokenId index is used to keep track of the last paid interval 
+
+    mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId][ownerId] Reward per interval
+    mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId][ownerId] Reward per interval
 }
 
 struct FunctionLockedStorage {
