@@ -108,6 +108,27 @@ library LibTokenizedVaultStaking {
         }
     }
 
+
+
+    function _payReward(
+        bytes32 _tokenId, 
+        bytes32 _rewardTokenId, 
+        uint256 _rewardAmount
+    ) internal {
+
+        // get the current state
+        // I need to wait for the interval to finish, so the 
+        bytes32 interval = _currentInterval(bytes32 _tokenId);
+        (uint256 rewardShareAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) = _getRewardsState(_tokenId, _tokenId, interval);
+
+        //No money needs to actually be transferred
+        s.stakeRewardShare[vTokenId][_tokenId] += rewardShareAtInterval_;
+        s.stakeBoost[vTokenId][_tokenId] += boostAtInterval_;
+
+        s.stakeRewardShare[vTokenId][_tokenId] += _rewardAmount;
+        s.stakeBoost[vTokenId][_tokenId] += _rewardAmount * _getA() / _getD();
+    }
+
     function _stake(
         bytes32 _stakerId,
         bytes32 _tokenId,
