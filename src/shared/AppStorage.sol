@@ -84,7 +84,7 @@ struct AppStorage {
 
     // The totals for boost and reward are stored in the index of the tokeID0
     mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] Boost per interval
-    mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 reward)) stakeRewardShare; // [vTokenId][ownerId] Reward per interval
+    mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 reward)) stakeBalance; // [vTokenId][ownerId] Reward per interval
     mapping(bytes32 tokenId => mapping(bytes32 _stakerId => uint64 interval)) stakeCollected; // the tokenId index is used to keep track of the last paid interval 
 
     mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId][ownerId] Reward per interval

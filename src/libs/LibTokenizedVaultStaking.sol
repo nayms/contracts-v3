@@ -118,13 +118,16 @@ library LibTokenizedVaultStaking {
         // I need to wait for the interval to finish, so the
         uint64 interval = _currentInterval(_tokenId);
         bytes32 vTokenId = _vTokenId(_tokenId, interval);
-        (uint256 rewardShareAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) = _getRewardsState(_tokenId, _tokenId, interval);
+        (uint256 balanceAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) = _getRewardsState(_tokenId, _tokenId, interval);
+
+        s.stakingDistributionAmount[vTokenId] = _rewardAmount;
+        s.stakingDistributionDenomination[vTokenId] = _rewardTokenId;
 
         //No money needs to actually be transferred
-        s.stakeRewardShare[vTokenId][_tokenId] += rewardShareAtInterval_;
+        s.stakeBalance[vTokenId][_tokenId] += balanceAtInterval_;
         s.stakeBoost[vTokenId][_tokenId] += boostAtInterval_;
 
-        s.stakeRewardShare[vTokenId][_tokenId] += _rewardAmount;
+        s.stakeBalance[vTokenId][_tokenId] += _rewardAmount;
         s.stakeBoost[vTokenId][_tokenId] += (_rewardAmount * _getA(_tokenId)) / _getD(_tokenId);
     }
 
@@ -146,7 +149,7 @@ library LibTokenizedVaultStaking {
         LibTokenizedVault._internalTransfer(_stakerId, _tokenId, _tokenId, _amount);
 
         // update the share of the staking reward
-        s.stakeRewardShare[vTokenId][_stakerId] += _amount;
+        s.stakeBalance[vTokenId][_stakerId] += _amount;
 
         // update the boosts on the current and next intervals depending on time
         uint256 boostTotal = (_amount * _getA(_tokenId)) / _getD(_tokenId);
@@ -173,10 +176,10 @@ library LibTokenizedVaultStaking {
 
         // Set boost and rewards to zero
         s.stakeBoost[vTokenId][_stakerId] = 0;
-        s.stakeRewardShare[vTokenId][_stakerId] = 0;
+        s.stakeBalance[vTokenId][_stakerId] = 0;
 
-        uint256 originalAmountStaked = s.stakeRewardShare[vTokenId0][_stakerId];
-        s.stakeRewardShare[vTokenId0][_stakerId] = 0;
+        uint256 originalAmountStaked = s.stakeBalance[vTokenId0][_stakerId];
+        s.stakeBalance[vTokenId0][_stakerId] = 0;
         LibTokenizedVault._internalTransfer(_tokenId, _stakerId, _tokenId, originalAmountStaked);
     }
 
@@ -190,7 +193,7 @@ library LibTokenizedVaultStaking {
         internal
         view
         returns (
-            uint256 rewardShareAtInterval_,
+            uint256 balanceAtInterval_,
             uint256 boostAtInterval_,
             uint64 lastCollectedInterval_,
             bytes32[] memory rewardCurrenciesAtInterval_,
@@ -216,45 +219,36 @@ library LibTokenizedVaultStaking {
         if (_interval > currentInterval) {
             revert("interval is in the future");
         }
-        vTokenId = _vTokenId(_tokenId, lastCollectedInterval_);
-        nextVTokenId = _vTokenId(_tokenId, lastCollectedInterval_ + 1);
-        // This is actually the balance of the current interval. It will be re-calculated once in the loop;
         // reward[i+1] = reward[i] + boost[i]
-        rewardShareAtInterval_ = s.stakeRewardShare[nextVTokenId][_stakerId] + s.stakeBoost[nextVTokenId][_stakerId];
-        // We are also factoring boostAtNextInterval because this can be set if the staker staked between
-        // two intervals
-        // boost[i+1] += boost[i] * r
-        // This is only relevant for calculating boost[lastCollectedInterval + 1]. Everything after that
-        // is not set at this point and is therefore zero, and is therefore:
         // boost[i+1] = boost[i] * r
-        boostAtInterval_ = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
         // Iterate through and add the boosts that the user should have until we reach the specified interval.
         uint256 totalDistributionAmount;
         uint256 userDistributionAmount;
         bytes32 stakingDistributionDenomination;
-        uint256 currenctIndex;
+        uint256 currencyIndex;
         for (uint64 i = lastCollectedInterval_; i < _interval; ++i) {
-            vTokenId = _vTokenId(_tokenId, i);
+            vTokenId = _vTokenId(_tokenId, lastCollectedInterval_);
             nextVTokenId = _vTokenId(_tokenId, i + 1);
+
+            balanceAtInterval_ = s.stakeBalance[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
+            boostAtInterval_ = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
 
             // check to see if there are rewards for this interval, and update arrays
             totalDistributionAmount = s.stakingDistributionAmount[vTokenId];
             if (totalDistributionAmount > 0) {
                 stakingDistributionDenomination = s.stakingDistributionDenomination[vTokenId];
-                (rewardCurrenciesAtInterval_, currenctIndex) = addUniqueValue(rewardCurrenciesAtInterval_, stakingDistributionDenomination);
+                (rewardCurrenciesAtInterval_, currencyIndex) = addUniqueValue(rewardCurrenciesAtInterval_, stakingDistributionDenomination);
 
                 // Use the same math as dividend distributions, assuming zero has already been collected
                 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
-                    s.stakeRewardShare[vTokenId][_stakerId],
-                    s.stakeRewardShare[vTokenId][vTokenId],
+                    s.stakeBalance[vTokenId][_stakerId],
+                    s.stakeBalance[vTokenId][vTokenId],
                     totalDistributionAmount,
                     0
                 );
 
-                rewardAmountsAtInterval_[currenctIndex] += userDistributionAmount;
+                rewardAmountsAtInterval_[currencyIndex] += userDistributionAmount;
             }
-            rewardShareAtInterval_ += boostAtInterval_;
-            boostAtInterval_ = (boostAtInterval_ * _getR(_tokenId)) / _getD(_tokenId);
         }
     }
 
@@ -266,7 +260,7 @@ library LibTokenizedVaultStaking {
         internal
         view
         returns (
-            uint256 rewardShareAtInterval_,
+            uint256 balanceAtInterval_,
             uint256 boostAtInterval_,
             uint64 lastCollectedInterval_
         )
@@ -291,22 +285,15 @@ library LibTokenizedVaultStaking {
             revert("interval is in the future");
         }
 
-        vTokenId = _vTokenId(_tokenId, lastCollectedInterval_);
-        nextVTokenId = _vTokenId(_tokenId, lastCollectedInterval_ + 1);
-        // This is actually the balance of the current interval. It will be re-calculated once in the loop;
         // reward[i+1] = reward[i] + boost[i]
-        rewardShareAtInterval_ = s.stakeRewardShare[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
-        // We are also factoring boostAtNextInterval because this can be set if the staker staked between
-        // two intervals
-        // boost[i+1] += boost[i] * r
-        // This is only relevant for calculating boost[lastCollectedInterval + 1]. Everything after that
-        // is not set at this point and is therefore zero, and is therefore:
         // boost[i+1] = boost[i] * r
-        boostAtInterval_ = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
         // Iterate through and add the boosts that the user should have until we reach the specified interval.
         for (uint64 i = lastCollectedInterval_; i < _interval; ++i) {
-            rewardShareAtInterval_ += boostAtInterval_;
-            boostAtInterval_ = (boostAtInterval_ * _getR(_tokenId)) / _getD(_tokenId);
+            vTokenId = _vTokenId(_tokenId, lastCollectedInterval_);
+            nextVTokenId = _vTokenId(_tokenId, i + 1);
+
+            balanceAtInterval_ = s.stakeBalance[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
+            boostAtInterval_ = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
         }
     }
 
@@ -317,7 +304,7 @@ library LibTokenizedVaultStaking {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         (
-            uint256 rewardShareAtInterval_,
+            uint256 balanceAtInterval_,
             uint256 boostAtInterval_,
             uint64 lastCollectedInterval_,
             bytes32[] memory rewardCurrenciesAtInterval_,
@@ -330,7 +317,7 @@ library LibTokenizedVaultStaking {
             vTokenId = _vTokenId(_tokenId, _interval);
             s.stakeCollected[_tokenId][_stakerId] = _interval;
             s.stakeBoost[vTokenId][_stakerId] = boostAtInterval_;
-            s.stakeRewardShare[vTokenId][_stakerId] = rewardShareAtInterval_;
+            s.stakeBalance[vTokenId][_stakerId] = balanceAtInterval_;
 
             for (uint64 i = 0; i < rewardCurrenciesAtInterval_.length; ++i) {
                 LibTokenizedVault._internalTransfer(_tokenId, _stakerId, rewardCurrenciesAtInterval_[i], rewardAmountsAtInterval_[i]);
