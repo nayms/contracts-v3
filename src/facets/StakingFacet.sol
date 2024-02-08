@@ -6,6 +6,7 @@ import { LibTokenizedVaultStaking, StakeConfig } from "../libs/LibTokenizedVault
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
+import { RewardsBalances } from "../shared/FreeStructs.sol";
 
 contract StakingFacet is Modifiers {
     using LibHelpers for address;
@@ -61,9 +62,19 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._unstake(_ownerId, _tokenId);
     }
 
-    function rewardsBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (bytes32[] memory rewardCurrencies_, uint256[] memory rewardAmounts_) {
+    function getRewardsBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (bytes32[] memory rewardCurrencies_, uint256[] memory rewardAmounts_) {
         uint64 interval_ = LibTokenizedVaultStaking._currentInterval(_tokenId);
-        (, , , rewardCurrencies_, rewardAmounts_) = LibTokenizedVaultStaking._getRewardsStateWithRewardsBalances(_ownerId, _tokenId, interval_);
+        (, RewardsBalances memory b) = LibTokenizedVaultStaking._getRewardsStateWithRewardsBalances(_ownerId, _tokenId, interval_);
+        rewardCurrencies_ = b.rewardCurrenciesAtInterval;
+        rewardAmounts_ = b.rewardAmountsAtInterva;
+    }
+
+    function getStakingBalance(
+        bytes32 _stakerId,
+        bytes32 _tokenId,
+        uint64 _interval
+    ) external view returns (uint256 balanceAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) {
+        (balanceAtInterval_, boostAtInterval_, lastCollectedInterval_) = LibTokenizedVaultStaking._getRewardsState(_stakerId, _tokenId, _interval);
     }
 
     function payReward(bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) external {

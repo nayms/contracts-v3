@@ -109,3 +109,14 @@ struct StakeConfig {
     uint64 divider;
     uint64 interval; // Amount of time per interval in seconds
 }
+
+struct RewardsState {
+    uint256 balanceAtInterval;
+    uint256 boostAtInterval;
+    uint64 lastCollectedInterval;
+}
+
+struct RewardsBalances {
+    bytes32[] rewardCurrenciesAtInterval;
+    uint256[] rewardAmountsAtInterva;
+}
