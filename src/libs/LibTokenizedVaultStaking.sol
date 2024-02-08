@@ -62,13 +62,7 @@ library LibTokenizedVaultStaking {
      * @param divider The divider for the boost
      * @param intervalSeconds The interval in seconds
      */
-    function _updateStakingParams(
-        bytes32 _tokenId,
-        uint64 a,
-        uint64 r,
-        uint64 divider,
-        uint64 intervalSeconds
-    ) internal {
+    function _updateStakingParams(bytes32 _tokenId, uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) internal {
         // Staking for an ID can only be initialized once
         // Stake.lastStakePaid on bucket 0, for the tokenid, is set to the init timestamp.
         // It is possible for stakers to exist before staking is initialized, but they will only start earming rewards after initialization
@@ -108,11 +102,7 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _payReward(
-        bytes32 _tokenId,
-        bytes32 _rewardTokenId,
-        uint256 _rewardAmount
-    ) internal {
+    function _payReward(bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         // get the current state
         // I need to wait for the interval to finish, so the
@@ -131,11 +121,7 @@ library LibTokenizedVaultStaking {
         s.stakeBoost[vTokenId][_tokenId] += (_rewardAmount * _getA(_tokenId)) / _getD(_tokenId);
     }
 
-    function _stake(
-        bytes32 _stakerId,
-        bytes32 _tokenId,
-        uint256 _amount
-    ) internal {
+    function _stake(bytes32 _stakerId, bytes32 _tokenId, uint256 _amount) internal {
         emit DebugStake(_tokenId, _stakerId);
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint64 currentInterval = _currentInterval(_tokenId);
@@ -256,15 +242,7 @@ library LibTokenizedVaultStaking {
         bytes32 _stakerId,
         bytes32 _tokenId,
         uint64 _interval
-    )
-        internal
-        view
-        returns (
-            uint256 balanceAtInterval_,
-            uint256 boostAtInterval_,
-            uint64 lastCollectedInterval_
-        )
-    {
+    ) internal view returns (uint256 balanceAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -297,11 +275,7 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _collectRewards(
-        bytes32 _stakerId,
-        bytes32 _tokenId,
-        uint64 _interval
-    ) internal {
+    function _collectRewards(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         (
             uint256 balanceAtInterval_,
@@ -331,12 +305,7 @@ library LibTokenizedVaultStaking {
     error APlusRCannotBeGreaterThanDivider();
     error InvalidIntervalSecondsValue();
 
-    function _validateStakingParams(
-        uint64 a,
-        uint64 r,
-        uint64 divider,
-        uint64 intervalSeconds
-    ) internal pure {
+    function _validateStakingParams(uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) internal pure {
         if (a == 0) revert InvalidAValue();
         if (r == 0) revert InvalidRValue();
         if (divider == 0) revert InvalidDividerValue();
@@ -395,5 +364,10 @@ library LibTokenizedVaultStaking {
 
     function _calculateStartTimeOfCurrentInterval(bytes32 _tokenId) internal view returns (uint64 intervalTime_) {
         intervalTime_ = _calculateStartTimeOfInterval(_tokenId, _currentInterval(_tokenId));
+    }
+
+    function _currentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.stakeRewardShare[_tokenId][_ownerId];
     }
 }
