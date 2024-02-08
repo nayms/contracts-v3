@@ -136,7 +136,6 @@ library LibTokenizedVaultStaking {
         emit DebugStake(_tokenId, _stakerId);
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint64 currentInterval = _currentInterval(_tokenId);
-        bytes32 vTokenId0 = _vTokenId(_tokenId, 0);
         bytes32 vTokenId = _vTokenId(_tokenId, currentInterval);
         bytes32 nextVTokenId = _vTokenId(_tokenId, currentInterval + 1);
 
@@ -145,9 +144,6 @@ library LibTokenizedVaultStaking {
 
         //firset get the money
         LibTokenizedVault._internalTransfer(_stakerId, _tokenId, _tokenId, _amount);
-
-        // get the current state
-        (uint256 rewardShareAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) = _getRewardsState(_stakerId, _tokenId, currentInterval);
 
         // update the share of the staking reward
         s.stakeRewardShare[vTokenId][_stakerId] += _amount;
@@ -294,11 +290,12 @@ library LibTokenizedVaultStaking {
         if (_interval > currentInterval) {
             revert("interval is in the future");
         }
+
         vTokenId = _vTokenId(_tokenId, lastCollectedInterval_);
         nextVTokenId = _vTokenId(_tokenId, lastCollectedInterval_ + 1);
         // This is actually the balance of the current interval. It will be re-calculated once in the loop;
         // reward[i+1] = reward[i] + boost[i]
-        rewardShareAtInterval_ = s.stakeRewardShare[nextVTokenId][_stakerId] + s.stakeBoost[nextVTokenId][_stakerId];
+        rewardShareAtInterval_ = s.stakeRewardShare[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
         // We are also factoring boostAtNextInterval because this can be set if the staker staked between
         // two intervals
         // boost[i+1] += boost[i] * r
@@ -307,13 +304,7 @@ library LibTokenizedVaultStaking {
         // boost[i+1] = boost[i] * r
         boostAtInterval_ = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
         // Iterate through and add the boosts that the user should have until we reach the specified interval.
-        uint256 totalDistributionAmount;
-        uint256 userDistributionAmount;
-        bytes32 stakingDistributionDenomination;
-        uint256 currenctIndex;
         for (uint64 i = lastCollectedInterval_; i < _interval; ++i) {
-            vTokenId = _vTokenId(_tokenId, i);
-            nextVTokenId = _vTokenId(_tokenId, i + 1);
             rewardShareAtInterval_ += boostAtInterval_;
             boostAtInterval_ = (boostAtInterval_ * _getR(_tokenId)) / _getD(_tokenId);
         }
