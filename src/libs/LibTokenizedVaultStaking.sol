@@ -108,17 +108,16 @@ library LibTokenizedVaultStaking {
         }
     }
 
-
-
     function _payReward(
-        bytes32 _tokenId, 
-        bytes32 _rewardTokenId, 
+        bytes32 _tokenId,
+        bytes32 _rewardTokenId,
         uint256 _rewardAmount
     ) internal {
-
+        AppStorage storage s = LibAppStorage.diamondStorage();
         // get the current state
-        // I need to wait for the interval to finish, so the 
-        bytes32 interval = _currentInterval(bytes32 _tokenId);
+        // I need to wait for the interval to finish, so the
+        uint64 interval = _currentInterval(_tokenId);
+        bytes32 vTokenId = _vTokenId(_tokenId, interval);
         (uint256 rewardShareAtInterval_, uint256 boostAtInterval_, uint64 lastCollectedInterval_) = _getRewardsState(_tokenId, _tokenId, interval);
 
         //No money needs to actually be transferred
@@ -126,7 +125,7 @@ library LibTokenizedVaultStaking {
         s.stakeBoost[vTokenId][_tokenId] += boostAtInterval_;
 
         s.stakeRewardShare[vTokenId][_tokenId] += _rewardAmount;
-        s.stakeBoost[vTokenId][_tokenId] += _rewardAmount * _getA() / _getD();
+        s.stakeBoost[vTokenId][_tokenId] += (_rewardAmount * _getA(_tokenId)) / _getD(_tokenId);
     }
 
     function _stake(
