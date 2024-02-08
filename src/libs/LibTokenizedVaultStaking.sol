@@ -368,6 +368,6 @@ library LibTokenizedVaultStaking {
 
     function _currentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.stakeRewardShare[_tokenId][_ownerId];
+        return s.stakeBalance[_tokenId][_ownerId];
     }
 }
