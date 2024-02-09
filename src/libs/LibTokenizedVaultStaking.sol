@@ -57,7 +57,7 @@ library LibTokenizedVaultStaking {
      * @param _tokenId The internal ID of the token
      */
     function _updateStakingParams(bytes32 _tokenId) internal {
-        _updateStakingParams(_tokenId, 150000000, 850000000, 1000000000, 30 days);
+        _updateStakingParams(_tokenId, 15e12, 85e12, 100e12, 30 days);
     }
 
     /**
@@ -91,7 +91,7 @@ library LibTokenizedVaultStaking {
 
     function _isStakingInitialized(bytes32 _tokenId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return (s.stakeConfigs[_tokenId].initDate < block.timestamp);
+        return (s.stakeConfigs[_tokenId].initDate > 0 && s.stakeConfigs[_tokenId].initDate < block.timestamp);
     }
 
     function _stakeConfigs(bytes32 _tokenId) internal view returns (StakeConfig memory) {
@@ -110,21 +110,22 @@ library LibTokenizedVaultStaking {
 
     function _payReward(bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        // get the current state
-        // I need to wait for the interval to finish, so the
+
         uint64 interval = _currentInterval(_tokenId);
         bytes32 vTokenId = _vTokenId(_tokenId, interval);
+
         StakingState memory stakingState = _getStakingState(_tokenId, _tokenId, interval);
 
+        // TODO make sure not to overwrite, only one payment per interval!!!
         s.stakingDistributionAmount[vTokenId] = _rewardAmount;
         s.stakingDistributionDenomination[vTokenId] = _rewardTokenId;
 
-        //No money needs to actually be transferred
-        s.stakeBalance[vTokenId][_tokenId] += stakingState.balanceAtInterval;
-        s.stakeBoost[vTokenId][_tokenId] += stakingState.boostAtInterval;
+        // No money needs to actually be transferred
+        s.stakeBalance[vTokenId][_tokenId] = stakingState.balanceAtInterval;
+        s.stakeBoost[vTokenId][_tokenId] = stakingState.boostAtInterval;
 
-        s.stakeBalance[vTokenId][_tokenId] += _rewardAmount;
-        s.stakeBoost[vTokenId][_tokenId] += (_rewardAmount * _getA(_tokenId)) / _getD(_tokenId);
+        // Update last colleted interval for the token itself
+        s.stakeCollected[_tokenId][_tokenId] = interval;
     }
 
     function _stake(bytes32 _stakerId, bytes32 _tokenId, uint256 _amount) internal {
@@ -146,7 +147,12 @@ library LibTokenizedVaultStaking {
 
         // update the boosts on the current and next intervals depending on time
         uint256 boostTotal = (_amount * _getA(_tokenId)) / _getD(_tokenId);
-        uint256 boostNext = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_tokenId))) / s.stakeConfigs[_tokenId].interval;
+        uint256 boostNext;
+
+        if (_isStakingInitialized(_tokenId)) {
+            boostNext = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_tokenId))) / s.stakeConfigs[_tokenId].interval;
+        }
+
         uint256 boost = boostTotal - boostNext;
 
         // give to the staker
@@ -183,9 +189,6 @@ library LibTokenizedVaultStaking {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (_isStakingInitialized(_tokenId)) {
-            revert("staking hasnt started");
-        }
 
         // Get the last interval where distribution was collected by the user.
         rs.lastCollectedInterval = s.stakeCollected[_tokenId][_stakerId];
@@ -205,7 +208,7 @@ library LibTokenizedVaultStaking {
             bytes32 stakingDistributionDenomination;
             uint256 currencyIndex;
 
-            bytes32 vTokenId = _vTokenId(_tokenId, 0);
+            bytes32 vTokenId = _vTokenId(_tokenId, _currentInterval(_tokenId));
             rs.balanceAtInterval = s.stakeBalance[vTokenId][_stakerId];
             rs.boostAtInterval = s.stakeBoost[vTokenId][_stakerId];
 
@@ -239,15 +242,12 @@ library LibTokenizedVaultStaking {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (_isStakingInitialized(_tokenId)) {
-            revert("staking hasnt started");
-        }
-        bytes32 vTokenId = _vTokenId(_tokenId, 0);
+
         bytes32 nextVTokenId;
-        // Get the last interval where distribution was collected by the user.
         stakingState.lastCollectedInterval = s.stakeCollected[_tokenId][_stakerId];
-        // Get the current interval
         uint64 currentInterval = _currentInterval(_tokenId);
+        bytes32 vTokenId = _vTokenId(_tokenId, currentInterval);
+
         if (_interval < stakingState.lastCollectedInterval) {
             revert("rewards already collected");
         }
@@ -261,6 +261,7 @@ library LibTokenizedVaultStaking {
         // reward[i+1] = reward[i] + boost[i]
         // boost[i+1] = boost[i] * r
         // Iterate through and add the boosts that the user should have until we reach the specified interval.
+
         for (uint64 i = stakingState.lastCollectedInterval; i < _interval; ++i) {
             vTokenId = _vTokenId(_tokenId, stakingState.lastCollectedInterval);
             nextVTokenId = _vTokenId(_tokenId, i + 1);
