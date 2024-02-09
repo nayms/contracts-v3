@@ -43,7 +43,7 @@ library LibTokenizedVaultStaking {
     function _vTokenId(bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32 vTokenId_) {
         // Todo: fix this for NAYM token ID since it's right padded with 0s instead of left padded
         // Todo: Give vTokens a dedicated prefix to avoid collisions!!!
-        vTokenId_ = bytes32(abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, _tokenId << 96));
+        vTokenId_ = bytes32(abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, bytes20(_tokenId)));
     }
 
     /**
