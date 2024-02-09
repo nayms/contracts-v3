@@ -110,7 +110,7 @@ struct StakeConfig {
     uint64 interval; // Amount of time per interval in seconds
 }
 
-struct RewardsState {
+struct StakingState {
     uint256 balanceAtInterval;
     uint256 boostAtInterval;
     uint64 lastCollectedInterval;

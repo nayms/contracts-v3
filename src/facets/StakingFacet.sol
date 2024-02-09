@@ -6,7 +6,7 @@ import { LibTokenizedVaultStaking, StakeConfig } from "../libs/LibTokenizedVault
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
-import { RewardsBalances, RewardsState } from "../shared/FreeStructs.sol";
+import { RewardsBalances, StakingState } from "../shared/FreeStructs.sol";
 
 contract StakingFacet is Modifiers {
     using LibHelpers for address;
@@ -64,20 +64,20 @@ contract StakingFacet is Modifiers {
 
     function getRewardsBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (bytes32[] memory rewardCurrencies_, uint256[] memory rewardAmounts_) {
         uint64 interval_ = LibTokenizedVaultStaking._currentInterval(_tokenId);
-        (, RewardsBalances memory b) = LibTokenizedVaultStaking._getRewardsStateWithRewardsBalances(_ownerId, _tokenId, interval_);
+        (, RewardsBalances memory b) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_ownerId, _tokenId, interval_);
         rewardCurrencies_ = b.rewardCurrenciesAtInterval;
         rewardAmounts_ = b.rewardAmountsAtInterva;
     }
 
-    function getStakingBalance(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) external view returns (RewardsState memory) {
-        return LibTokenizedVaultStaking._getRewardsState(_stakerId, _tokenId, _interval);
+    function getStakingState(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) external view returns (StakingState memory) {
+        return LibTokenizedVaultStaking._getStakingState(_stakerId, _tokenId, _interval);
     }
 
     function payReward(bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) external {
         LibTokenizedVaultStaking._payReward(_tokenId, _rewardTokenId, _amount);
     }
 
-    function currrentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (uint256 vTokenBalance_) {
+    function currentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (uint256 vTokenBalance_) {
         vTokenBalance_ = LibTokenizedVaultStaking._currentVtokenBalance(_ownerId, _tokenId);
     }
 }

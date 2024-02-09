@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { StdStorage, stdStorage, StdStyle } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults, c, LC, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { StakeConfig, RewardsState } from "src/shared/FreeStructs.sol";
+import { StakeConfig, StakingState } from "src/shared/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/utils/ERC20Wrapper.sol";
 
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
@@ -169,25 +169,26 @@ contract StakingTest is D03ProtocolDefaults {
 
         c.log(" - NAYM total supply:".blue(), nayms.totalSupply());
         c.log(" - bob internal balance:".green(), nayms.internalBalanceOf(bob.entityId, NAYMSID));
-        c.log(" - bob staking balance".green(), nayms.getStakingBalance(bob.entityId, NAYMSID, 0).balanceAtInterval);
+        c.log(" - bob staking balance".green(), nayms.getStakingState(bob.entityId, NAYMSID, 0).balanceAtInterval);
         c.log(" - Nayms internal balance:".green(), nayms.internalBalanceOf(NAYMSID, NAYMSID));
-        c.log(" - Nayms' staking balance:".green(), nayms.getStakingBalance(NAYMSID, NAYMSID, 0).balanceAtInterval);
+        c.log(" - Nayms' staking balance:".green(), nayms.getStakingState(NAYMSID, NAYMSID, 0).balanceAtInterval);
 
         startPrank(bob);
         nayms.stake(NAYMSID, 100);
         c.log(" -- STAKE --".yellow());
         c.log(" - NAYM total supply:".blue(), nayms.totalSupply());
         c.log(" - bob internal balance:".green(), nayms.internalBalanceOf(bob.entityId, NAYMSID));
-        c.log(" - bob staking balance".green(), nayms.getStakingBalance(bob.entityId, NAYMSID, 0).balanceAtInterval);
-        c.log(" - bob staking boost".green(), nayms.getStakingBalance(bob.entityId, NAYMSID, 0).boostAtInterval);
+        c.log(" - bob staking balance".green(), nayms.getStakingState(bob.entityId, NAYMSID, 0).balanceAtInterval);
+        c.log(" - bob staking boost".green(), nayms.getStakingState(bob.entityId, NAYMSID, 0).boostAtInterval);
 
         c.log(" - Nayms internal balance:".green(), nayms.internalBalanceOf(NAYMSID, NAYMSID));
-        c.log(" - Nayms' staking balance:".green(), nayms.getStakingBalance(NAYMSID, NAYMSID, 0).balanceAtInterval);
-        c.log(" - Nayms' staking boost:".green(), nayms.getStakingBalance(NAYMSID, NAYMSID, 0).boostAtInterval);
+        c.log(" - Nayms' staking balance:".green(), nayms.getStakingState(NAYMSID, NAYMSID, 0).balanceAtInterval);
+        c.log(" - Nayms' staking boost:".green(), nayms.getStakingState(NAYMSID, NAYMSID, 0).boostAtInterval);
 
         // printBoosts(NAYMSID, NAYMSID);
-        assertEq(nayms.getStakingBalance(bob.entityId, NAYMSID, 0).balanceAtInterval, 100);
-        assertEq(nayms.getStakingBalance(NAYMSID, NAYMSID, 0).balanceAtInterval, 100);
+        assertEq(nayms.getStakingState(bob.entityId, NAYMSID, 0).balanceAtInterval, 100);
+        assertEq(nayms.getStakingState(NAYMSID, NAYMSID, 0).balanceAtInterval, 100);
+        // assertEq();
 
         // Check boosts for bob
         // assertEq(addBoosts(NAYMSID, bob.entityId, 1), calculateBoost(100));

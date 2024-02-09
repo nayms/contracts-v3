@@ -7,7 +7,7 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
-import { StakeConfig, RewardsState, RewardsBalances } from "../shared/FreeStructs.sol";
+import { StakeConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
 // solhint-disable no-console
 import { console2 as c } from "forge-std/console2.sol";
@@ -114,14 +114,14 @@ library LibTokenizedVaultStaking {
         // I need to wait for the interval to finish, so the
         uint64 interval = _currentInterval(_tokenId);
         bytes32 vTokenId = _vTokenId(_tokenId, interval);
-        RewardsState memory rewardsState = _getRewardsState(_tokenId, _tokenId, interval);
+        StakingState memory stakingState = _getStakingState(_tokenId, _tokenId, interval);
 
         s.stakingDistributionAmount[vTokenId] = _rewardAmount;
         s.stakingDistributionDenomination[vTokenId] = _rewardTokenId;
 
         //No money needs to actually be transferred
-        s.stakeBalance[vTokenId][_tokenId] += rewardsState.balanceAtInterval;
-        s.stakeBoost[vTokenId][_tokenId] += rewardsState.boostAtInterval;
+        s.stakeBalance[vTokenId][_tokenId] += stakingState.balanceAtInterval;
+        s.stakeBoost[vTokenId][_tokenId] += stakingState.boostAtInterval;
 
         s.stakeBalance[vTokenId][_tokenId] += _rewardAmount;
         s.stakeBoost[vTokenId][_tokenId] += (_rewardAmount * _getA(_tokenId)) / _getD(_tokenId);
@@ -179,7 +179,7 @@ library LibTokenizedVaultStaking {
 
     // This function is used to calculate the correct current state for the user,
     // as well as the totals for when a staking reward distribution is made.
-    function _getRewardsStateWithRewardsBalances(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal view returns (RewardsState memory rs, RewardsBalances memory rb) {
+    function _getStakingStateWithRewardsBalances(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal view returns (StakingState memory rs, RewardsBalances memory rb) {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -235,7 +235,7 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _getRewardsState(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal view returns (RewardsState memory rewardsState) {
+    function _getStakingState(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal view returns (StakingState memory stakingState) {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -245,34 +245,34 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenId = _vTokenId(_tokenId, 0);
         bytes32 nextVTokenId;
         // Get the last interval where distribution was collected by the user.
-        rewardsState.lastCollectedInterval = s.stakeCollected[_tokenId][_stakerId];
+        stakingState.lastCollectedInterval = s.stakeCollected[_tokenId][_stakerId];
         // Get the current interval
         uint64 currentInterval = _currentInterval(_tokenId);
-        if (_interval < rewardsState.lastCollectedInterval) {
+        if (_interval < stakingState.lastCollectedInterval) {
             revert("rewards already collected");
         }
         if (_interval > currentInterval) {
             revert("interval is in the future");
         }
 
-        rewardsState.balanceAtInterval = s.stakeBalance[vTokenId][_stakerId];
-        rewardsState.boostAtInterval = s.stakeBoost[vTokenId][_stakerId];
+        stakingState.balanceAtInterval = s.stakeBalance[vTokenId][_stakerId];
+        stakingState.boostAtInterval = s.stakeBoost[vTokenId][_stakerId];
 
         // reward[i+1] = reward[i] + boost[i]
         // boost[i+1] = boost[i] * r
         // Iterate through and add the boosts that the user should have until we reach the specified interval.
-        for (uint64 i = rewardsState.lastCollectedInterval; i < _interval; ++i) {
-            vTokenId = _vTokenId(_tokenId, rewardsState.lastCollectedInterval);
+        for (uint64 i = stakingState.lastCollectedInterval; i < _interval; ++i) {
+            vTokenId = _vTokenId(_tokenId, stakingState.lastCollectedInterval);
             nextVTokenId = _vTokenId(_tokenId, i + 1);
 
-            rewardsState.balanceAtInterval = s.stakeBalance[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
-            rewardsState.boostAtInterval = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
+            stakingState.balanceAtInterval = s.stakeBalance[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
+            stakingState.boostAtInterval = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
         }
     }
 
     function _collectRewards(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        (RewardsState memory r, RewardsBalances memory b) = _getRewardsStateWithRewardsBalances(_stakerId, _tokenId, _interval);
+        (StakingState memory r, RewardsBalances memory b) = _getStakingStateWithRewardsBalances(_stakerId, _tokenId, _interval);
 
         bytes32 vTokenId;
         if (b.rewardCurrenciesAtInterval.length > 0) {
