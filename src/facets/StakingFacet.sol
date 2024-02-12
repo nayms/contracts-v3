@@ -19,7 +19,13 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._updateStakingParams(_tokenId);
     }
 
-    function updateStakingParams(bytes32 _tokenId, uint64 a, uint64 r, uint64 divider, uint64 intervalSeconds) external {
+    function updateStakingParams(
+        bytes32 _tokenId,
+        uint64 a,
+        uint64 r,
+        uint64 divider,
+        uint64 intervalSeconds
+    ) external {
         LibTokenizedVaultStaking._updateStakingParams(_tokenId, a, r, divider, intervalSeconds);
     }
 
@@ -75,11 +81,19 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._collectRewards(parentId, _tokenId, interval);
     }
 
-    function getStakingState(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) external view returns (StakingState memory) {
+    function getStakingState(
+        bytes32 _stakerId,
+        bytes32 _tokenId,
+        uint64 _interval
+    ) external view returns (StakingState memory) {
         return LibTokenizedVaultStaking._getStakingState(_stakerId, _tokenId, _interval);
     }
 
-    function payReward(bytes32 _tokenId, bytes32 _rewardTokenId, uint256 _amount) external {
+    function payReward(
+        bytes32 _tokenId,
+        bytes32 _rewardTokenId,
+        uint256 _amount
+    ) external {
         LibTokenizedVaultStaking._payReward(_tokenId, _rewardTokenId, _amount);
     }
 
