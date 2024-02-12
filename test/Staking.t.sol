@@ -131,7 +131,7 @@ contract StakingTest is D03ProtocolDefaults {
         StakingState memory ownerState = nayms.getStakingState(ownerId, tokenId, interval);
 
         c.log("");
-        c.log("      ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
+        c.log("     ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
         c.log("     Balance[%s]:".green(), interval, ownerState.balanceAtInterval);
         c.log("       Boost[%s]:".green(), interval, ownerState.boostAtInterval);
         c.log("");
