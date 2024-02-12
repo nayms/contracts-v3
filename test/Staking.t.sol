@@ -129,11 +129,14 @@ contract StakingTest is D03ProtocolDefaults {
     function printBoosts(bytes32 tokenId, bytes32 ownerId, string memory name) internal view {
         uint64 interval = nayms.currentInterval(tokenId);
 
+        c.log(" ------------------ getting state for Nayms totals ------------------ ");
         StakingState memory naymsState = nayms.getStakingState(NAYMSID, tokenId, interval);
+
+        c.log(" ------------------ getting state for %s ------------------ ", name);
         StakingState memory ownerState = nayms.getStakingState(ownerId, tokenId, interval);
 
         c.log("             ~~~ %s's Boosts ~~~".blue().bold(), name);
-        c.log("    Current Interval:".green(), nayms.currentInterval(tokenId));
+        c.log("    Current Interval:".green(), interval);
         c.log("   NAYM Total Supply:".green().blue(), nayms.totalSupply());
         c.log("   NAYM Total Staked:".green(), naymsState.balanceAtInterval);
         c.log("    NAYM Total Boost:".green(), naymsState.boostAtInterval);
@@ -167,7 +170,7 @@ contract StakingTest is D03ProtocolDefaults {
 
         startPrank(bob);
         nayms.stake(NAYMSID, bobStakeAmount);
-        printBoosts(NAYMSID, bob.entityId, "Bob");
+        // printBoosts(NAYMSID, bob.entityId, "Bob");
 
         assertEq(nayms.getStakingState(bob.entityId, NAYMSID, 0).balanceAtInterval, bobStakeAmount, "Bob's staking balance should increase");
         assertEq(nayms.getStakingState(NAYMSID, NAYMSID, 0).balanceAtInterval, bobStakeAmount, "Nayms' staking balance should increase");
@@ -178,7 +181,7 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart - 10 days);
         startPrank(sue);
         nayms.stake(NAYMSID, sueStakeAmount);
-        printBoosts(NAYMSID, sue.entityId, "Sue");
+        // printBoosts(NAYMSID, sue.entityId, "Sue");
 
         assertEq(nayms.getStakingState(sue.entityId, NAYMSID, 0).balanceAtInterval, sueStakeAmount, "Sue's staking balance should increase");
         assertEq(nayms.getStakingState(NAYMSID, NAYMSID, 0).balanceAtInterval, sueStakeAmount + bobStakeAmount, "Nayms' staking balance should increase");
@@ -188,13 +191,13 @@ contract StakingTest is D03ProtocolDefaults {
         // TIME: 0 (Staking Time)
         vm.warp(stakingStart);
         nayms.initStaking(NAYMSID);
-        c.log("~~~~~~~~~~~~~ Staking Started ~~~~~~~~~~~~~".yellow());
+        c.log("~~~~~~~~~~~~~~ Staking Started ~~~~~~~~~~~~~~".yellow());
 
         // TIME: 20.00
         vm.warp(stakingStart + 20 days);
         startPrank(lou);
         nayms.stake(NAYMSID, louStakeAmount);
-        printBoosts(NAYMSID, lou.entityId, "Lou");
+        // printBoosts(NAYMSID, lou.entityId, "Lou");
 
         assertEq(nayms.getStakingState(lou.entityId, NAYMSID, 0).balanceAtInterval, louStakeAmount, "Lou's staking balance should increase");
         assertEq(nayms.getStakingState(NAYMSID, NAYMSID, 0).balanceAtInterval, louStakeAmount + sueStakeAmount + bobStakeAmount, "Nayms' staking balance should increase");
@@ -208,10 +211,6 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.payReward(NAYMSID, usdcId, 100e6);
         c.log(" ~~~~~~~~~~~~~ 1st Distribution Paid ~~~~~~~~~~~~~".yellow());
 
-        // printBoosts(NAYMSID, bob.entityId, "Bob");
-        // printBoosts(NAYMSID, sue.entityId, "Sue");
-        // printBoosts(NAYMSID, lou.entityId, "Lou");
-
         assertEq(nayms.getStakingState(NAYMSID, NAYMSID, 1).balanceAtInterval, 765e6, "Nayms' staking balance should increase");
         assertEq(nayms.getStakingState(NAYMSID, NAYMSID, 1).boostAtInterval, 9525e4, "Nayms' boost should increase");
 
@@ -223,5 +222,15 @@ contract StakingTest is D03ProtocolDefaults {
 
         assertEq(nayms.getStakingState(lou.entityId, NAYMSID, 1).balanceAtInterval, 420e6, "Lou's staking balance should increase");
         assertEq(nayms.getStakingState(lou.entityId, NAYMSID, 1).boostAtInterval, 57e6, "Lou's boost should increase");
+
+        vm.warp(stakingStart + 60 days);
+        assertEq(nayms.lastIntervalPaid(NAYMSID), 1);
+        nayms.payReward(NAYMSID, usdcId, 100e6);
+        c.log(" ~~~~~~~~~~~~~ 2nd Distribution Paid ~~~~~~~~~~~~~".yellow());
+
+        vm.warp(stakingStart + 62 days);
+        printBoosts(NAYMSID, bob.entityId, "Bob");
+        printBoosts(NAYMSID, sue.entityId, "Sue");
+        printBoosts(NAYMSID, lou.entityId, "Lou");
     }
 }

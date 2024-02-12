@@ -261,13 +261,29 @@ library LibTokenizedVaultStaking {
         // reward[i+1] = reward[i] + boost[i]
         // boost[i+1] = boost[i] * r
         // Iterate through and add the boosts that the user should have until we reach the specified interval.
-
+        c.log(" ____stakerId:", _stakerId.yellowBytes32());
         for (uint64 i = stakingState.lastCollectedInterval; i < _interval; ++i) {
-            vTokenId = _vTokenId(_tokenId, stakingState.lastCollectedInterval);
-            nextVTokenId = _vTokenId(_tokenId, i + 1);
+            vTokenId = _vTokenId(_tokenId, i);
 
-            stakingState.balanceAtInterval = s.stakeBalance[vTokenId][_stakerId] + s.stakeBoost[vTokenId][_stakerId];
-            stakingState.boostAtInterval = s.stakeBoost[nextVTokenId][_stakerId] + (s.stakeBoost[vTokenId][_stakerId] * _getR(_tokenId)) / _getD(_tokenId);
+            c.log(" -- iter: %s".yellow(), i);
+            c.log(" -- s.stakeBalance[vTokenId][_stakerId]=%s".yellow(), s.stakeBalance[vTokenId][_stakerId]);
+            c.log(" -- s.stakeBoost[vTokenId][_stakerId]=%s".yellow(), s.stakeBoost[vTokenId][_stakerId]);
+            c.log(" -- stakingState.boostAtInterval=%s".yellow(), stakingState.boostAtInterval);
+            c.log(" -- stakingState.balanceAtInterval=%s".yellow(), stakingState.balanceAtInterval);
+
+            stakingState.balanceAtInterval =
+                s.stakeBalance[vTokenId][_stakerId] +
+                ((stakingState.boostAtInterval != 0) ? stakingState.boostAtInterval : s.stakeBoost[vTokenId][_stakerId]); // this is the previous boost, at this point!
+
+            stakingState.boostAtInterval += s.stakeBoost[vTokenId][_stakerId];
+            if (i > 0) {
+                stakingState.boostAtInterval +=
+                    ((stakingState.boostAtInterval != 0 ? stakingState.boostAtInterval : s.stakeBoost[_vTokenId(_tokenId, i - 1)][_stakerId]) * _getR(_tokenId)) /
+                    _getD(_tokenId);
+            }
+
+            c.log(" -- AFTER stakingState.balanceAtInterval=%s".yellow(), stakingState.balanceAtInterval);
+            c.log(" -- AFTER stakingState.boostAtInterval=%s".yellow(), stakingState.boostAtInterval);
         }
     }
 
