@@ -66,7 +66,13 @@ contract StakingFacet is Modifiers {
         uint64 interval_ = LibTokenizedVaultStaking._currentInterval(_tokenId);
         (, RewardsBalances memory b) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_ownerId, _tokenId, interval_);
         rewardCurrencies_ = b.rewardCurrenciesAtInterval;
-        rewardAmounts_ = b.rewardAmountsAtInterva;
+        rewardAmounts_ = b.rewardAmountsAtInterval;
+    }
+
+    function collectRewards(bytes32 _tokenId) external {
+        uint64 interval = LibTokenizedVaultStaking._currentInterval(_tokenId);
+        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        LibTokenizedVaultStaking._collectRewards(parentId, _tokenId, interval);
     }
 
     function getStakingState(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) external view returns (StakingState memory) {

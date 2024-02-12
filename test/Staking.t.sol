@@ -130,9 +130,11 @@ contract StakingTest is D03ProtocolDefaults {
         uint64 interval = nayms.currentInterval(tokenId);
         StakingState memory ownerState = nayms.getStakingState(ownerId, tokenId, interval);
 
-        c.log("   ~~~~ %s Staking State ~~~~".blue().bold(), name);
-        c.log("     Staking Balance[%s]:".green(), interval, ownerState.balanceAtInterval);
-        c.log("       Staking Boost[%s]:".green(), interval, ownerState.boostAtInterval);
+        c.log("");
+        c.log("      ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
+        c.log("     Balance[%s]:".green(), interval, ownerState.balanceAtInterval);
+        c.log("       Boost[%s]:".green(), interval, ownerState.boostAtInterval);
+        c.log("");
     }
 
     function calculateBoost(uint256 amountStaked) internal view returns (uint256 boost) {
@@ -238,12 +240,30 @@ contract StakingTest is D03ProtocolDefaults {
 
         c.log("TIME: 62".blue());
         vm.warp(stakingStart + 62 days);
+        startPrank(sue);
+        nayms.collectRewards(NAYMSID);
 
         StakingState memory bobState2 = nayms.getStakingState(bob.entityId, NAYMSID, 2); // re-read state
         assertEq(bobState2.balanceAtInterval, 12775e4, "Bob's staking balance[2] should increase");
         assertEq(bobState2.boostAtInterval, 108375e2, "Bob's boost[2] should increase");
 
         printBoosts(NAYMSID, NAYMSID, "Nayms");
+        printBoosts(NAYMSID, bob.entityId, "Bob");
+        printBoosts(NAYMSID, sue.entityId, "Sue");
+        printBoosts(NAYMSID, lou.entityId, "Lou");
+
+        c.log("TIME: 90".blue());
+        vm.warp(stakingStart + 90 days);
+        assertEq(nayms.lastIntervalPaid(NAYMSID), 2, "Last interval paid should be 2");
+        nayms.payReward(NAYMSID, usdcId, 100e6);
+        c.log(" ~~~~~~~~~~~~~ 3rd Distribution Paid ~~~~~~~~~~~~~".yellow());
+        printBoosts(NAYMSID, NAYMSID, "Nayms");
+
+        startPrank(sue);
+        nayms.collectRewards(NAYMSID);
+
+        c.log("TIME: 91".blue());
+        vm.warp(stakingStart + 90 days);
         printBoosts(NAYMSID, bob.entityId, "Bob");
         printBoosts(NAYMSID, sue.entityId, "Sue");
         printBoosts(NAYMSID, lou.entityId, "Lou");
