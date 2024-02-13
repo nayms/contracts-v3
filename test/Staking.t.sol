@@ -127,11 +127,7 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.stake(NAYMSID, 1 ether);
     }
 
-    function printBoosts(
-        bytes32 tokenId,
-        bytes32 ownerId,
-        string memory name
-    ) internal view {
+    function printBoosts(bytes32 tokenId, bytes32 ownerId, string memory name) internal view {
         uint64 interval = nayms.currentInterval(tokenId);
         StakingState memory ownerState = nayms.getStakingState(ownerId, tokenId, interval);
 
@@ -218,17 +214,17 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(NAYMSID), 0, "Last interval paid should be 0");
 
         c.log(" ~~~~~~~~~~~~~ USDC BALANCES BEFORE ~~~~~~~~~~~~~".yellow());
-        c.log(nayms.internalBalanceOf(NAYMSID, usdcId));
-        c.log(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log(nayms.internalBalanceOf(sue.entityId, usdcId));
+        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
+        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
+        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
 
         nayms.payReward(NAYMSID, usdcId, 100e6);
         c.log(" ~~~~~~~~~~~~~ 1st Distribution Paid ~~~~~~~~~~~~~".yellow());
 
         c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER ~~~~~~~~~~~~~".yellow());
-        c.log(nayms.internalBalanceOf(NAYMSID, usdcId));
-        c.log(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log(nayms.internalBalanceOf(sue.entityId, usdcId));
+        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
+        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
+        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
 
         printBoosts(NAYMSID, NAYMSID, "Nayms");
 
@@ -258,10 +254,10 @@ contract StakingTest is D03ProtocolDefaults {
         c.log("TIME: 62".blue());
         vm.warp(stakingStart + 62 days);
 
-        c.log(" ~~~~~~~~~~~~~ USDC BALANCES BEFORE ~~~~~~~~~~~~~".yellow());
-        c.log(nayms.internalBalanceOf(NAYMSID, usdcId));
-        c.log(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log(nayms.internalBalanceOf(sue.entityId, usdcId));
+        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER ~~~~~~~~~~~~~".yellow());
+        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
+        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
+        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
 
         startPrank(sue);
         nayms.collectRewards(NAYMSID);
