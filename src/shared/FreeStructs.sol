@@ -111,8 +111,8 @@ struct StakeConfig {
 }
 
 struct StakingState {
-    uint256 balanceAtInterval;
-    uint256 boostAtInterval;
+    uint256 balance;
+    uint256 boost;
     uint64 lastCollectedInterval;
 }
 
