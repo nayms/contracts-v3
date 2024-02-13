@@ -216,8 +216,6 @@ library LibTokenizedVaultStaking {
             state.balance = s.stakeBalance[_vTokenId(_tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(_tokenId, state.lastCollectedInterval)][_stakerId];
             for (uint64 i = state.lastCollectedInterval; i < _interval; ++i) {
-                state.balance += state.boost;
-                state.boost = s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] + (state.boost * _getR(_tokenId)) / _getD(_tokenId);
 
                 // check to see if there are rewards for this interval, and update arrays
                 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_tokenId, i)];
@@ -228,7 +226,7 @@ library LibTokenizedVaultStaking {
 
                     // Use the same math as dividend distributions, assuming zero has already been collected
                     userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
-                        s.stakeBalance[_vTokenId(_tokenId, i)][_stakerId],
+                        state.balance,
                         s.stakeBalance[_vTokenId(_tokenId, i)][_tokenId],
                         totalDistributionAmount,
                         0
@@ -236,6 +234,8 @@ library LibTokenizedVaultStaking {
 
                     rewards.amounts[currencyIndex] += userDistributionAmount;
                 }
+                state.balance += state.boost;
+                state.boost = s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] + (state.boost * _getR(_tokenId)) / _getD(_tokenId);
             }
         }
     }

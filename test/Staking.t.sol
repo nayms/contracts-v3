@@ -272,7 +272,7 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.collectRewards(NAYMSID);
         c.log(" ~~~~~~~~~~~~~ Bob Claimed Rewards ~~~~~~~~~~~~~".yellow());
 
-        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER ~~~~~~~~~~~~~".yellow());
+        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER Bob claims ~~~~~~~~~~~~~".yellow());
         c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
         c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
         c.log("Bob:", nayms.internalBalanceOf(bob.entityId, usdcId));
@@ -314,6 +314,11 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.collectRewards(NAYMSID);
         c.log(" ~~~~~~~~~~~~~ Sue Claimed Rewards ~~~~~~~~~~~~~".yellow());
 
+        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER Sue claims ~~~~~~~~~~~~~".yellow());
+        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
+        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
+        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
+
         {
             StakingState memory bobState3 = nayms.getStakingState(bob.entityId, NAYMSID, 3); // re-read state
             assertEq(bobState3.balance, 138587500, "Bob's staking balance[3] should increase");
@@ -334,6 +339,11 @@ contract StakingTest is D03ProtocolDefaults {
         startPrank(lou);
         nayms.collectRewards(NAYMSID);
         c.log(" ~~~~~~~~~~~~~ Lou Claimed Rewards ~~~~~~~~~~~~~".yellow());
+
+        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER Lou claims ~~~~~~~~~~~~~".yellow());
+        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
+        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
+        c.log("Lou:", nayms.internalBalanceOf(lou.entityId, usdcId));
 
         {
             StakingState memory bobState3 = nayms.getStakingState(bob.entityId, NAYMSID, 3); // re-read state
