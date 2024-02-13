@@ -192,7 +192,7 @@ library LibTokenizedVaultStaking {
         bytes32 _stakerId,
         bytes32 _tokenId,
         uint64 _interval
-    ) internal view returns (StakingState memory state, RewardsBalances memory rb) {
+    ) internal view returns (StakingState memory state, RewardsBalances memory rewards) {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -224,7 +224,7 @@ library LibTokenizedVaultStaking {
 
                 if (totalDistributionAmount > 0) {
                     stakingDistributionDenomination = s.stakingDistributionDenomination[_vTokenId(_tokenId, i)];
-                    (rb, currencyIndex) = addUniqueValue(rb, stakingDistributionDenomination);
+                    (rewards, currencyIndex) = addUniqueValue(rewards, stakingDistributionDenomination);
 
                     // Use the same math as dividend distributions, assuming zero has already been collected
                     userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
@@ -234,7 +234,7 @@ library LibTokenizedVaultStaking {
                         0
                     );
 
-                    rb.rewardAmountsAtInterval[currencyIndex] += userDistributionAmount;
+                    rewards.amounts[currencyIndex] += userDistributionAmount;
                 }
             }
         }
@@ -266,17 +266,17 @@ library LibTokenizedVaultStaking {
 
     function _collectRewards(bytes32 _stakerId, bytes32 _tokenId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        (StakingState memory state, RewardsBalances memory b) = _getStakingStateWithRewardsBalances(_stakerId, _tokenId, _interval);
+        (StakingState memory state, RewardsBalances memory rewards) = _getStakingStateWithRewardsBalances(_stakerId, _tokenId, _interval);
         bytes32 vTokenId;
-        if (b.rewardCurrenciesAtInterval.length > 0) {
+        if (rewards.currencies.length > 0) {
             // Update state
             vTokenId = _vTokenId(_tokenId, _interval);
             s.stakeCollected[_tokenId][_stakerId] = _interval;
             s.stakeBoost[vTokenId][_stakerId] = state.boost;
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
-            for (uint64 i = 0; i < b.rewardCurrenciesAtInterval.length; ++i) {
-                LibTokenizedVault._internalTransfer(_vTokenId(_tokenId, 0), _stakerId, b.rewardCurrenciesAtInterval[i], b.rewardAmountsAtInterval[i]);
+            for (uint64 i = 0; i < rewards.currencies.length; ++i) {
+                LibTokenizedVault._internalTransfer(_vTokenId(_tokenId, 0), _stakerId, rewards.currencies[i], rewards.amounts[i]);
             }
         }
     }
@@ -310,28 +310,25 @@ library LibTokenizedVaultStaking {
         return s.stakeConfigs[_tokenId].divider;
     }
 
-    function addUniqueValue(RewardsBalances memory rb, bytes32 newValue) public pure returns (RewardsBalances memory, uint256) {
-        require(rb.rewardCurrenciesAtInterval.length == rb.rewardAmountsAtInterval.length, "Different array lengths!");
+    function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) public pure returns (RewardsBalances memory, uint256) {
+        require(rewards.currencies.length == rewards.amounts.length, "Different array lengths!");
 
-        for (uint256 i = 0; i < rb.rewardCurrenciesAtInterval.length; i++) {
-            if (rb.rewardCurrenciesAtInterval[i] == newValue) {
-                return (rb, i);
+        for (uint256 i = 0; i < rewards.currencies.length; i++) {
+            if (rewards.currencies[i] == newValue) {
+                return (rewards, i);
             }
         }
 
-        RewardsBalances memory rb_ = RewardsBalances({
-            rewardCurrenciesAtInterval: new bytes32[](rb.rewardCurrenciesAtInterval.length + 1),
-            rewardAmountsAtInterval: new uint256[](rb.rewardAmountsAtInterval.length + 1)
-        });
+        RewardsBalances memory rewards_ = RewardsBalances({ currencies: new bytes32[](rewards.currencies.length + 1), amounts: new uint256[](rewards.amounts.length + 1) });
 
-        for (uint256 i = 0; i < rb.rewardCurrenciesAtInterval.length; i++) {
-            rb_.rewardCurrenciesAtInterval[i] = rb.rewardCurrenciesAtInterval[i];
-            rb_.rewardAmountsAtInterval[i] = rb.rewardAmountsAtInterval[i];
+        for (uint256 i = 0; i < rewards.currencies.length; i++) {
+            rewards_.currencies[i] = rewards.currencies[i];
+            rewards_.amounts[i] = rewards.amounts[i];
         }
 
-        rb_.rewardCurrenciesAtInterval[rb.rewardCurrenciesAtInterval.length] = newValue;
+        rewards_.currencies[rewards.currencies.length] = newValue;
 
-        return (rb_, rb.rewardCurrenciesAtInterval.length);
+        return (rewards_, rewards.currencies.length);
     }
 
     /**
