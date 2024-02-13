@@ -28,6 +28,8 @@ contract StakingTest is D03ProtocolDefaults {
     NaymsAccount sue;
     NaymsAccount lou;
 
+    uint256 immutable usdcTotal = 1_000_000e6;
+
     function setUp() public {
         NAYMSID = address(nayms)._getIdForAddress();
         VTOKENID0 = vtokenId(NAYMSID, 0);
@@ -66,8 +68,9 @@ contract StakingTest is D03ProtocolDefaults {
 
         // for now, assume sm pays the distributions
         startPrank(sm);
-        fundEntityUsdc(sm, 100_000_000e6);
-        nayms.internalTransferFromEntity(NAYMSID, usdcId, 1_000_000e6);
+
+        fundEntityUsdc(sm, usdcTotal);
+        nayms.internalTransferFromEntity(NAYMSID, usdcId, usdcTotal);
     }
 
     function vtokenId(bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32) {
@@ -212,61 +215,81 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 30 days);
         startPrank(sm);
         assertEq(nayms.lastIntervalPaid(NAYMSID), 0, "Last interval paid should be 0");
+        assertEq(nayms.internalBalanceOf(NAYMSID, usdcId), usdcTotal, "USCD balance should not change");
 
-        c.log(" ~~~~~~~~~~~~~ USDC BALANCES BEFORE ~~~~~~~~~~~~~".yellow());
-        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
-        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
+        uint256 rewardAmount = 100e6;
 
-        nayms.payReward(NAYMSID, usdcId, 100e6);
+        assertEq(nayms.lastIntervalPaid(NAYMSID), 0, "Last interval paid should be 1");
+        nayms.payReward(NAYMSID, usdcId, rewardAmount);
+        assertEq(nayms.lastIntervalPaid(NAYMSID), 1, "Last interval paid should increase");
+
+        assertEq(nayms.internalBalanceOf(NAYMSID, usdcId), usdcTotal - rewardAmount, "USCD balance should change");
+        assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), 100e6, "NLF's USDC balance should increase");
         c.log(" ~~~~~~~~~~~~~ 1st Distribution Paid ~~~~~~~~~~~~~".yellow());
-
-        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER ~~~~~~~~~~~~~".yellow());
-        c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
-        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
 
         printBoosts(NAYMSID, NAYMSID, "Nayms");
 
-        StakingState memory naymsState1 = nayms.getStakingState(NAYMSID, NAYMSID, 1); // re-read state
-        assertEq(naymsState1.balanceAtInterval, 765e6, "Nayms' staking balance[1] should increase");
-        assertEq(naymsState1.boostAtInterval, 9525e4, "Nayms' boost[1] should increase");
+        {
+            StakingState memory naymsState1 = nayms.getStakingState(NAYMSID, NAYMSID, 1); // re-read state
+            assertEq(naymsState1.balanceAtInterval, 765e6, "Nayms' staking balance[1] should increase");
+            assertEq(naymsState1.boostAtInterval, 9525e4, "Nayms' boost[1] should increase");
 
-        StakingState memory bobState1 = nayms.getStakingState(bob.entityId, NAYMSID, 1); // re-read state
-        assertEq(bobState1.balanceAtInterval, 115e6, "Bob's staking balance[1] should increase");
-        assertEq(bobState1.boostAtInterval, 1275e4, "Bob's boost[1] should increase");
+            StakingState memory bobState1 = nayms.getStakingState(bob.entityId, NAYMSID, 1); // re-read state
+            assertEq(bobState1.balanceAtInterval, 115e6, "Bob's staking balance[1] should increase");
+            assertEq(bobState1.boostAtInterval, 1275e4, "Bob's boost[1] should increase");
 
-        StakingState memory sueState1 = nayms.getStakingState(sue.entityId, NAYMSID, 1); // re-read state
-        assertEq(sueState1.balanceAtInterval, 230e6, "Sue's staking balance[1] should increase");
-        assertEq(sueState1.boostAtInterval, 255e5, "Sue's boost[1] should increase");
+            StakingState memory sueState1 = nayms.getStakingState(sue.entityId, NAYMSID, 1); // re-read state
+            assertEq(sueState1.balanceAtInterval, 230e6, "Sue's staking balance[1] should increase");
+            assertEq(sueState1.boostAtInterval, 255e5, "Sue's boost[1] should increase");
 
-        StakingState memory louState1 = nayms.getStakingState(lou.entityId, NAYMSID, 1); // re-read state
-        assertEq(louState1.balanceAtInterval, 420e6, "Lou's staking balance[1] should increase");
-        assertEq(louState1.boostAtInterval, 57e6, "Lou's boost[1] should increase");
+            StakingState memory louState1 = nayms.getStakingState(lou.entityId, NAYMSID, 1); // re-read state
+            assertEq(louState1.balanceAtInterval, 420e6, "Lou's staking balance[1] should increase");
+            assertEq(louState1.boostAtInterval, 57e6, "Lou's boost[1] should increase");
+        }
 
         printBoosts(NAYMSID, lou.entityId, "Lou");
 
         c.log("TIME: 60".blue());
         vm.warp(stakingStart + 60 days);
+
         assertEq(nayms.lastIntervalPaid(NAYMSID), 1, "Last interval paid should be 1");
-        nayms.payReward(NAYMSID, usdcId, 100e6);
+        nayms.payReward(NAYMSID, usdcId, rewardAmount);
+        assertEq(nayms.lastIntervalPaid(NAYMSID), 2, "Last interval paid should increase");
+        assertEq(nayms.internalBalanceOf(NAYMSID, usdcId), usdcTotal - rewardAmount * 2, "USCD balance should change");
+        assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), rewardAmount * 2, "NLF's USDC balance should increase");
         c.log(" ~~~~~~~~~~~~~ 2nd Distribution Paid ~~~~~~~~~~~~~".yellow());
+
+        StakingState memory naymsState2 = nayms.getStakingState(NAYMSID, NAYMSID, 2); // re-read state
+        assertEq(naymsState2.balanceAtInterval, 86025e4, "Nayms' staking balance[2] should increase");
+        assertEq(naymsState2.boostAtInterval, 809625e2, "Nayms' boost[2] should increase");
+
         printBoosts(NAYMSID, NAYMSID, "Nayms");
 
         c.log("TIME: 62".blue());
         vm.warp(stakingStart + 62 days);
 
+        startPrank(bob);
+        nayms.collectRewards(NAYMSID);
+        c.log(" ~~~~~~~~~~~~~ Bob Claimed Rewards ~~~~~~~~~~~~~".yellow());
+
         c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER ~~~~~~~~~~~~~".yellow());
         c.log("NAYM:", nayms.internalBalanceOf(NAYMSID, usdcId));
         c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log("Sue:", nayms.internalBalanceOf(sue.entityId, usdcId));
+        c.log("Bob:", nayms.internalBalanceOf(bob.entityId, usdcId));
 
-        startPrank(sue);
-        nayms.collectRewards(NAYMSID);
+        {
+            StakingState memory bobState2 = nayms.getStakingState(bob.entityId, NAYMSID, 2); // re-read state
+            assertEq(bobState2.balanceAtInterval, 12775e4, "Bob's staking balance[2] should increase");
+            assertEq(bobState2.boostAtInterval, 108375e2, "Bob's boost[2] should increase");
 
-        StakingState memory bobState2 = nayms.getStakingState(bob.entityId, NAYMSID, 2); // re-read state
-        assertEq(bobState2.balanceAtInterval, 12775e4, "Bob's staking balance[2] should increase");
-        assertEq(bobState2.boostAtInterval, 108375e2, "Bob's boost[2] should increase");
+            StakingState memory sueState2 = nayms.getStakingState(sue.entityId, NAYMSID, 2); // re-read state
+            assertEq(sueState2.balanceAtInterval, 2555e5, "Sue's staking balance[2] should increase");
+            assertEq(sueState2.boostAtInterval, 21675e3, "Sue's boost[2] should increase");
+
+            StakingState memory louState2 = nayms.getStakingState(lou.entityId, NAYMSID, 2); // re-read state
+            assertEq(louState2.balanceAtInterval, 477e6, "Lou's staking balance[2] should increase");
+            assertEq(louState2.boostAtInterval, 4845e4, "Lou's boost[2] should increase");
+        }
 
         printBoosts(NAYMSID, NAYMSID, "Nayms");
         printBoosts(NAYMSID, bob.entityId, "Bob");
@@ -278,21 +301,53 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(NAYMSID), 2, "Last interval paid should be 2");
         nayms.payReward(NAYMSID, usdcId, 100e6);
         c.log(" ~~~~~~~~~~~~~ 3rd Distribution Paid ~~~~~~~~~~~~~".yellow());
-        printBoosts(NAYMSID, NAYMSID, "Nayms");
 
-        startPrank(sue);
-        nayms.collectRewards(NAYMSID);
+        StakingState memory naymsState3 = nayms.getStakingState(NAYMSID, NAYMSID, 3); // re-read state
+        assertEq(naymsState3.balanceAtInterval, 9412125e2, "Nayms' staking balance[3] should increase");
+        assertEq(naymsState3.boostAtInterval, 68818125, "Nayms' boost[3] should increase");
+        printBoosts(NAYMSID, NAYMSID, "Nayms");
 
         c.log("TIME: 91".blue());
         vm.warp(stakingStart + 91 days);
-        // printBoosts(NAYMSID, bob.entityId, "Bob");
-        // printBoosts(NAYMSID, sue.entityId, "Sue");
-        // printBoosts(NAYMSID, lou.entityId, "Lou");
+
+        startPrank(sue);
+        nayms.collectRewards(NAYMSID);
+        c.log(" ~~~~~~~~~~~~~ Sue Claimed Rewards ~~~~~~~~~~~~~".yellow());
+
+        {
+            StakingState memory bobState3 = nayms.getStakingState(bob.entityId, NAYMSID, 3); // re-read state
+            assertEq(bobState3.balanceAtInterval, 138587500, "Bob's staking balance[3] should increase");
+            assertEq(bobState3.boostAtInterval, 9211875, "Bob's boost[3] should increase");
+
+            StakingState memory sueState3 = nayms.getStakingState(sue.entityId, NAYMSID, 3); // re-read state
+            assertEq(sueState3.balanceAtInterval, 277175e3, "Sue's staking balance[3] should increase");
+            assertEq(sueState3.boostAtInterval, 18423750, "Sue's boost[3] should increase");
+
+            StakingState memory louState3 = nayms.getStakingState(lou.entityId, NAYMSID, 3); // re-read state
+            assertEq(louState3.balanceAtInterval, 52545e4, "Lou's staking balance[3] should increase");
+            assertEq(louState3.boostAtInterval, 411825e2, "Lou's boost[3] should increase");
+        }
 
         c.log("TIME: 92".blue());
         vm.warp(stakingStart + 92 days);
+
         startPrank(lou);
         nayms.collectRewards(NAYMSID);
+        c.log(" ~~~~~~~~~~~~~ Lou Claimed Rewards ~~~~~~~~~~~~~".yellow());
+
+        {
+            StakingState memory bobState3 = nayms.getStakingState(bob.entityId, NAYMSID, 3); // re-read state
+            assertEq(bobState3.balanceAtInterval, 138587500, "Bob's staking balance[3] should increase");
+            assertEq(bobState3.boostAtInterval, 9211875, "Bob's boost[3] should increase");
+
+            StakingState memory sueState3 = nayms.getStakingState(sue.entityId, NAYMSID, 3); // re-read state
+            assertEq(sueState3.balanceAtInterval, 277175e3, "Sue's staking balance[3] should increase");
+            assertEq(sueState3.boostAtInterval, 18423750, "Sue's boost[3] should increase");
+
+            StakingState memory louState3 = nayms.getStakingState(lou.entityId, NAYMSID, 3); // re-read state
+            assertEq(louState3.balanceAtInterval, 52545e4, "Lou's staking balance[3] should increase");
+            assertEq(louState3.boostAtInterval, 411825e2, "Lou's boost[3] should increase");
+        }
 
         printBoosts(NAYMSID, NAYMSID, "Nayms");
         printBoosts(NAYMSID, bob.entityId, "Bob");
