@@ -156,6 +156,7 @@ contract StakingTest is D03ProtocolDefaults {
         uint256 bobStakeAmount = 100e6;
         uint256 sueStakeAmount = 200e6;
         uint256 louStakeAmount = 400e6;
+        uint256 totalStakeAmount = bobStakeAmount + sueStakeAmount + louStakeAmount;
 
         StakingState memory bobState0 = nayms.getStakingState(bob.entityId, NAYMSID, 0);
         assertEq(bobState0.balanceAtInterval, 0, "Bob's staking balance[0] should be 0 before staking");
@@ -208,7 +209,7 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(louState0.boostAtInterval, 20e6, "Lou's boost[0] should increase");
 
         naymsState0 = nayms.getStakingState(NAYMSID, NAYMSID, 0); // re-read state
-        assertEq(naymsState0.balanceAtInterval, louStakeAmount + sueStakeAmount + bobStakeAmount, "Nayms' staking balance[0] should increase");
+        assertEq(naymsState0.balanceAtInterval, totalStakeAmount, "Nayms' staking balance[0] should increase");
         assertEq(naymsState0.boostAtInterval, 65e6, "Nayms' boost[0] should increase");
 
         c.log("TIME: 30".blue());
@@ -222,7 +223,6 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(NAYMSID), 0, "Last interval paid should be 1");
         nayms.payReward(NAYMSID, usdcId, rewardAmount);
         assertEq(nayms.lastIntervalPaid(NAYMSID), 1, "Last interval paid should increase");
-
         assertEq(nayms.internalBalanceOf(NAYMSID, usdcId), usdcTotal - rewardAmount, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), 100e6, "NLF's USDC balance should increase");
         c.log(" ~~~~~~~~~~~~~ 1st Distribution Paid ~~~~~~~~~~~~~".yellow());
@@ -299,7 +299,7 @@ contract StakingTest is D03ProtocolDefaults {
         c.log("TIME: 90".blue());
         vm.warp(stakingStart + 90 days);
         assertEq(nayms.lastIntervalPaid(NAYMSID), 2, "Last interval paid should be 2");
-        nayms.payReward(NAYMSID, usdcId, 100e6);
+        nayms.payReward(NAYMSID, usdcId, rewardAmount);
         c.log(" ~~~~~~~~~~~~~ 3rd Distribution Paid ~~~~~~~~~~~~~".yellow());
 
         StakingState memory naymsState3 = nayms.getStakingState(NAYMSID, NAYMSID, 3); // re-read state
