@@ -142,7 +142,7 @@ library LibTokenizedVaultStaking {
         _collectRewards(_stakerId, _tokenId, currentInterval);
 
         //first get the money
-        LibTokenizedVault._internalTransfer(_stakerId, _tokenId, _tokenId, _amount);
+        LibTokenizedVault._internalTransfer(_stakerId, _vTokenId(_tokenId, 0), _tokenId, _amount);
 
         // update the share of the staking reward
         s.stakeBalance[vTokenId][_stakerId] += _amount;
@@ -183,7 +183,7 @@ library LibTokenizedVaultStaking {
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenId0][_stakerId];
         s.stakeBalance[vTokenId0][_stakerId] = 0;
-        LibTokenizedVault._internalTransfer(_tokenId, _stakerId, _tokenId, originalAmountStaked);
+        LibTokenizedVault._internalTransfer(_vTokenId(_tokenId, 0), _stakerId, _tokenId, originalAmountStaked);
     }
 
     // This function is used to calculate the correct current state for the user,
