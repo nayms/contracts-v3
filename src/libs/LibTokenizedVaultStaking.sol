@@ -212,17 +212,8 @@ library LibTokenizedVaultStaking {
             rs.balanceAtInterval = s.stakeBalance[_vTokenId(_tokenId, rs.lastCollectedInterval)][_stakerId];
             rs.boostAtInterval = s.stakeBoost[_vTokenId(_tokenId, rs.lastCollectedInterval)][_stakerId];
             for (uint64 i = rs.lastCollectedInterval; i < _interval; ++i) {
-                // If the previous boost is set on the previous interval, then use it. Otherwise use the variable
-                if (s.stakeBoost[_vTokenId(_tokenId, i)][_stakerId] > 0) {
-                    rs.balanceAtInterval += s.stakeBoost[_vTokenId(_tokenId, i)][_stakerId];
-                    rs.boostAtInterval =
-                        s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] +
-                        (s.stakeBoost[_vTokenId(_tokenId, i)][_stakerId] * _getR(_tokenId)) /
-                        _getD(_tokenId);
-                } else {
-                    rs.balanceAtInterval += rs.boostAtInterval;
-                    rs.boostAtInterval = s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] + (rs.boostAtInterval * _getR(_tokenId)) / _getD(_tokenId);
-                }
+                rs.balanceAtInterval += rs.boostAtInterval;
+                rs.boostAtInterval = s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] + (rs.boostAtInterval * _getR(_tokenId)) / _getD(_tokenId);
 
                 // check to see if there are rewards for this interval, and update arrays
                 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_tokenId, i)];
@@ -263,17 +254,8 @@ library LibTokenizedVaultStaking {
             rs.balanceAtInterval = s.stakeBalance[_vTokenId(_tokenId, rs.lastCollectedInterval)][_stakerId];
             rs.boostAtInterval = s.stakeBoost[_vTokenId(_tokenId, rs.lastCollectedInterval)][_stakerId];
             for (uint64 i = rs.lastCollectedInterval; i < _interval; ++i) {
-                // If the previous boost is set on the previous interval, then use it. Otherwise use the variable
-                if (s.stakeBoost[_vTokenId(_tokenId, i)][_stakerId] > 0) {
-                    rs.balanceAtInterval += s.stakeBoost[_vTokenId(_tokenId, i)][_stakerId];
-                    rs.boostAtInterval =
-                        s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] +
-                        (s.stakeBoost[_vTokenId(_tokenId, i)][_stakerId] * _getR(_tokenId)) /
-                        _getD(_tokenId);
-                } else {
-                    rs.balanceAtInterval += rs.boostAtInterval;
-                    rs.boostAtInterval = s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] + (rs.boostAtInterval * _getR(_tokenId)) / _getD(_tokenId);
-                }
+                rs.balanceAtInterval += rs.boostAtInterval;
+                rs.boostAtInterval = s.stakeBoost[_vTokenId(_tokenId, i + 1)][_stakerId] + (rs.boostAtInterval * _getR(_tokenId)) / _getD(_tokenId);
             }
         }
     }

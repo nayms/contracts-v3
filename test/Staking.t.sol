@@ -244,6 +244,8 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(louState1.balanceAtInterval, 420e6, "Lou's staking balance[1] should increase");
         assertEq(louState1.boostAtInterval, 57e6, "Lou's boost[1] should increase");
 
+        printBoosts(NAYMSID, lou.entityId, "Lou");
+
         c.log("TIME: 60".blue());
         vm.warp(stakingStart + 60 days);
         assertEq(nayms.lastIntervalPaid(NAYMSID), 1, "Last interval paid should be 1");
@@ -282,7 +284,17 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.collectRewards(NAYMSID);
 
         c.log("TIME: 91".blue());
-        vm.warp(stakingStart + 90 days);
+        vm.warp(stakingStart + 91 days);
+        // printBoosts(NAYMSID, bob.entityId, "Bob");
+        // printBoosts(NAYMSID, sue.entityId, "Sue");
+        // printBoosts(NAYMSID, lou.entityId, "Lou");
+
+        c.log("TIME: 92".blue());
+        vm.warp(stakingStart + 92 days);
+        startPrank(lou);
+        nayms.collectRewards(NAYMSID);
+
+        printBoosts(NAYMSID, NAYMSID, "Nayms");
         printBoosts(NAYMSID, bob.entityId, "Bob");
         printBoosts(NAYMSID, sue.entityId, "Sue");
         printBoosts(NAYMSID, lou.entityId, "Lou");
