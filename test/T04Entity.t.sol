@@ -1217,6 +1217,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         assertTrue(nayms.isInGroup(entityId, systemContext, groupName));
+        assertTrue(nayms.isInGroup(entityId, entityId, groupName));
     }
 
     function testSelfOnboardingEntityExistsAlready() public {
