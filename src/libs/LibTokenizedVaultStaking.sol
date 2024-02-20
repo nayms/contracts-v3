@@ -199,6 +199,7 @@ library LibTokenizedVaultStaking {
                         0
                     );
                     rewards.amounts[currencyIndex] += userDistributionAmount;
+                    rewards.lastPaidInterval = i;
                 }
                 state.balance += state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
@@ -290,11 +291,16 @@ library LibTokenizedVaultStaking {
             }
         }
 
-        RewardsBalances memory rewards_ = RewardsBalances({ currencies: new bytes32[](rewards.currencies.length + 1), amounts: new uint256[](rewards.amounts.length + 1) });
+        RewardsBalances memory rewards_ = RewardsBalances({
+            currencies: new bytes32[](rewards.currencies.length + 1),
+            amounts: new uint256[](rewards.amounts.length + 1),
+            lastPaidInterval: 0
+        });
 
-        for (uint256 i = 0; i < rewards.currencies.length; i++) {
+        for (uint64 i = 0; i < rewards.currencies.length; i++) {
             rewards_.currencies[i] = rewards.currencies[i];
             rewards_.amounts[i] = rewards.amounts[i];
+            rewards_.lastPaidInterval = i;
         }
 
         rewards_.currencies[rewards.currencies.length] = newValue;

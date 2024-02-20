@@ -120,4 +120,5 @@ struct StakingState {
 struct RewardsBalances {
     bytes32[] currencies;
     uint256[] amounts;
+    uint64 lastPaidInterval;
 }
