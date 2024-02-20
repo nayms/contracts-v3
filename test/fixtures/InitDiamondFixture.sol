@@ -9,6 +9,4 @@ import { SystemFacet } from "src/facets/SystemFacet.sol";
 // solhint-disable no-empty-blocks
 
 /// Create a fixture to test the InitDiamond contract
-contract InitDiamondFixture is InitDiamond, SystemFacet, NaymsTokenFacet, AdminFacet {
-
-}
+contract InitDiamondFixture is InitDiamond, SystemFacet, NaymsTokenFacet, AdminFacet {}

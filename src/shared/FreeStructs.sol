@@ -102,7 +102,8 @@ struct CalculatedFees {
     FeeAllocation[] feeAllocations; // The list of entities that receive a portion of the fees.
 }
 
-struct StakeConfig {
+struct StakingConfig {
+    bytes32 tokenId;
     uint256 initDate;
     uint64 a; // Amplification factor
     uint64 r;
