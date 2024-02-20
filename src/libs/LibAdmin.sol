@@ -232,6 +232,7 @@ library LibAdmin {
         LibEntity._createEntity(approval.entityId, userId, entity, 0);
 
         LibACL._assignRole(approval.entityId, LibAdmin._getSystemId(), approval.roleId);
+        LibACL._assignRole(approval.entityId, approval.entityId, approval.roleId);
 
         delete s.selfOnboarding[_userAddress];
 
