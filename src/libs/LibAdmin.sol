@@ -121,8 +121,12 @@ library LibAdmin {
         s.locked[IDiamondProxy.withdrawAllDividends.selector] = true;
         s.locked[IDiamondProxy.externalWithdrawFromEntity.selector] = true;
         s.locked[IDiamondProxy.externalDeposit.selector] = true;
+        s.locked[IDiamondProxy.stake.selector] = true;
+        s.locked[IDiamondProxy.unstake.selector] = true;
+        s.locked[IDiamondProxy.collectRewards.selector] = true;
+        s.locked[IDiamondProxy.payReward.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](14);
+        bytes4[] memory lockedFunctions = new bytes4[](18);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -137,6 +141,10 @@ library LibAdmin {
         lockedFunctions[11] = IDiamondProxy.withdrawAllDividends.selector;
         lockedFunctions[12] = IDiamondProxy.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = IDiamondProxy.externalDeposit.selector;
+        lockedFunctions[14] = IDiamondProxy.stake.selector;
+        lockedFunctions[15] = IDiamondProxy.unstake.selector;
+        lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
+        lockedFunctions[17] = IDiamondProxy.payReward.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -157,8 +165,12 @@ library LibAdmin {
         s.locked[IDiamondProxy.withdrawAllDividends.selector] = false;
         s.locked[IDiamondProxy.externalWithdrawFromEntity.selector] = false;
         s.locked[IDiamondProxy.externalDeposit.selector] = false;
+        s.locked[IDiamondProxy.stake.selector] = false;
+        s.locked[IDiamondProxy.unstake.selector] = false;
+        s.locked[IDiamondProxy.collectRewards.selector] = false;
+        s.locked[IDiamondProxy.payReward.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](14);
+        bytes4[] memory lockedFunctions = new bytes4[](18);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -173,6 +185,10 @@ library LibAdmin {
         lockedFunctions[11] = IDiamondProxy.withdrawAllDividends.selector;
         lockedFunctions[12] = IDiamondProxy.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = IDiamondProxy.externalDeposit.selector;
+        lockedFunctions[14] = IDiamondProxy.stake.selector;
+        lockedFunctions[15] = IDiamondProxy.unstake.selector;
+        lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
+        lockedFunctions[17] = IDiamondProxy.payReward.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
     }
