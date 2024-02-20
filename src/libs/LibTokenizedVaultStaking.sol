@@ -9,6 +9,8 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
+import { StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue } from "../shared/CustomErrors.sol";
+
 // solhint-disable no-console
 import { console2 as c } from "forge-std/console2.sol";
 import { StdStyle } from "forge-std/Test.sol";
@@ -21,8 +23,6 @@ library LibTokenizedVaultStaking {
     //     event DebugBoost2(uint256 boost1, uint256 boost2);
     //     event DebugStakeBoost(uint256 stakeBoostOwner1, uint256 stakeBoostOwner2, uint256 stakeBoostToken1, uint256 stakeBoostToken2);
     event StakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
-
-    error StakingAlreadyStarted(bytes32 tokenId);
 
     /**
      * @dev First 4 bytes: "VTOK", next 8 bytes: interval, next 20 bytes: right 20 bytes of tokenId
@@ -76,7 +76,10 @@ library LibTokenizedVaultStaking {
 
         StakingState memory stakingState = _getStakingState(_entityId, _entityId, interval);
 
-        // TODO make sure not to overwrite, only one payment per interval!!!
+        if (s.stakingDistributionDenomination[vTokenId] != 0) {
+            revert IntervalRewardPayedOutAlready(interval);
+        }
+
         s.stakingDistributionAmount[vTokenId] = _rewardAmount;
         s.stakingDistributionDenomination[vTokenId] = _rewardTokenId;
 
@@ -252,12 +255,6 @@ library LibTokenizedVaultStaking {
             }
         }
     }
-
-    error InvalidAValue();
-    error InvalidRValue();
-    error InvalidDividerValue();
-    error APlusRCannotBeGreaterThanDivider();
-    error InvalidIntervalSecondsValue();
 
     function _validateStakingParams(StakingConfig calldata _config) internal pure {
         if (_config.a == 0) revert InvalidAValue();

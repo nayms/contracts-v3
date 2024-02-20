@@ -60,7 +60,9 @@ contract StakingFacet is Modifiers {
     function getRewardsBalance(bytes32 _entityId) external view returns (bytes32[] memory rewardCurrencies_, uint256[] memory rewardAmounts_) {
         bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
         uint64 interval_ = LibTokenizedVaultStaking._currentInterval(_entityId);
+
         (, RewardsBalances memory b) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(parentId, _entityId, interval_);
+
         rewardCurrencies_ = b.currencies;
         rewardAmounts_ = b.amounts;
     }

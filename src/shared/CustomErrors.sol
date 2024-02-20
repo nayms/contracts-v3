@@ -106,3 +106,24 @@ error DuplicateSignerCreatingSimplePolicy(address previousSigner, address nextSi
 
 /// @dev The minimum sell amount on the marketplace cannot be zero.
 error MinimumSellCannotBeZero();
+
+/// @dev Staking can be initialized only once
+error StakingAlreadyStarted(bytes32 tokenId);
+
+/// @dev Invalid A parameter value provided
+error InvalidAValue();
+
+/// @dev Invalid R parameter value provided
+error InvalidRValue();
+
+/// @dev Invalid divider parameter value provided
+error InvalidDividerValue();
+
+/// @dev Invalid parameter values provided
+error APlusRCannotBeGreaterThanDivider();
+
+/// @dev Invalid interval value provided
+error InvalidIntervalSecondsValue();
+
+/// @dev Only one reward payment is allowed per interval
+error IntervalRewardPayedOutAlready(uint64 interval);

@@ -10,6 +10,8 @@ import { DummyToken } from "./utils/DummyToken.sol";
 
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 
+import { IntervalRewardPayedOutAlready } from "src/shared/CustomErrors.sol";
+
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
 }
@@ -180,7 +182,7 @@ contract StakingTest is D03ProtocolDefaults {
         c.log("");
     }
 
-    function test_StakeBeforeInitStaking() public {
+    function test_StakingScenario1() public {
         uint256 stakingStart = 100 days;
         initStaking(block.timestamp + stakingStart);
 
@@ -253,9 +255,13 @@ contract StakingTest is D03ProtocolDefaults {
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 1");
         nayms.payReward(nlf.entityId, usdcId, rewardAmount);
+
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 1, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), 100e6, "NLF's USDC balance should increase");
+
+        vm.expectRevert(abi.encodeWithSelector(IntervalRewardPayedOutAlready.selector, 1));
+        nayms.payReward(nlf.entityId, usdcId, rewardAmount);
 
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
 
@@ -376,11 +382,6 @@ contract StakingTest is D03ProtocolDefaults {
             ((louState[1].balance * rewardAmount) / naymsState[1].balance) + ((louState[2].balance * rewardAmount) / naymsState[2].balance), 
             "Lou's USDC balance should increase"
         ); // 110350957
-
-        c.log(" ~~~~~~~~~~~~~ USDC BALANCES AFTER Lou claims ~~~~~~~~~~~~~".yellow());
-        c.log("NAYM:", nayms.internalBalanceOf(nlf.entityId, usdcId));
-        c.log("vToken0:", nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId));
-        c.log("Lou:", nayms.internalBalanceOf(lou.entityId, usdcId));
 
         bobState[3] = nayms.getStakingState(bob.entityId, nlf.entityId, 3); // re-read state
         assertEq(bobState[3].balance, 138587500, "Bob's staking balance[3] should increase");
