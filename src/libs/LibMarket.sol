@@ -370,7 +370,7 @@ library LibMarket {
 
         (TokenAmount memory offerSell, TokenAmount memory offerBuy) = _getOfferTokenAmounts(_offerId);
 
-        _assertAmounts(_sellAmount, _buyAmount);
+        _validateAmounts(_sellAmount, _buyAmount);
 
         require(_buyAmount <= offerBuy.amount, "requested buy amount too large");
         require(_sellAmount <= offerSell.amount, "calculated sell amount too large");
@@ -407,39 +407,33 @@ library LibMarket {
         }
     }
 
-    function _assertAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
+    function _validateAmounts(uint256 _sellAmount, uint256 _buyAmount) internal pure {
         require(_sellAmount <= type(uint128).max, "sell amount exceeds uint128 limit");
         require(_buyAmount <= type(uint128).max, "buy amount exceeds uint128 limit");
         require(_sellAmount > 0, "sell amount must be >0");
         require(_buyAmount > 0, "buy amount must be >0");
     }
 
-    function _assertValidOffer(bytes32 _entityId, bytes32 _sellToken, uint256 _sellAmount, bytes32 _buyToken, uint256 _buyAmount, uint256 _feeScheduleType) internal view {
+    function _validateOffer(bytes32 _entityId, bytes32 _sellToken, uint256 _sellAmount, bytes32 _buyToken, uint256 _buyAmount, uint256 _feeScheduleType) internal view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // A valid offer can only be made by an existing entity.
         require(_entityId != 0 && s.existingEntities[_entityId], "offer must be made by an existing entity");
 
         // note: Clarification on terminology:
-        // A participation token is also called an entity token. A par token is an entity tokenized.
-        // An external token is an ERC20 token. An external token can be approved to be used on the Nayms platform.
-        // There can only be one participation token and one external token involved in a trade. In other words, a par token cannot be traded for another par token.
-        // The platform also does not allow entities to trade external tokens (cannot trade an external token for another external token).
+        // A participation token (a.k.a par token or p token or entity token) is an entity tokenized.
+        // An external token is an ERC20 token approved to be used on the Nayms platform.
 
-        bool isSellTokenAParticipationToken = s.existingEntities[_sellToken];
-        bool isSellTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_sellToken);
-        bool isBuyTokenAParticipationToken = s.existingEntities[_buyToken];
-        bool isBuyTokenASupportedExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
+        bool isSellExternalToken = LibAdmin._isSupportedExternalToken(_sellToken);
+        bool isBuyExternalToken = LibAdmin._isSupportedExternalToken(_buyToken);
 
-        _assertAmounts(_sellAmount, _buyAmount);
+        _validateAmounts(_sellAmount, _buyAmount);
 
-        require(isSellTokenAParticipationToken || isSellTokenASupportedExternalToken, "sell token must be valid");
-        require(isBuyTokenAParticipationToken || isBuyTokenASupportedExternalToken, "buy token must be valid");
+        require(_sellToken != "", "sell token must be valid");
+        require(_buyToken != "", "buy token must be valid");
+
+        require(isBuyExternalToken || isSellExternalToken, "must trade external token");
         require(_sellToken != _buyToken, "cannot sell and buy same token");
-        require(
-            (isSellTokenAParticipationToken && isBuyTokenASupportedExternalToken) || (isSellTokenASupportedExternalToken && isBuyTokenAParticipationToken),
-            "must be one participation token and one external token"
-        );
 
         // note: add restriction to not be able to sell tokens that are already for sale
         // maker must own sell amount and it must not be locked
@@ -469,7 +463,7 @@ library LibMarket {
     ) internal returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
+        _validateOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
 
         offerId_ = s.lastOfferId + 1;
         _createOffer(offerId_, _creator, _sellToken, _sellAmount, _sellAmount, _buyToken, _buyAmount, _buyAmount, _feeScheduleType);
