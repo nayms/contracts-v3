@@ -149,17 +149,17 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenId0 = _vTokenId(tokenId, 0);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
 
-        //collect your rewards first
+        // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
 
-        // Set boost and rewards to zero
+        // set boost and balances to zero
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBalance[vTokenId][_stakerId] = 0;
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenId0][_stakerId];
         s.stakeBalance[vTokenId0][_stakerId] = 0;
 
-        LibTokenizedVault._internalTransfer(_vTokenId(tokenId, 0), _stakerId, tokenId, originalAmountStaked);
+        LibTokenizedVault._internalTransfer(vTokenId0, _stakerId, tokenId, originalAmountStaked);
     }
 
     // This function is used to calculate the correct current state for the user,
@@ -326,8 +326,12 @@ library LibTokenizedVaultStaking {
         intervalTime_ = _calculateStartTimeOfInterval(_entityId, _currentInterval(_entityId));
     }
 
-    function _currentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) internal view returns (uint256) {
+    function _stakedAmount(bytes32 _stakerId, bytes32 _entityId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.stakeBalance[_tokenId][_ownerId];
+
+        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
+        bytes32 vTokenId0 = _vTokenId(tokenId, 0);
+
+        return s.stakeBalance[vTokenId0][_stakerId];
     }
 }

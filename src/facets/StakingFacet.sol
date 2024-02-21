@@ -83,7 +83,7 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._payReward(_entityId, _rewardTokenId, _amount);
     }
 
-    function currentVtokenBalance(bytes32 _ownerId, bytes32 _tokenId) external view returns (uint256 vTokenBalance_) {
-        vTokenBalance_ = LibTokenizedVaultStaking._currentVtokenBalance(_ownerId, _tokenId);
+    function stakedAmount(bytes32 _stakerId, bytes32 _entityId) external view returns (uint256) {
+        return LibTokenizedVaultStaking._stakedAmount(_stakerId, _entityId);
     }
 }
