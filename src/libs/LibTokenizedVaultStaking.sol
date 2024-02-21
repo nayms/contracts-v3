@@ -9,7 +9,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue } from "../shared/CustomErrors.sol";
 
 // solhint-disable no-console
 import { console2 as c } from "forge-std/console2.sol";
@@ -46,7 +46,7 @@ library LibTokenizedVaultStaking {
         if (s.stakingConfigs[_entityId].initDate == 0) {
             s.stakingConfigs[_entityId] = _config;
         } else {
-            revert StakingAlreadyStarted(_entityId);
+            revert StakingAlreadyStarted(_entityId, _config.tokenId);
         }
         emit TokenStakingStarted(_entityId, _config.tokenId, block.timestamp, _config.a, _config.r, _config.divider, _config.interval);
     }
@@ -80,6 +80,10 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenId = _vTokenId(tokenId, interval);
 
         StakingState memory stakingState = _getStakingState(_entityId, _entityId, interval);
+
+        if (block.timestamp < s.stakingConfigs[_entityId].initDate) {
+            revert StakingNotStarted(_entityId, tokenId);
+        }
 
         if (s.stakingDistributionDenomination[vTokenId] != 0) {
             revert IntervalRewardPayedOutAlready(interval);

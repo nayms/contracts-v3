@@ -108,7 +108,10 @@ error DuplicateSignerCreatingSimplePolicy(address previousSigner, address nextSi
 error MinimumSellCannotBeZero();
 
 /// @dev Staking can be initialized only once
-error StakingAlreadyStarted(bytes32 tokenId);
+error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
+
+/// @dev Staking must be started
+error StakingNotStarted(bytes32 entityId, bytes32 tokenId);
 
 /// @dev Invalid A parameter value provided
 error InvalidAValue();

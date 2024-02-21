@@ -79,7 +79,6 @@ contract StakingFacet is Modifiers {
     }
 
     function payReward(bytes32 _guid, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _amount) external notLocked(msg.sig) assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
-        // require(staking enabled);
         LibTokenizedVaultStaking._payReward(_guid, _entityId, _rewardTokenId, _amount);
     }
 
