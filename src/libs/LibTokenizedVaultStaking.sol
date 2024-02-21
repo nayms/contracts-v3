@@ -22,7 +22,12 @@ library LibTokenizedVaultStaking {
     //     event DebugBoost(uint256 boostTotal, uint256 blockTimestamp, uint64 startTimeOfCurrentInterval, uint64 interval);
     //     event DebugBoost2(uint256 boost1, uint256 boost2);
     //     event DebugStakeBoost(uint256 stakeBoostOwner1, uint256 stakeBoostOwner2, uint256 stakeBoostToken1, uint256 stakeBoostToken2);
-    event StakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
+
+    event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
+    event TokenStaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
+    event TokenUnstaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
+    event TokenRewardPaid(bytes32 guid, bytes32 entityId, bytes32 tokenId, bytes32 rewardTokenId, uint256 rewardAmount);
+    event TokenRewardCollected(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint64 interval, bytes32 rewardCurrency, uint256 rewardAmount);
 
     /**
      * @dev First 4 bytes: "VTOK", next 8 bytes: interval, next 20 bytes: right 20 bytes of tokenId
@@ -43,7 +48,7 @@ library LibTokenizedVaultStaking {
         } else {
             revert StakingAlreadyStarted(_entityId);
         }
-        emit StakingStarted(_entityId, _config.tokenId, block.timestamp, _config.a, _config.r, _config.divider, _config.interval);
+        emit TokenStakingStarted(_entityId, _config.tokenId, block.timestamp, _config.a, _config.r, _config.divider, _config.interval);
     }
 
     function _isStakingInitialized(bytes32 _entityId) internal view returns (bool) {
@@ -66,7 +71,7 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _payReward(bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
+    function _payReward(bytes32 _guid, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
@@ -92,6 +97,8 @@ library LibTokenizedVaultStaking {
 
         // Transfer the funds
         LibTokenizedVault._internalTransfer(_entityId, _vTokenId(tokenId, 0), _rewardTokenId, _rewardAmount);
+
+        emit TokenRewardPaid(_guid, _entityId, tokenId, _rewardTokenId, _rewardAmount);
     }
 
     function _stake(bytes32 _stakerId, bytes32 _entityId, uint256 _amount) internal {
@@ -137,6 +144,8 @@ library LibTokenizedVaultStaking {
         // give to the totals!!!
         s.stakeBoost[vTokenId][_entityId] += boost;
         s.stakeBoost[nextVTokenId][_entityId] += boostNext;
+
+        emit TokenStaked(_stakerId, _entityId, tokenId, _amount);
     }
 
     // Unstakes the full amount for a staker
@@ -160,6 +169,8 @@ library LibTokenizedVaultStaking {
         s.stakeBalance[vTokenId0][_stakerId] = 0;
 
         LibTokenizedVault._internalTransfer(vTokenId0, _stakerId, tokenId, originalAmountStaked);
+
+        emit TokenUnstaked(_stakerId, _entityId, tokenId, originalAmountStaked);
     }
 
     // This function is used to calculate the correct current state for the user,
@@ -259,6 +270,7 @@ library LibTokenizedVaultStaking {
 
             for (uint64 i = 0; i < rewards.currencies.length; ++i) {
                 LibTokenizedVault._internalTransfer(_vTokenId(tokenId, 0), _stakerId, rewards.currencies[i], rewards.amounts[i]);
+                emit TokenRewardCollected(_stakerId, _entityId, tokenId, _interval, rewards.currencies[i], rewards.amounts[i]);
             }
         }
     }

@@ -310,7 +310,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.unstake(bytes32(0));
 
         vm.expectRevert("function is locked");
-        nayms.payReward(bytes32(0), bytes32(0), 1 ether);
+        nayms.payReward(bytes32(0), bytes32(0), bytes32(0), 1 ether);
 
         vm.expectRevert("function is locked");
         nayms.collectRewards(bytes32(0));

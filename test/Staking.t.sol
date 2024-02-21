@@ -254,14 +254,14 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal, "USCD balance should not change");
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 1");
-        nayms.payReward(nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 1, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), 100e6, "NLF's USDC balance should increase");
 
         vm.expectRevert(abi.encodeWithSelector(IntervalRewardPayedOutAlready.selector, 1));
-        nayms.payReward(nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
 
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
 
@@ -287,7 +287,7 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 60 days);
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 1, "Last interval paid should be 1");
-        nayms.payReward(nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount * 2, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), rewardAmount * 2, "NLF's USDC balance should increase");
@@ -334,7 +334,7 @@ contract StakingTest is D03ProtocolDefaults {
         startPrank(nlf);
         vm.warp(stakingStart + 90 days);
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
-        nayms.payReward(nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
 
         naymsState[3] = nayms.getStakingState(nlf.entityId, nlf.entityId, 3); // re-read state
         assertEq(naymsState[3].balance, 9412125e2, "Nayms' staking balance[3] should increase");
