@@ -74,8 +74,8 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, interval);
     }
 
-    function getStakingState(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) external view returns (StakingState memory) {
-        return LibTokenizedVaultStaking._getStakingState(_stakerId, _entityId, _interval);
+    function getStakingState(bytes32 _stakerId, bytes32 _entityId) external view returns (StakingState memory) {
+        return LibTokenizedVaultStaking._getStakingState(_stakerId, _entityId);
     }
 
     function payReward(bytes32 _guid, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _amount) external notLocked(msg.sig) assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {

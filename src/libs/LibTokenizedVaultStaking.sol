@@ -68,7 +68,7 @@ library LibTokenizedVaultStaking {
         uint64 interval = _currentInterval(_entityId);
         bytes32 vTokenId = _vTokenId(tokenId, interval);
 
-        StakingState memory stakingState = _getStakingState(_entityId, _entityId, interval);
+        StakingState memory stakingState = _getStakingState(_entityId, _entityId);
 
         if (block.timestamp < s.stakingConfigs[_entityId].initDate) {
             revert StakingNotStarted(_entityId, tokenId);
@@ -221,7 +221,7 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _getStakingState(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) internal view returns (StakingState memory state) {
+    function _getStakingState(bytes32 _stakerId, bytes32 _entityId) internal view returns (StakingState memory state) {
         // Rewards can be made in various denominations, but only 1 denomination per
         // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -230,17 +230,12 @@ library LibTokenizedVaultStaking {
 
         state.lastCollectedInterval = s.stakeCollected[_entityId][_stakerId];
 
-        if (_interval < state.lastCollectedInterval) {
-            revert("rewards already collected");
-        }
-        if (_interval > _currentInterval(_entityId)) {
-            revert("interval is in the future");
-        }
+        uint64 currentInterval = _currentInterval(_entityId);
 
         {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
-            for (uint64 i = state.lastCollectedInterval; i < _interval; ++i) {
+            for (uint64 i = state.lastCollectedInterval; i < currentInterval; ++i) {
                 state.balance += state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }

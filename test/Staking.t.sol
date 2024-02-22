@@ -42,6 +42,11 @@ contract StakingTest is D03ProtocolDefaults {
 
     uint256 immutable rewardAmount = 100e6;
 
+    mapping(bytes32 stakerId => mapping(uint64 interval => StakingState)) public stakingStates;
+    function recordStakingState(bytes32 stakerId) public {
+        stakingStates[stakerId][nayms.currentInterval(nlf.entityId)] = nayms.getStakingState(stakerId, nlf.entityId);
+    }
+
     function setUp() public {
         naymToken = new DummyToken();
 
@@ -164,7 +169,7 @@ contract StakingTest is D03ProtocolDefaults {
 
     function printBoosts(bytes32 entityId, bytes32 stakerId, string memory name) internal view {
         uint64 interval = nayms.currentInterval(entityId);
-        StakingState memory stakingState = nayms.getStakingState(stakerId, entityId, interval);
+        StakingState memory stakingState = nayms.getStakingState(stakerId, entityId);
 
         c.log("");
         c.log("     ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
@@ -185,11 +190,11 @@ contract StakingTest is D03ProtocolDefaults {
         StakingState[] memory louState = new StakingState[](4);
         StakingState[] memory naymsState = new StakingState[](4);
 
-        bobState[0] = nayms.getStakingState(bob.entityId, nlf.entityId, 0);
+        bobState[0] = nayms.getStakingState(bob.entityId, nlf.entityId);
 
         assertEq(bobState[0].balance, 0, "Bob's staking balance[0] should be 0 before staking");
 
-        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId, 0);
+        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId);
         assertEq(nayms.internalBalanceOf(nlf.entityId, NAYMSID), 0, "Nayms' internal balance[0] should be 0 before staking");
         assertEq(naymsState[0].balance, 0, "Nayms' staking balance[0] should be 0 before staking");
 
@@ -197,11 +202,11 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, bobStakeAmount);
         printBoosts(nlf.entityId, bob.entityId, "Bob");
 
-        bobState[0] = nayms.getStakingState(bob.entityId, nlf.entityId, 0); // re-read state
+        bobState[0] = nayms.getStakingState(bob.entityId, nlf.entityId); // re-read state
         assertEq(bobState[0].balance, bobStakeAmount, "Bob's staking balance[0] should increase");
         assertEq(bobState[0].boost, 15e6, "Bob's boost[0] should increase");
 
-        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId, 0); // re-read state
+        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId); // re-read state
         assertEq(naymsState[0].balance, bobStakeAmount, "Nayms' staking balance[0] should increase");
         assertEq(naymsState[0].boost, 15e6, "Nayms' boost[0] should increase");
 
@@ -212,11 +217,11 @@ contract StakingTest is D03ProtocolDefaults {
         printBoosts(nlf.entityId, sue.entityId, "Sue");
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
 
-        sueState[0] = nayms.getStakingState(sue.entityId, nlf.entityId, 0);
+        sueState[0] = nayms.getStakingState(sue.entityId, nlf.entityId);
         assertEq(sueState[0].balance, sueStakeAmount, "Sue's staking balance[0] should increase");
         assertEq(sueState[0].boost, 30e6, "Sue's boost[0] should increase");
 
-        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId, 0); // re-read state
+        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId); // re-read state
         assertEq(naymsState[0].balance, sueStakeAmount + bobStakeAmount, "Nayms' staking balance[0] should increase");
         assertEq(naymsState[0].boost, 45e6, "Nayms' boost[0] should increase");
 
@@ -230,11 +235,11 @@ contract StakingTest is D03ProtocolDefaults {
         printBoosts(nlf.entityId, lou.entityId, "Lou");
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
 
-        louState[0] = nayms.getStakingState(lou.entityId, nlf.entityId, 0);
+        louState[0] = nayms.getStakingState(lou.entityId, nlf.entityId);
         assertEq(louState[0].balance, louStakeAmount, "Lou's staking balance[0] should increase");
         assertEq(louState[0].boost, 20e6, "Lou's boost[0] should increase");
 
-        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId, 0); // re-read state
+        naymsState[0] = nayms.getStakingState(nlf.entityId, nlf.entityId); // re-read state
         assertEq(naymsState[0].balance, totalStakeAmount, "Nayms' staking balance[0] should increase");
         assertEq(naymsState[0].boost, 65e6, "Nayms' boost[0] should increase");
 
@@ -256,19 +261,19 @@ contract StakingTest is D03ProtocolDefaults {
 
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
 
-        naymsState[1] = nayms.getStakingState(nlf.entityId, nlf.entityId, 1); // re-read state
+        naymsState[1] = nayms.getStakingState(nlf.entityId, nlf.entityId); // re-read state
         assertEq(naymsState[1].balance, 765e6, "Nayms' staking balance[1] should increase");
         assertEq(naymsState[1].boost, 9525e4, "Nayms' boost[1] should increase");
 
-        bobState[1] = nayms.getStakingState(bob.entityId, nlf.entityId, 1); // re-read state
+        bobState[1] = nayms.getStakingState(bob.entityId, nlf.entityId); // re-read state
         assertEq(bobState[1].balance, 115e6, "Bob's staking balance[1] should increase");
         assertEq(bobState[1].boost, 1275e4, "Bob's boost[1] should increase");
 
-        sueState[1] = nayms.getStakingState(sue.entityId, nlf.entityId, 1); // re-read state
+        sueState[1] = nayms.getStakingState(sue.entityId, nlf.entityId); // re-read state
         assertEq(sueState[1].balance, 230e6, "Sue's staking balance[1] should increase");
         assertEq(sueState[1].boost, 255e5, "Sue's boost[1] should increase");
 
-        louState[1] = nayms.getStakingState(lou.entityId, nlf.entityId, 1); // re-read state
+        louState[1] = nayms.getStakingState(lou.entityId, nlf.entityId); // re-read state
         assertEq(louState[1].balance, 420e6, "Lou's staking balance[1] should increase");
         assertEq(louState[1].boost, 57e6, "Lou's boost[1] should increase");
 
@@ -283,7 +288,7 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount * 2, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, 0), usdcId), rewardAmount * 2, "NLF's USDC balance should increase");
 
-        naymsState[2] = nayms.getStakingState(nlf.entityId, nlf.entityId, 2); // re-read state
+        naymsState[2] = nayms.getStakingState(nlf.entityId, nlf.entityId); // re-read state
         assertEq(naymsState[2].balance, 86025e4, "Nayms' staking balance[2] should increase");
         assertEq(naymsState[2].boost, 809625e2, "Nayms' boost[2] should increase");
 
@@ -308,15 +313,15 @@ contract StakingTest is D03ProtocolDefaults {
             "Bob's USDC balance should increase"
         ); // 15032679
 
-        bobState[2] = nayms.getStakingState(bob.entityId, nlf.entityId, 2); // re-read state
+        bobState[2] = nayms.getStakingState(bob.entityId, nlf.entityId); // re-read state
         assertEq(bobState[2].balance, 12775e4, "Bob's staking balance[2] should increase");
         assertEq(bobState[2].boost, 108375e2, "Bob's boost[2] should increase");
 
-        sueState[2] = nayms.getStakingState(sue.entityId, nlf.entityId, 2); // re-read state
+        sueState[2] = nayms.getStakingState(sue.entityId, nlf.entityId); // re-read state
         assertEq(sueState[2].balance, 2555e5, "Sue's staking balance[2] should increase");
         assertEq(sueState[2].boost, 21675e3, "Sue's boost[2] should increase");
 
-        louState[2] = nayms.getStakingState(lou.entityId, nlf.entityId, 2); // re-read state
+        louState[2] = nayms.getStakingState(lou.entityId, nlf.entityId); // re-read state
         assertEq(louState[2].balance, 477e6, "Lou's staking balance[2] should increase");
         assertEq(louState[2].boost, 4845e4, "Lou's boost[2] should increase");
 
@@ -331,7 +336,7 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
         nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
 
-        naymsState[3] = nayms.getStakingState(nlf.entityId, nlf.entityId, 3); // re-read state
+        naymsState[3] = nayms.getStakingState(nlf.entityId, nlf.entityId); // re-read state
         assertEq(naymsState[3].balance, 9412125e2, "Nayms' staking balance[3] should increase");
         assertEq(naymsState[3].boost, 68818125, "Nayms' boost[3] should increase");
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
@@ -359,15 +364,15 @@ contract StakingTest is D03ProtocolDefaults {
             "Sue's USDC balance should increase"
         ); // 59766027
 
-        bobState[3] = nayms.getStakingState(bob.entityId, nlf.entityId, 3); // re-read state
+        bobState[3] = nayms.getStakingState(bob.entityId, nlf.entityId); // re-read state
         assertEq(bobState[3].balance, 138587500, "Bob's staking balance[3] should increase");
         assertEq(bobState[3].boost, 9211875, "Bob's boost[3] should increase");
 
-        sueState[3] = nayms.getStakingState(sue.entityId, nlf.entityId, 3); // re-read state
+        sueState[3] = nayms.getStakingState(sue.entityId, nlf.entityId); // re-read state
         assertEq(sueState[3].balance, 277175e3, "Sue's staking balance[3] should increase");
         assertEq(sueState[3].boost, 18423750, "Sue's boost[3] should increase");
 
-        louState[3] = nayms.getStakingState(lou.entityId, nlf.entityId, 3); // re-read state
+        louState[3] = nayms.getStakingState(lou.entityId, nlf.entityId); // re-read state
         assertEq(louState[3].balance, 52545e4, "Lou's staking balance[3] should increase");
         assertEq(louState[3].boost, 411825e2, "Lou's boost[3] should increase");
 
@@ -394,15 +399,15 @@ contract StakingTest is D03ProtocolDefaults {
             "Lou's USDC balance should increase"
         ); // 110350957
 
-        bobState[3] = nayms.getStakingState(bob.entityId, nlf.entityId, 3); // re-read state
+        bobState[3] = nayms.getStakingState(bob.entityId, nlf.entityId); // re-read state
         assertEq(bobState[3].balance, 138587500, "Bob's staking balance[3] should increase");
         assertEq(bobState[3].boost, 9211875, "Bob's boost[3] should increase");
 
-        sueState[3] = nayms.getStakingState(sue.entityId, nlf.entityId, 3); // re-read state
+        sueState[3] = nayms.getStakingState(sue.entityId, nlf.entityId); // re-read state
         assertEq(sueState[3].balance, 277175e3, "Sue's staking balance[3] should increase");
         assertEq(sueState[3].boost, 18423750, "Sue's boost[3] should increase");
 
-        louState[3] = nayms.getStakingState(lou.entityId, nlf.entityId, 3); // re-read state
+        louState[3] = nayms.getStakingState(lou.entityId, nlf.entityId); // re-read state
         assertEq(louState[3].balance, 52545e4, "Lou's staking balance[3] should increase");
         assertEq(louState[3].boost, 411825e2, "Lou's boost[3] should increase");
 
