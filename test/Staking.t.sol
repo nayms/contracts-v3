@@ -302,6 +302,10 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 62 days);
 
         startPrank(bob);
+
+        (, uint256[] memory bobRewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        assertEq(bobRewardAmounts[0], (bobState[1].balance * rewardAmount) / naymsState[1].balance, "Bob's reward amount incorrect");
+
         nayms.collectRewards(nlf.entityId);
 
         // current interval is [2] here, so rewards should include intervals [0] and [1]
@@ -345,6 +349,14 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 91 days);
 
         startPrank(sue);
+
+        (, uint256[] memory sueRewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        assertEq(
+            sueRewardAmounts[0],
+            ((sueState[1].balance * rewardAmount) / naymsState[1].balance) + ((sueState[2].balance * rewardAmount) / naymsState[2].balance),
+            "Sue's reward amount incorrect"
+        );
+
         nayms.collectRewards(nlf.entityId);
 
         // current interval is [3] here, so rewards should include intervals [0], [1] and [2]
@@ -372,6 +384,14 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 92 days);
 
         startPrank(lou);
+
+        (, uint256[] memory louRewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        assertEq(
+            louRewardAmounts[0],
+            ((louState[1].balance * rewardAmount) / naymsState[1].balance) + ((louState[2].balance * rewardAmount) / naymsState[2].balance),
+            "Lou's reward amount incorrect"
+        );
+
         nayms.collectRewards(nlf.entityId);
 
         // current interval is [3] here, so rewards should include intervals [0], [1] and [2]
@@ -403,8 +423,6 @@ contract StakingTest is D03ProtocolDefaults {
         printBoosts(nlf.entityId, bob.entityId, "Bob");
         printBoosts(nlf.entityId, sue.entityId, "Sue");
         printBoosts(nlf.entityId, lou.entityId, "Lou");
-
-
     }
 
     function test_unstakeScenario1() public {
@@ -420,6 +438,5 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(bob.entityId, NAYMSID), 10_000_000e18);
         assertEq(nayms.internalBalanceOf(sue.entityId, NAYMSID), 10_000_000e18);
         assertEq(nayms.internalBalanceOf(lou.entityId, NAYMSID), 10_000_000e18);
-    
-    }    
+    }
 }
