@@ -404,6 +404,11 @@ contract StakingTest is D03ProtocolDefaults {
         printBoosts(nlf.entityId, sue.entityId, "Sue");
         printBoosts(nlf.entityId, lou.entityId, "Lou");
 
+
+    }
+
+    function test_unstakeScenario1() public {
+        test_StakingScenario1();
         startPrank(bob);
         nayms.unstake(nlf.entityId);
         startPrank(sue);
@@ -415,5 +420,6 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(bob.entityId, NAYMSID), 10_000_000e18);
         assertEq(nayms.internalBalanceOf(sue.entityId, NAYMSID), 10_000_000e18);
         assertEq(nayms.internalBalanceOf(lou.entityId, NAYMSID), 10_000_000e18);
-    }
+    
+    }    
 }
