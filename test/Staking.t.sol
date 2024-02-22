@@ -61,8 +61,6 @@ contract StakingTest is D03ProtocolDefaults {
         naymToken.mint(sue.addr, 10_000_000e18);
         naymToken.mint(lou.addr, 10_000_000e18);
 
-        c.log(" >> MINTED".green());
-
         startPrank(sa);
         nayms.addSupportedExternalToken(address(naymToken), 1e18);
 
@@ -76,21 +74,14 @@ contract StakingTest is D03ProtocolDefaults {
         vm.startPrank(bob.addr);
         naymToken.approve(address(nayms), 10_000_000e18);
         nayms.externalDeposit(address(naymToken), 10_000_000e18);
-        c.log(" -- Bob's entity: %s".green(), vm.toString(bob.entityId));
-        c.log("    NAYM balance: %s".green(), nayms.internalBalanceOf(bob.entityId, NAYMSID));
-        c.log("    NAYM ID: %s".green(), vm.toString(NAYMSID));
 
         vm.startPrank(sue.addr);
         naymToken.approve(address(nayms), 10_000_000e18);
         nayms.externalDeposit(address(naymToken), 10_000_000e18);
-        c.log(" -- Sue's entity: %s".green(), vm.toString(sue.entityId));
-        c.log("    NAYM balance: %s".green(), nayms.internalBalanceOf(sue.entityId, NAYMSID));
 
         vm.startPrank(lou.addr);
         naymToken.approve(address(nayms), 10_000_000e18);
         nayms.externalDeposit(address(naymToken), 10_000_000e18);
-        c.log(" -- Lou's entity: %s".green(), vm.toString(lou.entityId));
-        c.log("    NAYM balance: %s".green(), nayms.internalBalanceOf(lou.entityId, NAYMSID));
 
         // for now, assume sm pays the distributions
         startPrank(nlf);
