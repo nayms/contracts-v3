@@ -45,7 +45,7 @@ contract StakingTest is D03ProtocolDefaults {
     function setUp() public {
         naymToken = new DummyToken();
 
-        nlf = makeNaymsAcc("NLF");
+        nlf = makeNaymsAcc(LC.NLF_IDENTIFIER);
 
         NAYMSID = address(naymToken)._getIdForAddress();
 

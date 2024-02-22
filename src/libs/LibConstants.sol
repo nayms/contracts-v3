@@ -21,6 +21,7 @@ library LibConstants {
     string internal constant EMPTY_IDENTIFIER = "";
     string internal constant SYSTEM_IDENTIFIER = "System";
     string internal constant NDF_IDENTIFIER = "NDF";
+    string internal constant NLF_IDENTIFIER = "NLF";
     string internal constant STM_IDENTIFIER = "Staking Mechanism";
     string internal constant SSF_IDENTIFIER = "SSF";
     string internal constant NAYM_TOKEN_IDENTIFIER = "NAYM"; //This is the ID in the system as well as the token ID
