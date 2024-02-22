@@ -130,3 +130,6 @@ error InvalidIntervalSecondsValue();
 
 /// @dev Only one reward payment is allowed per interval
 error IntervalRewardPayedOutAlready(uint64 interval);
+
+/// @dev Insuficient balance available to perform the transfer of funds
+error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);

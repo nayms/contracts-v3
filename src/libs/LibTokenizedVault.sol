@@ -7,6 +7,8 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 
+import { InsufficientBalance } from "../shared/CustomErrors.sol";
+
 library LibTokenizedVault {
     /**
      * @dev Emitted when a token balance gets updated.
@@ -56,7 +58,6 @@ library LibTokenizedVault {
         return s.tokenSupply[_objectId];
     }
 
-    error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
     function _internalTransfer(bytes32 _from, bytes32 _to, bytes32 _tokenId, uint256 _amount) internal returns (bool success) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 

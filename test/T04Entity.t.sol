@@ -879,10 +879,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId2")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 1000);
         assertEq(nayms.getLockedBalance(entityId1, simplePolicy.asset), 9500, "locked balance should DECREASE");
 
-        nayms.internalBalanceOf(entityId1, simplePolicy.asset);
         // note: entity now has balance of 18000, locked balance of 9500
         // attempting to pay a claim that's above the entity's balance, below the policy limit triggers the following error
-        vm.expectRevert("_internalTransfer: insufficient balance");
+        vm.expectRevert(abi.encodeWithSelector(InsufficientBalance.selector, wethId, entityId1, 18000, 19000));
         nayms.paySimpleClaim(makeId(LC.OBJECT_TYPE_CLAIM, bytes20("claimId3")), policyId1, DEFAULT_INSURED_PARTY_ENTITY_ID, 19000);
     }
 
