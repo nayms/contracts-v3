@@ -128,6 +128,9 @@ error APlusRCannotBeGreaterThanDivider();
 /// @dev Invalid interval value provided
 error InvalidIntervalSecondsValue();
 
+/// @dev Invalid staking start date provided
+error InvalidStakingInitDate();
+
 /// @dev Only one reward payment is allowed per interval
 error IntervalRewardPayedOutAlready(uint64 interval);
 

@@ -9,7 +9,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -263,12 +263,13 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _validateStakingParams(StakingConfig calldata _config) internal pure {
+    function _validateStakingParams(StakingConfig calldata _config) internal view {
         if (_config.a == 0) revert InvalidAValue();
         if (_config.r == 0) revert InvalidRValue();
         if (_config.divider == 0) revert InvalidDividerValue();
         if (_config.a + _config.r > _config.divider) revert APlusRCannotBeGreaterThanDivider();
         if (_config.interval == 0) revert InvalidIntervalSecondsValue();
+        if (_config.initDate <= block.timestamp) revert InvalidStakingInitDate();
     }
 
     function _getR(bytes32 _entityId) internal view returns (uint64) {
