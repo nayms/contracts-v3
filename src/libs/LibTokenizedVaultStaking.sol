@@ -27,6 +27,10 @@ library LibTokenizedVaultStaking {
         vTokenId_ = bytes32(abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, bytes20(_tokenId)));
     }
 
+    function _vTokenIdBucket(bytes32 _tokenId) internal pure returns (bytes32) {
+        return _vTokenId(_tokenId, type(uint64).max);
+    }
+
     function _initStaking(bytes32 _entityId, StakingConfig calldata _config) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -89,7 +93,7 @@ library LibTokenizedVaultStaking {
         s.stakeCollected[_entityId][_entityId] = interval;
 
         // Transfer the funds
-        LibTokenizedVault._internalTransfer(_entityId, _vTokenId(tokenId, 0), _rewardTokenId, _rewardAmount);
+        LibTokenizedVault._internalTransfer(_entityId, _vTokenIdBucket(tokenId), _rewardTokenId, _rewardAmount);
 
         emit TokenRewardPaid(_guid, _entityId, tokenId, _rewardTokenId, _rewardAmount);
     }
@@ -100,7 +104,7 @@ library LibTokenizedVaultStaking {
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
-        bytes32 vTokenId0 = _vTokenId(tokenId, 0);
+        bytes32 vTokenId0 = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
         bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
 
@@ -148,7 +152,7 @@ library LibTokenizedVaultStaking {
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
-        bytes32 vTokenId0 = _vTokenId(tokenId, 0);
+        bytes32 vTokenId0 = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
 
         // collect your rewards first
@@ -215,7 +219,7 @@ library LibTokenizedVaultStaking {
                     rewards.amounts[currencyIndex] += userDistributionAmount;
                     rewards.lastPaidInterval = i;
                 }
-                state.balance += state.boost;
+                state.balance += s.stakeBalance[_vTokenId(tokenId, i + 1)][_stakerId] + state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
         }
@@ -236,7 +240,7 @@ library LibTokenizedVaultStaking {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             for (uint64 i = state.lastCollectedInterval; i < currentInterval; ++i) {
-                state.balance += state.boost;
+                state.balance += s.stakeBalance[_vTokenId(tokenId, i + 1)][_stakerId] + state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
         }
@@ -257,7 +261,7 @@ library LibTokenizedVaultStaking {
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
             for (uint64 i = 0; i < rewards.currencies.length; ++i) {
-                LibTokenizedVault._internalTransfer(_vTokenId(tokenId, 0), _stakerId, rewards.currencies[i], rewards.amounts[i]);
+                LibTokenizedVault._internalTransfer(_vTokenIdBucket(tokenId), _stakerId, rewards.currencies[i], rewards.amounts[i]);
                 emit TokenRewardCollected(_stakerId, _entityId, tokenId, _interval, rewards.currencies[i], rewards.amounts[i]);
             }
         }
