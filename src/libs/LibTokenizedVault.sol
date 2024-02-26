@@ -28,7 +28,7 @@ library LibTokenizedVault {
     event InternalTokenSupplyUpdate(bytes32 indexed tokenId, uint256 newTokenSupply, string functionName, address indexed msgSender);
 
     /**
-     * @dev Emitted when a dividend gets payed out.
+     * @dev Emitted when a dividend gets paid out.
      * @param guid dividend distribution ID
      * @param from distribution initiator
      * @param to distribution receiver
@@ -37,7 +37,7 @@ library LibTokenizedVault {
     event DividendDistribution(bytes32 indexed guid, bytes32 from, bytes32 to, bytes32 dividendTokenId, uint256 amount);
 
     /**
-     * @dev Emitted when a dividend gets payed out.
+     * @dev Emitted when a dividend gets paid out.
      * @param accountId ID of the account withdrawing the dividend
      * @param tokenId ID of the participation token that is paying out the dividends to holders
      * @param amountOwned owned amount of the participation tokens
@@ -137,7 +137,7 @@ library LibTokenizedVault {
 
     //   DIVIDEND PAYOUT LOGIC
     //
-    // When a dividend is payed, you divide by the total supply and add it to the totalDividendPerToken
+    // When a dividend is paid, you divide by the total supply and add it to the totalDividendPerToken
     // Dividends are held by the diamond contract at: LibHelpers._stringToBytes32(LibConstants.DIVIDEND_BANK_IDENTIFIER)
     // When dividends are paid, they are transferred OUT of that same diamond contract ID.
     //

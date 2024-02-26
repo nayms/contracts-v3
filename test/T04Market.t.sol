@@ -184,7 +184,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(systemAdmin);
     }
 
-    function testCommissionsPayed() public {
+    function testCommissionsPaid() public {
         testStartTokenSale();
 
         // scenario where marketplace fee strat is (% external tokens bought or sold)
@@ -222,7 +222,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(nayms.internalBalanceOf(entity1, wethId), dt.entity1ExternalDepositAmt + dt.entity1MintAndSaleAmt, "Maker should not pay commissions");
 
-        // assert trading commissions payed
+        // assert trading commissions paid
         uint256 totalFees = (dt.entity1MintAndSaleAmt * 300) / LC.BP_FACTOR;
         assertEq(nayms.internalBalanceOf(entity2, wethId), dt.entity2ExternalDepositAmt - dt.entity1MintAndSaleAmt - totalFees, "Taker should pay commissions");
 
@@ -236,7 +236,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // assert Entity1 holds `buyAmount` of nE1
         assertEq(nayms.internalBalanceOf(entity2, entity1), dt.entity1MintAndSaleAmt);
 
-        // test commission payed by taker on "secondary market"
+        // test commission paid by taker on "secondary market"
         uint256 e2WethBeforeTrade = nayms.internalBalanceOf(entity2, wethId); // 9.7e20
         uint256 e3WethBeforeTrade = nayms.internalBalanceOf(entity3, wethId); // 3e21
 
@@ -270,7 +270,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testMatchMakerPriceWithTakerBuyAmount() public {
-        testStartTokenSale();
+        testStartTokenSale(); // sell 1000 e1token for 1000 WETH
 
         changePrank(sm.addr);
         nayms.assignRole(signer2Id, systemContext, LC.ROLE_ENTITY_CP);
@@ -279,8 +279,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
 
         changePrank(signer2);
-        writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
-        nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt);
+        writeTokenBalance(signer2, naymsAddress, wethAddress, 2_000 ether);
+        nayms.externalDeposit(wethAddress, 2_000 ether);
 
         nayms.executeLimitOffer(wethId, 1_000 ether, entity1, 500 ether);
         vm.stopPrank();
@@ -584,7 +584,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
         nayms.enableEntityTokenization(entity1, "e1token", "e1token", 1e6);
 
-        // start nENTITY1 token sale
         nayms.startTokenSale(entity1, dt.entity1MintAndSaleAmt, dt.entity1SalePrice);
 
         // create (x2) counter offer
@@ -613,6 +612,46 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         assertOfferFilled(nayms.getLastOfferId() - 2, entity1, entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1SalePrice);
         assertOfferFilled(nayms.getLastOfferId() - 1, entity2, wethId, dt.entity1MintAndSaleAmt * 2, entity1, dt.entity1SalePrice * 2);
         assertOfferFilled(nayms.getLastOfferId(), entity1, entity1, dt.entity1MintAndSaleAmt, wethId, dt.entity1SalePrice);
+    }
+
+    function testSecondaryTradeWithBetterThanAskPrice() public {
+        uint256 tokenAmount = 1000 ether;
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
+
+        changePrank(sm.addr);
+        nayms.assignRole(signer2Id, systemContext, LC.ROLE_ENTITY_CP);
+
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        nayms.enableEntityTokenization(entity1, "e1token", "e1token", 1e13);
+
+        // SELL: P 1000 / E 1000  (price = 1)
+        nayms.startTokenSale(entity1, tokenAmount, tokenAmount);
+
+        // create two counter offers
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        changePrank(signer2);
+        writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt * 6);
+        nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 6);
+
+        // BUY: P 1000 / E 1000  (price = 1)
+        nayms.executeLimitOffer(wethId, tokenAmount * 1, entity1, tokenAmount * 1);
+        assertOfferFilled(1, entity1, entity1, tokenAmount, wethId, tokenAmount);
+        assertOfferFilled(2, entity2, wethId, tokenAmount, entity1, tokenAmount);
+
+        // BUY: P 1000 / E 5000 (price = 5)
+        nayms.executeLimitOffer(wethId, tokenAmount * 5, entity1, tokenAmount * 1);
+
+        // SELL: P 2000 / E 2000 (price = 1)
+        changePrank(sm.addr);
+        nayms.startTokenSale(entity1, tokenAmount * 2, tokenAmount * 2);
+        assertOfferFilled(3, entity2, wethId, tokenAmount * 5, entity1, tokenAmount);
+        assertOfferPartiallyFilled(4, entity1, entity1, tokenAmount, tokenAmount * 2, wethId, tokenAmount, tokenAmount * 2);
+
+        // logOfferDetails(1); // should be filled 100%
+        // logOfferDetails(2); // should be filled 100%
+        // logOfferDetails(3); // should be filled 100%
+        // logOfferDetails(4); // should be filled 50%
     }
 
     function testBestOffersWithCancel() public {
@@ -870,27 +909,37 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(signer3);
         nayms.executeLimitOffer(usdcId, 350, entity1, 350); // it will be the best offer
         vm.stopPrank();
+        // logOfferDetails(nayms.getLastOfferId());
 
         vm.startPrank(signer2); //honest user's offer (sellAmount1, buyAmount1) = (200, 101)
         nayms.executeLimitOffer(entity1, 200, usdcId, 101); // it will be the best offer
         vm.stopPrank();
+        // logOfferDetails(nayms.getLastOfferId());
 
         vm.startPrank(signer3); //attacker adds a better offer (sellAmount2, buyAmount2) = (200, 100)
         nayms.executeLimitOffer(entity1, 200, usdcId, 100); // it will be the best offer now
         vm.stopPrank();
+        // logOfferDetails(nayms.getLastOfferId());
 
         // this one causes rounding isseue and is incorrectly added to the order book
         vm.startPrank(signer4);
         nayms.executeLimitOffer(usdcId, 100, entity1, 199);
         vm.stopPrank();
+        // logOfferDetails(nayms.getLastOfferId());
 
         vm.startPrank(signer3);
         nayms.executeLimitOffer(entity1, 150, usdcId, 100);
         vm.stopPrank();
+        // logOfferDetails(nayms.getLastOfferId());
 
         uint256 bestId = nayms.getBestOfferId(entity1, usdcId);
         uint256 prev1 = nayms.getOffer(bestId).rankPrev;
         uint256 prev2 = nayms.getOffer(prev1).rankPrev;
+
+        // c.log(" --------- ".red());
+        logOfferDetails(bestId);
+        logOfferDetails(prev1);
+        logOfferDetails(prev2);
 
         MarketInfo memory o1 = nayms.getOffer(bestId);
         MarketInfo memory o2 = nayms.getOffer(prev1);
@@ -954,9 +1003,9 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("not enough capital");
         nayms.createSimplePolicy(bytes32("1"), attacker.entityId, stakeholders, simplePolicy, "offChainHash");
 
-        // uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
-        // uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
-        // require(lockedBalance <= internalBalance, "double lock balance attack successful");
+        uint256 lockedBalance = nayms.getLockedBalance(attacker.entityId, usdcId);
+        uint256 internalBalance = nayms.internalBalanceOf(attacker.entityId, usdcId);
+        require(lockedBalance <= internalBalance, "double lock balance attack successful");
     }
 
     function testMinimumSellAmounts_IM24703() public {

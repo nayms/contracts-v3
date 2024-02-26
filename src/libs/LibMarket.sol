@@ -34,6 +34,10 @@ library LibMarket {
     /// @notice order has been executed
     event OrderExecuted(uint256 indexed orderId, bytes32 indexed taker, bytes32 indexed sellToken, uint256 sellAmount, bytes32 buyToken, uint256 buyAmount, uint256 state);
 
+    /// @notice order has been matched
+    /// new event has been added not to change the existing ones, for preserving the backward compatibility
+    event OrderMatched(uint256 indexed orderId, uint256 matchedWithId, uint256 sellAmountMatched, uint256 buyAmountMatched);
+
     /// @notice order has been cancelled
     event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
 
@@ -151,6 +155,7 @@ library LibMarket {
     }
 
     function _matchToExistingOffers(
+        uint256 _offerId,
         bytes32 _takerId,
         bytes32 _sellToken,
         uint256 _sellAmount,
@@ -196,7 +201,6 @@ library LibMarket {
                 ) {
                     break; // no matching price, bail out
                 }
-
                 // ^ The `rounding` parameter is a compromise borne of a couple days of discussion.
             }
             // avoid stack-too-deep
@@ -216,17 +220,53 @@ library LibMarket {
                     // Similar operations, but for the non-external token case (the fee is always paid in external tokens)
                     currentBuyAmount = s.offers[bestOfferId].sellAmount < result.remainingBuyAmount ? s.offers[bestOfferId].sellAmount : result.remainingBuyAmount;
                     currentSellAmount = (currentBuyAmount * s.offers[bestOfferId].buyAmount) / s.offers[bestOfferId].sellAmount; // (a / b) * c = c * a / b  -> multiply first, avoid underflow
+
                     uint256 commissionsPaid = _takeOffer(_feeScheduleType, bestOfferId, _takerId, currentBuyAmount, currentSellAmount, buyExternalToken);
                     result.sellTokenCommissionsPaid += commissionsPaid;
                 }
-                // Update how much is left to buy/sell
-                result.remainingSellAmount -= currentSellAmount;
-                result.remainingBuyAmount = currentBuyAmount > result.remainingBuyAmount ? 0 : result.remainingBuyAmount - currentBuyAmount;
+
+                // Update how much is left to buy/sell:
+                // if the maker's price is more favourable to the taker, to prevent underflow we need to:
+                //  - normalize current **external token** amount
+                //  - and reduce remaining amount by that normalized value
+                //
+                //   taker price = initial buy amount / initial sell amount
+                //   maker price = current buy amount / current sell amount
+                //
+                // if taker price < maker price => normalize currentAmount before reducing remainingAmount
+                if (_buyAmount * currentSellAmount < currentBuyAmount * _sellAmount) {
+                    if (buyExternalToken) {
+                        // if the taker is buying an external token, we need to normalize current buy amount value
+
+                        // normalization factor = taker price / maker price:
+                        //   = (initial buy amount/initial sell amount) / (current buy amount / current sell amount)
+                        //   = initial buy amount * current sell amount / initial sell amount / current buy amount
+                        // that means that normalized buy amount:
+                        //   = current buy amount * normalization factor
+                        // normalized buy amount = current buy amount * (initial buy amount * current sell amount / initial sell amount / current buy amount)
+                        // which equals to below:
+                        result.remainingBuyAmount -= (_buyAmount * currentSellAmount) / _sellAmount;
+                        result.remainingSellAmount -= currentSellAmount;
+                    } else {
+                        // if the taker is buying participation tokens we need to normalize current sell amount value
+                        result.remainingBuyAmount -= currentBuyAmount;
+                        result.remainingSellAmount -= (_sellAmount * currentBuyAmount) / _buyAmount;
+                    }
+                } else {
+                    result.remainingBuyAmount -= currentBuyAmount;
+                    result.remainingSellAmount -= currentSellAmount;
+                }
+
+                // events are emmited to keep track of average price actually paid,
+                // in case matched is done with more preferable offers, otherwise this information is be lost
+                emit OrderMatched(_offerId, bestOfferId, currentSellAmount, currentBuyAmount); // taker offer
+                emit OrderMatched(bestOfferId, _offerId, currentBuyAmount, currentSellAmount); // maker offer
             }
         }
     }
 
     function _createOffer(
+        uint256 _offerId,
         bytes32 _creator,
         bytes32 _sellToken,
         uint256 _sellAmount,
@@ -235,10 +275,10 @@ library LibMarket {
         uint256 _buyAmount,
         uint256 _buyAmountInitial,
         uint256 _feeScheduleType
-    ) internal returns (uint256) {
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        uint256 lastOfferId = ++s.lastOfferId;
+        require(_offerId == ++s.lastOfferId, "Invalid Offer ID");
 
         MarketInfo memory marketInfo;
         marketInfo.creator = _creator;
@@ -250,19 +290,17 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeScheduleType;
 
-        if (_buyAmount < s.objectMinimumSell[_buyToken] || _sellAmount < s.objectMinimumSell[_sellToken]) {
+        if (
+            _buyAmount < (s.objectMinimumSell[_buyToken] == 0 ? 1 : s.objectMinimumSell[_buyToken]) ||
+            _sellAmount < (s.objectMinimumSell[_sellToken] == 0 ? 1 : s.objectMinimumSell[_sellToken])
+        ) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
-
-            // lock tokens!
-            s.lockedBalances[_creator][_sellToken] += _sellAmount;
         }
 
-        s.offers[lastOfferId] = marketInfo;
-        emit OrderAdded(lastOfferId, marketInfo.creator, _sellToken, _sellAmount, _sellAmountInitial, _buyToken, _buyAmount, _buyAmountInitial, marketInfo.state);
-
-        return lastOfferId;
+        s.offers[_offerId] = marketInfo;
+        emit OrderAdded(_offerId, marketInfo.creator, _sellToken, _sellAmount, _sellAmountInitial, _buyToken, _buyAmount, _buyAmountInitial, marketInfo.state);
     }
 
     function _takeOffer(
@@ -311,7 +349,7 @@ library LibMarket {
         }
 
         // close offer if it has become dust
-        if (s.offers[_offerId].sellAmount < s.objectMinimumSell[s.offers[_offerId].sellToken]) {
+        if (s.offers[_offerId].sellAmount < (s.objectMinimumSell[s.offers[_offerId].sellToken] == 0 ? 1 : s.objectMinimumSell[s.offers[_offerId].sellToken])) {
             s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
             _cancelOffer(_offerId);
         }
@@ -429,16 +467,28 @@ library LibMarket {
         uint256 _buyAmount,
         uint256 _feeScheduleType
     ) internal returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
         _assertValidOffer(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
 
-        MatchingOfferResult memory result = _matchToExistingOffers(_creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
+        offerId_ = s.lastOfferId + 1;
+        _createOffer(offerId_, _creator, _sellToken, _sellAmount, _sellAmount, _buyToken, _buyAmount, _buyAmount, _feeScheduleType);
+
+        MatchingOfferResult memory result = _matchToExistingOffers(offerId_, _creator, _sellToken, _sellAmount, _buyToken, _buyAmount, _feeScheduleType);
         buyTokenCommissionsPaid_ = result.buyTokenCommissionsPaid;
         sellTokenCommissionsPaid_ = result.sellTokenCommissionsPaid;
 
-        offerId_ = _createOffer(_creator, _sellToken, result.remainingSellAmount, _sellAmount, _buyToken, result.remainingBuyAmount, _buyAmount, _feeScheduleType);
+        s.offers[offerId_].sellAmount = result.remainingSellAmount;
+        s.offers[offerId_].buyAmount = result.remainingBuyAmount;
+
+        // lock tokens!
+        s.lockedBalances[_creator][_sellToken] += result.remainingSellAmount;
+
+        if (result.remainingSellAmount < s.objectMinimumSell[_sellToken] || result.remainingBuyAmount < s.objectMinimumSell[_buyToken]) {
+            s.offers[offerId_].state = LibConstants.OFFER_STATE_FULFILLED;
+        }
 
         // if still some left
-        AppStorage storage s = LibAppStorage.diamondStorage();
         if (s.offers[offerId_].state == LibConstants.OFFER_STATE_ACTIVE) {
             // ensure it's in the right position in the list
             _insertOfferIntoSortedList(offerId_);
