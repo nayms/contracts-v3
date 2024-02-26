@@ -63,6 +63,12 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
+    /**
+     *
+     * @param from @notice Internal burn of `amount` of `tokenId` tokens of `from` userId
+     * @param tokenId tokenID to be burned internally
+     * @param amount to be burned
+     */
     function internalBurn(bytes32 from, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._internalBurn(from, tokenId, amount);
     }

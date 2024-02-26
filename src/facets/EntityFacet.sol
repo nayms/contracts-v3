@@ -23,6 +23,9 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev Returns the domain separator for the current chain.
+     */
     function domainSeparatorV4() external view returns (bytes32) {
         return LibEIP712._domainSeparatorV4();
     }

@@ -150,6 +150,13 @@ contract ACLFacet is Modifiers {
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
     }
 
+    /**
+     * @notice Compare two strings
+     * @dev compares keccak256 hashes of ABI encoded strings
+     * @param s1 first string to compare
+     * @param s2 second string to compare
+     * @return true is strings are equal
+     */
     function strEquals(string memory s1, string memory s2) private pure returns (bool) {
         return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
     }
