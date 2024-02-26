@@ -57,11 +57,11 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
         // cannot create an object that already exists in a given context
-        vm.expectRevert(abi.encodePacked(CreatingEntityThatAlreadyExists.selector, (objectId1)));
+        vm.expectRevert(abi.encodePacked(EntityExistsAlready.selector, (objectId1)));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
         // still reverts regardless of role being assigned
-        vm.expectRevert(abi.encodePacked(CreatingEntityThatAlreadyExists.selector, (objectId1)));
+        vm.expectRevert(abi.encodePacked(EntityExistsAlready.selector, (objectId1)));
         nayms.createEntity(objectId1, objectContext1, initEntity(wethId, 5000, LC.BP_FACTOR, true), "entity test hash");
 
         bytes32 objectId2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x2"));

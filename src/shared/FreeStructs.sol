@@ -32,6 +32,11 @@ struct Entity {
     bool simplePolicyEnabled;
 }
 
+struct EntityApproval {
+    bytes32 entityId;
+    bytes32 roleId;
+}
+
 /// @dev Only pass in the fields that are allowed to be updated.
 /// @dev These are the variables of an entity that are allowed to be updated by the method updateEntity()
 struct UpdateEntityTypeCell {
