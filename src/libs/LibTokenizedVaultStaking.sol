@@ -333,7 +333,7 @@ library LibTokenizedVaultStaking {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        bytes32 vTokenIdMax = _vTokenId(tokenId, 0);
+        bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
 
         return s.stakeBalance[vTokenIdMax][_stakerId];
     }
