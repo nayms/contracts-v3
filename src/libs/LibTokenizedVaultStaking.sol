@@ -104,7 +104,7 @@ library LibTokenizedVaultStaking {
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
-        bytes32 vTokenId0 = _vTokenIdBucket(tokenId);
+        bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
         bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
 
@@ -112,15 +112,13 @@ library LibTokenizedVaultStaking {
         _collectRewards(_stakerId, _entityId, currentInterval);
 
         // get the tokens
-        LibTokenizedVault._internalTransfer(_stakerId, vTokenId0, tokenId, _amount);
+        LibTokenizedVault._internalTransfer(_stakerId, vTokenIdMax, tokenId, _amount);
 
         // update the share of staking reward
         s.stakeBalance[vTokenId][_stakerId] += _amount;
 
-        if (currentInterval != 0) {
-            // needed for the original staked amount when unstaking
-            s.stakeBalance[vTokenId0][_stakerId] += _amount;
-        }
+        // needed for the original staked amount when unstaking
+        s.stakeBalance[vTokenIdMax][_stakerId] += _amount;
 
         s.stakeBalance[vTokenId][_entityId] += _amount;
 
@@ -152,7 +150,7 @@ library LibTokenizedVaultStaking {
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
-        bytes32 vTokenId0 = _vTokenIdBucket(tokenId);
+        bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
 
         // collect your rewards first
@@ -162,10 +160,10 @@ library LibTokenizedVaultStaking {
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBalance[vTokenId][_stakerId] = 0;
 
-        uint256 originalAmountStaked = s.stakeBalance[vTokenId0][_stakerId];
-        s.stakeBalance[vTokenId0][_stakerId] = 0;
+        uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
+        s.stakeBalance[vTokenIdMax][_stakerId] = 0;
 
-        LibTokenizedVault._internalTransfer(vTokenId0, _stakerId, tokenId, originalAmountStaked);
+        LibTokenizedVault._internalTransfer(vTokenIdMax, _stakerId, tokenId, originalAmountStaked);
 
         emit TokenUnstaked(_stakerId, _entityId, tokenId, originalAmountStaked);
     }
@@ -335,8 +333,8 @@ library LibTokenizedVaultStaking {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        bytes32 vTokenId0 = _vTokenId(tokenId, 0);
+        bytes32 vTokenIdMax = _vTokenId(tokenId, 0);
 
-        return s.stakeBalance[vTokenId0][_stakerId];
+        return s.stakeBalance[vTokenIdMax][_stakerId];
     }
 }
