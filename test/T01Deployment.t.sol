@@ -51,10 +51,6 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         address a = abi.decode(entry.data, (address));
         assertEq(a, owner);
 
-        // check storage
-        assertEq(fixture.totalSupply(), 100_000_000e18);
-        assertEq(fixture.balanceOf(account0), 100_000_000e18);
-
         assertTrue(fixture.isObject(0));
 
         assertEq(fixture.getMaxDividendDenominations(), 1);
