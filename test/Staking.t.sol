@@ -41,6 +41,8 @@ contract StakingTest is D03ProtocolDefaults {
 
     uint256 immutable rewardAmount = 100e6;
 
+    uint256 constant stakingStart = 100 days;
+
     mapping(bytes32 stakerId => mapping(uint64 interval => StakingState)) public stakingStates;
     function recordStakingState(bytes32 stakerId) public {
         stakingStates[stakerId][nayms.currentInterval(nlf.entityId)] = nayms.getStakingState(stakerId, nlf.entityId);
@@ -177,9 +179,7 @@ contract StakingTest is D03ProtocolDefaults {
     }
 
     function test_StakingScenario1() public {
-        uint256 stakingStart = 100 days;
-
-        initStaking(stakingStart);
+        initStaking(block.timestamp + stakingStart);
 
         c.log("(TIME: -20)".blue());
         vm.warp(stakingStart - 20 days);
@@ -501,5 +501,38 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount * 2);
         c.log(" ~ [%s] Reward[3] collected".blue(), nayms.currentInterval(nlf.entityId));
+    }
+
+    function test_skipPayingAnInterval() public {
+        initStaking({ initDate: 1 });
+        c.log(" ~ [%s] Staking start".blue(), nayms.currentInterval(nlf.entityId));
+
+        vm.warp(31 days);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        recordStakingState(bob.entityId);
+        assertEq(stakingStates[bob.entityId][1].balance, bobStakeAmount, "Bob's staking balance[1] should increase");
+        c.log(" ~ [%s] Bob staked".blue(), nayms.currentInterval(nlf.entityId));
+
+        vm.warp(61 days);
+
+        assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 0");
+
+        startPrank(nlf);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
+
+        assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
+
+        vm.warp(151 days);
+        assertEq(nayms.currentInterval(nlf.entityId), 5);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+
+        vm.warp(181 days);
+
+        startPrank(bob);
+        nayms.collectRewards(nlf.entityId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount * 2);
     }
 }
