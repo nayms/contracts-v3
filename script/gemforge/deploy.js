@@ -80,7 +80,7 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
             if (!fs.existsSync(cutFile)) {
                 throw new Error(`Cut JSON file not found - please run the first upgrade step first!`);
             }
-            if (targetArg !== "mainnet" && targetArg !== "mainnetFork") {
+            if (targetArg !== "mainnet" && targetArg !== "mainnetFork" && targetArg !== "base" && targetArg !== "baseFork") {
                 await enableUpgradeViaGovernance(targetArg, cutFile);
             }
             await assertThatUpgradeIsEnabled(targetArg, cutFile);
