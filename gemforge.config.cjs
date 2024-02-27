@@ -116,12 +116,12 @@ module.exports = {
         index: 0,
       },
     },
-    // wallet3: {
-    //   type: "private-key",
-    //   config: {
-    //     key: process.env.ETH_DEPLOYER_PK || "",
-    //   },
-    // },
+    wallet3: {
+      type: "private-key",
+      config: {
+        key: process.env.CONTRACT_OWNER || "",
+      },
+    },
   },
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
@@ -174,7 +174,7 @@ module.exports = {
     },
     mainnet: {
       network: "mainnet",
-      wallet: "wallet2",
+      wallet: "wallet3",
       initArgs: [sysAdminAddress],
     },
     mainnetFork: {
@@ -189,7 +189,7 @@ module.exports = {
     },
     base: {
       network: "base",
-      wallet: "wallet2",
+      wallet: "wallet3",
       initArgs: [sysAdminAddress],
     },
     baseFork: {

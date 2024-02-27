@@ -487,6 +487,26 @@
     "chainId": 1,
     "contracts": [
       {
+        "name": "EntityFacet",
+        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x65cdab6a092e79caaef39709d42daeb1c831d10bcd7f9afa7c308e6107e07f60",
+        "onChain": {
+          "address": "0xf7f3f840Cf0761107949c69704515fC2faf34019",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "MarketFacet",
+        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x384b00ebc2e195abec10e9ec4a0586069ebd5bcf49c6e0ee0dfa57ef6b9d265c",
+        "onChain": {
+          "address": "0xa807f3D6B8D17FD2602c940AEF5e5B811F8d06bE",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
@@ -517,32 +537,12 @@
         }
       },
       {
-        "name": "EntityFacet",
-        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x8a40a36b8ff53a0c62d7edd592a9dbc07a9e3ead4e94f37df40d1914edc027a5",
-        "onChain": {
-          "address": "0xc9367cBE587464021991B48c2778Efb2ec4968aA",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "GovernanceFacet",
         "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
         "txHash": "0xcb12b41a33f83de2900487110037e023af46ea2034f77e1b3e486cc830128ea8",
         "onChain": {
           "address": "0x16072cB7E7C3297BBf79ac1E6298F6A2BC73e950",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "MarketFacet",
-        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x80989da2b9703ac1613e03d7f01cead5c01cb35452a66f8dffa6d63681c845f4",
-        "onChain": {
-          "address": "0x2123657b34129CA44862b3E572082274F65f2A1A",
           "constructorArgs": []
         }
       },
