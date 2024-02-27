@@ -490,9 +490,9 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x65cdab6a092e79caaef39709d42daeb1c831d10bcd7f9afa7c308e6107e07f60",
+        "txHash": "0x8cbe40985f7ab841cda4b3f9e6b5743487660a01abf9e3dd189689e56aaa02bd",
         "onChain": {
-          "address": "0xf7f3f840Cf0761107949c69704515fC2faf34019",
+          "address": "0x563b00D641a27AD8a159796d8A5282A4eb1DC40D",
           "constructorArgs": []
         }
       },
@@ -500,9 +500,9 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x384b00ebc2e195abec10e9ec4a0586069ebd5bcf49c6e0ee0dfa57ef6b9d265c",
+        "txHash": "0x6317e3f8e97ac541203dbab1abfee50d16f7beb5776296b49efd62a3e9813de4",
         "onChain": {
-          "address": "0xa807f3D6B8D17FD2602c940AEF5e5B811F8d06bE",
+          "address": "0x1595a9948EDcdd7DF90022dEf8D60b2a0115C76C",
           "constructorArgs": []
         }
       },
@@ -642,6 +642,26 @@
     "chainId": 1,
     "contracts": [
       {
+        "name": "EntityFacet",
+        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xe101d13f0612d4d2af2bdd56e14eec2eca0de2c41975e9d5fd88a1a9315727b6",
+        "onChain": {
+          "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "MarketFacet",
+        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x632cb54eed5615fc2164c7dd3e6158ffafb92fd01350613bb639f6938e6d48c8",
+        "onChain": {
+          "address": "0xeb91C729D4bD06F41C7624E6ef0a40a828479af2",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
         "sender": "0x0000000000000000000000000000000000000000",
@@ -671,6 +691,26 @@
   "base": {
     "chainId": 8453,
     "contracts": [
+      {
+        "name": "EntityFacet",
+        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xe378bdc6c65df2d6e0854540498f9cce2de936ddb69789daf2f47be28c034ee4",
+        "onChain": {
+          "address": "0xa7874c752D9Ffd140be8D78ca6b1FfaE95650bF9",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "MarketFacet",
+        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x6fe7118c5b965ed10be91d87f0452ff8c45aa51dd86b07eefbb01729af12e246",
+        "onChain": {
+          "address": "0x73BFa1F46452B0938B96DB902419dc08eEe68C56",
+          "constructorArgs": []
+        }
+      },
       {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
@@ -704,32 +744,12 @@
         }
       },
       {
-        "name": "EntityFacet",
-        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xdb35df71970a54e91e327e07a05c62bb6588aa1c998c88ee59df3148d08ea75b",
-        "onChain": {
-          "address": "0x5fD1E4c0b52cC10c6eBC11e522aAf87374f4Ebaf",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "GovernanceFacet",
         "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
         "txHash": "0x3c92e8f12f729028d2d0a7f6f85a241250376d2e481812a6f0cfb1e53df0187a",
         "onChain": {
           "address": "0xa4dc26D3d585c5aD5bcF1056d98FC62d291e2022",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "MarketFacet",
-        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xab989bf3dd299376d3c8fc374fa0a8c0d3924e5e3434c7d55e75d1d0a6bf9cba",
-        "onChain": {
-          "address": "0x2870F5551B5811bB52Bab8e9AA21A407125f303F",
           "constructorArgs": []
         }
       },
