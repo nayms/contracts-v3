@@ -34,6 +34,7 @@ contract StakingTest is D03ProtocolDefaults {
     DummyToken naymToken;
 
     uint256 immutable usdcTotal = 1_000_000e6;
+    uint256 immutable wethTotal = 1_000_000e18;
     uint256 immutable bobStakeAmount = 100e6;
     uint256 immutable sueStakeAmount = 200e6;
     uint256 immutable louStakeAmount = 400e6;
@@ -93,6 +94,9 @@ contract StakingTest is D03ProtocolDefaults {
 
         fundEntityUsdc(sm, usdcTotal);
         nayms.internalTransferFromEntity(nlf.entityId, usdcId, usdcTotal);
+
+        fundEntityWeth(sm, wethTotal);
+        nayms.internalTransferFromEntity(nlf.entityId, wethId, wethTotal);
     }
 
     function vtokenId(bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32) {
@@ -534,5 +538,40 @@ contract StakingTest is D03ProtocolDefaults {
         startPrank(bob);
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount * 2);
+    }
+
+    function test_twoStakingRewardCurrencies() public {
+        initStaking({ initDate: 1 });
+        c.log(" ~ [%s] Staking start".blue(), nayms.currentInterval(nlf.entityId));
+
+        vm.warp(31 days);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        recordStakingState(bob.entityId);
+        assertEq(stakingStates[bob.entityId][1].balance, bobStakeAmount, "Bob's staking balance[1] should increase");
+        c.log(" ~ [%s] Bob staked".blue(), nayms.currentInterval(nlf.entityId));
+
+        vm.warp(61 days);
+
+        assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 0");
+
+        startPrank(nlf);
+        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
+        assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
+
+        vm.warp(91 days);
+
+        nayms.payReward(bytes32("1"), nlf.entityId, wethId, 1 ether);
+        c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
+        assertEq(nayms.lastIntervalPaid(nlf.entityId), 3, "Last interval paid should be 3");
+
+        vm.warp(121 days);
+
+        startPrank(bob);
+        nayms.collectRewards(nlf.entityId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether);
     }
 }
