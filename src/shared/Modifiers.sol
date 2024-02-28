@@ -31,9 +31,7 @@ contract Modifiers {
             revert InvalidGroupPrivilege(
                 msg.sender._getIdForAddress(),
                 _context,
-                (msg.sender._getIdForAddress()._getRoleInContext(_context) == bytes32(0))
-                    ? ""
-                    : string(msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToBytes()),
+                (msg.sender._getIdForAddress()._getRoleInContext(_context) == bytes32(0)) ? "" : msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToString(),
                 _group
             );
         _;
