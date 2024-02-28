@@ -126,7 +126,7 @@ contract AdminFacet is Modifiers {
         LibAdmin._onboardUser(msg.sender);
     }
 
-    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId) external returns (bool) {
+    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId) external view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.selfOnboarding[_userAddress].entityId == _entityId;
     }
