@@ -1198,6 +1198,25 @@ contract T04EntityTest is D03ProtocolDefaults {
         _selfOnboard(signer2, randomEntityId(2), LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
     }
 
+    function testSelfOnboardingCancel() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        bytes32 entityId = randomEntityId(2);
+
+        vm.startPrank(em.addr);
+        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+
+        assertTrue(nayms.isSelfOnboardingApproved(signer1, entityId), "Onboarding should be approved");
+
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
+        nayms.cancelSelfOnboarding(signer1);
+
+        vm.startPrank(sm.addr);
+        nayms.cancelSelfOnboarding(signer1);
+
+        assertFalse(nayms.isSelfOnboardingApproved(signer1, entityId), "Onboarding should have been cancelled");
+    }
+
     function _selfOnboard(address _userAddress, bytes32 entityId, string memory roleName, string memory groupName) private {
         vm.recordLogs();
 

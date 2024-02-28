@@ -33,6 +33,7 @@ library LibAdmin {
     event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
     event SelfOnboardingApproved(address indexed userAddress);
     event SelfOnboardingCompleted(address indexed userAddress);
+    event SelfOnboardingCancelled(address indexed userAddress);
 
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
@@ -237,5 +238,17 @@ library LibAdmin {
         delete s.selfOnboarding[_userAddress];
 
         emit SelfOnboardingCompleted(_userAddress);
+    }
+
+    function _cancelSelfOnboarding(address _userAddress) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.selfOnboarding[_userAddress].entityId == 0 && s.selfOnboarding[_userAddress].roleId == 0) {
+            revert EntityOnboardingNotApproved(_userAddress);
+        }
+
+        delete s.selfOnboarding[_userAddress];
+
+        emit SelfOnboardingCancelled(_userAddress);
     }
 }
