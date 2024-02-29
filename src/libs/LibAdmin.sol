@@ -222,7 +222,7 @@ library LibAdmin {
     function _onboardUser(address _userAddress) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.selfOnboarding[_userAddress].entityId == 0 && s.selfOnboarding[_userAddress].roleId == 0) {
+        if (s.selfOnboarding[_userAddress].entityId == 0 || s.selfOnboarding[_userAddress].roleId == 0) {
             revert EntityOnboardingNotApproved(_userAddress);
         }
 
