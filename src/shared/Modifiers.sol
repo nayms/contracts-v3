@@ -9,6 +9,7 @@ import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { InvalidGroupPrivilege } from "./CustomErrors.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 /**
  * @title Modifiers
@@ -18,6 +19,7 @@ import { InvalidGroupPrivilege } from "./CustomErrors.sol";
 contract Modifiers {
     using LibHelpers for *;
     using LibACL for *;
+    using LibString for *;
 
     modifier notLocked(bytes4 functionSelector) {
         require(!LibAdmin._isFunctionLocked(functionSelector), "function is locked");
@@ -31,7 +33,7 @@ contract Modifiers {
             revert InvalidGroupPrivilege(
                 msg.sender._getIdForAddress(),
                 _context,
-                (msg.sender._getIdForAddress()._getRoleInContext(_context) == bytes32(0)) ? "" : msg.sender._getIdForAddress()._getRoleInContext(_context)._bytes32ToString(),
+                (msg.sender._getIdForAddress()._getRoleInContext(_context) == bytes32(0)) ? "" : msg.sender._getIdForAddress()._getRoleInContext(_context).fromSmallString(),
                 _group
             );
         _;

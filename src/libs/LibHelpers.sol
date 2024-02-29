@@ -78,18 +78,4 @@ library LibHelpers {
         }
         return b;
     }
-
-    function _bytes32ToString(bytes32 _input) internal pure returns (string memory) {
-        uint256 i = 0;
-        while (i < 32 && _input[i] != 0) {
-            i++;
-        }
-
-        bytes memory bytesArray = new bytes(i);
-        for (i = 0; i < 32 && _input[i] != 0; i++) {
-            bytesArray[i] = _input[i];
-        }
-
-        return string(bytesArray);
-    }
 }
