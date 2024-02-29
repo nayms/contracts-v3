@@ -108,7 +108,7 @@ contract AdminFacet is Modifiers {
     }
 
     /**
-     * @notice Approve a usser address for self-onboarding
+     * @notice Approve a user address for self-onboarding
      * @param _userAddress user account address
      */
     function approveSelfOnboarding(
