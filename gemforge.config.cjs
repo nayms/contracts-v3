@@ -126,9 +126,7 @@ module.exports = {
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
     sepolia: { rpcUrl: process.env.ETH_SEPOLIA_RPC_URL },
-    sepoliaFork: { rpcUrl: "http://localhost:8545" },
     mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
-    mainnetFork: { rpcUrl: "http://localhost:8545" },
     baseSepolia: {
       rpcUrl: process.env.BASE_SEPOLIA_RPC_URL,
       verifiers: [
@@ -154,7 +152,6 @@ module.exports = {
         },
       ],
     },
-    baseFork: { rpcUrl: "http://localhost:8545" },
   },
   targets: {
     local: {
@@ -168,7 +165,7 @@ module.exports = {
       initArgs: [sysAdminAddress],
     },
     sepoliaFork: {
-      network: "sepoliaFork",
+      network: "local",
       wallet: "wallet1",
       initArgs: [sysAdminAddress],
     },
@@ -178,12 +175,17 @@ module.exports = {
       initArgs: [sysAdminAddress],
     },
     mainnetFork: {
-      network: "mainnetFork",
+      network: "local",
       wallet: "wallet1",
       initArgs: [],
     },
     baseSepolia: {
       network: "baseSepolia",
+      wallet: "wallet1",
+      initArgs: [sysAdminAddress],
+    },
+    baseSepoliaFork: {
+      network: "local",
       wallet: "wallet1",
       initArgs: [sysAdminAddress],
     },
@@ -193,7 +195,7 @@ module.exports = {
       initArgs: [sysAdminAddress],
     },
     baseFork: {
-      network: "baseFork",
+      network: "local",
       wallet: "wallet1",
       initArgs: [sysAdminAddress],
     },
