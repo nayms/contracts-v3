@@ -15,7 +15,22 @@ import { LibFeeRouter } from "./LibFeeRouter.sol";
 
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, DuplicateSignerCreatingSimplePolicy, PolicyIdCannotBeZero, ObjectCannotBeTokenized, CreatingEntityThatAlreadyExists, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, UtilizedCapacityGreaterThanMaxCapacity } from "../shared/CustomErrors.sol";
+
+// prettier-ignore
+import { 
+    FeeBasisPointsExceedHalfMax, 
+    EntityDoesNotExist, 
+    DuplicateSignerCreatingSimplePolicy, 
+    PolicyIdCannotBeZero, 
+    ObjectCannotBeTokenized, 
+    EntityExistsAlready, 
+    SimplePolicyStakeholderSignatureInvalid, 
+    SimplePolicyClaimsPaidShouldStartAtZero, 
+    SimplePolicyPremiumsPaidShouldStartAtZero, 
+    CancelCannotBeTrueWhenCreatingSimplePolicy, 
+    UtilizedCapacityGreaterThanMaxCapacity, 
+    EntityOnboardingNotApproved 
+} from "../shared/CustomErrors.sol";
 
 library LibEntity {
     using ECDSA for bytes32;
@@ -26,9 +41,35 @@ library LibEntity {
      * @param entityAdmin Unique ID of the entity administrator
      */
     event EntityCreated(bytes32 indexed entityId, bytes32 entityAdmin);
+    /**
+     * @notice An entity has been updated
+     * @dev Emitted when entity is updated
+     * @param entityId Unique ID for the entity
+     */
     event EntityUpdated(bytes32 indexed entityId);
+    /**
+     * @notice New policy has been created
+     * @dev Emitted when policy is created
+     * @param id Unique ID for the policy
+     * @param entityId ID of the entity
+     */
     event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
+    /**
+     * @notice New token sale has been started
+     * @dev Emitted when token sale is started
+     * @param entityId Unique ID for the entity
+     * @param offerId ID of the sale offer
+     * @param tokenSymbol symbol of the token
+     * @param tokenName name of the token
+     */
     event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
+    /**
+     * @notice Collateral ratio has been updated
+     * @dev Emitted when collateral ratio is updated
+     * @param entityId ID of the entity
+     * @param collateralRatio required collateral ratio
+     * @param utilizedCapacity capacity utilization according to the new ratio
+     */
     event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
 
     /**
@@ -216,11 +257,11 @@ library LibEntity {
         emit TokenSaleStarted(_entityId, offerId, s.objectTokenSymbol[_entityId], s.objectTokenName[_entityId]);
     }
 
-    function _createEntity(bytes32 _entityId, bytes32 _accountAdmin, Entity calldata _entity, bytes32 _dataHash) internal {
+    function _createEntity(bytes32 _entityId, bytes32 _accountAdmin, Entity memory _entity, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.existingEntities[_entityId]) {
-            revert CreatingEntityThatAlreadyExists(_entityId);
+            revert EntityExistsAlready(_entityId);
         }
         validateEntity(_entity);
 
@@ -280,7 +321,7 @@ library LibEntity {
         emit EntityUpdated(_entityId);
     }
 
-    function validateEntity(Entity calldata _entity) internal view {
+    function validateEntity(Entity memory _entity) internal view {
         // If a non cell type entity is converted into a cell type entity, then the following checks must be performed.
         if (_entity.assetId != 0) {
             // entity has an underlying asset, which means it's a cell
