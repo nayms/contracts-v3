@@ -6,6 +6,7 @@ pragma solidity 0.8.20;
  */
 library LibConstants {
     /// Object Types
+
     bytes12 internal constant OBJECT_TYPE_ADDRESS = "ADDRESS";
     bytes12 internal constant OBJECT_TYPE_ENTITY = "ENTITY";
     bytes12 internal constant OBJECT_TYPE_POLICY = "POLICY";
@@ -18,6 +19,7 @@ library LibConstants {
     bytes12 internal constant OBJECT_TYPE_STAKED = "VTOK";
 
     /// Reserved IDs
+
     string internal constant EMPTY_IDENTIFIER = "";
     string internal constant SYSTEM_IDENTIFIER = "System";
     string internal constant NDF_IDENTIFIER = "NDF";
@@ -40,6 +42,7 @@ library LibConstants {
     string internal constant ROLE_ENTITY_INSURED = "Insured";
     string internal constant ROLE_ENTITY_CP = "Capital Provider";
     string internal constant ROLE_ENTITY_CONSULTANT = "Consultant"; // note NEW name for ROLE_SERVICE_PROVIDER
+    string internal constant ROLE_ENTITY_TOKEN_HOLDER = "Token Holder";
 
     string internal constant ROLE_ENTITY_COMPTROLLER_COMBINED = "Comptroller Combined";
     string internal constant ROLE_ENTITY_COMPTROLLER_WITHDRAW = "Comptroller Withdraw";
@@ -47,6 +50,7 @@ library LibConstants {
     string internal constant ROLE_ENTITY_COMPTROLLER_DIVIDEND = "Comptroller Dividend";
 
     /// old roles
+
     string internal constant ROLE_SPONSOR = "Sponsor";
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_INSURED_PARTY = "Insured";
@@ -57,6 +61,7 @@ library LibConstants {
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
     string internal constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
+    string internal constant ROLE_ONBOARDING_APPROVER = "Onboarding Approver";
 
     /// Groups
 
@@ -90,6 +95,8 @@ library LibConstants {
     string internal constant GROUP_TRADERS = "Traders";
     string internal constant GROUP_SEGREGATED_ACCOUNTS = "Segregated Accounts";
     string internal constant GROUP_SERVICE_PROVIDERS = "Service Providers";
+    string internal constant GROUP_ONBOARDING_APPROVERS = "Onboarding Approvers";
+    string internal constant GROUP_TOKEN_HOLDERS = "Token Holders";
 
     /*///////////////////////////////////////////////////////////////////////////
                         Market and Premium Fee Schedules
@@ -102,7 +109,7 @@ library LibConstants {
     bytes32 internal constant DEFAULT_FEE_SCHEDULE = 0;
 
     /*///////////////////////////////////////////////////////////////////////////
-                        MARKET OFFER STATES
+                        Market Offer States
     ///////////////////////////////////////////////////////////////////////////*/
 
     uint256 internal constant OFFER_STATE_ACTIVE = 1;
@@ -113,7 +120,7 @@ library LibConstants {
     uint256 internal constant BP_FACTOR = 10000;
 
     /*///////////////////////////////////////////////////////////////////////////
-                        SIMPLE POLICY STATES
+                        Simple Policy States
     ///////////////////////////////////////////////////////////////////////////*/
 
     uint256 internal constant SIMPLE_POLICY_STATE_CREATED = 0;

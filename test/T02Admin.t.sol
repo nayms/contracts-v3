@@ -8,9 +8,11 @@ import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { IDiamondProxy } from "../src/generated/IDiamondProxy.sol";
 import "../src/shared/CustomErrors.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     using LibHelpers for *;
+    using LibString for *;
 
     function setUp() public {}
 
@@ -151,10 +153,12 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
             nayms.unlockFunction(bytes4(0x12345678));
             assertFalse(nayms.isFunctionLocked(bytes4(0x12345678)));
         } else {
-            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+            string memory curentRole = nayms.getRoleInContext(userId, systemContext).fromSmallString();
+
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, curentRole, LC.GROUP_SYSTEM_ADMINS));
             nayms.lockFunction(bytes4(0x12345678));
 
-            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, curentRole, LC.GROUP_SYSTEM_ADMINS));
             nayms.unlockFunction(bytes4(0x12345678));
         }
     }
