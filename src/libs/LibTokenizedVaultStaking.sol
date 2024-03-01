@@ -64,8 +64,10 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _payReward(bytes32 _guid, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
+    function _payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        LibObject._createObject(_stakingRewardId, LC.OBJECT_TYPE_STAKING_REWARD);
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
@@ -95,7 +97,7 @@ library LibTokenizedVaultStaking {
         // Transfer the funds
         LibTokenizedVault._internalTransfer(_entityId, _vTokenIdBucket(tokenId), _rewardTokenId, _rewardAmount);
 
-        emit TokenRewardPaid(_guid, _entityId, tokenId, _rewardTokenId, _rewardAmount);
+        emit TokenRewardPaid(_stakingRewardId, _entityId, tokenId, _rewardTokenId, _rewardAmount);
     }
 
     function _stake(bytes32 _stakerId, bytes32 _entityId, uint256 _amount) internal {

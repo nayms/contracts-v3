@@ -15,7 +15,13 @@ const loadTarget = (exports.loadTarget = (targetId) => {
     const proxyAddress = deployments[targetId]?.contracts.find((a) => a.name === "DiamondProxy")?.onChain.address;
 
     const provider = new ethers.providers.JsonRpcProvider(network.rpcUrl);
-    const signer = ethers.Wallet.fromMnemonic(wallet.config.words).connect(provider);
+
+    const signer =
+        wallet.type === "mnemonic"
+            ? ethers.Wallet.fromMnemonic(wallet.config.words, `m/44'/60'/0'/0/${wallet.config.index || 0}`).connect(provider)
+            : new ethers.Wallet(wallet.config.key).connect(provider);
+
+    // const signer = ethers.Wallet.fromMnemonic(wallet.config.words).connect(provider);
     const contract = proxyAddress ? new ethers.Contract(proxyAddress, abi, signer) : null;
 
     return { networkId, network, walletId, wallet, proxyAddress, signer, contract };

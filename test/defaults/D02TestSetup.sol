@@ -26,7 +26,7 @@ abstract contract D02TestSetup is D01Deployment {
         wethAddress = address(weth);
         wethId = LibHelpers._getIdForAddress(wethAddress);
 
-        wbtc = new MockERC20("Wrapped BTC", "WBTC", 18);
+        wbtc = new MockERC20("Wrapped BTC", "WBTC", 8);
         wbtcAddress = address(wbtc);
         wbtcId = LibHelpers._getIdForAddress(wbtcAddress);
 

@@ -120,6 +120,10 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         (totalFees_, totalBP_) = LibFeeRouter._calculateTradingFees(_buyerId, _sellToken, _buyToken, _buyAmount);
     }
 
+    /**
+     * @dev Get the maker commission basis points.
+     * @return maker fee BP
+     */
     function getMakerBP() external view returns (uint16) {
         return LibFeeRouter._getMakerBP();
     }
