@@ -248,14 +248,14 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal, "USCD balance should not change");
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 1");
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount);
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 1, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, type(uint64).max), usdcId), 100e6, "NLF's USDC balance should increase");
 
         vm.expectRevert(abi.encodeWithSelector(IntervalRewardPayedOutAlready.selector, 1));
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, usdcId, rewardAmount);
 
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
 
@@ -281,7 +281,7 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 60 days);
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 1, "Last interval paid should be 1");
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("3")), nlf.entityId, usdcId, rewardAmount);
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount * 2, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, type(uint64).max), usdcId), rewardAmount * 2, "NLF's USDC balance should increase");
@@ -332,7 +332,7 @@ contract StakingTest is D03ProtocolDefaults {
         startPrank(nlf);
         vm.warp(stakingStart + 90 days);
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("4")), nlf.entityId, usdcId, rewardAmount);
 
         recordStakingState(nlf.entityId); // re-read state
         assertEq(stakingStates[nlf.entityId][3].balance, 9412125e2, "Nayms' staking balance[3] should increase");
@@ -463,7 +463,7 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 151 days);
         assertEq(nayms.currentInterval(nlf.entityId), 5);
         startPrank(nlf);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("5")), nlf.entityId, usdcId, rewardAmount);
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
         recordStakingState(nlf.entityId);
         assertEq(stakingStates[nlf.entityId][5].balance, 1870026031, "Nayms' staking balance[5] should increase");
@@ -481,7 +481,7 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(rewardAmounts[0], calc(lou, 5), "Lou's reward amount incorrect");
 
         startPrank(nlf);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("6")), nlf.entityId, usdcId, rewardAmount);
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
         recordStakingState(nlf.entityId);
         assertEq(stakingStates[nlf.entityId][6].balance, 2009522126, "Nayms' staking balance[6] should increase");
@@ -576,7 +576,7 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 0");
 
         startPrank(nlf);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
         c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
 
         startPrank(bob);
@@ -593,7 +593,7 @@ contract StakingTest is D03ProtocolDefaults {
         c.log(" ~ [%s] Reward[2] collected".blue(), nayms.currentInterval(nlf.entityId));
 
         startPrank(nlf);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
         assertEq(currentReward(), 0, "Bob's reward[3] should be 0 before the interval ends");
         c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
 
@@ -622,14 +622,14 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 0");
 
         startPrank(nlf);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
         c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
 
         vm.warp(151 days);
         assertEq(nayms.currentInterval(nlf.entityId), 5);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
 
         vm.warp(181 days);
 
@@ -655,13 +655,13 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 0");
 
         startPrank(nlf);
-        nayms.payReward(bytes32("1"), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
         c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 2, "Last interval paid should be 2");
 
         vm.warp(91 days);
 
-        nayms.payReward(bytes32("1"), nlf.entityId, wethId, 1 ether);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, wethId, 1 ether);
         c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 3, "Last interval paid should be 3");
 

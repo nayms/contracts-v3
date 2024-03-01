@@ -17,6 +17,7 @@ library LibConstants {
     bytes12 internal constant OBJECT_TYPE_ROLE = "ROLE";
     bytes12 internal constant OBJECT_TYPE_GROUP = "GROUP";
     bytes12 internal constant OBJECT_TYPE_STAKED = "VTOK";
+    bytes12 internal constant OBJECT_TYPE_STAKING_REWARD = "SREWARD";
 
     /// Reserved IDs
 
