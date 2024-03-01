@@ -411,9 +411,14 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(stakingStates[lou.entityId][3].balance, 52545e4, "Lou's staking balance[3] should increase");
         assertEq(stakingStates[lou.entityId][3].boost, 411825e2, "Lou's boost[3] should increase");
 
-        assertEq(nayms.stakedAmount(bob.entityId, nlf.entityId), bobStakeAmount, "Incorrect Bob's original stake amount");
-        assertEq(nayms.stakedAmount(sue.entityId, nlf.entityId), sueStakeAmount, "Incorrect Sue's original stake amount");
-        assertEq(nayms.stakedAmount(lou.entityId, nlf.entityId), louStakeAmount, "Incorrect Lou's original stake amount");
+        {
+            (uint256 bobStakedAmount_, ) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+            (uint256 sueStakedAmount_, ) = nayms.getStakingAmounts(sue.entityId, nlf.entityId);
+            (uint256 louStakedAmount_, ) = nayms.getStakingAmounts(lou.entityId, nlf.entityId);
+            assertEq(bobStakedAmount_, bobStakeAmount, "Incorrect Bob's original stake amount");
+            assertEq(sueStakedAmount_, sueStakeAmount, "Incorrect Sue's original stake amount");
+            assertEq(louStakedAmount_, louStakeAmount, "Incorrect Lou's original stake amount");
+        }
 
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
         printBoosts(nlf.entityId, bob.entityId, "Bob");
