@@ -1,5 +1,5 @@
 # InvalidGroupPrivilege
-[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/shared/CustomErrors.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/0aa70a4d39a9875c02cd43cc38c09012f52d800e/src/shared/CustomErrors.sol)
 
 Error message for when a sender is not authorized to perform an action with their assigned role in a given context of a group
 
