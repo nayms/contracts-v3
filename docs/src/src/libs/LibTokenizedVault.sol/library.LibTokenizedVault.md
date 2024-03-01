@@ -1,5 +1,5 @@
 # LibTokenizedVault
-[Git Source](https://github.com/nayms/contracts-v3/blob/08976c385ed293c18988aa46a13c47179dbb0a28/src/libs/LibTokenizedVault.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/libs/LibTokenizedVault.sol)
 
 
 ## Functions
@@ -116,6 +116,16 @@ event InternalTokenBalanceUpdate(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`ownerId`|`bytes32`|Id of owner|
+|`tokenId`|`bytes32`|ID of token|
+|`newAmountOwned`|`uint256`|new amount owned|
+|`functionName`|`string`|Function name|
+|`msgSender`|`address`|msg.sender|
+
 ### InternalTokenSupplyUpdate
 *Emitted when a token supply gets updated.*
 
@@ -126,6 +136,15 @@ event InternalTokenSupplyUpdate(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`tokenId`|`bytes32`|ID of token|
+|`newTokenSupply`|`uint256`|New token supply|
+|`functionName`|`string`|Function name|
+|`msgSender`|`address`|msg.sender|
+
 ### DividendDistribution
 *Emitted when a dividend gets paid out.*
 
@@ -133,6 +152,16 @@ event InternalTokenSupplyUpdate(
 ```solidity
 event DividendDistribution(bytes32 indexed guid, bytes32 from, bytes32 to, bytes32 dividendTokenId, uint256 amount);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`guid`|`bytes32`|dividend distribution ID|
+|`from`|`bytes32`|distribution initiator|
+|`to`|`bytes32`|distribution receiver|
+|`dividendTokenId`|`bytes32`||
+|`amount`|`uint256`|distributed amount|
 
 ### DividendWithdrawn
 *Emitted when a dividend gets paid out.*
@@ -147,4 +176,14 @@ event DividendWithdrawn(
     uint256 dividendAmountWithdrawn
 );
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`accountId`|`bytes32`|ID of the account withdrawing the dividend|
+|`tokenId`|`bytes32`|ID of the participation token that is paying out the dividends to holders|
+|`amountOwned`|`uint256`|owned amount of the participation tokens|
+|`dividendTokenId`|`bytes32`|ID of the dividend denomination token|
+|`dividendAmountWithdrawn`|`uint256`|amount withdrawn|
 

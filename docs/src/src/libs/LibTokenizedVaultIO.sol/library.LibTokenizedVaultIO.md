@@ -1,5 +1,5 @@
 # LibTokenizedVaultIO
-[Git Source](https://github.com/nayms/contracts-v3/blob/08976c385ed293c18988aa46a13c47179dbb0a28/src/libs/LibTokenizedVaultIO.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/libs/LibTokenizedVaultIO.sol)
 
 *Adaptation of ERC-1155 that uses AppStorage and aligns with Nayms ACL implementation.
 https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155*

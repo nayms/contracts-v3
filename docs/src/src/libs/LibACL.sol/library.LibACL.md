@@ -1,5 +1,5 @@
 # LibACL
-[Git Source](https://github.com/nayms/contracts-v3/blob/08976c385ed293c18988aa46a13c47179dbb0a28/src/libs/LibACL.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/libs/LibACL.sol)
 
 
 ## Functions
@@ -113,6 +113,15 @@ function _updateRoleGroup(string memory _role, string memory _group, bool _roleI
 event RoleUpdated(bytes32 indexed objectId, bytes32 contextId, bytes32 assignedRoleId, string functionName);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`objectId`|`bytes32`|The user or object that was assigned the role.|
+|`contextId`|`bytes32`|The context where the role was assigned to.|
+|`assignedRoleId`|`bytes32`|The ID of the role which got (un)assigned. (empty ID when unassigned)|
+|`functionName`|`string`|The function performing the action|
+
 ### RoleGroupUpdated
 *Emitted when a role group gets updated.*
 
@@ -121,6 +130,14 @@ event RoleUpdated(bytes32 indexed objectId, bytes32 contextId, bytes32 assignedR
 event RoleGroupUpdated(string role, string group, bool roleInGroup);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`role`|`string`|The role name.|
+|`group`|`string`|the group name.|
+|`roleInGroup`|`bool`|whether the role is now in the group or not.|
+
 ### RoleCanAssignUpdated
 *Emitted when a role assigners get updated.*
 
@@ -128,4 +145,11 @@ event RoleGroupUpdated(string role, string group, bool roleInGroup);
 ```solidity
 event RoleCanAssignUpdated(string role, string group);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`role`|`string`|The role name.|
+|`group`|`string`|the name of the group that can now assign this role.|
 

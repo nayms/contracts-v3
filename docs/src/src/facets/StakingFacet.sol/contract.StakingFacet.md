@@ -1,5 +1,5 @@
 # StakingFacet
-[Git Source](https://github.com/nayms/contracts-v3/blob/08976c385ed293c18988aa46a13c47179dbb0a28/src/facets/StakingFacet.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/facets/StakingFacet.sol)
 
 **Inherits:**
 [Modifiers](/src/shared/Modifiers.sol/contract.Modifiers.md)
@@ -112,10 +112,13 @@ function payReward(bytes32 _guid, bytes32 _entityId, bytes32 _rewardTokenId, uin
     assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS);
 ```
 
-### stakedAmount
+### getStakingAmounts
 
 
 ```solidity
-function stakedAmount(bytes32 _stakerId, bytes32 _entityId) external view returns (uint256);
+function getStakingAmounts(bytes32 _stakerId, bytes32 _entityId)
+    external
+    view
+    returns (uint256 stakedAmount_, uint256 boostedAmount_);
 ```
 

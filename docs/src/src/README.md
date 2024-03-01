@@ -2,7 +2,6 @@
 
 # Contents
 - [facets](/src/facets)
-- [generated](/src/generated)
 - [init](/src/init)
 - [interfaces](/src/interfaces)
 - [libs](/src/libs)

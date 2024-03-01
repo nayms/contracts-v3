@@ -1,5 +1,5 @@
 # LibHelpers
-[Git Source](https://github.com/nayms/contracts-v3/blob/08976c385ed293c18988aa46a13c47179dbb0a28/src/libs/LibHelpers.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/libs/LibHelpers.sol)
 
 Pure functions
 

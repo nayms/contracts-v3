@@ -1,5 +1,5 @@
 # LibEntity
-[Git Source](https://github.com/nayms/contracts-v3/blob/08976c385ed293c18988aa46a13c47179dbb0a28/src/libs/LibEntity.sol)
+[Git Source](https://github.com/nayms/contracts-v3/blob/ea2c06f70609c813d27d424e0330651d3c634d21/src/libs/LibEntity.sol)
 
 
 ## Functions
@@ -100,6 +100,13 @@ New entity has been created
 event EntityCreated(bytes32 indexed entityId, bytes32 entityAdmin);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`entityId`|`bytes32`|Unique ID for the entity|
+|`entityAdmin`|`bytes32`|Unique ID of the entity administrator|
+
 ### EntityUpdated
 An entity has been updated
 
@@ -109,6 +116,12 @@ An entity has been updated
 ```solidity
 event EntityUpdated(bytes32 indexed entityId);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`entityId`|`bytes32`|Unique ID for the entity|
 
 ### SimplePolicyCreated
 New policy has been created
@@ -120,6 +133,13 @@ New policy has been created
 event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`id`|`bytes32`|Unique ID for the policy|
+|`entityId`|`bytes32`|ID of the entity|
+
 ### TokenSaleStarted
 New token sale has been started
 
@@ -130,6 +150,15 @@ New token sale has been started
 event TokenSaleStarted(bytes32 indexed entityId, uint256 offerId, string tokenSymbol, string tokenName);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`entityId`|`bytes32`|Unique ID for the entity|
+|`offerId`|`uint256`|ID of the sale offer|
+|`tokenSymbol`|`string`|symbol of the token|
+|`tokenName`|`string`|name of the token|
+
 ### CollateralRatioUpdated
 Collateral ratio has been updated
 
@@ -139,4 +168,12 @@ Collateral ratio has been updated
 ```solidity
 event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`entityId`|`bytes32`|ID of the entity|
+|`collateralRatio`|`uint256`|required collateral ratio|
+|`utilizedCapacity`|`uint256`|capacity utilization according to the new ratio|
 
