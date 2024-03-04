@@ -4,15 +4,15 @@ const chalk = require("chalk");
 const path = require("path");
 const fs = require("fs");
 const rootFolder = path.join(__dirname, "..", "..");
-const { loadTarget, calculateUpgradeId, assertUpgradeIdIsEnabled, enableUpgradeViaGovernance } = require("./utils");
+const config = require(path.join(rootFolder, "gemforge.config.cjs"));
+
+const { getProxyAddress, calculateUpgradeId, assertUpgradeIdIsEnabled, enableUpgradeViaGovernance } = require("./utils");
 
 const _showTargetInfo = async (targetId) => {
-    const { networkId, network, walletId, proxyAddress, signer } = loadTarget(targetId);
     console.log(`Target: ${targetId}`);
-    console.log(`Network: ${networkId} - ${network.rpcUrl}`);
-    console.log(`Wallet: ${walletId}`);
-    console.log(`System Admin: ${await signer.getAddress()}`);
-    console.log(`\nDiamond Proxy: ${chalk.green(proxyAddress)}\n`);
+    console.log(`Network: ${config.targets[targetId].network}`);
+    console.log(`Wallet: ${config.targets[targetId].wallet}`);
+    console.log(`\nDiamond Proxy: ${chalk.green(getProxyAddress(targetId))}\n`);
 };
 
 const tellUserToEnableUpgrade = async (targetId, cutFile) => {
@@ -50,20 +50,18 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
         throw new Error(`Please specify a target!`);
     }
 
-    console.log(`Deploying ${targetArg}`);
-
     const cutFile = path.join(rootFolder, ".gemforge/cut.json");
 
     _showTargetInfo(targetArg);
 
     switch (process.argv[3]) {
         case "--fresh": {
-            console.log(`Mode: Fresh Deploy`);
+            console.log(`Fresh Deploy`);
             await $`yarn gemforge deploy ${targetArg} -n`;
             break;
         }
         case "--upgrade-start": {
-            console.log(`Mode: Upgrade - Deploy Facets`);
+            console.log(`Upgrade - Deploy Facets`);
             if (fs.existsSync(cutFile)) {
                 fs.unlinkSync(cutFile);
             }
@@ -76,7 +74,7 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
             break;
         }
         case "--upgrade-finish": {
-            console.log(`Mode: Upgrade - Diamond Cut`);
+            console.log(`Upgrade - Diamond Cut`);
             if (!fs.existsSync(cutFile)) {
                 throw new Error(`Cut JSON file not found - please run the first upgrade step first!`);
             }
