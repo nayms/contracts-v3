@@ -131,7 +131,7 @@ module.exports = {
           verifierApiKey: process.env.BASESCAN_API_KEY,
         },
         {
-          verifierName: "blockscout",
+          verifierName: "blockscout", // needed for louper
           verifierUrl: "https://base-sepolia.blockscout.com/api",
           verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
         },
