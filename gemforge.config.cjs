@@ -1,19 +1,12 @@
 require("dotenv").config();
+
 const fs = require("fs");
 const ethers = require("ethers");
 
-const testMnemonic =
-  "test test test test test test test test test test test junk";
-
 const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
   ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
-  : testMnemonic;
+  : "test test test test test test test test test test test junk";
 
-const MNEMONIC_MAINNET = fs.existsSync("./nayms_mnemonic_mainnet.txt")
-  ? fs.readFileSync("./nayms_mnemonic_mainnet.txt").toString().trim()
-  : testMnemonic;
-
-const walletOwnerIndex = 19;
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
 
 module.exports = {
@@ -102,17 +95,19 @@ module.exports = {
   },
   // Wallets to use for deployment
   wallets: {
-    wallet1: {
+    // nayms owner
+    devOwnerWallet: {
       type: "mnemonic",
       config: {
         words: MNEMONIC,
-        index: walletOwnerIndex,
+        index: 19,
       },
     },
-    wallet2: {
+    // nayms sys admin
+    devSysAdminWallet: {
       type: "mnemonic",
       config: {
-        words: MNEMONIC_MAINNET,
+        words: MNEMONIC,
         index: 0,
       },
     },
@@ -156,17 +151,20 @@ module.exports = {
   targets: {
     local: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     sepolia: {
       network: "sepolia",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     sepoliaFork: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     mainnet: {
@@ -176,17 +174,20 @@ module.exports = {
     },
     mainnetFork: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [],
     },
     baseSepolia: {
       network: "baseSepolia",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     baseSepoliaFork: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     base: {
@@ -196,7 +197,8 @@ module.exports = {
     },
     baseFork: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
   },
