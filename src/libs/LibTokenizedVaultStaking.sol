@@ -9,7 +9,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -66,6 +66,10 @@ library LibTokenizedVaultStaking {
 
     function _payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (_rewardAmount <= s.objectMinimumSell[_rewardTokenId]) {
+            revert InvalidTokenRewardAmount(_stakingRewardId, _entityId, _rewardTokenId, _rewardAmount);
+        }
 
         LibObject._createObject(_stakingRewardId, LC.OBJECT_TYPE_STAKING_REWARD);
 

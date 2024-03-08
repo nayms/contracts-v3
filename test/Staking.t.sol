@@ -10,7 +10,7 @@ import { DummyToken } from "./utils/DummyToken.sol";
 
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 
-import { IntervalRewardPayedOutAlready } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -248,6 +248,13 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal, "USCD balance should not change");
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 0, "Last interval paid should be 1");
+
+        {
+            bytes32 guid = makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1"));
+            vm.expectRevert(abi.encodeWithSelector(InvalidTokenRewardAmount.selector, guid, nlf.entityId, usdcId, 0));
+            nayms.payReward(guid, nlf.entityId, usdcId, 0);
+        }
+
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount);
 
         assertEq(nayms.lastIntervalPaid(nlf.entityId), 1, "Last interval paid should increase");
