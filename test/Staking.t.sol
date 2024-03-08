@@ -21,6 +21,11 @@ contract StakingTest is D03ProtocolDefaults {
     using stdStorage for StdStorage;
     using StdStyle for *;
 
+    uint64 private constant SCALE_FACTOR = 1e14;
+    uint64 private constant A = 15e12;
+    uint64 private constant R = 85e12;
+    uint64 private constant I = 30 days;
+
     bytes32 immutable VTOKENID = makeId2(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes("test"))));
 
     bytes32 VTOKENID1;
@@ -38,6 +43,7 @@ contract StakingTest is D03ProtocolDefaults {
     uint256 immutable bobStakeAmount = 100e6;
     uint256 immutable sueStakeAmount = 200e6;
     uint256 immutable louStakeAmount = 400e6;
+
     uint256 immutable totalStakeAmount = 700e6; // should be => bobStakeAmount + sueStakeAmount + louStakeAmount;
 
     uint256 immutable rewardAmount = 100e6;
@@ -107,10 +113,10 @@ contract StakingTest is D03ProtocolDefaults {
         StakingConfig memory config = StakingConfig({
             tokenId: NAYMSID,
             initDate: initDate,
-            a: 15e12, // Amplification factor
-            r: 85e12,
-            divider: 100e12,
-            interval: 30 days // Amount of time per interval in seconds
+            a: A, // Amplification factor
+            r: R, // Boost decay factor
+            divider: SCALE_FACTOR,
+            interval: I // Amount of time per interval in seconds
         });
 
         startPrank(sa);
@@ -271,11 +277,13 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(stakingStates[nlf.entityId][1].boost, 9525e4, "Nayms' boost[1] should increase");
 
         recordStakingState(bob.entityId); // re-read state
-        assertEq(stakingStates[bob.entityId][1].balance, 115e6, "Bob's staking balance[1] should increase");
+        // assertEq(stakingStates[bob.entityId][1].balance, 115e6, "Bob's staking balance[1] should increase");
+        assertEq(stakingStates[bob.entityId][1].balance, calculateBalanceAtTime(30 days, bobStakeAmount), "Bob's staking balance[1] should increase");
         assertEq(stakingStates[bob.entityId][1].boost, 1275e4, "Bob's boost[1] should increase");
 
         recordStakingState(sue.entityId); // re-read state
-        assertEq(stakingStates[sue.entityId][1].balance, 230e6, "Sue's staking balance[1] should increase");
+        // assertEq(stakingStates[sue.entityId][1].balance, 230e6, "Sue's staking balance[1] should increase");
+        assertEq(stakingStates[sue.entityId][1].balance, calculateBalanceAtTime(30 days, sueStakeAmount), "Sue's staking balance[1] should increase");
         assertEq(stakingStates[sue.entityId][1].boost, 255e5, "Sue's boost[1] should increase");
 
         recordStakingState(lou.entityId); // re-read state
@@ -319,15 +327,18 @@ contract StakingTest is D03ProtocolDefaults {
         ); // 15032679
 
         recordStakingState(bob.entityId); // re-read state
-        assertEq(stakingStates[bob.entityId][2].balance, 12775e4, "Bob's staking balance[2] should increase");
+        // assertEq(stakingStates[bob.entityId][2].balance, 12775e4, "Bob's staking balance[2] should increase");
+        assertEq(stakingStates[bob.entityId][2].balance, calculateBalanceAtTime(60 days, bobStakeAmount), "Bob's staking balance[2] should increase");
         assertEq(stakingStates[bob.entityId][2].boost, 108375e2, "Bob's boost[2] should increase");
 
         recordStakingState(sue.entityId); // re-read state
-        assertEq(stakingStates[sue.entityId][2].balance, 2555e5, "Sue's staking balance[2] should increase");
+        // assertEq(stakingStates[sue.entityId][2].balance, 2555e5, "Sue's staking balance[2] should increase");
+        assertEq(stakingStates[sue.entityId][2].balance, calculateBalanceAtTime(60 days, sueStakeAmount), "Sue's staking balance[2] should increase");
         assertEq(stakingStates[sue.entityId][2].boost, 21675e3, "Sue's boost[2] should increase");
 
         recordStakingState(lou.entityId); // re-read state
-        assertEq(stakingStates[lou.entityId][2].balance, 477e6, "Lou's staking balance[2] should increase");
+        // assertEq(stakingStates[lou.entityId][2].balance, 477e6, "Lou's staking balance[2] should increase");
+        assertEq(stakingStates[lou.entityId][2].balance, calculateBalanceAtTime(40 days, louStakeAmount), "Lou's staking balance[2] should increase");
         assertEq(stakingStates[lou.entityId][2].boost, 4845e4, "Lou's boost[2] should increase");
 
         printBoosts(nlf.entityId, nlf.entityId, "Nayms");
@@ -371,15 +382,18 @@ contract StakingTest is D03ProtocolDefaults {
         ); // 59766027
 
         recordStakingState(bob.entityId); // re-read state
-        assertEq(stakingStates[bob.entityId][3].balance, 138587500, "Bob's staking balance[3] should increase");
+        // assertEq(stakingStates[bob.entityId][3].balance, 138587500, "Bob's staking balance[3] should increase");
+        assertEq(stakingStates[bob.entityId][3].balance, calculateBalanceAtTime(90 days, bobStakeAmount), "Bob's staking balance[3] should increase");
         assertEq(stakingStates[bob.entityId][3].boost, 9211875, "Bob's boost[3] should increase");
 
         recordStakingState(sue.entityId); // re-read state
-        assertEq(stakingStates[sue.entityId][3].balance, 277175e3, "Sue's staking balance[3] should increase");
+        // assertEq(stakingStates[sue.entityId][3].balance, 277175e3, "Sue's staking balance[3] should increase");
+        assertEq(stakingStates[sue.entityId][3].balance, calculateBalanceAtTime(90 days, sueStakeAmount), "Sue's staking balance[3] should increase");
         assertEq(stakingStates[sue.entityId][3].boost, 18423750, "Sue's boost[3] should increase");
 
         recordStakingState(lou.entityId); // re-read state
-        assertEq(stakingStates[lou.entityId][3].balance, 52545e4, "Lou's staking balance[3] should increase");
+        // assertEq(stakingStates[lou.entityId][3].balance, 52545e4, "Lou's staking balance[3] should increase");
+        assertEq(stakingStates[lou.entityId][3].balance, calculateBalanceAtTime(70 days, louStakeAmount), "Lou's staking balance[3] should increase");
         assertEq(stakingStates[lou.entityId][3].boost, 411825e2, "Lou's boost[3] should increase");
 
         c.log("(TIME: 92)".blue(), " ~~~~~~~~~~~~~ Lou Claimed Rewards ~~~~~~~~~~~~~".yellow());
@@ -407,15 +421,18 @@ contract StakingTest is D03ProtocolDefaults {
         ); // 110350957
 
         recordStakingState(bob.entityId); // re-read state
-        assertEq(stakingStates[bob.entityId][3].balance, 138587500, "Bob's staking balance[3] should increase");
+        // assertEq(stakingStates[bob.entityId][3].balance, 138587500, "Bob's staking balance[3] should not increase");
+        assertEq(stakingStates[bob.entityId][3].balance, calculateBalanceAtTime(90 days, bobStakeAmount), "Bob's staking balance[3] should not increase");
         assertEq(stakingStates[bob.entityId][3].boost, 9211875, "Bob's boost[3] should increase");
 
         recordStakingState(sue.entityId); // re-read state
-        assertEq(stakingStates[sue.entityId][3].balance, 277175e3, "Sue's staking balance[3] should increase");
+        // assertEq(stakingStates[sue.entityId][3].balance, 277175e3, "Sue's staking balance[3] should not increase");
+        assertEq(stakingStates[sue.entityId][3].balance, calculateBalanceAtTime(90 days, sueStakeAmount), "Sue's staking balance[3] should not increase");
         assertEq(stakingStates[sue.entityId][3].boost, 18423750, "Sue's boost[3] should increase");
 
         recordStakingState(lou.entityId); // re-read state
-        assertEq(stakingStates[lou.entityId][3].balance, 52545e4, "Lou's staking balance[3] should increase");
+        // assertEq(stakingStates[lou.entityId][3].balance, 52545e4, "Lou's staking balance[3] should not increase");
+        assertEq(stakingStates[lou.entityId][3].balance, calculateBalanceAtTime(70 days, louStakeAmount), "Lou's staking balance[3] should not increase");
         assertEq(stakingStates[lou.entityId][3].boost, 411825e2, "Lou's boost[3] should increase");
 
         {
@@ -550,7 +567,7 @@ contract StakingTest is D03ProtocolDefaults {
     }
 
     /**
-     * Test case for testing the following scenario:
+     * Test case for the following scenario:
      *
      *  interval[1]
      *  - stake
@@ -678,5 +695,36 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount);
         assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether);
+    }
+
+    function calculateBalanceAtTime(uint256 t, uint256 initialBalance) public pure returns (uint256 boostedBalanceAtTime) {
+        uint256 Xm = calculateMultiplier(t, I, A, R);
+        boostedBalanceAtTime = (initialBalance * Xm) / SCALE_FACTOR;
+    }
+
+    function calculateMultiplier(uint256 t, uint256 tn, uint256 Xa, uint256 Xr) public pure returns (uint256 Xm) {
+        // Xr is r * SCALE_FACTOR
+
+        require(t >= tn, "t < tn not supported yet");
+
+        uint256 X = SCALE_FACTOR;
+        uint256 n = t / tn;
+        uint256 XrPowN = powN(Xr, n);
+        uint256 XrPowNPlusOne = powN(Xr, n + 1);
+
+        uint256 C0 = (Xa * (X - XrPowN)) / (X - Xr);
+        uint256 C1 = (Xa * (X - XrPowNPlusOne)) / (X - Xr);
+
+        Xm = (tn * (X + C0) + (C1 - C0) * (t - n * tn)) / tn;
+    }
+
+    function powN(uint256 Xr, uint256 n) public pure returns (uint) {
+        uint result = Xr;
+
+        for (uint i = 1; i < n; i++) {
+            result = (result * Xr) / SCALE_FACTOR;
+        }
+
+        return result;
     }
 }
