@@ -93,8 +93,10 @@ Following commands are provided for working with `anvil`, to make it more conven
 | `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
 | `make anvil-gtoken` | Deploy `GToken` to local node |
 | `make anvil-add-supported-external-token` | Add `GToken` as supported external token |
-| `make anvil-fork-sepolia`| Fork `Sepolia` test net locally |
-| `make anvil-fork-mainnet`| Fork `Mainnet` locally |
+| `make fork-sepolia`| Fork `Sepolia` test net locally |
+| `make fork-base-sepolia`| Fork `Base Sepolia` test net locally |
+| `make fork-mainnet`| Fork `Mainnet` locally |
+| `make fork-base`| Fork `Base` locally |
 
 > :warning: Anvil state is kept in `anvil.json` file in project root, except for forks. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
 

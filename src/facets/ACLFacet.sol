@@ -6,6 +6,7 @@ import { LibACL, LibHelpers } from "../libs/LibACL.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { AssignerCannotUnassignRole } from "../shared/CustomErrors.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 /**
  * @title Access Control List
@@ -146,18 +147,7 @@ contract ACLFacet is Modifiers {
      * @param _roleInGroup is member of
      */
     function updateRoleGroup(string memory _role, string memory _group, bool _roleInGroup) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        require(!strEquals(_group, LC.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
+        require(!LibString.eq(_group, LC.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
-    }
-
-    /**
-     * @notice Compare two strings
-     * @dev compares keccak256 hashes of ABI encoded strings
-     * @param s1 first string to compare
-     * @param s2 second string to compare
-     * @return true is strings are equal
-     */
-    function strEquals(string memory s1, string memory s2) private pure returns (bool) {
-        return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
     }
 }
