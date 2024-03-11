@@ -312,7 +312,7 @@ contract StakingTest is D03ProtocolDefaults {
 
         startPrank(bob);
 
-        (, uint256[] memory bobRewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, uint256[] memory bobRewardAmounts) = nayms.getRewardsBalance(bob.entityId, nlf.entityId);
         assertEq(bobRewardAmounts[0], (stakingStates[bob.entityId][1].balance * rewardAmount) / stakingStates[nlf.entityId][1].balance, "Bob's reward amount incorrect");
 
         nayms.collectRewards(nlf.entityId);
@@ -362,7 +362,7 @@ contract StakingTest is D03ProtocolDefaults {
 
         startPrank(sue);
 
-        (, uint256[] memory sueRewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, uint256[] memory sueRewardAmounts) = nayms.getRewardsBalance(sue.entityId, nlf.entityId);
         assertEq(
             sueRewardAmounts[0],
             ((stakingStates[sue.entityId][1].balance * rewardAmount) / stakingStates[nlf.entityId][1].balance) +
@@ -401,7 +401,7 @@ contract StakingTest is D03ProtocolDefaults {
 
         startPrank(lou);
 
-        (, uint256[] memory louRewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, uint256[] memory louRewardAmounts) = nayms.getRewardsBalance(lou.entityId, nlf.entityId);
         assertEq(
             louRewardAmounts[0],
             ((stakingStates[lou.entityId][1].balance * rewardAmount) / stakingStates[nlf.entityId][1].balance) +
@@ -469,6 +469,7 @@ contract StakingTest is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, sueStakeAmount);
         printBoosts(nlf.entityId, sue.entityId, "Sue");
         recordStakingState(sue.entityId);
+        // assertEq(stakingStates[sue.entityId][4].balance, 495598750, "Sue's staking balance[4] should increase");
         assertEq(stakingStates[sue.entityId][4].balance, 495598750, "Sue's staking balance[4] should increase");
         assertEq(stakingStates[sue.entityId][4].boost, 44660187, "Sue's boost[4] should increase");
         assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), balBeforeStaking + calc(sue, 3), "Sue - staking should collect rewards");
@@ -501,7 +502,7 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.currentInterval(nlf.entityId), 6);
 
         startPrank(lou);
-        (, uint256[] memory rewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, uint256[] memory rewardAmounts) = nayms.getRewardsBalance(lou.entityId, nlf.entityId);
         assertEq(rewardAmounts[0], calc(lou, 5), "Lou's reward amount incorrect");
 
         startPrank(nlf);
@@ -518,21 +519,21 @@ contract StakingTest is D03ProtocolDefaults {
         vm.warp(stakingStart + 211 days);
 
         startPrank(bob);
-        (, rewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, rewardAmounts) = nayms.getRewardsBalance(bob.entityId, nlf.entityId);
         assertEq(rewardAmounts[0], calc(bob, 5) + calc(bob, 6), "Bob's reward amount incorrect");
         uint256 balBeforeCollecting = nayms.internalBalanceOf(bob.entityId, usdcId);
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), balBeforeCollecting + calc(bob, 5) + calc(bob, 6), "Bob's USDC balance should increase");
 
         startPrank(sue);
-        (, rewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, rewardAmounts) = nayms.getRewardsBalance(sue.entityId, nlf.entityId);
         assertEq(rewardAmounts[0], calc(sue, 5) + calc(sue, 6), "Sue's reward amount incorrect");
         balBeforeCollecting = nayms.internalBalanceOf(sue.entityId, usdcId);
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), balBeforeCollecting + calc(sue, 5) + calc(sue, 6), "Sue's USDC balance should increase");
 
         startPrank(lou);
-        (, rewardAmounts) = nayms.getRewardsBalance(nlf.entityId);
+        (, rewardAmounts) = nayms.getRewardsBalance(lou.entityId, nlf.entityId);
         assertEq(rewardAmounts[0], calc(lou, 5) + calc(lou, 6), "Lou's reward amount incorrect");
         balBeforeCollecting = nayms.internalBalanceOf(lou.entityId, usdcId);
         nayms.collectRewards(nlf.entityId);
@@ -561,8 +562,8 @@ contract StakingTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(lou.entityId, NAYMSID), 10_000_000e18);
     }
 
-    function currentReward() private view returns (uint256) {
-        (, uint256[] memory rewards) = nayms.getRewardsBalance(nlf.entityId);
+    function currentReward(bytes32 _stakerId) private view returns (uint256) {
+        (, uint256[] memory rewards) = nayms.getRewardsBalance(_stakerId, nlf.entityId);
         return rewards.length > 0 ? rewards[0] : 0;
     }
 
@@ -605,11 +606,11 @@ contract StakingTest is D03ProtocolDefaults {
 
         startPrank(bob);
         recordStakingState(bob.entityId);
-        assertEq(currentReward(), 0, "Bob's reward[2] should be 0 before the interval ends");
+        assertEq(currentReward(bob.entityId), 0, "Bob's reward[2] should be 0 before the interval ends");
 
         vm.warp(start + 91 days);
 
-        assertEq(currentReward(), rewardAmount, "Bob's reward[3] should increase");
+        assertEq(currentReward(bob.entityId), rewardAmount, "Bob's reward[3] should increase");
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), 0);
 
         nayms.collectRewards(nlf.entityId);
@@ -618,7 +619,7 @@ contract StakingTest is D03ProtocolDefaults {
 
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
-        assertEq(currentReward(), 0, "Bob's reward[3] should be 0 before the interval ends");
+        assertEq(currentReward(bob.entityId), 0, "Bob's reward[3] should be 0 before the interval ends");
         c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
 
         vm.warp(start + 125 days);
