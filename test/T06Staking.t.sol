@@ -16,7 +16,7 @@ function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32)
     return bytes32((_objecType)) | (bytes32(randomBytes));
 }
 
-contract StakingTest is D03ProtocolDefaults {
+contract T06Staking is D03ProtocolDefaults {
     using LibHelpers for address;
     using stdStorage for StdStorage;
     using StdStyle for *;
