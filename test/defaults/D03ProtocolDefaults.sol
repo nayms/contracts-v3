@@ -237,6 +237,21 @@ contract D03ProtocolDefaults is D02TestSetup {
         _entityAdmin.entityId = _entityId;
     }
 
+    function hCreateEntity(NaymsAccount memory _entityAdmin, Entity memory _entityData, bytes32 _dataHash) internal {
+        bytes32 previousParent = nayms.getEntity(_entityAdmin.id);
+        bytes32 entityId = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(_entityAdmin.addr));
+        nayms.createEntity(entityId, _entityAdmin.id, _entityData, _dataHash);
+        roleToUsers[LC.ROLE_ENTITY_ADMIN].push(_entityAdmin.id);
+
+        if (objectToContext[_entityAdmin.id] == systemContext) {
+            c.log("warning: object's context is currently systemContext");
+        } else {
+            objectToContext[_entityAdmin.id] = entityId;
+        }
+        c.log(string.concat("The entity admin's parent has been updated from ", vm.toString(previousParent), " to ", vm.toString(entityId)));
+        _entityAdmin.entityId = entityId;
+    }
+
     /// @dev Return the role as a decoded string
     function hGetRoleInContext(bytes32 objectId, bytes32 contextId) public view returns (string memory roleString) {
         roleString = string(nayms.getRoleInContext(objectId, contextId)._bytes32ToBytes());

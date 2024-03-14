@@ -106,3 +106,24 @@ struct CalculatedFees {
     uint256 totalBP; // total basis points of fees paid
     FeeAllocation[] feeAllocations; // The list of entities that receive a portion of the fees.
 }
+
+struct StakingConfig {
+    bytes32 tokenId;
+    uint256 initDate;
+    uint64 a; // Amplification factor
+    uint64 r;
+    uint64 divider;
+    uint64 interval; // Amount of time per interval in seconds
+}
+
+struct StakingState {
+    uint256 balance;
+    uint256 boost;
+    uint64 lastCollectedInterval;
+}
+
+struct RewardsBalances {
+    bytes32[] currencies;
+    uint256[] amounts;
+    uint64 lastPaidInterval;
+}
