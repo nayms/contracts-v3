@@ -48,14 +48,6 @@ ttt: ## forge test local -vvv
 tttt: ## forge test local -vvvv
 	forge test -vvvv
 
-test-goerli: ## test forking goerli with match test regex, i.e. `make test-goerli MT=testStartTokenSale`
-	forge test -f ${ETH_GOERLI_RPC_URL} \
-		--fork-block-number 7602168 \
-		--mt $(MT) \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		-vvvv
-tg:	test-goerli
-
 test-mainnet: ## test forking mainnet with match test regex, i.e. `make test-mainnet MT=testStartTokenSale`
 	forge test -f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 7602168 \
@@ -98,7 +90,6 @@ gencov: ## generate html coverage report
 
 gencovf: ## generate filtered html coverage report 
 	forge coverage --report lcov && node ./cli-tools/filter-lcov.js && genhtml -o cov-html --branch-coverage lcov-filtered.info
-
 
 # solidity scripts
 erc20: ## deploy test ERC20
