@@ -22,7 +22,7 @@ module.exports = {
   // commands to execute
   commands: {
     // the build command
-    build: "forge build",
+    build: "forge build --ignored-error-codes 5574",
   },
   paths: {
     // contract built artifacts folder
