@@ -7,7 +7,6 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { FeeSchedule } from "../shared/FreeStructs.sol";
 
 /**
  * @title Administration

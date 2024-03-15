@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import { Modifiers } from "../shared/Modifiers.sol";
-import { CalculatedFees, MarketInfo } from "../shared/AppStorage.sol";
+import { MarketInfo } from "../shared/AppStorage.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
