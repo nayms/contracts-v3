@@ -47,11 +47,13 @@ Currently supported deployment targets are:
 
 - `local`: Local Anvil Node
 - `sepolia`: Sepolia
-- `mainnet`: Mainnet
-- `base`: Base
-- `baseGoerli`: Base Goerli testnet
 - `sepoliaFork`: a local fork of Sepolia
+- `mainnet`: Mainnet
 - `mainnetFork`: a local for of Mainnet
+- `base`: Base
+- `baseFork`: Base Sepolia testnet
+- `baseSepolia`: Base Sepolia testnet
+- `baseSepoliaFork`: Base Sepolia testnet
 
 #### Querying
 
