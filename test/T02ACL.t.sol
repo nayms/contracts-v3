@@ -293,13 +293,13 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         // create entity with signer2 as child
         bytes32 entityId1 = createTestEntity(signer2Id);
 
-        // changePrank(sa.addr);
-        // // assign entity as entity admin
-        // nayms.assignRole(entityId1, systemContext, role);
+        changePrank(sa.addr);
+        // assign entity as entity admin
+        nayms.assignRole(entityId1, systemContext, role);
 
-        // // test parent
-        // assertTrue(nayms.isInGroup(entityId1, systemContext, group));
-        // assertTrue(nayms.isParentInGroup(signer2Id, systemContext, group));
+        // test parent
+        assertTrue(nayms.isInGroup(entityId1, systemContext, group));
+        assertTrue(nayms.isParentInGroup(signer2Id, systemContext, group));
     }
 
     function testUpdateRoleAssignerFailIfNotAdmin() public {

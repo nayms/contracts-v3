@@ -550,8 +550,8 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("buy token must be valid");
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, "", dt.entity1MintAndSaleAmt);
 
-        vm.expectRevert("must be one participation token and one external token"); // 2 non-platform tokens
-        nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, wbtcId, dt.entity1MintAndSaleAmt);
+        vm.expectRevert("must trade external token"); // 2 p-tokens
+        nayms.executeLimitOffer(entity1, dt.entity1MintAndSaleAmt, entity2, dt.entity1MintAndSaleAmt);
 
         vm.expectRevert("cannot sell and buy same token");
         nayms.executeLimitOffer(wethId, dt.entity1MintAndSaleAmt, wethId, dt.entity1MintAndSaleAmt);
@@ -567,10 +567,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sm.addr);
         nayms.enableEntityTokenization(entity2, "e2token", "e2token", 1e6);
         nayms.startTokenSale(entity2, dt.entity2MintAndSaleAmt, dt.entity2SalePrice);
-
-        changePrank(signer3);
-        vm.expectRevert("must be one participation token and one external token"); // 2 platform tokens
-        nayms.executeLimitOffer(entity2, dt.entity1MintAndSaleAmt, entity1, dt.entity1MintAndSaleAmt);
 
         vm.stopPrank();
     }

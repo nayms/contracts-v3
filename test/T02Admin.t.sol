@@ -8,9 +8,11 @@ import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { IDiamondProxy } from "../src/generated/IDiamondProxy.sol";
 import "../src/shared/CustomErrors.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
     using LibHelpers for *;
+    using LibString for *;
 
     function setUp() public {}
 
@@ -151,10 +153,12 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
             nayms.unlockFunction(bytes4(0x12345678));
             assertFalse(nayms.isFunctionLocked(bytes4(0x12345678)));
         } else {
-            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+            string memory curentRole = nayms.getRoleInContext(userId, systemContext).fromSmallString();
+
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, curentRole, LC.GROUP_SYSTEM_ADMINS));
             nayms.lockFunction(bytes4(0x12345678));
 
-            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+            vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, userId, systemContext, curentRole, LC.GROUP_SYSTEM_ADMINS));
             nayms.unlockFunction(bytes4(0x12345678));
         }
     }
@@ -237,7 +241,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
-        bytes4[] memory lockedFunctions = new bytes4[](14);
+        bytes4[] memory lockedFunctions = new bytes4[](18);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -252,6 +256,10 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         lockedFunctions[11] = IDiamondProxy.withdrawAllDividends.selector;
         lockedFunctions[12] = IDiamondProxy.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = IDiamondProxy.externalDeposit.selector;
+        lockedFunctions[14] = IDiamondProxy.stake.selector;
+        lockedFunctions[15] = IDiamondProxy.unstake.selector;
+        lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
+        lockedFunctions[17] = IDiamondProxy.payReward.selector;
 
         for (uint256 i = 0; i < lockedFunctions.length; i++) {
             assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
@@ -299,6 +307,18 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("function is locked");
         nayms.externalDeposit(wethAddress, 1 ether);
 
+        vm.expectRevert("function is locked");
+        nayms.stake(bytes32(0), 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.unstake(bytes32(0));
+
+        vm.expectRevert("function is locked");
+        nayms.payReward(bytes32(0), bytes32(0), bytes32(0), 1 ether);
+
+        vm.expectRevert("function is locked");
+        nayms.collectRewards(bytes32(0));
+
         nayms.unlockAllFundTransferFunctions();
 
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.startTokenSale.selector), "function startTokenSale locked");
@@ -315,5 +335,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.withdrawAllDividends.selector), "function withdrawAllDividends locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.externalWithdrawFromEntity.selector), "function externalWithdrawFromEntity locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.externalDeposit.selector), "function externalDeposit locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.stake.selector), "function stake locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.unstake.selector), "function unstake locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.payReward.selector), "function payReward locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.collectRewards.selector), "function collectRewards locked");
     }
 }

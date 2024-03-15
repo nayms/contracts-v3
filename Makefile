@@ -48,14 +48,6 @@ ttt: ## forge test local -vvv
 tttt: ## forge test local -vvvv
 	forge test -vvvv
 
-test-goerli: ## test forking goerli with match test regex, i.e. `make test-goerli MT=testStartTokenSale`
-	forge test -f ${ETH_GOERLI_RPC_URL} \
-		--fork-block-number 7602168 \
-		--mt $(MT) \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		-vvvv
-tg:	test-goerli
-
 test-mainnet: ## test forking mainnet with match test regex, i.e. `make test-mainnet MT=testStartTokenSale`
 	forge test -f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 7602168 \
@@ -98,7 +90,6 @@ gencov: ## generate html coverage report
 
 gencovf: ## generate filtered html coverage report 
 	forge coverage --report lcov && node ./cli-tools/filter-lcov.js && genhtml -o cov-html --branch-coverage lcov-filtered.info
-
 
 # solidity scripts
 erc20: ## deploy test ERC20
@@ -159,14 +150,17 @@ anvil-docker:	## run anvil in a container
 anvil-dbg:	## run anvil in debug mode with shared wallet
 	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
 
-anvil-fork-mainnet: ## fork mainnet locally with anvil
+fork-mainnet: ## fork mainnet locally with anvil
 	anvil -f ${ETH_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
 
-anvil-fork-sepolia: ## fork sepolia locally with anvil
+fork-sepolia: ## fork sepolia locally with anvil
 	anvil -f ${ETH_SEPOLIA_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
 
-anvil-fork-base: ## fork base locally with anvil
+fork-base: ## fork base locally with anvil
 	anvil -f ${BASE_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+
+fork-base-sepolia: ## fork base locally with anvil
+	anvil -f ${BASE_SEPOLIA_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
 
 anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \

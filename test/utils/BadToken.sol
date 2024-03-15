@@ -3,7 +3,6 @@ pragma solidity 0.8.20;
 
 import { IERC20 } from "src/interfaces/IERC20.sol";
 
-// solhint-disable no-unused-vars
 contract BadToken is IERC20 {
     uint256 public totalSupply = 0;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -20,7 +19,7 @@ contract BadToken is IERC20 {
         revert("no decimals");
     }
 
-    function balanceOf(address who) external pure returns (uint256) {
+    function balanceOf(address) external pure returns (uint256) {
         revert("not supported");
     }
 
