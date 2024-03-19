@@ -14,7 +14,8 @@
     "src/generated/abi.json",
     "src/generated/naymsDiamond.json",
     "forge-artifacts/LibConstants.sol/LibConstants.json",
-    "forge-artifacts/IERC20.sol/IERC20.json"
+    "forge-artifacts/IERC20.sol/IERC20.json",
+    "forge-artifacts/IERC1271.sol/IERC1271.json"
   ],
   "scripts": {
     "prettier": "yarn prettier:test && yarn prettier:src && yarn prettier:script",

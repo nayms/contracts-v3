@@ -11,8 +11,8 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { LibInitDiamond } from "../libs/LibInitDiamond.sol";
 import { LibEIP712 } from "../libs/LibEIP712.sol";
-import { IERC165 } from "../interfaces/IERC165.sol";
-import { IERC173 } from "../interfaces/IERC173.sol";
+import { IERC165 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC165.sol";
+import { IERC173 } from "lib/diamond-2-hardhat/contracts/interfaces/IERC173.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { FeeSchedule } from "../shared/FreeStructs.sol";
 
