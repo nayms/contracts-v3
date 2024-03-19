@@ -154,4 +154,8 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     function totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) external view returns (uint256) {
         return LibTokenizedVault._totalDividends(_tokenId, _dividendDenominationId);
     }
+
+    function accruedInterest(address _tokenAddress) external view returns (uint256) {
+        return LibTokenizedVault._accruedInterest(_tokenAddress);
+    }
 }

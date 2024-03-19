@@ -6,6 +6,7 @@ import { LibAdmin } from "./LibAdmin.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
+import { LibERC20 } from "./LibERC20.sol";
 
 library LibTokenizedVault {
     /**
@@ -263,5 +264,14 @@ library LibTokenizedVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         return s.totalDividends[_tokenId][_dividendDenominationId];
+    }
+
+    function _accruedInterest(address _tokenAddress) internal view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        uint256 depositTotal = s.depositTotal[_tokenAddress];
+        uint256 total = LibERC20.balanceOf(_tokenAddress, address(this));
+
+        return total - depositTotal;
     }
 }

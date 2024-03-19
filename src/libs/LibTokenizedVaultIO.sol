@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibERC20 } from "./LibERC20.sol";
