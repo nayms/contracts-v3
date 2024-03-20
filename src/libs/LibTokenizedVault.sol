@@ -288,9 +288,13 @@ library LibTokenizedVault {
     }
 
     // This should only be called once for all coins on the network, then deleted in a future upgrade
-    function _rebaseERC20(address _tokenAddress) internal {
+    function _rebaseERC20(address _tokenAddress, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
-        s.depositTotal[tokenId] = LibERC20.balanceOf(_tokenAddress, address(this));
+
+        uint256 currentBalance = LibERC20.balanceOf(_tokenAddress, address(this));
+
+        require(_amount <= currentBalance, "rebase amount cannot be greather than actual balance");
+        s.depositTotal[tokenId] = _amount;
     }
 }
