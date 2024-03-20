@@ -274,4 +274,19 @@ library LibTokenizedVault {
 
         return total - depositTotal;
     }
+
+    function _moveInterestToAddress(bytes32 _accountId, address _tokenAddress, uint256 _amount) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(s.depositTotal[_tokenAddress] > 0, "_moveInterestToAddress: rebasing token not initialized");
+        require(_amount <= _accruedInterest(_tokenAddress), "_moveInterestToAddress: insufficient accrued interest");
+        bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
+        s.tokenBalances[tokenId][_accountId] += _amount;
+        s.depositTotal[_tokenAddress] += _amount;
+    }
+
+    // This should only be called once for all coins on the network, then deleted in a future upgrade
+    function _reinitializeRebasingERC20(address _tokenAddress) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.depositTotal[_tokenAddress] = LibERC20.balanceOf(_tokenAddress, address(this));
+    }
 }

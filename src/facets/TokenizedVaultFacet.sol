@@ -158,4 +158,19 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     function accruedInterest(address _tokenAddress) external view returns (uint256) {
         return LibTokenizedVault._accruedInterest(_tokenAddress);
     }
+
+    function distributeAccruedInterest(bytes32 _tokenId, uint256 _amount, bytes32 _guid) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+        address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
+
+        // The _moveInterestToAddress method verifies the token is valid, and that there is available interest.
+        // No need to do it again.
+        LibTokenizedVault._moveInterestToAddress(_tokenId, tokenAddress, _amount);
+
+        bytes32 newGuid = keccak256(abi.encodePacked("distributeAccruedInterest", _guid));
+        LibTokenizedVault._payDividend(newGuid, _tokenId, _tokenId, _tokenId, _amount);
+    }
+
+    function reinitializeRebasingERC20(address _tokenAddress) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        LibTokenizedVault._reinitializeRebasingERC20(_tokenAddress);
+    }
 }

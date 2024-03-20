@@ -29,12 +29,13 @@ library LibERC20 {
         }
     }
 
-    function balanceOf(address _token, address _who) internal returns (uint256) {
+    function balanceOf(address _token, address _who) internal view returns (uint256) {
         _assertNotEmptyContract(_token);
-        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.balanceOf.selector, _who));
-        if (success) {
-            return abi.decode(result, (uint256));
-        } else {
+        IERC20 tokenContract = IERC20(_token);
+        try tokenContract.balanceOf(_who) returns (uint256 balance) {
+            return balance;
+        } catch {
+            // Handle the error (e.g., return a default value or rethrow a custom error)
             revert("LibERC20: call to balanceOf() failed");
         }
     }
