@@ -9,22 +9,22 @@ pragma solidity 0.8.20;
 import { IERC20 } from "../interfaces/IERC20.sol";
 
 library LibERC20 {
-    function decimals(address _token) internal returns (uint8) {
+    function decimals(address _token) internal view returns (uint8) {
         _assertNotEmptyContract(_token);
-        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.decimals.selector));
-        if (success) {
-            return abi.decode(result, (uint8));
-        } else {
+        IERC20 tokenContract = IERC20(_token);
+        try tokenContract.decimals() returns (uint8 decimals_) {
+            return decimals_;
+        } catch {
             revert("LibERC20: call to decimals() failed");
         }
     }
 
-    function symbol(address _token) internal returns (string memory) {
+    function symbol(address _token) internal view returns (string memory) {
         _assertNotEmptyContract(_token);
-        (bool success, bytes memory result) = _token.call(abi.encodeWithSelector(IERC20.symbol.selector));
-        if (success) {
-            return abi.decode(result, (string));
-        } else {
+        IERC20 tokenContract = IERC20(_token);
+        try tokenContract.symbol() returns (string memory symbol_) {
+            return symbol_;
+        } catch {
             revert("LibERC20: call to symbol() failed");
         }
     }
