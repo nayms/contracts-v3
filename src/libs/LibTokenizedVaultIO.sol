@@ -31,7 +31,7 @@ library LibTokenizedVaultIO {
         LibTokenizedVault._internalMint(_receiverId, internalTokenId, mintAmount);
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.depositTotal[_externalTokenAddress] += _amount;
+        s.depositTotal[internalTokenId] += _amount;
     }
 
     function _externalWithdraw(bytes32 _entityId, address _receiver, address _externalTokenAddress, uint256 _amount) internal {
@@ -49,6 +49,6 @@ library LibTokenizedVaultIO {
         LibERC20.transfer(_externalTokenAddress, _receiver, _amount);
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.depositTotal[_externalTokenAddress] -= _amount;
+        s.depositTotal[internalTokenId] -= _amount;
     }
 }
