@@ -1119,34 +1119,27 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testRebasingToken() public {
-        address USDM_ADDR = 0x59D9356E565Ab3A36dD77763Fc0d87fEaf85508C;
-        vm.etch(USDM_ADDR, address(usdc).code);
-        bytes32 USDM_ID = USDM_ADDR._getIdForAddress();
-        IERC20 USDM = IERC20(USDM_ADDR);
-        nayms.isSupportedExternalToken(USDM_ID);
-        // nayms.addSupportedExternalToken(USDM_ADDR, 1e6);
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
 
-        deal(USDM_ADDR, systemAdmin, 1000);
-        USDM.approve(naymsAddress, 1e6);
-        nayms.externalDeposit(USDM_ADDR, 1000);
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "acc0EntityId wethId balance should start at 0");
 
-        assertEq(0, nayms.accruedInterest(USDM_ID), "interest should not have accrued yet");
-        vm.mockCall(USDM_ADDR, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(1001));
-        assertEq(1, nayms.accruedInterest(USDM_ID));
+        changePrank(account0);
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
-        bytes32 id = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("1"));
-        vm.startPrank(sm.addr);
-        nayms.distributeAccruedInterest(USDM_ID, 1, id);
+        // note Depositing to account0's associated entity
+        nayms.externalDeposit(wethAddress, 1 ether);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
 
-        assertEq(1, nayms.totalDividends(USDM_ID, USDM_ID));
+        assertEq(nayms.accruedInterest(wethId), 0, "Accrued interest should be zero");
+        vm.mockCall(wethAddress, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(2 ether));
+        assertEq(nayms.accruedInterest(wethId), 1 ether, "Accrued interest should increase");
 
-        // balance of parent before dividend
-        assertEq(1000, nayms.internalBalanceOf(nayms.getEntity(systemAdminId), USDM_ID));
+        changePrank(sm);
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
 
-        // withdraw dividend, aka rebased balance
-        nayms.withdrawDividend(nayms.getEntity(systemAdminId), USDM_ID, USDM_ID);
-
-        assertEq(1001, nayms.internalBalanceOf(nayms.getEntity(systemAdminId), USDM_ID));
+        nayms.withdrawDividend(acc0EntityId, wethId, wethId);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 2 ether, "acc0EntityId wethId balance should INCREASE (mint)");
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
