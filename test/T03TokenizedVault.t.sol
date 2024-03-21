@@ -1118,16 +1118,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's current balance should increase by 500 WETH after receiving dividend.");
     }
 
-    function testRebasingToken() public {
+    function testRebasingTokenInterest() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
 
         assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "acc0EntityId wethId balance should start at 0");
 
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestNotInitialized.selector, wethId));
+        changePrank(sm);
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
-        // note Depositing to account0's associated entity
         nayms.externalDeposit(wethAddress, 1 ether);
         assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
 
@@ -1136,6 +1139,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.accruedInterest(wethId), 1 ether, "Accrued interest should increase");
 
         changePrank(sm);
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestInsufficient.selector, wethId, 5 ether, 1 ether));
+        nayms.distributeAccruedInterest(wethId, 5 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
         nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
 
         nayms.withdrawDividend(acc0EntityId, wethId, wethId);

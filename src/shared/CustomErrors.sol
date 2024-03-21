@@ -106,3 +106,12 @@ error DuplicateSignerCreatingSimplePolicy(address previousSigner, address nextSi
 
 /// @dev The minimum sell amount on the marketplace cannot be zero.
 error MinimumSellCannotBeZero();
+
+/// @dev Rebasing interest tracking data has not been initialized yet.
+error RebasingInterestNotInitialized(bytes32 tokenId);
+
+/// @dev Insufficient amount of interest acrrued so far
+error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accruedAmount);
+
+/// @dev Rebase amount cannot be greater than the actual balance
+error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);

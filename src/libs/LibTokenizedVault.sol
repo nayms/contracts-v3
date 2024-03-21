@@ -7,6 +7,7 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
+import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVault {
     /**
@@ -280,8 +281,14 @@ library LibTokenizedVault {
     function _claimRebasingInterest(bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(s.depositTotal[_tokenId] > 0, "_claimRebasingInterest: rebasing token not initialized");
-        require(_amount <= _accruedInterest(_tokenId), "_claimRebasingInterest: insufficient accrued interest");
+        if (s.depositTotal[_tokenId] <= 0) {
+            revert RebasingInterestNotInitialized(_tokenId);
+        }
+
+        uint256 accruedAmount = _accruedInterest(_tokenId);
+        if (_amount > accruedAmount) {
+            revert RebasingInterestInsufficient(_tokenId, _amount, accruedAmount);
+        }
 
         s.tokenBalances[_tokenId][_tokenId] += _amount;
         s.depositTotal[_tokenId] += _amount;
@@ -294,7 +301,10 @@ library LibTokenizedVault {
 
         uint256 currentBalance = LibERC20.balanceOf(tokenAddress, address(this));
 
-        require(_amount <= currentBalance, "rebase amount cannot be greather than actual balance");
+        if (_amount > currentBalance) {
+            revert RebasingAmountInvalid(_tokenId, _amount, currentBalance);
+        }
+
         s.depositTotal[_tokenId] = _amount;
     }
 }
