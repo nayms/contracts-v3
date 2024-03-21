@@ -1134,9 +1134,19 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.mockCall(USDM_ADDR, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(1001));
         assertEq(1, nayms.accruedInterest(USDM_ADDR));
 
-        bytes32 id = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("1")); // fix this
+        bytes32 id = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("1"));
         vm.startPrank(sm.addr);
         nayms.distributeAccruedInterest(USDM_ID, 1, id);
+
+        assertEq(1, nayms.totalDividends(USDM_ID, USDM_ID));
+
+        // balance of parent before dividend
+        assertEq(1000, nayms.internalBalanceOf(nayms.getEntity(systemAdminId), USDM_ID));
+
+        // withdraw dividend, aka rebased balance
+        nayms.withdrawDividend(nayms.getEntity(systemAdminId), USDM_ID, USDM_ID);
+
+        assertEq(1001, nayms.internalBalanceOf(nayms.getEntity(systemAdminId), USDM_ID));
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
