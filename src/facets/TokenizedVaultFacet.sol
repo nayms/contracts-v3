@@ -155,21 +155,18 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         return LibTokenizedVault._totalDividends(_tokenId, _dividendDenominationId);
     }
 
-    function accruedInterest(address _tokenAddress) external view returns (uint256) {
-        return LibTokenizedVault._accruedInterest(_tokenAddress);
+    function accruedInterest(bytes32 _tokenId) external view returns (uint256) {
+        return LibTokenizedVault._accruedInterest(_tokenId);
     }
 
     function distributeAccruedInterest(bytes32 _tokenId, uint256 _amount, bytes32 _guid) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
-        address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
-
         // The _claimRebasingInterest method verifies the token is valid, and that there is available interest.
         // No need to do it again.
-        LibTokenizedVault._claimRebasingInterest(_tokenId, tokenAddress, _amount);
-
+        LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
         LibTokenizedVault._payDividend(_guid, _tokenId, _tokenId, _tokenId, _amount);
     }
 
-    function rebaseERC20(address _tokenAddress, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        LibTokenizedVault._rebaseERC20(_tokenAddress, _amount);
+    function rebaseERC20(bytes32 _tokenId, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        LibTokenizedVault._rebaseERC20(_tokenId, _amount);
     }
 }

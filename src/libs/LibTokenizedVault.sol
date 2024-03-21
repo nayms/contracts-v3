@@ -266,35 +266,35 @@ library LibTokenizedVault {
         return s.totalDividends[_tokenId][_dividendDenominationId];
     }
 
-    function _accruedInterest(address _tokenAddress) internal view returns (uint256) {
+    function _accruedInterest(bytes32 _tokenId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
-        uint256 depositTotal = s.depositTotal[tokenId];
-        uint256 total = LibERC20.balanceOf(_tokenAddress, address(this));
+        address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
+
+        uint256 depositTotal = s.depositTotal[_tokenId];
+        uint256 total = LibERC20.balanceOf(tokenAddress, address(this));
 
         return total - depositTotal;
     }
 
-    function _claimRebasingInterest(bytes32 _accountId, address _tokenAddress, uint256 _amount) internal {
+    function _claimRebasingInterest(bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
 
-        require(s.depositTotal[tokenId] > 0, "_claimRebasingInterest: rebasing token not initialized");
-        require(_amount <= _accruedInterest(_tokenAddress), "_claimRebasingInterest: insufficient accrued interest");
+        require(s.depositTotal[_tokenId] > 0, "_claimRebasingInterest: rebasing token not initialized");
+        require(_amount <= _accruedInterest(_tokenId), "_claimRebasingInterest: insufficient accrued interest");
 
-        s.tokenBalances[tokenId][_accountId] += _amount;
-        s.depositTotal[tokenId] += _amount;
+        s.tokenBalances[_tokenId][_tokenId] += _amount;
+        s.depositTotal[_tokenId] += _amount;
     }
 
     // This should only be called once for all coins on the network, then deleted in a future upgrade
-    function _rebaseERC20(address _tokenAddress, uint256 _amount) internal {
+    function _rebaseERC20(bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 tokenId = LibHelpers._getIdForAddress(_tokenAddress);
+        address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
 
-        uint256 currentBalance = LibERC20.balanceOf(_tokenAddress, address(this));
+        uint256 currentBalance = LibERC20.balanceOf(tokenAddress, address(this));
 
         require(_amount <= currentBalance, "rebase amount cannot be greather than actual balance");
-        s.depositTotal[tokenId] = _amount;
+        s.depositTotal[_tokenId] = _amount;
     }
 }
