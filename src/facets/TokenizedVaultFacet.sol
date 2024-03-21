@@ -166,8 +166,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         // No need to do it again.
         LibTokenizedVault._claimRebasingInterest(_tokenId, tokenAddress, _amount);
 
-        bytes32 newGuid = keccak256(abi.encodePacked("distributeAccruedInterest", _guid));
-        LibTokenizedVault._payDividend(newGuid, _tokenId, _tokenId, _tokenId, _amount);
+        LibTokenizedVault._payDividend(_guid, _tokenId, _tokenId, _tokenId, _amount);
     }
 
     function rebaseERC20(address _tokenAddress, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
