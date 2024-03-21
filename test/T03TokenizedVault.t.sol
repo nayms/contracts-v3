@@ -7,6 +7,7 @@ import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import "src/shared/CustomErrors.sol";
+import { IERC20 } from "forge-std/interfaces/IERC20.sol";
 
 // solhint-disable max-states-count
 // solhint-disable no-console
@@ -1115,6 +1116,27 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // 9. Alice tries to withdraw the 500 WETH dividend, should withdraw all 500 WETH
         nayms.withdrawDividend(eAlice, eAlice, nWETH);
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's current balance should increase by 500 WETH after receiving dividend.");
+    }
+
+    function testRebasingToken() public {
+        address USDM_ADDR = 0x59D9356E565Ab3A36dD77763Fc0d87fEaf85508C;
+        vm.etch(USDM_ADDR, address(usdc).code);
+        bytes32 USDM_ID = USDM_ADDR._getIdForAddress();
+        IERC20 USDM = IERC20(USDM_ADDR);
+        nayms.isSupportedExternalToken(USDM_ID);
+        // nayms.addSupportedExternalToken(USDM_ADDR, 1e6);
+
+        deal(USDM_ADDR, systemAdmin, 1000);
+        USDM.approve(naymsAddress, 1e6);
+        nayms.externalDeposit(USDM_ADDR, 1000);
+
+        assertEq(0, nayms.accruedInterest(USDM_ADDR), "interest should not have accrued yet");
+        vm.mockCall(USDM_ADDR, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(1001));
+        assertEq(1, nayms.accruedInterest(USDM_ADDR));
+
+        bytes32 id = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("1")); // fix this
+        vm.startPrank(sm.addr);
+        nayms.distributeAccruedInterest(USDM_ID, 1, id);
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
