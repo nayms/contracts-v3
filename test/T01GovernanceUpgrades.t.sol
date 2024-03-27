@@ -14,11 +14,11 @@ import { PhasedDiamondCutUpgradeFailed } from "src/facets/PhasedDiamondCutFacet.
 /// @dev Testing for Nayms upgrade pattern
 
 contract TestFacet {
-    function sayHello() external returns (string memory greeting) {
+    function sayHello() external pure returns (string memory greeting) {
         greeting = "hello";
     }
 
-    function sayHello2() external returns (string memory greeting) {
+    function sayHello2() external pure returns (string memory greeting) {
         greeting = "hello2";
     }
 }

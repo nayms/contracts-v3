@@ -1,15 +1,13 @@
 require("dotenv").config();
+
 const fs = require("fs");
 const ethers = require("ethers");
 
-const MNEMONIC = fs.readFileSync("./nayms_mnemonic.txt").toString().trim();
-const MNEMONIC_MAINNET = fs
-  .readFileSync("./nayms_mnemonic_mainnet.txt")
-  .toString()
-  .trim();
+const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
+  ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
+  : "test test test test test test test test test test test junk";
 
-const walletOwnerIndex = 19;
-const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC).address;
+const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
 
 module.exports = {
   // Configuration file version
@@ -93,81 +91,114 @@ module.exports = {
     // shell command to execute before deploy
     preDeploy: "",
     // shell command to execute after deploy
-    postDeploy: "./script/gemforge/verify-on-etherscan.js",
+    postDeploy: "./script/gemforge/verify.js",
   },
   // Wallets to use for deployment
   wallets: {
-    wallet1: {
+    // nayms owner
+    devOwnerWallet: {
       type: "mnemonic",
       config: {
         words: MNEMONIC,
-        index: walletOwnerIndex,
+        index: 19,
       },
     },
-    wallet2: {
+    // nayms sys admin
+    devSysAdminWallet: {
       type: "mnemonic",
       config: {
-        words: MNEMONIC_MAINNET,
+        words: MNEMONIC,
         index: 0,
+      },
+    },
+    wallet3: {
+      type: "private-key",
+      config: {
+        key: process.env.CONTRACT_OWNER || "",
       },
     },
   },
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
     sepolia: { rpcUrl: process.env.ETH_SEPOLIA_RPC_URL },
-    sepoliaFork: { rpcUrl: "http://localhost:8545" },
     mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
-    mainnetFork: { rpcUrl: "http://localhost:8545" },
-    baseGoerli: {
-      rpcUrl: process.env.BASE_GOERLI_RPC_URL,
-      verifierUrl: "https://api-goerli.basescan.org/api",
+    baseSepolia: {
+      rpcUrl: process.env.BASE_SEPOLIA_RPC_URL,
+      verifiers: [
+        {
+          verifierName: "etherscan",
+          verifierUrl: "https://api-sepolia.basescan.org/api",
+          verifierApiKey: process.env.BASESCAN_API_KEY,
+        },
+        {
+          verifierName: "blockscout", // needed for louper
+          verifierUrl: "https://base-sepolia.blockscout.com/api",
+          verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
+        },
+      ],
     },
     base: {
       rpcUrl: process.env.BASE_MAINNET_RPC_URL,
-      verifierUrl: "https://api.basescan.org/api",
-      verifierApiKey: process.env.BASESCAN_API_KEY,
+      verifiers: [
+        {
+          verifierName: "etherscan",
+          verifierUrl: "https://api.basescan.org/api",
+          verifierApiKey: process.env.BASESCAN_API_KEY,
+        },
+      ],
     },
-    baseFork: { rpcUrl: "http://localhost:8545" },
   },
   targets: {
     local: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     sepolia: {
       network: "sepolia",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     sepoliaFork: {
-      network: "sepoliaFork",
-      wallet: "wallet1",
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     mainnet: {
       network: "mainnet",
-      wallet: "wallet2",
+      wallet: "wallet3",
       initArgs: [sysAdminAddress],
     },
     mainnetFork: {
-      network: "mainnetFork",
-      wallet: "wallet1",
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [],
     },
-    baseGoerli: {
-      network: "baseGoerli",
-      wallet: "wallet1",
+    baseSepolia: {
+      network: "baseSepolia",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
+      initArgs: [sysAdminAddress],
+    },
+    baseSepoliaFork: {
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     base: {
       network: "base",
-      wallet: "wallet2",
+      wallet: "wallet3",
       initArgs: [sysAdminAddress],
     },
     baseFork: {
-      network: "baseFork",
-      wallet: "wallet1",
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
   },

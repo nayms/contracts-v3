@@ -283,9 +283,9 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(feeSchedule.basisPoints[0], 0);
     }
 
-    function totalPremiumFeeBP(SimplePolicy memory simplePolicy, uint16[] memory customFeeBP) private returns (uint256 totalBP_) {
-        for (uint256 i; i < simplePolicy.commissionBasisPoints.length; i++) {
-            totalBP_ += simplePolicy.commissionBasisPoints[i];
+    function totalPremiumFeeBP(SimplePolicy memory _simplePolicy, uint16[] memory customFeeBP) private pure returns (uint256 totalBP_) {
+        for (uint256 i; i < _simplePolicy.commissionBasisPoints.length; i++) {
+            totalBP_ += _simplePolicy.commissionBasisPoints[i];
         }
         for (uint256 i; i < customFeeBP.length; i++) {
             totalBP_ += customFeeBP[i];

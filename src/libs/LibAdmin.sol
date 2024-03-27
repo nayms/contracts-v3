@@ -2,12 +2,26 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { Entity, EntityApproval } from "../shared/FreeStructs.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
+import { LibEntity } from "./LibEntity.sol";
+import { LibACL } from "./LibACL.sol";
 
-import { CannotAddNullDiscountToken, CannotAddNullSupportedExternalToken, CannotSupportExternalTokenWithMoreThan18Decimals, ObjectTokenSymbolAlreadyInUse, MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
+// prettier-ignore
+import {
+    CannotAddNullDiscountToken,
+    CannotAddNullSupportedExternalToken,
+    CannotSupportExternalTokenWithMoreThan18Decimals,
+    ObjectTokenSymbolAlreadyInUse,
+    MinimumSellCannotBeZero,
+    EntityExistsAlready,
+    EntityOnboardingAlreadyApproved,
+    EntityOnboardingNotApproved,
+    InvalidSelfOnboardRoleApproval
+} from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 
@@ -17,6 +31,9 @@ library LibAdmin {
     event FunctionsLocked(bytes4[] functionSelectors);
     event FunctionsUnlocked(bytes4[] functionSelectors);
     event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
+    event SelfOnboardingApproved(address indexed userAddress);
+    event SelfOnboardingCompleted(address indexed userAddress);
+    event SelfOnboardingCancelled(address indexed userAddress);
 
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
@@ -121,8 +138,12 @@ library LibAdmin {
         s.locked[IDiamondProxy.withdrawAllDividends.selector] = true;
         s.locked[IDiamondProxy.externalWithdrawFromEntity.selector] = true;
         s.locked[IDiamondProxy.externalDeposit.selector] = true;
+        s.locked[IDiamondProxy.stake.selector] = true;
+        s.locked[IDiamondProxy.unstake.selector] = true;
+        s.locked[IDiamondProxy.collectRewards.selector] = true;
+        s.locked[IDiamondProxy.payReward.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](14);
+        bytes4[] memory lockedFunctions = new bytes4[](18);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -137,6 +158,10 @@ library LibAdmin {
         lockedFunctions[11] = IDiamondProxy.withdrawAllDividends.selector;
         lockedFunctions[12] = IDiamondProxy.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = IDiamondProxy.externalDeposit.selector;
+        lockedFunctions[14] = IDiamondProxy.stake.selector;
+        lockedFunctions[15] = IDiamondProxy.unstake.selector;
+        lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
+        lockedFunctions[17] = IDiamondProxy.payReward.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -157,8 +182,12 @@ library LibAdmin {
         s.locked[IDiamondProxy.withdrawAllDividends.selector] = false;
         s.locked[IDiamondProxy.externalWithdrawFromEntity.selector] = false;
         s.locked[IDiamondProxy.externalDeposit.selector] = false;
+        s.locked[IDiamondProxy.stake.selector] = false;
+        s.locked[IDiamondProxy.unstake.selector] = false;
+        s.locked[IDiamondProxy.collectRewards.selector] = false;
+        s.locked[IDiamondProxy.payReward.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](14);
+        bytes4[] memory lockedFunctions = new bytes4[](18);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -173,7 +202,69 @@ library LibAdmin {
         lockedFunctions[11] = IDiamondProxy.withdrawAllDividends.selector;
         lockedFunctions[12] = IDiamondProxy.externalWithdrawFromEntity.selector;
         lockedFunctions[13] = IDiamondProxy.externalDeposit.selector;
+        lockedFunctions[14] = IDiamondProxy.stake.selector;
+        lockedFunctions[15] = IDiamondProxy.unstake.selector;
+        lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
+        lockedFunctions[17] = IDiamondProxy.payReward.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
+    }
+
+    function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, string calldata _role) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 roleId = LibHelpers._stringToBytes32(_role);
+
+        bool isTokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bool isCapitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+
+        if (!isTokenHolder && !isCapitalProvider) {
+            revert InvalidSelfOnboardRoleApproval(_role);
+        }
+
+        if (s.selfOnboarding[_userAddress].entityId != 0 && s.selfOnboarding[_userAddress].roleId != 0) {
+            revert EntityOnboardingAlreadyApproved(_userAddress);
+        }
+
+        if (s.existingEntities[_entityId]) {
+            revert EntityExistsAlready(_entityId);
+        }
+
+        s.selfOnboarding[_userAddress] = EntityApproval({ entityId: _entityId, roleId: roleId });
+
+        emit SelfOnboardingApproved(_userAddress);
+    }
+
+    function _onboardUser(address _userAddress) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.selfOnboarding[_userAddress].entityId == 0 || s.selfOnboarding[_userAddress].roleId == 0) {
+            revert EntityOnboardingNotApproved(_userAddress);
+        }
+
+        bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
+        EntityApproval memory approval = s.selfOnboarding[_userAddress];
+
+        Entity memory entity;
+        LibEntity._createEntity(approval.entityId, userId, entity, 0);
+
+        LibACL._assignRole(approval.entityId, LibAdmin._getSystemId(), approval.roleId);
+        LibACL._assignRole(approval.entityId, approval.entityId, approval.roleId);
+
+        delete s.selfOnboarding[_userAddress];
+
+        emit SelfOnboardingCompleted(_userAddress);
+    }
+
+    function _cancelSelfOnboarding(address _userAddress) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.selfOnboarding[_userAddress].entityId == 0 && s.selfOnboarding[_userAddress].roleId == 0) {
+            revert EntityOnboardingNotApproved(_userAddress);
+        }
+
+        delete s.selfOnboarding[_userAddress];
+
+        emit SelfOnboardingCancelled(_userAddress);
     }
 }
