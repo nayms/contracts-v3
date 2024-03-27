@@ -134,6 +134,13 @@ library LibConstants {
     uint256 internal constant STAKING_MAXTIME = 4 * 365 days; // 4 years max lock
     uint256 internal constant SCALE = 1e18; //10 ^ 18
 
+    /*///////////////////////////////////////////////////////////////////////////
+                            Staking Constants
+    ///////////////////////////////////////////////////////////////////////////*/
+
+    /// @dev The maximum number of intervals that can be collected at once.
+    uint8 internal constant MAX_COLLECTABLE_INTERVALS = 48;
+
     /// _depositFor Types for events
     int128 internal constant STAKING_DEPOSIT_FOR_TYPE = 0;
     int128 internal constant STAKING_CREATE_LOCK_TYPE = 1;

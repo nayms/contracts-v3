@@ -73,6 +73,12 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, interval);
     }
 
+    function collectRewardsThroughInterval(bytes32 _entityId, uint64 _interval) external notLocked(msg.sig) {
+        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+
+        LibTokenizedVaultStaking._collectRewards(parentId, _entityId, _interval);
+    }
+
     function getStakingState(bytes32 _stakerId, bytes32 _entityId) external view returns (StakingState memory) {
         return LibTokenizedVaultStaking._getStakingState(_stakerId, _entityId);
     }
