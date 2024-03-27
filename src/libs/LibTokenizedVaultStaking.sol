@@ -10,7 +10,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker, ExceededMaxCollectableIntervals } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -138,7 +138,8 @@ library LibTokenizedVaultStaking {
         bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
 
         // First collect rewards. This will update the current state.
-        _collectRewards(_stakerId, _entityId, currentInterval);
+        // If the user does not have anything staked, then skip `_collectRewards()`.
+        if (s.stakeBalance[vTokenIdMax][_stakerId] != 0) _collectRewards(_stakerId, _entityId, currentInterval);
 
         // get the tokens
         LibTokenizedVault._internalTransfer(_stakerId, vTokenIdMax, tokenId, _amount);
@@ -238,6 +239,8 @@ library LibTokenizedVaultStaking {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
 
+            if (_interval - state.lastCollectedInterval > LC.MAX_COLLECTABLE_INTERVALS)
+                revert ExceededMaxCollectableIntervals(_interval - state.lastCollectedInterval, LC.MAX_COLLECTABLE_INTERVALS);
             for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
                 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
