@@ -149,3 +149,6 @@ error InvalidTokenRewardAmount(bytes32 guid, bytes32 entityId, bytes32 rewardTok
 
 /// @dev Insuficient balance available to perform the transfer of funds
 error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
+
+/// @dev Exceeded the manximum number of collectable intervals. Collect a smaller number of intervals with the method `collectRewardsThroughInterval`.
+error ExceededMaxCollectableIntervals(uint256 intervals, uint256 maxIntervals);
