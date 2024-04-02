@@ -24,7 +24,14 @@ contract PhasedDiamondCutFacet is IDiamondCut {
         {
             AppStorage storage s = LibAppStorage.diamondStorage();
 
-            bytes32 upgradeId = LibGovernance._calculateUpgradeId(_diamondCut, _init, _calldata);
+            bytes32[] memory codeHashes = new bytes32[](_diamondCut.length);
+            for (uint256 i; i < _diamondCut.length; i++) {
+                codeHashes[i] = LibGovernance._getCodeHash(_diamondCut[i].facetAddress);
+            }
+
+            // Calculate upgradeId (hash of codeHashes, _init, _calldata
+            bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, _init, _calldata);
+
             if (s.upgradeScheduled[upgradeId] < block.timestamp) {
                 revert PhasedDiamondCutUpgradeFailed(upgradeId, block.timestamp);
             }

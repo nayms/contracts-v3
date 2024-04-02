@@ -25,12 +25,12 @@ contract GovernanceFacet is Modifiers {
     /**
      * @notice Calcuate upgrade hash: `id`
      * @dev calucate the upgrade hash by hashing all the inputs
-     * @param _diamondCut the array of FacetCut struct, IDiamondCut.FacetCut[] to be used for upgrade
+     * @param _codeHashes the array of contract bytecode hashes
      * @param _init address of the init diamond to be used for upgrade
      * @param _calldata bytes to be passed as call data for upgrade
      */
-    function calculateUpgradeId(IDiamondCut.FacetCut[] calldata _diamondCut, address _init, bytes calldata _calldata) external pure returns (bytes32) {
-        return LibGovernance._calculateUpgradeId(_diamondCut, _init, _calldata);
+    function calculateUpgradeId(bytes32[] calldata _codeHashes, address _init, bytes calldata _calldata) external pure returns (bytes32) {
+        return LibGovernance._calculateUpgradeId(_codeHashes, _init, _calldata);
     }
 
     /**
