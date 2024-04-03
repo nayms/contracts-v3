@@ -32,10 +32,16 @@ const getProxyAddress = (exports.getProxyAddress = (targetId) => {
 
 exports.calculateUpgradeId = async (cutFile) => {
     const cutData = require(cutFile);
-    const encodedData = ethers.utils.defaultAbiCoder.encode(
-        ["tuple(address facetAddress, uint8 action, bytes4[] functionSelectors)[]", "address", "bytes"],
-        [cutData.cuts, cutData.initContractAddress, cutData.initData]
+
+    const codeHashes = await Promise.all(
+        cutData.cuts.map(async (cut) => {
+            const code = await provider.getCode(cut.facetAddress);
+            return ethers.utils.keccak256(code);
+        })
     );
+
+    const encodedData = ethers.utils.defaultAbiCoder.encode(["bytes32[]", "address", "bytes"], [codeHashes, cutData.initContractAddress, cutData.initData]);
+
     return ethers.utils.keccak256(encodedData);
 };
 
