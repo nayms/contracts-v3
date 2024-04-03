@@ -136,15 +136,19 @@ abstract contract D01Deployment is D00GlobalDefaults, Test {
     }
 
     function scheduleAndUpgradeDiamond(IDiamondCut.FacetCut[] memory _cut, address _init, bytes memory _calldata) internal {
-        // 1. schedule upgrade
-        // 2. upgrade
-        bytes32 upgradeHash = LibGovernance._calculateUpgradeId(_cut, _init, _calldata);
+        bytes32[] memory codeHashes = new bytes32[](_cut.length);
+        for (uint i; i < _cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(_cut[i].facetAddress);
+        }
+        bytes32 upgradeHash = LibGovernance._calculateUpgradeId(codeHashes, _init, _calldata);
         if (upgradeHash == 0xc597f3eb22d11c46f626cd856bd65e9127b04623d83e442686776a2e3b670bbf) {
             c.log("There are no facets to upgrade. This hash is the keccak256 hash of an empty IDiamondCut.FacetCut[]");
         } else {
             changePrank(systemAdmin);
+            // 1. schedule upgrade
             nayms.createUpgrade(upgradeHash);
             changePrank(owner);
+            // 2. upgrade
             nayms.diamondCut(_cut, _init, _calldata);
             changePrank(systemAdmin);
         }
