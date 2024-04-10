@@ -123,6 +123,21 @@ library LibTokenizedVault {
         }
     }
 
+    /// @dev Recalculate totalDividends for all denominations when tokens are burned
+    function _normalizeDividendsBurn(bytes32 _tokenId, uint256 _amount) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 supply = _internalTokenSupply(_tokenId);
+
+        bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
+
+        for (uint256 i; i < dividendDenominations.length; ++i) {
+            bytes32 dividendDenominationId = dividendDenominations[i];
+
+            // new total dividends = old total dividends * new total supply of p token / old total supply of p token
+            s.totalDividends[_tokenId][dividendDenominationId] = (s.totalDividends[_tokenId][dividendDenominationId] * (supply - _amount)) / supply;
+        }
+    }
+
     function _internalBurn(bytes32 _from, bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -130,7 +145,7 @@ library LibTokenizedVault {
         require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalBurn: insufficient balance available, funds locked");
 
         _withdrawAllDividends(_from, _tokenId);
-
+        _normalizeDividendsBurn(_tokenId, _amount);
         s.tokenSupply[_tokenId] -= _amount;
         s.tokenBalances[_tokenId][_from] -= _amount;
 
