@@ -158,13 +158,16 @@ library LibTokenizedVaultStaking {
         uint64 currentInterval = _currentInterval(_entityId);
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
+        bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
 
         // set boost and balances to zero
         s.stakeBoost[vTokenId][_stakerId] = 0;
+        s.stakeBoost[vTokenIdNext][_stakerId] = 0;
         s.stakeBalance[vTokenId][_stakerId] = 0;
+        s.stakeBalance[vTokenIdNext][_stakerId] = 0;
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
         s.stakeBalance[vTokenIdMax][_stakerId] = 0;

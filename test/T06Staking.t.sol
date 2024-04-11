@@ -163,6 +163,20 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.currentInterval(nlf.entityId), 2, "current interval not 2");
     }
 
+    function test_NAY1_boostReset() public {
+        initStaking(block.timestamp + 1);
+
+        vm.warp(20 days);
+        startPrank(bob);
+        nayms.stake(nlf.entityId, 1 ether);
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        vm.warp(40 days);
+        nayms.unstake(nlf.entityId);
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        nayms.stake(nlf.entityId, 1 ether);
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+    }
+
     function test_stake() public {
         uint256 start = block.timestamp + 1;
 
