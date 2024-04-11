@@ -712,6 +712,28 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether);
     }
 
+    function testStakingScenario2() public {
+        initStaking(block.timestamp + 10);
+
+        assertEq(nayms.internalBalanceOf(bob.entityId, NAYMSID), 10_000_000e18, "Bob's intial balance incorrect");
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        StakingState memory s = nayms.getStakingState(bob.entityId, nlf.entityId);
+        assertEq(s.balance, bobStakeAmount, "stake amount should increase");
+        assertEq(nayms.internalBalanceOf(bob.entityId, NAYMSID), 10_000_000e18 - bobStakeAmount, "Bob's balance show decrease");
+
+        vm.warp(60 days);
+        nayms.unstake(nlf.entityId);
+        s = nayms.getStakingState(bob.entityId, nlf.entityId);
+        assertEq(s.balance, 0, "stake amount should decrease");
+        assertEq(nayms.internalBalanceOf(bob.entityId, NAYMSID), 10_000_000e18, "Bob's balance show increase");
+
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        s = nayms.getStakingState(bob.entityId, nlf.entityId);
+        assertEq(s.balance, bobStakeAmount, "stake(2) amount should increase");
+    }
+
     function calculateBalanceAtTime(uint256 t, uint256 initialBalance) public pure returns (uint256 boostedBalanceAtTime) {
         uint256 Xm = calculateMultiplier(t, I, A, R);
         boostedBalanceAtTime = (initialBalance * Xm) / SCALE_FACTOR;

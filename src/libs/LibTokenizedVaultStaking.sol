@@ -162,6 +162,7 @@ library LibTokenizedVaultStaking {
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
+        s.stakeCollected[_entityId][_stakerId] = currentInterval;
 
         // set boost and balances to zero
         s.stakeBoost[vTokenId][_stakerId] = 0;
