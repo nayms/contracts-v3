@@ -39,7 +39,6 @@ library LibTokenizedVaultIO {
 
         // emit event
         emit ExternalDeposit(_receiverId, _externalTokenAddress, _amount);
-
     }
 
     function _externalWithdraw(bytes32 _entityId, address _receiver, address _externalTokenAddress, uint256 _amount) internal {
