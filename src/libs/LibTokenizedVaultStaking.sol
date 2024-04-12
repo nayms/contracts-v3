@@ -167,8 +167,8 @@ library LibTokenizedVaultStaking {
         // set boost and balances to zero
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
+
         s.stakeBalance[vTokenId][_stakerId] = 0;
-        s.stakeBalance[vTokenIdNext][_stakerId] = 0;
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
         s.stakeBalance[vTokenIdMax][_stakerId] = 0;
