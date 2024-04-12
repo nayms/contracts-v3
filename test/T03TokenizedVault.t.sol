@@ -7,6 +7,7 @@ import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import "src/shared/CustomErrors.sol";
+import { IERC20 } from "forge-std/interfaces/IERC20.sol";
 
 // solhint-disable max-states-count
 // solhint-disable no-console
@@ -1115,6 +1116,36 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // 9. Alice tries to withdraw the 500 WETH dividend, should withdraw all 500 WETH
         nayms.withdrawDividend(eAlice, eAlice, nWETH);
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's current balance should increase by 500 WETH after receiving dividend.");
+    }
+
+    function testRebasingTokenInterest() public {
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
+
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "acc0EntityId wethId balance should start at 0");
+
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestNotInitialized.selector, wethId));
+        changePrank(sm);
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        changePrank(account0);
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+
+        nayms.externalDeposit(wethAddress, 1 ether);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
+
+        assertEq(nayms.accruedInterest(wethId), 0, "Accrued interest should be zero");
+        vm.mockCall(wethAddress, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(2 ether));
+        assertEq(nayms.accruedInterest(wethId), 1 ether, "Accrued interest should increase");
+
+        changePrank(sm);
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestInsufficient.selector, wethId, 5 ether, 1 ether));
+        nayms.distributeAccruedInterest(wethId, 5 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        nayms.withdrawDividend(acc0EntityId, wethId, wethId);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 2 ether, "acc0EntityId wethId balance should INCREASE (mint)");
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
