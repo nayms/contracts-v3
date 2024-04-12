@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibERC20 } from "./LibERC20.sol";
@@ -33,6 +34,9 @@ library LibTokenizedVaultIO {
         // Only mint what has been collected.
         LibTokenizedVault._internalMint(_receiverId, internalTokenId, mintAmount);
 
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.depositTotal[internalTokenId] += _amount;
+
         // emit event
         emit ExternalDeposit(_receiverId, _externalTokenAddress, _amount);
     }
@@ -50,6 +54,9 @@ library LibTokenizedVaultIO {
 
         // transfer AFTER burn
         LibERC20.transfer(_externalTokenAddress, _receiver, _amount);
+
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.depositTotal[internalTokenId] -= _amount;
 
         // emit event
         emit ExternalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);

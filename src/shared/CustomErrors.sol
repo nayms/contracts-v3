@@ -149,3 +149,11 @@ error InvalidTokenRewardAmount(bytes32 guid, bytes32 entityId, bytes32 rewardTok
 
 /// @dev Insuficient balance available to perform the transfer of funds
 error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
+/// @dev Rebasing interest tracking data has not been initialized yet.
+error RebasingInterestNotInitialized(bytes32 tokenId);
+
+/// @dev Insufficient amount of interest acrrued so far
+error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accruedAmount);
+
+/// @dev Rebase amount cannot be greater than the actual balance
+error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);
