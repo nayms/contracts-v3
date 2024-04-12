@@ -123,13 +123,13 @@ contract T06Staking is D03ProtocolDefaults {
 
     function boostAtInterval(bytes32 stakerId, bytes32 entityId, uint64 interval) internal returns (uint256) {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(stakingFixture.boostAtInterval.selector, stakerId, entityId, interval));
-        require(success, "Should get commissions from app storage");
+        require(success, "Should get boost at interval from app storage");
         return abi.decode(result, (uint256));
     }
 
     function balaceAtInterval(bytes32 stakerId, bytes32 entityId, uint64 interval) internal returns (uint256) {
         (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(stakingFixture.balanceAtInterval.selector, stakerId, entityId, interval));
-        require(success, "Should get commissions from app storage");
+        require(success, "Should get balance at interval from app storage");
         return abi.decode(result, (uint256));
     }
 
