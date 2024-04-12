@@ -40,7 +40,7 @@ const chalk = require("chalk");
 
             await $`forge v ${onChain.address} ${name} --constructor-args ${args} --chain-id ${deploymentInfo[target].chainId} ${verificationArg} --etherscan-api-key ${apiKey} --watch`;
 
-            console.log(`Verified!`);
+            console.log(chalk.green(`  Verified!`));
         }
     }
 })();

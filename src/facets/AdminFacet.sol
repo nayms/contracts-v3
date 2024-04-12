@@ -7,7 +7,6 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
-import { FeeSchedule } from "../shared/FreeStructs.sol";
 
 /**
  * @title Administration
@@ -66,34 +65,70 @@ contract AdminFacet is Modifiers {
         return LibAdmin._getSystemId();
     }
 
+    /**
+     * @notice Check if object can be tokenized
+     * @param _objectId ID of the object
+     */
     function isObjectTokenizable(bytes32 _objectId) external view returns (bool) {
         return LibObject._isObjectTokenizable(_objectId);
     }
 
+    /**
+     * @notice System Admin can lock a function
+     * @dev This toggles FunctionLockedStorage.lock to true
+     * @param functionSelector the bytes4 function selector
+     */
     function lockFunction(bytes4 functionSelector) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._lockFunction(functionSelector);
     }
 
+    /**
+     * @notice System Admin can unlock a function
+     * @dev This toggles FunctionLockedStorage.lock to false
+     * @param functionSelector the bytes4 function selector
+     */
     function unlockFunction(bytes4 functionSelector) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._unlockFunction(functionSelector);
     }
 
+    /**
+     * @notice Check if a function has been locked by a system admin
+     * @dev This views FunctionLockedStorage.lock
+     * @param functionSelector the bytes4 function selector
+     */
     function isFunctionLocked(bytes4 functionSelector) external view returns (bool) {
         return LibAdmin._isFunctionLocked(functionSelector);
     }
 
+    /**
+     * @notice Lock all contract methods involving fund transfers
+     */
     function lockAllFundTransferFunctions() external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._lockAllFundTransferFunctions();
     }
 
+    /**
+     * @notice Unlock all contract methods involving fund transfers
+     */
     function unlockAllFundTransferFunctions() external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibAdmin._unlockAllFundTransferFunctions();
     }
 
+    /**
+     * @notice Update market maker fee basis points
+     * @param _newMakerBP new maker fee value
+     */
     function replaceMakerBP(uint16 _newMakerBP) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._replaceMakerBP(_newMakerBP);
     }
 
+    /**
+     * @notice Add or update an existing fee schedule
+     * @param _entityId object ID for which the fee schedule is being set, use system ID for global fee schedule
+     * @param _feeScheduleType fee schedule type (premiums, trading, inital sale)
+     * @param _receiver array of fee recipient IDs
+     * @param _basisPoints array of basis points for each of the fee receivers
+     */
     function addFeeSchedule(
         bytes32 _entityId,
         uint256 _feeScheduleType,
@@ -103,7 +138,40 @@ contract AdminFacet is Modifiers {
         LibFeeRouter._addFeeSchedule(_entityId, _feeScheduleType, _receiver, _basisPoints);
     }
 
+    /**
+     * @notice remove a fee schedule
+     * @param _entityId object ID for which the fee schedule is being removed
+     * @param _feeScheduleType type of fee schedule
+     */
     function removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibFeeRouter._removeFeeSchedule(_entityId, _feeScheduleType);
+    }
+
+    /**
+     * @notice Approve a user address for self-onboarding
+     * @param _userAddress user account address
+     */
+    function approveSelfOnboarding(
+        address _userAddress,
+        bytes32 _entityId,
+        string calldata _role
+    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
+        LibAdmin._approveSelfOnboarding(_userAddress, _entityId, _role);
+    }
+
+    /**
+     * @notice Create a token holder entity for a user account
+     */
+    function onboard() external {
+        LibAdmin._onboardUser(msg.sender);
+    }
+
+    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId) external view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.selfOnboarding[_userAddress].entityId == _entityId;
+    }
+
+    function cancelSelfOnboarding(address _user) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+        LibAdmin._cancelSelfOnboarding(_user);
     }
 }

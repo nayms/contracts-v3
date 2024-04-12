@@ -16,8 +16,9 @@ Create a `.env` and ensure it contains:
 ```
 LOCAL_RPC_URL=
 ETH_MAINNET_RPC_URL=
-ETH_GOERLI_RPC_URL=
 ETH_SEPOLIA_RPC_URL=
+BASE_MAINNET_RPC_URL=
+BASE_SEPOLIA_RPC_URL=
 ETHERSCAN_API_KEY=
 ```
 
@@ -46,11 +47,13 @@ Currently supported deployment targets are:
 
 - `local`: Local Anvil Node
 - `sepolia`: Sepolia
-- `mainnet`: Mainnet
-- `base`: Base
-- `baseGoerli`: Base Goerli testnet
 - `sepoliaFork`: a local fork of Sepolia
+- `mainnet`: Mainnet
 - `mainnetFork`: a local for of Mainnet
+- `base`: Base
+- `baseFork`: Base Sepolia testnet
+- `baseSepolia`: Base Sepolia testnet
+- `baseSepoliaFork`: Base Sepolia testnet
 
 #### Querying
 
@@ -93,8 +96,10 @@ Following commands are provided for working with `anvil`, to make it more conven
 | `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
 | `make anvil-gtoken` | Deploy `GToken` to local node |
 | `make anvil-add-supported-external-token` | Add `GToken` as supported external token |
-| `make anvil-fork-sepolia`| Fork `Sepolia` test net locally |
-| `make anvil-fork-mainnet`| Fork `Mainnet` locally |
+| `make fork-sepolia`| Fork `Sepolia` test net locally |
+| `make fork-base-sepolia`| Fork `Base Sepolia` test net locally |
+| `make fork-mainnet`| Fork `Mainnet` locally |
+| `make fork-base`| Fork `Base` locally |
 
 > :warning: Anvil state is kept in `anvil.json` file in project root, except for forks. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
 

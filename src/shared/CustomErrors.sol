@@ -25,6 +25,10 @@ error AssignerCannotUnassignRole(bytes32 assigner, bytes32 assignee, bytes32 con
 /// @param group Group to check the sender's role in
 error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInContext, string group);
 
+/// @notice only Token Holder or Capital Provider should be approved for self-onboarding
+/// @param role The name of the rle which should not be approaved for self-onboarding
+error InvalidSelfOnboardRoleApproval(string role);
+
 /// @dev Passing in a missing address when trying to add a token address to the supported external token list.
 error CannotAddNullSupportedExternalToken();
 
@@ -37,8 +41,14 @@ error CannotAddNullDiscountToken();
 /// @dev The entity does not exist when it should.
 error EntityDoesNotExist(bytes32 objectId);
 
+/// @dev The entity self onboarding not approved
+error EntityOnboardingNotApproved(address userAddress);
+
+/// @dev The entity self onboarding already approved
+error EntityOnboardingAlreadyApproved(address userAddress);
+
 /// @dev Cannot create an entity that already exists.
-error CreatingEntityThatAlreadyExists(bytes32 entityId);
+error EntityExistsAlready(bytes32 entityId);
 
 /// @dev The object type is not supported in this function call.
 error InvalidObjectType(bytes32 objectId, bytes12 objectType);
@@ -115,3 +125,36 @@ error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accr
 
 /// @dev Rebase amount cannot be greater than the actual balance
 error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);
+
+/// @dev Staking can be initialized only once
+error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
+
+/// @dev Staking must be started
+error StakingNotStarted(bytes32 entityId, bytes32 tokenId);
+
+/// @dev Invalid A parameter value provided
+error InvalidAValue();
+
+/// @dev Invalid R parameter value provided
+error InvalidRValue();
+
+/// @dev Invalid divider parameter value provided
+error InvalidDividerValue();
+
+/// @dev Invalid parameter values provided
+error APlusRCannotBeGreaterThanDivider();
+
+/// @dev Invalid interval value provided
+error InvalidIntervalSecondsValue();
+
+/// @dev Invalid staking start date provided
+error InvalidStakingInitDate();
+
+/// @dev Only one reward payment is allowed per interval
+error IntervalRewardPayedOutAlready(uint64 interval);
+
+/// @dev Token reward must be greater than minimum sell amount for the reward token
+error InvalidTokenRewardAmount(bytes32 guid, bytes32 entityId, bytes32 rewardTokenId, uint256 rewardAmount);
+
+/// @dev Insuficient balance available to perform the transfer of funds
+error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);

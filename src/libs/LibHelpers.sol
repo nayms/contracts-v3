@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { LibConstants as LC } from "./LibConstants.sol";
+
 /// @notice Pure functions
 library LibHelpers {
     function _getIdForObjectAtIndex(uint256 _index) internal pure returns (bytes32) {

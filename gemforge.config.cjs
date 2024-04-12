@@ -1,19 +1,12 @@
 require("dotenv").config();
+
 const fs = require("fs");
 const ethers = require("ethers");
 
-const testMnemonic =
-  "test test test test test test test test test test test junk";
-
 const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
   ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
-  : testMnemonic;
+  : "test test test test test test test test test test test junk";
 
-const MNEMONIC_MAINNET = fs.existsSync("./nayms_mnemonic_mainnet.txt")
-  ? fs.readFileSync("./nayms_mnemonic_mainnet.txt").toString().trim()
-  : testMnemonic;
-
-const walletOwnerIndex = 19;
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
 
 module.exports = {
@@ -102,17 +95,19 @@ module.exports = {
   },
   // Wallets to use for deployment
   wallets: {
-    wallet1: {
+    // nayms owner
+    devOwnerWallet: {
       type: "mnemonic",
       config: {
         words: MNEMONIC,
-        index: walletOwnerIndex,
+        index: 19,
       },
     },
-    wallet2: {
+    // nayms sys admin
+    devSysAdminWallet: {
       type: "mnemonic",
       config: {
-        words: MNEMONIC_MAINNET,
+        words: MNEMONIC,
         index: 0,
       },
     },
@@ -126,9 +121,7 @@ module.exports = {
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
     sepolia: { rpcUrl: process.env.ETH_SEPOLIA_RPC_URL },
-    sepoliaFork: { rpcUrl: "http://localhost:8545" },
     mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
-    mainnetFork: { rpcUrl: "http://localhost:8545" },
     baseSepolia: {
       rpcUrl: process.env.BASE_SEPOLIA_RPC_URL,
       verifiers: [
@@ -138,7 +131,7 @@ module.exports = {
           verifierApiKey: process.env.BASESCAN_API_KEY,
         },
         {
-          verifierName: "blockscout",
+          verifierName: "blockscout", // needed for louper
           verifierUrl: "https://base-sepolia.blockscout.com/api",
           verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
         },
@@ -154,22 +147,24 @@ module.exports = {
         },
       ],
     },
-    baseFork: { rpcUrl: "http://localhost:8545" },
   },
   targets: {
     local: {
       network: "local",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     sepolia: {
       network: "sepolia",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     sepoliaFork: {
-      network: "sepoliaFork",
-      wallet: "wallet1",
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     mainnet: {
@@ -178,13 +173,21 @@ module.exports = {
       initArgs: [sysAdminAddress],
     },
     mainnetFork: {
-      network: "mainnetFork",
-      wallet: "wallet1",
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [],
     },
     baseSepolia: {
       network: "baseSepolia",
-      wallet: "wallet1",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
+      initArgs: [sysAdminAddress],
+    },
+    baseSepoliaFork: {
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
     base: {
@@ -193,8 +196,9 @@ module.exports = {
       initArgs: [sysAdminAddress],
     },
     baseFork: {
-      network: "baseFork",
-      wallet: "wallet1",
+      network: "local",
+      wallet: "devOwnerWallet",
+      governance: "devSysAdminWallet",
       initArgs: [sysAdminAddress],
     },
   },

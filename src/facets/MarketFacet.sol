@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import { Modifiers } from "../shared/Modifiers.sol";
-import { CalculatedFees, MarketInfo } from "../shared/AppStorage.sol";
+import { MarketInfo } from "../shared/AppStorage.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
@@ -120,6 +120,10 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         (totalFees_, totalBP_) = LibFeeRouter._calculateTradingFees(_buyerId, _sellToken, _buyToken, _buyAmount);
     }
 
+    /**
+     * @dev Get the maker commission basis points.
+     * @return maker fee BP
+     */
     function getMakerBP() external view returns (uint16) {
         return LibFeeRouter._getMakerBP();
     }
