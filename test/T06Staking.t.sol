@@ -191,39 +191,6 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.currentInterval(nlf.entityId), 2, "current interval not 2");
     }
 
-    function test_NAY1_boostReset() public {
-        initStaking(block.timestamp + 1);
-
-        uint256 bobsBoost = (bobStakeAmount * A) / (A + R);
-
-        startPrank(bob);
-        nayms.stake(nlf.entityId, bobStakeAmount);
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's stake should increase");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), bobsBoost, "Bob's boost should increase");
-
-        nayms.unstake(nlf.entityId);
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should decrease");
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 1), 0, "Bob's stake[0] should decrease");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[1] should decrease");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 1), 0, "Bob's boost[1] should decrease");
-
-        vm.warp(40 days);
-        nayms.stake(nlf.entityId, bobStakeAmount);
-
-        uint64 currentInterval = nayms.currentInterval(nlf.entityId);
-        uint256 startCurrent = nayms.calculateStartTimeOfInterval(nlf.entityId, currentInterval);
-
-        uint256 bobsBoost2 = (bobsBoost * (block.timestamp - startCurrent)) / I;
-        uint256 bobsBoost1 = bobsBoost - bobsBoost2;
-
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should not change");
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 1), bobStakeAmount, "Bob's stake[1] should increase");
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 2), 0, "Bob's stake[2] should not change");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[0] should not change");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 1), bobsBoost1, "Bob's boost[1] should increase");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 2), bobsBoost2, "Bob's boost[2] should increase");
-    }
-
     function test_stake() public {
         uint256 start = block.timestamp + 1;
 
@@ -788,5 +755,38 @@ contract T06Staking is D03ProtocolDefaults {
         }
 
         return result;
+    }
+
+    function test_NAY1_boostReset() public {
+        initStaking(block.timestamp + 1);
+
+        uint256 bobsBoost = (bobStakeAmount * A) / (A + R);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's stake should increase");
+        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), bobsBoost, "Bob's boost should increase");
+
+        nayms.unstake(nlf.entityId);
+        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should decrease");
+        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 1), 0, "Bob's stake[0] should decrease");
+        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[1] should decrease");
+        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 1), 0, "Bob's boost[1] should decrease");
+
+        vm.warp(40 days);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+
+        uint64 currentInterval = nayms.currentInterval(nlf.entityId);
+        uint256 startCurrent = nayms.calculateStartTimeOfInterval(nlf.entityId, currentInterval);
+
+        uint256 bobsBoost2 = (bobsBoost * (block.timestamp - startCurrent)) / I;
+        uint256 bobsBoost1 = bobsBoost - bobsBoost2;
+
+        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should not change");
+        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 1), bobStakeAmount, "Bob's stake[1] should increase");
+        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 2), 0, "Bob's stake[2] should not change");
+        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[0] should not change");
+        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 1), bobsBoost1, "Bob's boost[1] should increase");
+        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 2), bobsBoost2, "Bob's boost[2] should increase");
     }
 }
