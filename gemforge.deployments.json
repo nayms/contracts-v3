@@ -160,6 +160,46 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "UserFacet",
+        "fullyQualifiedName": "UserFacet.sol:UserFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x5888b21a6c8322ef6dc700522254e60ed14c34f5f31e668b15bde76d9e00ca98",
+        "onChain": {
+          "address": "0x6EA81F51B6C12cE8b029249c872f0583F099bcDb",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "AdminFacet",
+        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x717479e1be352b8dcbeb4d99f1f9af8ec8f4b69478b3265b492c58beacd58463",
+        "onChain": {
+          "address": "0x66861b55273184c93d898a8adc38Dc49f9F97Ee2",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x8ae72d9725a4cdc17427a1375bc7e4bff06f7d8098cab88721e64bb3828d8ccf",
+        "onChain": {
+          "address": "0xB5d8896CEda82FA3523b00cF37e91D1F26e80E0E",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x2057becb44db4a2a4081d42db845ae27c4464411059d915784ddd83536769c28",
+        "onChain": {
+          "address": "0xFAf0C7120dcd00a4235261328869934ccA6ef2d3",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -178,16 +218,6 @@
         "txHash": "0x78830a63e16d780b163a4ba154d453dd0eba6bd3ee3b5835a29a86a93244b19b",
         "onChain": {
           "address": "0x3286dA55EaeB7Fe68bCDF901fA9685a4CaE264dF",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "AdminFacet",
-        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x99c3c638c329547f65e132ee2c3e549f401f8ae2590dee4af4954394b3f8dbaa",
-        "onChain": {
-          "address": "0xAB4747ed349Dd5EE1a2ADDFa3366db4Aa19E3ea7",
           "constructorArgs": []
         }
       },
@@ -268,36 +298,6 @@
         "txHash": "0x17ac1233c02b5a81f1ae9fa61e20509c7928379b00869bff68aafc1668524485",
         "onChain": {
           "address": "0x2cc6d882b8E49C9Bd234C01fB3bd9CeD31e19A08",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x185df9ae23ee280bf1fd3ff3aefc6e300d8b4b1221469fb0150db4b58544077c",
-        "onChain": {
-          "address": "0x2fb733FfAbb775F857716A734D4B7f306C1638Ac",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x236ff19fedd04d63bd879a1fa3d78105ee6746c59e1d83fa1ac12ae70bf0cec3",
-        "onChain": {
-          "address": "0xb3b475D987Dc175ec71459B88F44936C6E93d9C9",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "UserFacet",
-        "fullyQualifiedName": "UserFacet.sol:UserFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x23ef4b34b7a76e00fb2fb5ad6e7570b48f071fbd367efa4eaccbcdc72f4b4e51",
-        "onChain": {
-          "address": "0x6E1Dc7F0313617DD10EcCb8D74544b30d18A8049",
           "constructorArgs": []
         }
       },
@@ -684,7 +684,7 @@
         "sender": "0x0000000000000000000000000000000000000000",
         "txHash": "0x0000000000000000000000000000000000000000",
         "onChain": {
-          "address": "0x7E5462DA297440D2a27fE27d1F291Cf67202302B",
+          "address": "0x0719BD709d80fB4432861b39a9352AE64c40B7BA",
           "constructorArgs": []
         }
       }
@@ -883,7 +883,7 @@
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
         "txHash": "0xc39d80473198c0e543bc4fa29f232d8b2fb6e7ae98cadc89598d6d64a7322851",
         "onChain": {
-          "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
+          "address": "0x0F93808ca46eBd1362b7d940F2634bad7F45f298",
           "constructorArgs": [
             "0x931c3aC09202650148Edb2316e97815f904CF4fa"
           ]
@@ -894,6 +894,36 @@
   "baseSepolia": {
     "chainId": 84532,
     "contracts": [
+      {
+        "name": "AdminFacet",
+        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xe6ccc5a99ca7456f7ee17bf7093e86e57d5f735e6c6040d8eaf9330b7b30428f",
+        "onChain": {
+          "address": "0x68039D06039b2c9F20babF0AAaA29BE91A9b927a",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xc6ca105308c6f1182df77816a47b67c5f97f7df64ad2c274ce9c9015f972e88a",
+        "onChain": {
+          "address": "0x53B03551EA493987E357748627C77C5359298adf",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x5283358a61984375adf39f638666c64fa1b48232c7043e3a73a7d91807cd0e64",
+        "onChain": {
+          "address": "0xaD83fAB87F7499ca6868A375685b39Ed17D74acd",
+          "constructorArgs": []
+        }
+      },
       {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
@@ -913,16 +943,6 @@
         "txHash": "0x3ae576403a5020821b4f748b99b7e257589fc8de4fcd04a4b7e2fff7a933c2ef",
         "onChain": {
           "address": "0x435807A905513E62f0BA68675830CCD7bb05aB67",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "AdminFacet",
-        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xa4374aedc5516ec388c68770a4e077667f34bee02c6844f89053d6695034457c",
-        "onChain": {
-          "address": "0xa866B1C6B78EF390D96C56Ac7D0B7d117dd11C0B",
           "constructorArgs": []
         }
       },
@@ -1003,26 +1023,6 @@
         "txHash": "0xde34ec0e839264d3287e3b24c40645e2dd56d292a66e7bcd677bbb91ba0fcb3b",
         "onChain": {
           "address": "0x2805eF15cd5720117c830141BB13037c55d94F8D",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x2c6b127be7bb73bde098bc6f287fc55de0508e88302ccf279b49a7694bbd7d24",
-        "onChain": {
-          "address": "0x01A87916205cCa00E8971C9298F8B3551d39a53f",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x278211c7d8c7adf472231883a4100688575d13f82d842cbb5577c90070efa0d2",
-        "onChain": {
-          "address": "0x44ebB433aD03A9B5BcA476b12621E24335AC108e",
           "constructorArgs": []
         }
       },

@@ -55,6 +55,11 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
     _showTargetInfo(targetArg);
 
     switch (process.argv[3]) {
+        case "--dry": {
+            console.log("Dry-run Deployment");
+            await $`yarn gemforge deploy ${targetArg} --dry`;
+            break;
+        }
         case "--fresh": {
             console.log(`Fresh Deploy`);
             await $`yarn gemforge deploy ${targetArg} -n`;
