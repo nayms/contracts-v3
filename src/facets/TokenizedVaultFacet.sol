@@ -171,8 +171,4 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
         LibTokenizedVault._payDividend(_guid, _tokenId, _tokenId, _tokenId, _amount);
     }
-
-    function rebaseERC20(bytes32 _tokenId, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        LibTokenizedVault._rebaseERC20(_tokenId, _amount);
-    }
 }
