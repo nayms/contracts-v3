@@ -41,7 +41,9 @@ library LibTokenizedVaultStaking {
         } else {
             revert StakingAlreadyStarted(_entityId, _config.tokenId);
         }
-        emit TokenStakingStarted(_entityId, _config.tokenId, block.timestamp, _config.a, _config.r, _config.divider, _config.interval);
+
+        // note: Staking starts on the initDate which could be a future date relative to the current block.timestamp
+        emit TokenStakingStarted(_entityId, _config.tokenId, _config.initDate, _config.a, _config.r, _config.divider, _config.interval);
     }
 
     function _isStakingInitialized(bytes32 _entityId) internal view returns (bool) {
