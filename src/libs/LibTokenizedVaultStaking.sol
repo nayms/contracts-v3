@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -328,7 +329,7 @@ library LibTokenizedVaultStaking {
      */
     function _calculateStartTimeOfInterval(bytes32 _entityId, uint64 _interval) internal view returns (uint64 intervalTime_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        intervalTime_ = uint64(s.stakingConfigs[_entityId].initDate + (_interval * s.stakingConfigs[_entityId].interval));
+        intervalTime_ = SafeCastLib.toUint64(s.stakingConfigs[_entityId].initDate + (_interval * s.stakingConfigs[_entityId].interval));
     }
 
     function _calculateStartTimeOfCurrentInterval(bytes32 _entityId) internal view returns (uint64 intervalTime_) {
