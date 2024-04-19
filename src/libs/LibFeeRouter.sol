@@ -202,6 +202,8 @@ library LibFeeRouter {
     }
 
     function _removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal {
+        // note: default fee schedule is stored at s.feeSchedules[LibConstants.DEFAULT_FEE_SCHEDULE][_feeScheduleType]
+        // cannot remove this default fee schedule.
         require(_entityId != LibConstants.DEFAULT_FEE_SCHEDULE, "cannot remove default fees");
         AppStorage storage s = LibAppStorage.diamondStorage();
         delete s.feeSchedules[_entityId][_feeScheduleType];
