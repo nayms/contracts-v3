@@ -7,7 +7,7 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
-import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid } from "../shared/CustomErrors.sol";
+import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
 
 import { InsufficientBalance } from "../shared/CustomErrors.sol";
 
@@ -278,6 +278,10 @@ library LibTokenizedVault {
         uint256 depositTotal = s.depositTotal[_tokenId];
         uint256 total = LibERC20.balanceOf(tokenAddress, address(this));
 
+        // If the Nayms balance of the rebasing token has decreased and is lower than the deposit total, revert
+        if (total < depositTotal) {
+            revert RebasingSupplyDecreased(_tokenId, depositTotal, total);
+        }
         return total - depositTotal;
     }
 
