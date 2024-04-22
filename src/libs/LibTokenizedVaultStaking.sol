@@ -11,7 +11,13 @@ import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStru
 
 import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount } from "../shared/CustomErrors.sol";
 
+// solhint-disable no-console
+import { console2 as c } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 library LibTokenizedVaultStaking {
+    using StdStyle for *;
+
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
     event TokenStaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
     event TokenUnstaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
@@ -77,6 +83,7 @@ library LibTokenizedVaultStaking {
 
         uint64 interval = _currentInterval(_entityId);
         bytes32 vTokenId = _vTokenId(tokenId, interval);
+        bytes32 vTokenIdPrevious = _vTokenId(tokenId, interval - 1); // NEW
 
         StakingState memory stakingState = _getStakingState(_entityId, _entityId);
 
@@ -84,12 +91,17 @@ library LibTokenizedVaultStaking {
             revert StakingNotStarted(_entityId, tokenId);
         }
 
-        if (s.stakingDistributionDenomination[vTokenId] != 0) {
+        // if (s.stakingDistributionDenomination[vTokenId] != 0) {
+        //     revert IntervalRewardPayedOutAlready(interval);
+        // }
+        if (s.stakeCollected[_entityId][_entityId] == interval) {
             revert IntervalRewardPayedOutAlready(interval);
         }
 
         s.stakingDistributionAmount[vTokenId] = _rewardAmount;
         s.stakingDistributionDenomination[vTokenId] = _rewardTokenId;
+        // s.stakingDistributionAmount[vTokenIdPrevious] = _rewardAmount; // NEW
+        // s.stakingDistributionDenomination[vTokenIdPrevious] = _rewardTokenId; // NEW
 
         // No money needs to actually be transferred
         s.stakeBalance[vTokenId][_entityId] = stakingState.balance;
@@ -159,12 +171,26 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
+        bytes32 vTokenIdLastPaidMinusOne = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId] - 1); // NEW
+        bytes32 vTokenIdLastPaid = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId]); // NEW
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
         s.stakeCollected[_entityId][_stakerId] = currentInterval;
+        // s.stakeCollected[_entityId][_stakerId] = currentInterval - 1; // NEW
 
         // set boost and balances to zero
+        // s.stakingDistributionAmount[vTokenIdLastPaidMinusOne] -=
+        //     (s.stakingDistributionAmount[vTokenIdLastPaidMinusOne] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
+        //     s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
+        s.stakingDistributionAmount[vTokenIdLastPaid] -=
+            (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
+            s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
+
+        s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId] -= s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]; // NEW
+        s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId]; // NEW
+
+        s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId] = 0; // NEW
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
 
@@ -209,6 +235,7 @@ library LibTokenizedVaultStaking {
 
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
+
             for (uint64 i = state.lastCollectedInterval; i < _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
                 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
