@@ -856,7 +856,7 @@ contract T06Staking is D03ProtocolDefaults {
 
         assertEq(
             getRewards(bob.entityId, nlf.entityId),
-            (rewardAmount * bobStakeAmount) / (bobStakeAmount + sueStakeAmount),
+            rewardAmount - (rewardAmount * sueStakeAmount) / (bobStakeAmount + sueStakeAmount), // this way we consider rounding error margin
             "Bob's reward[1] should not change after sue unstakes"
         );
 

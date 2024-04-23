@@ -83,7 +83,6 @@ library LibTokenizedVaultStaking {
 
         uint64 interval = _currentInterval(_entityId);
         bytes32 vTokenId = _vTokenId(tokenId, interval);
-        bytes32 vTokenIdPrevious = _vTokenId(tokenId, interval - 1); // NEW
 
         StakingState memory stakingState = _getStakingState(_entityId, _entityId);
 
@@ -91,17 +90,12 @@ library LibTokenizedVaultStaking {
             revert StakingNotStarted(_entityId, tokenId);
         }
 
-        // if (s.stakingDistributionDenomination[vTokenId] != 0) {
-        //     revert IntervalRewardPayedOutAlready(interval);
-        // }
         if (s.stakeCollected[_entityId][_entityId] == interval) {
             revert IntervalRewardPayedOutAlready(interval);
         }
 
         s.stakingDistributionAmount[vTokenId] = _rewardAmount;
         s.stakingDistributionDenomination[vTokenId] = _rewardTokenId;
-        // s.stakingDistributionAmount[vTokenIdPrevious] = _rewardAmount; // NEW
-        // s.stakingDistributionDenomination[vTokenIdPrevious] = _rewardTokenId; // NEW
 
         // No money needs to actually be transferred
         s.stakeBalance[vTokenId][_entityId] = stakingState.balance;
@@ -171,32 +165,18 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
-        bytes32 vTokenIdLastPaidMinusOne = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId] - 1); // NEW
         bytes32 vTokenIdLastPaid = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId]); // NEW
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
         s.stakeCollected[_entityId][_stakerId] = currentInterval;
-        // s.stakeCollected[_entityId][_stakerId] = currentInterval - 1; // NEW
 
-        // set boost and balances to zero
-        // s.stakingDistributionAmount[vTokenIdLastPaidMinusOne] -=
-        //     (s.stakingDistributionAmount[vTokenIdLastPaidMinusOne] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
-        //     s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
-        //
-        // s.stakingDistributionAmount[vTokenIdLastPaid] -=
-        //     (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
-        //     s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
-        //
         s.stakingDistributionAmount[vTokenIdLastPaid] -=
             (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaid][_stakerId]) /
             s.stakeBalance[vTokenIdLastPaid][_entityId]; // NEW
 
-        // s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId] -= s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]; // NEW
-        // s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId]; // NEW
         s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId]; // NEW
 
-        // s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId] = 0; // NEW
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
         s.stakeBalance[vTokenId][_stakerId] = 0;
