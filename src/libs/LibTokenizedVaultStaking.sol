@@ -217,6 +217,10 @@ library LibTokenizedVaultStaking {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
 
+            if (_interval > s.stakeCollected[_entityId][_entityId]) {
+                _interval = s.stakeCollected[_entityId][_entityId];
+            }
+
             for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
                 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
