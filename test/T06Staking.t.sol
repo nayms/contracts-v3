@@ -59,8 +59,8 @@ contract T06Staking is D03ProtocolDefaults {
     function setUp() public {
         stakingFixture = new StakingFixture();
         bytes4[] memory sSelectors = new bytes4[](2);
-        sSelectors[0] = StakingFixture.boostAtInterval.selector;
-        sSelectors[1] = StakingFixture.balanceAtInterval.selector;
+        sSelectors[0] = StakingFixture.stakeBoost.selector;
+        sSelectors[1] = StakingFixture.stakeBalance.selector;
 
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         // prettier-ignore
@@ -121,14 +121,14 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.internalTransferFromEntity(nlf.entityId, wethId, wethTotal);
     }
 
-    function boostAtInterval(bytes32 stakerId, bytes32 entityId, uint64 interval) internal returns (uint256) {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(stakingFixture.boostAtInterval.selector, stakerId, entityId, interval));
+    function stakeBoost(bytes32 stakerId, bytes32 entityId, uint64 interval) internal returns (uint256) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(stakingFixture.stakeBoost.selector, stakerId, entityId, interval));
         require(success, "Should get boost at interval from app storage");
         return abi.decode(result, (uint256));
     }
 
-    function balaceAtInterval(bytes32 stakerId, bytes32 entityId, uint64 interval) internal returns (uint256) {
-        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(stakingFixture.balanceAtInterval.selector, stakerId, entityId, interval));
+    function stakeBalance(bytes32 stakerId, bytes32 entityId, uint64 interval) internal returns (uint256) {
+        (bool success, bytes memory result) = address(nayms).call(abi.encodeWithSelector(stakingFixture.stakeBalance.selector, stakerId, entityId, interval));
         require(success, "Should get balance at interval from app storage");
         return abi.decode(result, (uint256));
     }
@@ -756,14 +756,14 @@ contract T06Staking is D03ProtocolDefaults {
 
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's stake should increase");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), bobsBoost, "Bob's boost should increase");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's stake should increase");
+        assertEq(stakeBoost(bob.entityId, nlf.entityId, 0), bobsBoost, "Bob's boost should increase");
 
         nayms.unstake(nlf.entityId);
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should decrease");
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 1), 0, "Bob's stake[0] should decrease");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[1] should decrease");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 1), 0, "Bob's boost[1] should decrease");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should decrease");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 1), 0, "Bob's stake[0] should decrease");
+        assertEq(stakeBoost(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[1] should decrease");
+        assertEq(stakeBoost(bob.entityId, nlf.entityId, 1), 0, "Bob's boost[1] should decrease");
 
         vm.warp(40 days);
         nayms.stake(nlf.entityId, bobStakeAmount);
@@ -774,12 +774,12 @@ contract T06Staking is D03ProtocolDefaults {
         uint256 bobsBoost2 = (bobsBoost * (block.timestamp - startCurrent)) / I;
         uint256 bobsBoost1 = bobsBoost - bobsBoost2;
 
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should not change");
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 1), bobStakeAmount, "Bob's stake[1] should increase");
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 2), 0, "Bob's stake[2] should not change");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[0] should not change");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 1), bobsBoost1, "Bob's boost[1] should increase");
-        assertEq(boostAtInterval(bob.entityId, nlf.entityId, 2), bobsBoost2, "Bob's boost[2] should increase");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should not change");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 1), bobStakeAmount, "Bob's stake[1] should increase");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 2), 0, "Bob's stake[2] should not change");
+        assertEq(stakeBoost(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[0] should not change");
+        assertEq(stakeBoost(bob.entityId, nlf.entityId, 1), bobsBoost1, "Bob's boost[1] should increase");
+        assertEq(stakeBoost(bob.entityId, nlf.entityId, 2), bobsBoost2, "Bob's boost[2] should increase");
     }
 
     function test_NAY2_stakingBalanceTotalAfterUnstake() public {
@@ -789,34 +789,34 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
 
-        assertEq(balaceAtInterval(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's balance[0] incorrect");
-        assertEq(balaceAtInterval(nlf.entityId, nlf.entityId, 0), bobStakeAmount, "NLF's balance[0] incorrect");
+        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's balance[0] incorrect");
+        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 0), bobStakeAmount, "NLF's balance[0] incorrect");
 
         c.log(" -- bob staked --".yellow());
-        c.log(" -- bob[0]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 1));
+        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
+        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
         c.log(" -- bob's reward[%s]: %s".blue(), 1, getRewards(bob.entityId, nlf.entityId));
         c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 1));
+        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
+        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
 
         startPrank(sue);
         nayms.stake(nlf.entityId, sueStakeAmount);
 
-        assertEq(balaceAtInterval(sue.entityId, nlf.entityId, 0), sueStakeAmount, "Sue's balance[0] incorrect");
-        assertEq(balaceAtInterval(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] incorrect");
+        assertEq(stakeBalance(sue.entityId, nlf.entityId, 0), sueStakeAmount, "Sue's balance[0] incorrect");
+        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] incorrect");
 
         c.log(" -- sue staked --".yellow());
-        c.log(" -- bob[0]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 1));
+        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
+        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
         c.log(" -- bob's reward[%s]: %s".blue(), 0, getRewards(bob.entityId, nlf.entityId));
         c.log(" ");
-        c.log(" -- sue[0]: %s".blue(), balaceAtInterval(sue.entityId, nlf.entityId, 0));
-        c.log("    sue[1]: %s".blue(), balaceAtInterval(sue.entityId, nlf.entityId, 1));
+        c.log(" -- sue[0]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 0));
+        c.log("    sue[1]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 1));
         c.log(" -- sue's reward[%s]: %s".blue(), 0, getRewards(sue.entityId, nlf.entityId));
         c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 1));
+        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
+        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
 
         vm.warp(2 * I);
 
@@ -829,21 +829,21 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(getRewards(sue.entityId, nlf.entityId), (rewardAmount * sueStakeAmount) / (bobStakeAmount + sueStakeAmount), "Sue's reward[1] incorrect");
 
         c.log(" -- rewards payed out [1] --".yellow());
-        c.log(" -- bob[0]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 1));
+        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
+        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
         c.log(" -- bob's reward[%s]: %s".blue(), 1, getRewards(bob.entityId, nlf.entityId));
         c.log(" ");
-        c.log(" -- sue[0]: %s".blue(), balaceAtInterval(sue.entityId, nlf.entityId, 0));
-        c.log("    sue[1]: %s".blue(), balaceAtInterval(sue.entityId, nlf.entityId, 1));
+        c.log(" -- sue[0]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 0));
+        c.log("    sue[1]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 1));
         c.log(" -- sue's reward[%s]: %s".blue(), 1, getRewards(sue.entityId, nlf.entityId));
         c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 1));
+        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
+        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
 
         startPrank(sue);
         nayms.unstake(nlf.entityId);
 
-        assertEq(balaceAtInterval(sue.entityId, nlf.entityId, 1), 0, "Sue's balance[1] should be 0");
+        assertEq(stakeBalance(sue.entityId, nlf.entityId, 1), 0, "Sue's balance[1] should be 0");
         assertEq(getRewards(sue.entityId, nlf.entityId), 0, "Sue's reward[1] should have been claimed and be zero now");
 
         assertEq(
@@ -853,19 +853,19 @@ contract T06Staking is D03ProtocolDefaults {
         );
 
         c.log(" -- sue unstaked --".yellow());
-        c.log(" -- bob[0]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 1));
+        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
+        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
         c.log(" -- bob's reward[%s]: %s".blue(), 1, getRewards(bob.entityId, nlf.entityId));
         c.log(" ");
-        c.log(" -- sue[0]: %s".blue(), balaceAtInterval(sue.entityId, nlf.entityId, 0));
-        c.log("    sue[1]: %s".blue(), balaceAtInterval(sue.entityId, nlf.entityId, 1));
+        c.log(" -- sue[0]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 0));
+        c.log("    sue[1]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 1));
         c.log("    last collected: %s".blue(), nayms.lastCollectedInterval(nlf.entityId, sue.entityId));
         c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 1));
+        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
+        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
 
-        assertEq(balaceAtInterval(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] should not change");
-        assertEq(balaceAtInterval(nlf.entityId, nlf.entityId, 1), bobStakeAmount + boostAtInterval(bob.entityId, nlf.entityId, 0), "NLF's balance[1] should change");
+        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] should not change");
+        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 1), bobStakeAmount + stakeBoost(bob.entityId, nlf.entityId, 0), "NLF's balance[1] should change");
     }
 
     function getRewards(bytes32 stakerId, bytes32 nlfId) private view returns (uint256) {

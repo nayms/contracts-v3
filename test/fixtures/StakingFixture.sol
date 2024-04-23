@@ -5,7 +5,7 @@ import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol"
 import { AppStorage, LibAppStorage } from "src/shared/AppStorage.sol";
 
 contract StakingFixture {
-    function boostAtInterval(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) public view returns (uint256) {
+    function stakeBoost(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) public view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
@@ -14,7 +14,7 @@ contract StakingFixture {
         return s.stakeBoost[vTokenId][_stakerId];
     }
 
-    function balanceAtInterval(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) public view returns (uint256) {
+    function stakeBalance(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) public view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
