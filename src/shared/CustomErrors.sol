@@ -158,3 +158,6 @@ error InvalidTokenRewardAmount(bytes32 guid, bytes32 entityId, bytes32 rewardTok
 
 /// @dev Insuficient balance available to perform the transfer of funds
 error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
+
+/// @dev Cannot unassign the role from the sender
+error CannotUnassignRoleFromSelf(string role);
