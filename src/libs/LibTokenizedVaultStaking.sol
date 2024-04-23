@@ -183,17 +183,22 @@ library LibTokenizedVaultStaking {
         // s.stakingDistributionAmount[vTokenIdLastPaidMinusOne] -=
         //     (s.stakingDistributionAmount[vTokenIdLastPaidMinusOne] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
         //     s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
+        //
+        // s.stakingDistributionAmount[vTokenIdLastPaid] -=
+        //     (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
+        //     s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
+        //
         s.stakingDistributionAmount[vTokenIdLastPaid] -=
-            (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]) /
-            s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId]; // NEW
+            (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaid][_stakerId]) /
+            s.stakeBalance[vTokenIdLastPaid][_entityId]; // NEW
 
-        s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId] -= s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]; // NEW
+        // s.stakeBalance[vTokenIdLastPaidMinusOne][_entityId] -= s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId]; // NEW
+        // s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId]; // NEW
         s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId]; // NEW
 
-        s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId] = 0; // NEW
+        // s.stakeBalance[vTokenIdLastPaidMinusOne][_stakerId] = 0; // NEW
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
-
         s.stakeBalance[vTokenId][_stakerId] = 0;
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
@@ -236,9 +241,12 @@ library LibTokenizedVaultStaking {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
 
-            for (uint64 i = state.lastCollectedInterval; i < _interval; ++i) {
+            for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
                 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
+
+                state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
+                state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
 
                 if (totalDistributionAmount > 0) {
                     stakingDistributionDenomination = s.stakingDistributionDenomination[_vTokenId(tokenId, i)];
@@ -254,8 +262,8 @@ library LibTokenizedVaultStaking {
                     rewards.amounts[currencyIndex] += userDistributionAmount;
                     rewards.lastPaidInterval = i;
                 }
-                state.balance += s.stakeBalance[_vTokenId(tokenId, i + 1)][_stakerId] + state.boost;
-                state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
+                // state.balance += s.stakeBalance[_vTokenId(tokenId, i + 1)][_stakerId] + state.boost;
+                // state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
         }
     }
@@ -274,9 +282,9 @@ library LibTokenizedVaultStaking {
         {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
-            for (uint64 i = state.lastCollectedInterval; i < currentInterval; ++i) {
-                state.balance += s.stakeBalance[_vTokenId(tokenId, i + 1)][_stakerId] + state.boost;
-                state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
+            for (uint64 i = state.lastCollectedInterval + 1; i <= currentInterval; ++i) {
+                state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
+                state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
         }
     }
