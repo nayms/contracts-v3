@@ -852,9 +852,6 @@ contract T06Staking is D03ProtocolDefaults {
             "Bob's reward[1] should not change after sue unstakes"
         );
 
-        // TODO: assert NLF[0] total is unchanged
-        // TODO: assert NLF[1] total is correct
-
         c.log(" -- sue unstaked --".yellow());
         c.log(" -- bob[0]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 0));
         c.log("    bob[1]: %s".blue(), balaceAtInterval(bob.entityId, nlf.entityId, 1));
@@ -866,6 +863,9 @@ contract T06Staking is D03ProtocolDefaults {
         c.log(" ");
         c.log(" -- nlf[0]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 0));
         c.log("    nlf[1]: %s".blue(), balaceAtInterval(nlf.entityId, nlf.entityId, 1));
+
+        assertEq(balaceAtInterval(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] should not change");
+        assertEq(balaceAtInterval(nlf.entityId, nlf.entityId, 1), bobStakeAmount + boostAtInterval(bob.entityId, nlf.entityId, 0), "NLF's balance[1] should change");
     }
 
     function getRewards(bytes32 stakerId, bytes32 nlfId) private view returns (uint256) {
