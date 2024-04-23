@@ -216,15 +216,11 @@ library LibTokenizedVaultStaking {
         bytes32 _entityId,
         uint64 _interval
     ) internal view returns (StakingState memory state, RewardsBalances memory rewards) {
-        // Rewards can be made in various denominations, but only 1 denomination per
-        // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         // Get the last interval where distribution was collected by the user.
         state.lastCollectedInterval = s.stakeCollected[_entityId][_stakerId];
-        // Get the current interval
         if (_interval < state.lastCollectedInterval) {
             revert("rewards already collected");
         }
@@ -262,23 +258,16 @@ library LibTokenizedVaultStaking {
                     rewards.amounts[currencyIndex] += userDistributionAmount;
                     rewards.lastPaidInterval = i;
                 }
-                // state.balance += s.stakeBalance[_vTokenId(tokenId, i + 1)][_stakerId] + state.boost;
-                // state.boost = s.stakeBoost[_vTokenId(tokenId, i + 1)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
         }
     }
 
     function _getStakingState(bytes32 _stakerId, bytes32 _entityId) internal view returns (StakingState memory state) {
-        // Rewards can be made in various denominations, but only 1 denomination per
-        // interval. This limits the size of the array.
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-
         state.lastCollectedInterval = s.stakeCollected[_entityId][_stakerId];
-
         uint64 currentInterval = _currentInterval(_entityId);
-
         {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
