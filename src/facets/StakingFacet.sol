@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibTokenizedVaultStaking, StakingConfig } from "../libs/LibTokenizedVaultStaking.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
@@ -40,13 +39,11 @@ contract StakingFacet is Modifiers {
     }
 
     function lastCollectedInterval(bytes32 _entityId, bytes32 _stakerId) external view returns (uint64) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.stakeCollected[_entityId][_stakerId];
+        return LibTokenizedVaultStaking._lastCollectedInterval(_entityId, _stakerId);
     }
 
-    function lastIntervalPaid(bytes32 _entityId) external view returns (uint64) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.stakeCollected[_entityId][_entityId];
+    function lastPaidInterval(bytes32 _entityId) external view returns (uint64) {
+        return LibTokenizedVaultStaking._lastPaidInterval(_entityId);
     }
 
     function calculateStartTimeOfInterval(bytes32 _entityId, uint64 _interval) external view returns (uint256) {
@@ -67,9 +64,8 @@ contract StakingFacet is Modifiers {
     }
 
     function collectRewards(bytes32 _entityId) external notLocked(msg.sig) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
-        uint64 lastPaid = s.stakeCollected[_entityId][_entityId];
+        uint64 lastPaid = LibTokenizedVaultStaking._lastPaidInterval(_entityId);
 
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }

@@ -64,6 +64,16 @@ library LibTokenizedVaultStaking {
         }
     }
 
+    function _lastCollectedInterval(bytes32 _entityId, bytes32 _stakerId) internal view returns (uint64) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.stakeCollected[_entityId][_stakerId];
+    }
+
+    function _lastPaidInterval(bytes32 _entityId) internal view returns (uint64) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.stakeCollected[_entityId][_entityId];
+    }
+
     function _payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
