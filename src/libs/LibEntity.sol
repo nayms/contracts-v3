@@ -29,7 +29,9 @@ import {
     SimplePolicyPremiumsPaidShouldStartAtZero, 
     CancelCannotBeTrueWhenCreatingSimplePolicy, 
     UtilizedCapacityGreaterThanMaxCapacity, 
-    EntityOnboardingNotApproved 
+    EntityOnboardingNotApproved,
+    InvalidSignatureError,
+    InvalidSignatureSError
 } from "../shared/CustomErrors.sol";
 
 library LibEntity {
@@ -226,7 +228,10 @@ library LibEntity {
             }
         }
 
-        (address signer, , ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+        (address signer, ECDSA.RecoverError err, ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+
+        if (err == ECDSA.RecoverError.InvalidSignature) revert InvalidSignatureError(signingHash);
+        else if (err == ECDSA.RecoverError.InvalidSignatureS) revert InvalidSignatureSError(s);
 
         return signer;
     }
