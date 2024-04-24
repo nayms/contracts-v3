@@ -86,8 +86,8 @@ struct AppStorage {
     mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 reward)) stakeBalance; // [vTokenId][ownerId] Reward per interval
     mapping(bytes32 vTokenId => mapping(bytes32 _stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] Boost per interval
     mapping(bytes32 entityId => mapping(bytes32 _stakerId => uint64 interval)) stakeCollected; // the entityId index is used to keep track of the last paid interval for a staker
-    mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId][ownerId] Reward per interval
-    mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId][ownerId] Reward per interval
+    mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId] Reward per interval
+    mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId] Reward currency
 }
 
 struct FunctionLockedStorage {
