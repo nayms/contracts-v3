@@ -169,7 +169,7 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
-        bytes32 vTokenIdLastPaid = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId]); // NEW
+        bytes32 vTokenIdLastPaid = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId]);
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
@@ -177,9 +177,9 @@ library LibTokenizedVaultStaking {
 
         s.stakingDistributionAmount[vTokenIdLastPaid] -=
             (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaid][_stakerId]) /
-            s.stakeBalance[vTokenIdLastPaid][_entityId]; // NEW
+            s.stakeBalance[vTokenIdLastPaid][_entityId];
 
-        s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId]; // NEW
+        s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId];
 
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
