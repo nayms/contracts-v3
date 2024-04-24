@@ -46,7 +46,11 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param tokenId Internal ID of the token
      * @param amount being transferred
      */
-    function internalTransferFromEntity(bytes32 to, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) nonReentrant {
+    function internalTransferFromEntity(
+        bytes32 to,
+        bytes32 tokenId,
+        uint256 amount
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
