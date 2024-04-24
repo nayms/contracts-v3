@@ -291,9 +291,6 @@ contract T06Staking is D03ProtocolDefaults {
 
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount);
 
-        // printBoosts(nlf.entityId, bob.entityId, "Bob");
-        // c.log(" - bob's reward[1]".green(), getRewards(bob.entityId, nlf.entityId));
-
         assertEq(nayms.lastPaidInterval(nlf.entityId), 1, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, type(uint64).max), usdcId), 100e6, "NLF's USDC balance should increase");
@@ -330,9 +327,6 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should increase");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal - rewardAmount * 2, "USCD balance should change");
         assertEq(nayms.internalBalanceOf(nayms.vTokenId(NAYMSID, type(uint64).max), usdcId), rewardAmount * 2, "NLF's USDC balance should increase");
-
-        // printBoosts(nlf.entityId, bob.entityId, "Bob");
-        // c.log(" - bob's reward[2]".green(), getRewards(bob.entityId, nlf.entityId));
 
         recordStakingState(nlf.entityId); // re-read state
         assertEq(stakingStates[nlf.entityId][2].balance, 86025e4, "Nayms' staking balance[2] should increase");
