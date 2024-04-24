@@ -147,7 +147,7 @@ contract ACLFacet is Modifiers {
      * @param _roleInGroup is member of
      */
     function updateRoleGroup(string memory _role, string memory _group, bool _roleInGroup) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        require(!LibString.eq(_group, LC.GROUP_SYSTEM_ADMINS), "system admins group is not modifiable");
+        require(_group._stringToBytes32() != LC.GROUP_SYSTEM_ADMINS._stringToBytes32(), "system admins group is not modifiable");
         LibACL._updateRoleGroup(_role, _group, _roleInGroup);
     }
 }

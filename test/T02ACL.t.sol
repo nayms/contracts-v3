@@ -344,30 +344,15 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
     }
 
-    function test_UpdateRoleGroup_PaddedGroupName() public {
-        // In our system, "System Admins" is the special group name for System Admins.
-        // ""System Admins " with a padded space or any other string is not the same as "System Admins".
-        string memory paddedGroup = string.concat(LC.GROUP_SYSTEM_ADMINS, " ");
+    function test_UpdateRoleGroup_NullPaddedGroupName() public {
+        // Pad "System Admins" with null characters
+        // "System Admins\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        string memory paddedGroup = string(LC.GROUP_SYSTEM_ADMINS._stringToBytes32()._bytes32ToBytes());
+
         changePrank(sa);
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_UNDERWRITER, paddedGroup, true);
-
-        // A system admin is able to call the following function.
-        nayms.setMaxDividendDenominations(3);
-
-        // Can a SYSTEM UNDERWRITER now do something that only a SYSTEM_ADMIN should be able to do?
-        changePrank(su);
-        vm.expectRevert();
-        nayms.setMaxDividendDenominations(2);
-
-        // We can't add anything to the system admins group
-        changePrank(sa);
+        // Ensure that "System Admins" concatenated with null values does not bypass the check
         vm.expectRevert("system admins group is not modifiable");
-        nayms.updateRoleGroup(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS, true);
-
-        assertTrue(nayms.isRoleInGroup(LC.ROLE_SYSTEM_UNDERWRITER, paddedGroup));
-        assertFalse(nayms.isRoleInGroup(LC.ROLE_SYSTEM_UNDERWRITER, LC.GROUP_SYSTEM_ADMINS));
-        assertTrue(nayms.isInGroup(su.id, systemContext, paddedGroup));
-        assertFalse(nayms.isInGroup(su.id, systemContext, LC.GROUP_SYSTEM_ADMINS));
+        nayms.updateRoleGroup(LC.ROLE_SYSTEM_UNDERWRITER, paddedGroup, true);
     }
 
     function testUpdateRoleGroup() public {
