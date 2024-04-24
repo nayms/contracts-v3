@@ -125,18 +125,20 @@ library LibTokenizedVaultStaking {
         bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
 
         // First collect rewards. This will update the current state.
-        _collectRewards(_stakerId, _entityId, currentInterval);
+        // _collectRewards(_stakerId, _entityId, currentInterval);
 
         // get the tokens
         LibTokenizedVault._internalTransfer(_stakerId, vTokenIdMax, tokenId, _amount);
 
         // update the share of staking reward
-        s.stakeBalance[vTokenId][_stakerId] += _amount;
+        // s.stakeBalance[vTokenId][_stakerId] += _amount;
+        s.stakeBalance[nextVTokenId][_stakerId] += _amount; //NEW
 
         // needed for the original staked amount when unstaking
         s.stakeBalance[vTokenIdMax][_stakerId] += _amount;
 
-        s.stakeBalance[vTokenId][_entityId] += _amount;
+        // s.stakeBalance[vTokenId][_entityId] += _amount;
+        s.stakeBalance[nextVTokenId][_entityId] += _amount;
 
         // update the boosts on the current and next intervals depending on time
         uint256 boostTotal = (_amount * _getA(_entityId)) / _getD(_entityId);
@@ -149,11 +151,13 @@ library LibTokenizedVaultStaking {
         uint256 boost = boostTotal - boostNext;
 
         // give to the staker
-        s.stakeBoost[vTokenId][_stakerId] += boost;
+        // s.stakeBoost[vTokenId][_stakerId] += boost;
+        s.stakeBalance[nextVTokenId][_stakerId] += boost; //NEW
         s.stakeBoost[nextVTokenId][_stakerId] += boostNext;
 
         // give to the totals!!!
-        s.stakeBoost[vTokenId][_entityId] += boost;
+        // s.stakeBoost[vTokenId][_entityId] += boost;
+        s.stakeBalance[nextVTokenId][_entityId] += boost;
         s.stakeBoost[nextVTokenId][_entityId] += boostNext;
 
         emit TokenStaked(_stakerId, _entityId, tokenId, _amount);

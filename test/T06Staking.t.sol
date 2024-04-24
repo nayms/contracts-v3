@@ -234,13 +234,13 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, bobStakeAmount);
         printBoosts(nlf.entityId, bob.entityId, "Bob");
 
-        recordStakingState(bob.entityId); // re-read state
-        assertEq(stakingStates[bob.entityId][0].balance, bobStakeAmount, "Bob's staking balance[0] should increase");
-        assertEq(stakingStates[bob.entityId][0].boost, 15e6, "Bob's boost[0] should increase");
+        // recordStakingState(bob.entityId); // re-read state
+        // assertEq(stakingStates[bob.entityId][0].balance, bobStakeAmount, "Bob's staking balance[0] should increase");
+        // assertEq(stakingStates[bob.entityId][0].boost, 15e6, "Bob's boost[0] should increase");
 
-        recordStakingState(nlf.entityId); // re-read state
-        assertEq(stakingStates[nlf.entityId][0].balance, bobStakeAmount, "Nayms' staking balance[0] should increase");
-        assertEq(stakingStates[nlf.entityId][0].boost, 15e6, "Nayms' boost[0] should increase");
+        // recordStakingState(nlf.entityId); // re-read state
+        // assertEq(stakingStates[nlf.entityId][0].balance, bobStakeAmount, "Nayms' staking balance[0] should increase");
+        // assertEq(stakingStates[nlf.entityId][0].boost, 15e6, "Nayms' boost[0] should increase");
 
         c.log("(TIME: -10)".blue());
         vm.warp(stakingStart - 10 days);
@@ -277,6 +277,14 @@ contract T06Staking is D03ProtocolDefaults {
 
         c.log("(TIME: 30)".blue(), " ~~~~~~~~~~~~~ Distribution[1] Paid ~~~~~~~~~~~~~".yellow());
         vm.warp(stakingStart + 31 days);
+
+        ///////////////////////////
+        c.log("(TIME: 30)".blue(), " !!!!!!! ---- Bob's Balances should check out at the next interval ---- !!!!!!! ".yellow());
+        recordStakingState(bob.entityId); // re-read state
+        assertEq(stakingStates[bob.entityId][1].balance, bobStakeAmount + 15e6, "Bob's staking balance[0] should increase");
+        assertEq(stakingStates[bob.entityId][1].boost, 15e6 * .85, "Bob's boost[1] should increase");
+        ///////////////////////////
+
         startPrank(nlf);
         assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
         assertEq(nayms.internalBalanceOf(nlf.entityId, usdcId), usdcTotal, "USCD balance should not change");
