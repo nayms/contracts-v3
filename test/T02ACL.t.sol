@@ -19,6 +19,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     /// deployer, owner, address(this), account0 are all the same address. This address should not be able to have the system admin role
     /// systemAdmin is another address
 
+    function test_SystemAdminCannotUnassignTheirOwnSystemAdminRole() public {
+        changePrank(sa);
+        vm.expectRevert(abi.encodeWithSelector(CannotUnassignRoleFromSelf.selector, LC.ROLE_SYSTEM_ADMIN));
+        nayms.unassignRole(sa.id, systemContext);
+    }
     // the deployer should NOT be a system admin
     function testDeployerIsNotASystemAdmin() public {
         assertFalse(nayms.isInGroup(account0Id, systemContext, LC.GROUP_SYSTEM_ADMINS));

@@ -7,9 +7,11 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
-import { OwnerCannotBeSystemAdmin, RoleIsMissing, AssignerGroupIsMissing } from "../shared/CustomErrors.sol";
+import { CannotUnassignRoleFromSelf, OwnerCannotBeSystemAdmin, RoleIsMissing, AssignerGroupIsMissing } from "../shared/CustomErrors.sol";
 
 library LibACL {
+    using LibHelpers for bytes32;
+
     /**
      * @dev Emitted when a role gets updated. Empty roleId is assigned upon role removal
      * @param objectId The user or object that was assigned the role.
@@ -66,6 +68,8 @@ library LibACL {
 
         bytes32 roleId = s.roles[_objectId][_contextId];
         if (_contextId == LibAdmin._getSystemId() && roleId == LibHelpers._stringToBytes32(LibConstants.ROLE_SYSTEM_ADMIN)) {
+            if (msg.sender == _objectId._getAddressFromId()) revert CannotUnassignRoleFromSelf(LibConstants.ROLE_SYSTEM_ADMIN);
+
             require(s.sysAdmins > 1, "must have at least one system admin");
             unchecked {
                 s.sysAdmins -= 1;

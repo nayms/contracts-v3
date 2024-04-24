@@ -159,6 +159,8 @@ error InvalidTokenRewardAmount(bytes32 guid, bytes32 entityId, bytes32 rewardTok
 /// @dev Insuficient balance available to perform the transfer of funds
 error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
 
+/// @dev Cannot unassign the role from the sender
+error CannotUnassignRoleFromSelf(string role);
 /// @dev The account of rebasing tokens held by Nayms is greater than the account of rebasing tokens held by the rebasing contract
 error RebasingSupplyDecreased(bytes32 tokenId, uint256 accountInNayms, uint256 accountInRebasingContract);
 /// @dev This error is used to indicate that the signature could not be verified.
