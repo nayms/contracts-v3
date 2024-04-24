@@ -201,10 +201,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSingleInternalTransferFromEntity() public {
-        // note Add a role to GROUP_INTERNAL_TRANSFER_FROM_ENTITY to allow internalTransferFromEntity
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY, true);
+        // make entityId acc1's parent
 
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        changePrank(sm);
+        nayms.setEntity(bobId, acc0EntityId);
 
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should start at 0");
 
@@ -218,10 +219,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // from parent of sender (address(this)) to
         nayms.internalTransferFromEntity(account0Id, nWETH, 1 ether);
+
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether - 1 ether, "account0's entityId (account0's parent) nWETH balance should DECREASE (transfer to account0Id)");
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether, "account0Id nWETH balance should INCREASE (transfer from acc0EntityId)");
 
         assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME (transfer)");
+
+        // Must have ENTITY ADMIN role in order to internalTransferFromEntity
+        changePrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, bobId, acc0EntityId, "", LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY));
+        nayms.internalTransferFromEntity(bobId, nWETH, 1 ether);
     }
 
     function testSingleExternalWithdraw() public {

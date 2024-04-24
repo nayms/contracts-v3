@@ -20,6 +20,14 @@ struct TokenAmount {
     uint256 amount;
 }
 
+/// @dev Used in the order matching algorithm.
+struct OrderMatchingCalcs {
+    uint256 currentSellAmount;
+    uint256 currentBuyAmount;
+    uint256 normalizedBuyAmount;
+    uint256 normalizedSellAmount;
+}
+
 /**
  * @param maxCapacity Maximum allowable amount of capacity that an entity is given. Denominated by assetId.
  * @param utilizedCapacity The utilized capacity of the entity. Denominated by assetId.

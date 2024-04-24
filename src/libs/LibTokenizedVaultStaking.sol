@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -41,7 +42,9 @@ library LibTokenizedVaultStaking {
         } else {
             revert StakingAlreadyStarted(_entityId, _config.tokenId);
         }
-        emit TokenStakingStarted(_entityId, _config.tokenId, block.timestamp, _config.a, _config.r, _config.divider, _config.interval);
+
+        // note: Staking starts on the initDate which could be a future date relative to the current block.timestamp
+        emit TokenStakingStarted(_entityId, _config.tokenId, _config.initDate, _config.a, _config.r, _config.divider, _config.interval);
     }
 
     function _isStakingInitialized(bytes32 _entityId) internal view returns (bool) {
@@ -328,7 +331,7 @@ library LibTokenizedVaultStaking {
      */
     function _calculateStartTimeOfInterval(bytes32 _entityId, uint64 _interval) internal view returns (uint64 intervalTime_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        intervalTime_ = uint64(s.stakingConfigs[_entityId].initDate + (_interval * s.stakingConfigs[_entityId].interval));
+        intervalTime_ = SafeCastLib.toUint64(s.stakingConfigs[_entityId].initDate + (_interval * s.stakingConfigs[_entityId].interval));
     }
 
     function _calculateStartTimeOfCurrentInterval(bytes32 _entityId) internal view returns (uint64 intervalTime_) {

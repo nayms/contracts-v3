@@ -29,7 +29,9 @@ import {
     SimplePolicyPremiumsPaidShouldStartAtZero, 
     CancelCannotBeTrueWhenCreatingSimplePolicy, 
     UtilizedCapacityGreaterThanMaxCapacity, 
-    EntityOnboardingNotApproved 
+    EntityOnboardingNotApproved,
+    InvalidSignatureError,
+    InvalidSignatureSError
 } from "../shared/CustomErrors.sol";
 
 library LibEntity {
@@ -119,6 +121,7 @@ library LibEntity {
 
         // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
+        // note: The number of commission receivers could be less than the number of stakeholders, but not more.
         require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
@@ -226,7 +229,10 @@ library LibEntity {
             }
         }
 
-        (address signer, , ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+        (address signer, ECDSA.RecoverError err, ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+
+        if (err == ECDSA.RecoverError.InvalidSignature) revert InvalidSignatureError(signingHash);
+        else if (err == ECDSA.RecoverError.InvalidSignatureS) revert InvalidSignatureSError(s);
 
         return signer;
     }

@@ -84,7 +84,7 @@ contract SimplePolicyFacet is Modifiers {
      * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
-    function cancelSimplePolicy(bytes32 _policyId) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) {
+    function cancelSimplePolicy(bytes32 _policyId) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) {
         LibSimplePolicy._cancel(_policyId);
     }
 
