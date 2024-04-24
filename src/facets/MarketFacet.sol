@@ -142,6 +142,6 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      * @param _minimumSell The minimum amount of tokens that can be sold on the market.
      */
     function setMinimumSell(bytes32 _objectId, uint256 _minimumSell) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
-        LibMarket._setMinimumSell(_objectId, _minimumSell);
+        LibAdmin._setMinimumSell(_objectId, _minimumSell);
     }
 }

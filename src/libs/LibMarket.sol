@@ -40,9 +40,6 @@ library LibMarket {
     /// @notice order has been cancelled
     event OrderCancelled(uint256 indexed orderId, bytes32 indexed taker, bytes32 sellToken);
 
-    /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
-    event MinimumSellUpdated(bytes32 objectId, uint256 minimumSell);
-
     function _getBestOfferId(bytes32 _sellToken, bytes32 _buyToken) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.bestOfferId[_sellToken][_buyToken];
@@ -513,14 +510,5 @@ library LibMarket {
     function _objectMinimumSell(bytes32 _objectId) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.objectMinimumSell[_objectId];
-    }
-
-    function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        if (_minimumSell == 0) revert MinimumSellCannotBeZero();
-
-        s.objectMinimumSell[_objectId] = _minimumSell;
-
-        emit MinimumSellUpdated(_objectId, _minimumSell);
     }
 }
