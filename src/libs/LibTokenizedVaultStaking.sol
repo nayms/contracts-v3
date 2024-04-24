@@ -110,6 +110,8 @@ library LibTokenizedVaultStaking {
     function _stake(bytes32 _stakerId, bytes32 _entityId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        require(LibObject._isObjectType(_stakerId, LC.OBJECT_TYPE_ENTITY), "only an entity can stake");
+
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
@@ -155,6 +157,8 @@ library LibTokenizedVaultStaking {
     // Unstakes the full amount for a staker
     function _unstake(bytes32 _stakerId, bytes32 _entityId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(LibObject._isObjectType(_stakerId, LC.OBJECT_TYPE_ENTITY), "only an entity can unstake");
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
@@ -259,6 +263,8 @@ library LibTokenizedVaultStaking {
 
     function _collectRewards(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        require(LibObject._isObjectType(_stakerId, LC.OBJECT_TYPE_ENTITY), "only an entity can collect rewards");
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
