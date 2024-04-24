@@ -240,10 +240,13 @@ library LibEntity {
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
     function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        bytes32 assetId = s.entities[_entityId].assetId;
+        require(_totalPrice > s.objectMinimumSell[assetId], "total price must be greater than asset minimum sell amount");
 
         if (!s.existingEntities[_entityId]) {
             revert EntityDoesNotExist(_entityId);

@@ -1007,6 +1007,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("total price must be > 0");
         nayms.startTokenSale(entityId1, sellAmount, 0);
 
+        vm.expectRevert("total price must be greater than asset minimum sell amount");
+        nayms.startTokenSale(entityId1, sellAmount, 1);
+
         uint256 lastOfferId = nayms.getLastOfferId();
 
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
