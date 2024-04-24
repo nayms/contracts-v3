@@ -141,19 +141,20 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @notice A system admin can transfer funds from an entity to another entity.
-     * @param _fromEntityId Unique platform ID of the entity. Caller must be an entity admin of this entity.
-     * @param _toEntityId The entity to transfer funds to.
+     * @notice A system admin can transfer funds from an ID to another one.
+     *
+     * @param _fromId Unique platform ID to send the funds from.
+     * @param _toId The ID to transfer funds to.
      * @param _tokenId The ID assigned to an external token.
      * @param _amount The amount of internal tokens to transfer.
      */
     function internalTransferBySystemAdmin(
-        bytes32 _fromEntityId,
-        bytes32 _toEntityId,
+        bytes32 _fromId,
+        bytes32 _toId,
         bytes32 _tokenId,
         uint256 _amount
     ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        LibTokenizedVault._internalTransfer(_fromEntityId, _toEntityId, _tokenId, _amount);
+        LibTokenizedVault._internalTransfer(_fromId, _toId, _tokenId, _amount);
     }
 
     /**
