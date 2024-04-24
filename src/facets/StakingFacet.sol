@@ -67,8 +67,11 @@ contract StakingFacet is Modifiers {
     }
 
     function collectRewards(bytes32 _entityId) external notLocked(msg.sig) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
         bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
-        LibTokenizedVaultStaking._collectRewards(parentId, _entityId);
+        uint64 lastPaid = s.stakeCollected[_entityId][_entityId];
+
+        LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }
 
     function getStakingState(bytes32 _stakerId, bytes32 _entityId) external view returns (StakingState memory) {

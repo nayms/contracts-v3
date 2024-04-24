@@ -115,7 +115,7 @@ library LibTokenizedVaultStaking {
         bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
 
         // First collect rewards. This will update the current state.
-        _collectRewards(_stakerId, _entityId);
+        _collectRewards(_stakerId, _entityId, currentInterval);
 
         // get the tokens
         LibTokenizedVault._internalTransfer(_stakerId, vTokenIdMax, tokenId, _amount);
@@ -161,8 +161,8 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
         bytes32 vTokenIdLastPaid = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId]); // NEW
 
-        // First collect rewards. This will update the current state.
-        _collectRewards(_stakerId, _entityId);
+        // collect your rewards first
+        _collectRewards(_stakerId, _entityId, currentInterval);
         s.stakeCollected[_entityId][_stakerId] = currentInterval;
 
         s.stakingDistributionAmount[vTokenIdLastPaid] -=
@@ -252,24 +252,23 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _collectRewards(bytes32 _stakerId, bytes32 _entityId) internal {
+    function _collectRewards(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        uint64 interval = s.stakeCollected[_entityId][_entityId]; // last paid interval
 
-        (StakingState memory state, RewardsBalances memory rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, interval);
+        (StakingState memory state, RewardsBalances memory rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, _interval);
         if (rewards.currencies.length > 0) {
-            bytes32 vTokenId = _vTokenId(tokenId, interval);
+            bytes32 vTokenId = _vTokenId(tokenId, _interval);
 
             // Update state
-            s.stakeCollected[_entityId][_stakerId] = interval; // TODO: set to the actual reward interval, not current!
+            s.stakeCollected[_entityId][_stakerId] = _interval; // TODO: set to the actual reward interval, not current!
             s.stakeBoost[vTokenId][_stakerId] = state.boost;
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
             for (uint64 i = 0; i < rewards.currencies.length; ++i) {
                 LibTokenizedVault._internalTransfer(_vTokenIdBucket(tokenId), _stakerId, rewards.currencies[i], rewards.amounts[i]);
-                emit TokenRewardCollected(_stakerId, _entityId, tokenId, interval, rewards.currencies[i], rewards.amounts[i]);
+                emit TokenRewardCollected(_stakerId, _entityId, tokenId, _interval, rewards.currencies[i], rewards.amounts[i]);
             }
         }
     }
