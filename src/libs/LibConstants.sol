@@ -142,6 +142,9 @@ library LibConstants {
     int128 internal constant STAKING_INCREASE_LOCK_AMOUNT = 2;
     int128 internal constant STAKING_INCREASE_UNLOCK_TIME = 3;
 
+    /// @dev The maximum period of time the staking initDate can be from the current time.
+    uint256 internal constant MAX_INIT_DATE_PERIOD = 120 days;
+
     string internal constant VE_NAYM_NAME = "veNAYM";
     string internal constant VE_NAYM_SYMBOL = "veNAYM";
     uint8 internal constant VE_NAYM_DECIMALS = 18;

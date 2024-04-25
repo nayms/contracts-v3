@@ -194,3 +194,6 @@ error MaturationDateTooFar(uint256 maturationDate);
 /// @dev Thrown when the number of commission receivers for a policy exceeds the system's maximum limit.
 /// This limit is enforced to prevent out-of-gas errors during commission payouts, ensuring the system remains functional and efficient.
 error ExcessiveCommissionReceivers(uint256 numberOfReceivers, uint256 maxReceivers);
+
+/// @dev Thrown when the initialization date for staking is set too far in the future, beyond the system-defined maximum limit.
+error InitDateTooFar(uint256 initDate);
