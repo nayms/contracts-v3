@@ -133,6 +133,8 @@ library LibConstants {
     uint256 internal constant STAKING_MINTIME = 60 days; // 60 days min lock
     uint256 internal constant STAKING_MAXTIME = 4 * 365 days; // 4 years max lock
     uint256 internal constant SCALE = 1e18; //10 ^ 18
+    uint256 internal constant MAX_MATURATION_PERIOD = 3650 days; // ~ 10 years
+    uint256 internal constant MAX_POLICY_COMMISSION_RECEIVERS = 10;
 
     /// _depositFor Types for events
     int128 internal constant STAKING_DEPOSIT_FOR_TYPE = 0;

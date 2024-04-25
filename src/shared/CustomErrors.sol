@@ -186,3 +186,11 @@ error UserAlreadyHasParentEntity(address userAddress, bytes32 usersParentEntity)
 
 /// @dev The entity ID is invalid for the given context.
 error InvalidEntityId(bytes32 entityId);
+
+/// @dev Thrown when the maturation date of a policy is set beyond the allowable future date limit.
+/// This prevents setting unrealistic maturation dates that could affect the contract's operability or the enforceability of the policy.
+error MaturationDateTooFar(uint256 maturationDate);
+
+/// @dev Thrown when the number of commission receivers for a policy exceeds the system's maximum limit.
+/// This limit is enforced to prevent out-of-gas errors during commission payouts, ensuring the system remains functional and efficient.
+error ExcessiveCommissionReceivers(uint256 numberOfReceivers, uint256 maxReceivers);
