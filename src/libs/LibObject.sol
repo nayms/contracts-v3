@@ -167,6 +167,14 @@ library LibObject {
         return s.existingObjects[_id];
     }
 
+    function _setExistingObjects(bytes32[] calldata _id, bool _isExisting) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_id.length <= 10, "too many ids");
+        for (uint i = 0; i < _id.length; i++) {
+            s.existingObjects[_id[i]] = _isExisting;
+        }
+    }
+
     function _getObjectType(bytes32 _objectId) internal pure returns (bytes12 objectType) {
         bytes32 shifted = _objectId >> 160;
         assembly {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { D03ProtocolDefaults, LibHelpers, LC, c } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LibAdmin, LC, c } from "./defaults/D03ProtocolDefaults.sol";
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
@@ -112,5 +112,38 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
             c.logBytes12(nayms.getObjectType(objectId));
             assertEq(nayms.isObjectType(objectId, objectTypes[i]), true, "isObjectType");
         }
+    }
+
+    function test_updateExistingObjectIDs() public {
+        bytes32[] memory ids = new bytes32[](1);
+        ids[0] = LibAdmin._getSystemId();
+
+        assertEq(nayms.isObject(LibAdmin._getSystemId()), false, "System ID should not be an existing object");
+
+        changePrank(sm);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, sm.addr._getIdForAddress(), systemContext, LC.ROLE_SYSTEM_MANAGER, LC.GROUP_SYSTEM_ADMINS));
+        nayms.setExistingObjects(ids, true);
+
+        changePrank(sa);
+        nayms.setExistingObjects(ids, true);
+        assertEq(nayms.isObject(LibAdmin._getSystemId()), true, "System ID should be an existing object now");
+
+        nayms.setExistingObjects(ids, false);
+        assertEq(nayms.isObject(LibAdmin._getSystemId()), false, "System ID should not be an existing object any more");
+
+        ids = new bytes32[](11);
+        ids[1] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[2] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[3] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[4] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[5] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[6] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[7] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[8] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[9] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+        ids[10] = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("1"));
+
+        vm.expectRevert("too many ids");
+        nayms.setExistingObjects(ids, false);
     }
 }
