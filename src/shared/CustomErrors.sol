@@ -203,3 +203,6 @@ error IntervalOutOfRange(uint256 interval);
 
 /// @dev Thrown when the sum of parameters 'a' and 'r' does not equal the 'divider', which is necessary for the boost multiplier to asymptotically converge to 2.
 error BoostMultiplierConvergenceFailure(uint256 a, uint256 r, uint256 divider);
+
+/// @dev This internal token ID is invalid for the given context.
+error InvalidTokenId();
