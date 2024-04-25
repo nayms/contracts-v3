@@ -869,4 +869,14 @@ contract T06Staking is D03ProtocolDefaults {
         (, uint256[] memory amounts) = nayms.getRewardsBalance(stakerId, nlfId);
         return amounts.length > 0 ? amounts[0] : 0;
     }
+
+    function test_NAY3_nlfItselfCantStake() public {
+        startPrank(nlf);
+        naymToken.mint(nlf.addr, 10_000_000e18);
+        naymToken.approve(address(nayms), 10_000_000e18);
+        nayms.externalDeposit(address(naymToken), 10_000_000e18);
+
+        vm.expectRevert("staking entity itself cannot stake");
+        nayms.stake(nlf.entityId, 10 ether);
+    }
 }

@@ -121,6 +121,7 @@ library LibTokenizedVaultStaking {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         require(LibObject._isObjectType(_stakerId, LC.OBJECT_TYPE_ENTITY), "only an entity can stake");
+        require(_stakerId != _entityId, "staking entity itself cannot stake");
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
