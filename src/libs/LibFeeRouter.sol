@@ -12,6 +12,7 @@ library LibFeeRouter {
 
     event MakerBasisPointsUpdated(uint16 tradingCommissionMakerBP);
     event FeeScheduleAdded(bytes32 entityId, uint256 feeType, FeeSchedule feeSchedule);
+    event FeeScheduleRemoved(bytes32 entityId, uint256 feeType);
 
     function _calculatePremiumFees(bytes32 _policyId, uint256 _premiumPaid) internal view returns (CalculatedFees memory cf) {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -202,9 +203,12 @@ library LibFeeRouter {
     }
 
     function _removeFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) internal {
+        // note: default fee schedule is stored at s.feeSchedules[LibConstants.DEFAULT_FEE_SCHEDULE][_feeScheduleType]
+        // cannot remove this default fee schedule.
         require(_entityId != LibConstants.DEFAULT_FEE_SCHEDULE, "cannot remove default fees");
         AppStorage storage s = LibAppStorage.diamondStorage();
         delete s.feeSchedules[_entityId][_feeScheduleType];
+        emit FeeScheduleRemoved(_entityId, _feeScheduleType);
     }
 
     function _getMakerBP() internal view returns (uint16) {

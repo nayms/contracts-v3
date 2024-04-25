@@ -117,6 +117,15 @@ error DuplicateSignerCreatingSimplePolicy(address previousSigner, address nextSi
 /// @dev The minimum sell amount on the marketplace cannot be zero.
 error MinimumSellCannotBeZero();
 
+/// @dev Rebasing interest tracking data has not been initialized yet.
+error RebasingInterestNotInitialized(bytes32 tokenId);
+
+/// @dev Insufficient amount of interest acrrued so far
+error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accruedAmount);
+
+/// @dev Rebase amount cannot be greater than the actual balance
+error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);
+
 /// @dev Staking can be initialized only once
 error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
 
@@ -149,3 +158,17 @@ error InvalidTokenRewardAmount(bytes32 guid, bytes32 entityId, bytes32 rewardTok
 
 /// @dev Insuficient balance available to perform the transfer of funds
 error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint256 amount);
+
+/// @dev Cannot unassign the role from the sender
+error CannotUnassignRoleFromSelf(string role);
+/// @dev The account of rebasing tokens held by Nayms is greater than the account of rebasing tokens held by the rebasing contract
+error RebasingSupplyDecreased(bytes32 tokenId, uint256 accountInNayms, uint256 accountInRebasingContract);
+/// @dev This error is used to indicate that the signature could not be verified.
+/// @param hash The hash of the message that was signed.
+/// @notice This error suggests that the signature itself is malformed or does not correspond to the hash provided.
+error InvalidSignatureError(bytes32 hash);
+
+/// @dev This error is used to indicate that the signature has an invalid 's' value.
+/// @param sValue The 's' value of the ECDSA signature that was deemed invalid.
+/// @notice This error is triggered when the 's' value of the signature is not within the lower half of the secp256k1 curve's order, which can lead to malleability issues.
+error InvalidSignatureSError(bytes32 sValue);

@@ -7,6 +7,7 @@ import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import "src/shared/CustomErrors.sol";
+import { IERC20 } from "forge-std/interfaces/IERC20.sol";
 import { StdStyle } from "forge-std/Test.sol";
 
 // solhint-disable max-states-count
@@ -203,10 +204,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSingleInternalTransferFromEntity() public {
-        // note Add a role to GROUP_INTERNAL_TRANSFER_FROM_ENTITY to allow internalTransferFromEntity
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY, true);
+        // make entityId acc1's parent
 
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        changePrank(sm);
+        nayms.setEntity(bobId, acc0EntityId);
 
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should start at 0");
 
@@ -220,10 +222,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // from parent of sender (address(this)) to
         nayms.internalTransferFromEntity(account0Id, nWETH, 1 ether);
+
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether - 1 ether, "account0's entityId (account0's parent) nWETH balance should DECREASE (transfer to account0Id)");
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether, "account0Id nWETH balance should INCREASE (transfer from acc0EntityId)");
 
         assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME (transfer)");
+
+        // Must have ENTITY ADMIN role in order to internalTransferFromEntity
+        changePrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, bobId, acc0EntityId, "", LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY));
+        nayms.internalTransferFromEntity(bobId, nWETH, 1 ether);
     }
 
     function testSingleExternalWithdraw() public {
@@ -1205,6 +1213,36 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         balanceBefore = nayms.internalBalanceOf(eCharlie, nWETH);
         nayms.withdrawDividend(eCharlie, entityId, nWETH);
         assertEq(nayms.internalBalanceOf(eCharlie, nWETH), balanceBefore + 3e18);
+    }
+    
+    function testRebasingTokenInterest() public {
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
+
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "acc0EntityId wethId balance should start at 0");
+
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestNotInitialized.selector, wethId));
+        changePrank(sm);
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        changePrank(account0);
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+
+        nayms.externalDeposit(wethAddress, 1 ether);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
+
+        assertEq(nayms.accruedInterest(wethId), 0, "Accrued interest should be zero");
+        vm.mockCall(wethAddress, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(2 ether));
+        assertEq(nayms.accruedInterest(wethId), 1 ether, "Accrued interest should increase");
+
+        changePrank(sm);
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestInsufficient.selector, wethId, 5 ether, 1 ether));
+        nayms.distributeAccruedInterest(wethId, 5 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        nayms.withdrawDividend(acc0EntityId, wethId, wethId);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 2 ether, "acc0EntityId wethId balance should INCREASE (mint)");
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,

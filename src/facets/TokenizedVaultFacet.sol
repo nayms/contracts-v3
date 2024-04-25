@@ -46,7 +46,11 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param tokenId Internal ID of the token
      * @param amount being transferred
      */
-    function internalTransferFromEntity(bytes32 to, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) nonReentrant {
+    function internalTransferFromEntity(
+        bytes32 to,
+        bytes32 tokenId,
+        uint256 amount
+    ) external notLocked(msg.sig) nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
@@ -137,19 +141,20 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
-     * @notice A system admin can transfer funds from an entity to another entity.
-     * @param _fromEntityId Unique platform ID of the entity. Caller must be an entity admin of this entity.
-     * @param _toEntityId The entity to transfer funds to.
+     * @notice A system admin can transfer funds from an ID to another one.
+     *
+     * @param _fromId Unique platform ID to send the funds from.
+     * @param _toId The ID to transfer funds to.
      * @param _tokenId The ID assigned to an external token.
      * @param _amount The amount of internal tokens to transfer.
      */
     function internalTransferBySystemAdmin(
-        bytes32 _fromEntityId,
-        bytes32 _toEntityId,
+        bytes32 _fromId,
+        bytes32 _toId,
         bytes32 _tokenId,
         uint256 _amount
     ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        LibTokenizedVault._internalTransfer(_fromEntityId, _toEntityId, _tokenId, _amount);
+        LibTokenizedVault._internalTransfer(_fromId, _toId, _tokenId, _amount);
     }
 
     /**
@@ -159,5 +164,16 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      */
     function totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) external view returns (uint256) {
         return LibTokenizedVault._totalDividends(_tokenId, _dividendDenominationId);
+    }
+
+    function accruedInterest(bytes32 _tokenId) external view returns (uint256) {
+        return LibTokenizedVault._accruedInterest(_tokenId);
+    }
+
+    function distributeAccruedInterest(bytes32 _tokenId, uint256 _amount, bytes32 _guid) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+        // The _claimRebasingInterest method verifies the token is valid, and that there is available interest.
+        // No need to do it again.
+        LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
+        LibTokenizedVault._payDividend(_guid, _tokenId, _tokenId, _tokenId, _amount);
     }
 }

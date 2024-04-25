@@ -29,7 +29,9 @@ import {
     SimplePolicyPremiumsPaidShouldStartAtZero, 
     CancelCannotBeTrueWhenCreatingSimplePolicy, 
     UtilizedCapacityGreaterThanMaxCapacity, 
-    EntityOnboardingNotApproved 
+    EntityOnboardingNotApproved,
+    InvalidSignatureError,
+    InvalidSignatureSError
 } from "../shared/CustomErrors.sol";
 
 library LibEntity {
@@ -119,6 +121,7 @@ library LibEntity {
 
         // policy-level receivers are expected
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
+        // note: The number of commission receivers could be less than the number of stakeholders, but not more.
         require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
@@ -226,7 +229,10 @@ library LibEntity {
             }
         }
 
-        (address signer, , ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+        (address signer, ECDSA.RecoverError err, ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+
+        if (err == ECDSA.RecoverError.InvalidSignature) revert InvalidSignatureError(signingHash);
+        else if (err == ECDSA.RecoverError.InvalidSignatureS) revert InvalidSignatureSError(s);
 
         return signer;
     }
@@ -234,10 +240,13 @@ library LibEntity {
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
     function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        bytes32 assetId = s.entities[_entityId].assetId;
+        require(_totalPrice > s.objectMinimumSell[assetId], "total price must be greater than asset minimum sell amount");
 
         if (!s.existingEntities[_entityId]) {
             revert EntityDoesNotExist(_entityId);

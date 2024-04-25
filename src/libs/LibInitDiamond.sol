@@ -57,6 +57,7 @@ library LibInitDiamond {
         LibACL._updateRoleGroup(LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_ONBOARDING_APPROVERS, true);
         LibACL._updateRoleGroup(LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS, true);
         LibACL._updateRoleGroup(LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_EXECUTE_LIMIT_OFFER, true);
+        LibACL._updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY, true);
 
         // setup stakeholder groups
         LibACL._updateRoleGroup(LC.ROLE_UNDERWRITER, LC.GROUP_UNDERWRITERS, true);
