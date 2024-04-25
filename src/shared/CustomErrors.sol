@@ -197,3 +197,6 @@ error ExcessiveCommissionReceivers(uint256 numberOfReceivers, uint256 maxReceive
 
 /// @dev Thrown when the initialization date for staking is set too far in the future, beyond the system-defined maximum limit.
 error InitDateTooFar(uint256 initDate);
+
+/// @dev Thrown when the staking interval is set outside the allowed range, either too short or too long, as defined by system limits.
+error IntervalOutOfRange(uint256 interval);
