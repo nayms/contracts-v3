@@ -200,3 +200,6 @@ error InitDateTooFar(uint256 initDate);
 
 /// @dev Thrown when the staking interval is set outside the allowed range, either too short or too long, as defined by system limits.
 error IntervalOutOfRange(uint256 interval);
+
+/// @dev Thrown when the sum of parameters 'a' and 'r' does not equal the 'divider', which is necessary for the boost multiplier to asymptotically converge to 2.
+error BoostMultiplierConvergenceFailure(uint256 a, uint256 r, uint256 divider);
