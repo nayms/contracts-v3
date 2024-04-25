@@ -514,20 +514,21 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // fee schedule receivers
         // change fee schedule to one that does not have any receivers
-        bytes32[] memory r;
-        uint16[] memory bp;
+        // bytes32[] memory r;
+        // uint16[] memory bp;
 
-        vm.startPrank(systemAdmin);
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
-        vm.startPrank(su.addr);
-        vm.expectRevert("must have fee schedule receivers");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        // note: this test is not possible anymore because the fee schedule cannot be reset to be empty
+        // vm.startPrank(systemAdmin);
+        // nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
+        // vm.startPrank(su.addr);
+        // vm.expectRevert("must have fee schedule receivers");
+        // nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        // add back fee receiver
-        r = b32Array1(NAYMS_LTD_IDENTIFIER);
-        bp = u16Array1(300);
-        vm.startPrank(systemAdmin);
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
+        // // add back fee receiver
+        // r = b32Array1(NAYMS_LTD_IDENTIFIER);
+        // bp = u16Array1(300);
+        // vm.startPrank(systemAdmin);
+        // nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
 
         vm.startPrank(su.addr);
         vm.expectRevert("number of commissions don't match");

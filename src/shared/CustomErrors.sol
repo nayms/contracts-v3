@@ -161,8 +161,10 @@ error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint25
 
 /// @dev Cannot unassign the role from the sender
 error CannotUnassignRoleFromSelf(string role);
+
 /// @dev The account of rebasing tokens held by Nayms is greater than the account of rebasing tokens held by the rebasing contract
 error RebasingSupplyDecreased(bytes32 tokenId, uint256 accountInNayms, uint256 accountInRebasingContract);
+
 /// @dev This error is used to indicate that the signature could not be verified.
 /// @param hash The hash of the message that was signed.
 /// @notice This error suggests that the signature itself is malformed or does not correspond to the hash provided.
@@ -172,3 +174,6 @@ error InvalidSignatureError(bytes32 hash);
 /// @param sValue The 's' value of the ECDSA signature that was deemed invalid.
 /// @notice This error is triggered when the 's' value of the signature is not within the lower half of the secp256k1 curve's order, which can lead to malleability issues.
 error InvalidSignatureSError(bytes32 sValue);
+
+/// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
+error InvalidReceiverCount(uint256 numberOfReceivers);
