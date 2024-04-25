@@ -114,6 +114,14 @@ library LibTokenizedVaultStaking {
     function _stake(bytes32 _stakerId, bytes32 _entityId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        if (!s.existingEntities[_stakerId]) {
+            revert EntityDoesNotExist(_stakerId);
+        }
+
+        if (!s.existingEntities[_entityId]) {
+            revert EntityDoesNotExist(_entityId);
+        }
+
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
