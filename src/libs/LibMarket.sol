@@ -7,7 +7,7 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 
-import { MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
+import { MinimumSellCannotBeZero, ObjectDoesNotExist } from "../shared/CustomErrors.sol";
 
 library LibMarket {
     struct MatchingOfferResult {
@@ -517,6 +517,9 @@ library LibMarket {
 
     function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.existingObjects[_objectId] == false) revert ObjectDoesNotExist(_objectId);
+
         if (_minimumSell == 0) revert MinimumSellCannotBeZero();
 
         s.objectMinimumSell[_objectId] = _minimumSell;
