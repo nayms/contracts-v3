@@ -10,7 +10,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -34,6 +34,10 @@ library LibTokenizedVaultStaking {
 
     function _initStaking(bytes32 _entityId, StakingConfig calldata _config) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (!s.existingEntities[_entityId]) {
+            revert EntityDoesNotExist(_entityId);
+        }
 
         _validateStakingParams(_config);
 
