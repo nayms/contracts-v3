@@ -25,8 +25,7 @@ library LibFeeRouter {
         FeeSchedule memory feeSchedule = _getFeeSchedule(parentEntityId, LibConstants.FEE_TYPE_PREMIUM);
         uint256 feeScheduleReceiversCount = feeSchedule.receiver.length;
 
-        uint256 totalReceiverCount;
-        totalReceiverCount += feeScheduleReceiversCount + commissionsCount;
+        uint256 totalReceiverCount = feeScheduleReceiversCount + commissionsCount;
 
         cf.feeAllocations = new FeeAllocation[](totalReceiverCount);
 
