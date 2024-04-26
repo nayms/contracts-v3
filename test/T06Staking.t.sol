@@ -74,7 +74,7 @@ contract T06Staking is D03ProtocolDefaults {
         naymToken.mint(lou.addr, 10_000_000e18);
 
         startPrank(sa);
-        nayms.addSupportedExternalToken(address(naymToken), 1e18);
+        nayms.addSupportedExternalToken(address(naymToken), 100);
 
         vm.startPrank(sm.addr);
         hCreateEntity(bob.entityId, bob, entity, "Bob data");
