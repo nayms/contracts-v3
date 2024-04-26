@@ -147,9 +147,6 @@ library LibConstants {
     uint256 internal constant MIN_STAKING_INTERVAL = 5 minutes;
     uint256 internal constant MAX_STAKING_INTERVAL = 90 days;
 
-    string internal constant VE_NAYM_NAME = "veNAYM";
-    string internal constant VE_NAYM_SYMBOL = "veNAYM";
-    uint8 internal constant VE_NAYM_DECIMALS = 18;
     uint8 internal constant INTERNAL_TOKEN_DECIMALS = 18;
     address internal constant DAI_CONSTANT = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 }
