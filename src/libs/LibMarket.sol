@@ -7,7 +7,7 @@ import { LibConstants } from "./LibConstants.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 
-import { MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
+import { MinimumSellCannotBeZero, ObjectDoesNotExist } from "../shared/CustomErrors.sol";
 
 library LibMarket {
     struct MatchingOfferResult {

@@ -59,12 +59,17 @@ contract NewFeesTest is D03ProtocolDefaults {
     }
 
     function test_removeFeeSchedule() public {
-        bytes32 entityId = "anything";
+        bytes32 entityId = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256("anything")));
+
+        changePrank(sm);
+        nayms.createEntity(entityId, acc1.id, entityInfo, testHash);
+
         FeeSchedule memory defaultFeeSchedule = nayms.getFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM);
 
         bytes32[] memory customRecipient = b32Array1("recipient");
         uint16[] memory customFeeBP = u16Array1(42);
 
+        changePrank(sa);
         nayms.addFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         FeeSchedule memory storedFeeSchedule = nayms.getFeeSchedule(entityId, LC.FEE_TYPE_PREMIUM);
@@ -83,8 +88,21 @@ contract NewFeesTest is D03ProtocolDefaults {
         assertEq(feeSchedule, premiumFeeScheduleDefault);
     }
 
+    function test_AddFeeSchedule_EntityDoesNotExist() public {
+        bytes32 entityWithCustom = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256("entity with CUSTOM fee schedule")));
+
+        bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
+        uint16[] memory customFeeBP = u16Array1(301);
+
+        vm.expectRevert(abi.encodeWithSelector(EntityDoesNotExist.selector, entityWithCustom));
+        nayms.addFeeSchedule(entityWithCustom, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
+    }
     function test_getPremiumCommissionSchedule_Custom() public {
-        bytes32 entityWithCustom = keccak256("entity with CUSTOM fee schedule");
+        bytes32 entityWithCustom = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256("entity with CUSTOM fee schedule")));
+
+        changePrank(sm);
+        nayms.createEntity(entityWithCustom, acc1.id, entityInfo, testHash);
+
         FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithCustom, LC.FEE_TYPE_PREMIUM);
 
         assertEq(feeSchedule, premiumFeeScheduleDefault);
@@ -92,6 +110,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint16[] memory customFeeBP = u16Array1(301);
 
+        changePrank(sa);
         nayms.addFeeSchedule(entityWithCustom, LC.FEE_TYPE_PREMIUM, customRecipient, customFeeBP);
 
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);
@@ -106,7 +125,11 @@ contract NewFeesTest is D03ProtocolDefaults {
     }
 
     function test_getTradingCommissionSchedule_Custom() public {
-        bytes32 entityWithCustom = keccak256("entity with CUSTOM");
+        bytes32 entityWithCustom = makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256("entity with CUSTOM")));
+
+        changePrank(sm);
+        nayms.createEntity(entityWithCustom, acc1.id, entityInfo, testHash);
+
         FeeSchedule memory feeSchedule = nayms.getFeeSchedule(entityWithCustom, LC.FEE_TYPE_TRADING);
 
         assertEq(feeSchedule, tradingFeeScheduleDefault);
@@ -114,6 +137,7 @@ contract NewFeesTest is D03ProtocolDefaults {
         bytes32[] memory customRecipient = b32Array1(NAYMS_LTD_IDENTIFIER);
         uint16[] memory customFeeBP = u16Array1(31);
 
+        changePrank(sa);
         nayms.addFeeSchedule(entityWithCustom, LC.FEE_TYPE_TRADING, customRecipient, customFeeBP);
 
         FeeSchedule memory customFeeSchedule = feeSched(customRecipient, customFeeBP);

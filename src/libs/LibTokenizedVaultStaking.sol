@@ -10,7 +10,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -34,6 +34,10 @@ library LibTokenizedVaultStaking {
 
     function _initStaking(bytes32 _entityId, StakingConfig calldata _config) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (!s.existingEntities[_entityId]) {
+            revert EntityDoesNotExist(_entityId);
+        }
 
         _validateStakingParams(_config);
 
@@ -120,10 +124,13 @@ library LibTokenizedVaultStaking {
     function _stake(bytes32 _stakerId, bytes32 _entityId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        require(LibObject._isObjectType(_stakerId, LC.OBJECT_TYPE_ENTITY), "only an entity can stake");
-        require(_stakerId != _entityId, "staking entity itself cannot stake");
+        if (!s.existingEntities[_stakerId]) revert EntityDoesNotExist(_stakerId);
+        if (!s.existingEntities[_entityId]) revert EntityDoesNotExist(_entityId);
+        if (_stakerId == _entityId) revert InvalidStaker(_stakerId);
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
+
+        if (_amount < s.objectMinimumSell[tokenId]) revert InvalidStakingAmount();
 
         uint64 currentInterval = _currentInterval(_entityId);
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
@@ -298,8 +305,14 @@ library LibTokenizedVaultStaking {
         if (_config.r == 0) revert InvalidRValue();
         if (_config.divider == 0) revert InvalidDividerValue();
         if (_config.a + _config.r > _config.divider) revert APlusRCannotBeGreaterThanDivider();
+        if (_config.a + _config.r != _config.divider) revert BoostMultiplierConvergenceFailure(_config.a, _config.r, _config.divider);
         if (_config.interval == 0) revert InvalidIntervalSecondsValue();
+        if (_config.interval < LC.MIN_STAKING_INTERVAL || _config.interval > LC.MAX_STAKING_INTERVAL) {
+            revert IntervalOutOfRange(_config.interval);
+        }
         if (_config.initDate <= block.timestamp) revert InvalidStakingInitDate();
+        if (_config.initDate > block.timestamp + LC.MAX_INIT_DATE_PERIOD) revert InitDateTooFar(_config.initDate);
+        if (_config.tokenId == 0) revert InvalidTokenId();
     }
 
     function _getR(bytes32 _entityId) internal view returns (uint64) {

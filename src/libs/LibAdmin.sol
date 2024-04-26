@@ -9,7 +9,6 @@ import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 import { LibEntity } from "./LibEntity.sol";
 import { LibACL } from "./LibACL.sol";
-
 // prettier-ignore
 import {
     CannotAddNullDiscountToken,
@@ -20,7 +19,9 @@ import {
     EntityExistsAlready,
     EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
-    InvalidSelfOnboardRoleApproval
+    InvalidSelfOnboardRoleApproval,
+    UserAlreadyHasParentEntity,
+    InvalidEntityId
 } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
@@ -228,6 +229,12 @@ library LibAdmin {
 
     function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, string calldata _role) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        // The entityId must be the valid type (entity).
+        if (!LibObject._isObjectType(_entityId, LC.OBJECT_TYPE_ENTITY)) revert InvalidEntityId(_entityId);
+
+        // Require that the user doesn't have a parent entity set already.
+        if (LibObject._getParentFromAddress(_userAddress) != 0) revert UserAlreadyHasParentEntity(_userAddress, LibObject._getParentFromAddress(_userAddress));
 
         bytes32 roleId = LibHelpers._stringToBytes32(_role);
 

@@ -31,7 +31,9 @@ import {
     UtilizedCapacityGreaterThanMaxCapacity, 
     EntityOnboardingNotApproved,
     InvalidSignatureError,
-    InvalidSignatureSError
+    InvalidSignatureSError,
+    MaturationDateTooFar,
+    ExcessiveCommissionReceivers
 } from "../shared/CustomErrors.sol";
 
 library LibEntity {
@@ -114,6 +116,8 @@ library LibEntity {
 
         require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
 
+        if (simplePolicy.maturationDate > block.timestamp + LC.MAX_MATURATION_PERIOD) revert MaturationDateTooFar(simplePolicy.maturationDate);
+
         FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, LC.FEE_TYPE_PREMIUM);
         uint256 feeReceiversCount = feeSchedule.receiver.length;
         // There must be at least one receiver from the fee schedule
@@ -123,6 +127,10 @@ library LibEntity {
         uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
         // note: The number of commission receivers could be less than the number of stakeholders, but not more.
         require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
+
+        if (commissionReceiversArrayLength > LC.MAX_POLICY_COMMISSION_RECEIVERS) {
+            revert ExcessiveCommissionReceivers(commissionReceiversArrayLength, LC.MAX_POLICY_COMMISSION_RECEIVERS);
+        }
 
         uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
         require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");

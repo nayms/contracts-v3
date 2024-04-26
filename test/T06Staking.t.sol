@@ -9,7 +9,8 @@ import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamond
 import { StakingFixture } from "test/fixtures/StakingFixture.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount } from "src/shared/CustomErrors.sol";
+
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -90,7 +91,7 @@ contract T06Staking is D03ProtocolDefaults {
         naymToken.mint(lou.addr, 10_000_000e18);
 
         startPrank(sa);
-        nayms.addSupportedExternalToken(address(naymToken), 1e18);
+        nayms.addSupportedExternalToken(address(naymToken), 100);
 
         vm.startPrank(sm.addr);
         hCreateEntity(bob.entityId, bob, entity, "Bob data");
@@ -189,6 +190,16 @@ contract T06Staking is D03ProtocolDefaults {
 
         vm.warp(stakingConfig.initDate + stakingConfig.interval * 2);
         assertEq(nayms.currentInterval(nlf.entityId), 2, "current interval not 2");
+    }
+
+    function test_Stake_InvalidStakingAmount() public {
+        uint256 start = block.timestamp + 1;
+
+        initStaking(start);
+
+        startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(InvalidStakingAmount.selector));
+        nayms.stake(nlf.entityId, 0);
     }
 
     function test_stake() public {
@@ -876,7 +887,8 @@ contract T06Staking is D03ProtocolDefaults {
         naymToken.approve(address(nayms), 10_000_000e18);
         nayms.externalDeposit(address(naymToken), 10_000_000e18);
 
-        vm.expectRevert("staking entity itself cannot stake");
+        vm.expectRevert(abi.encodeWithSelector(InvalidStaker.selector, nlf.entityId));
+
         nayms.stake(nlf.entityId, 10 ether);
     }
 }

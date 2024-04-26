@@ -38,6 +38,9 @@ error CannotSupportExternalTokenWithMoreThan18Decimals();
 /// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
 error CannotAddNullDiscountToken();
 
+/// @dev Object does not exsit when it should.
+error ObjectDoesNotExist(bytes32 objectId);
+
 /// @dev The entity does not exist when it should.
 error EntityDoesNotExist(bytes32 objectId);
 
@@ -150,6 +153,9 @@ error InvalidIntervalSecondsValue();
 /// @dev Invalid staking start date provided
 error InvalidStakingInitDate();
 
+/// @dev staking entity itself should not be allowed to stake
+error InvalidStaker(bytes32 entityId);
+
 /// @dev Only one reward payment is allowed per interval
 error IntervalRewardPayedOutAlready(uint64 interval);
 
@@ -161,8 +167,10 @@ error InsufficientBalance(bytes32 tokenId, bytes32 from, uint256 balance, uint25
 
 /// @dev Cannot unassign the role from the sender
 error CannotUnassignRoleFromSelf(string role);
+
 /// @dev The account of rebasing tokens held by Nayms is greater than the account of rebasing tokens held by the rebasing contract
 error RebasingSupplyDecreased(bytes32 tokenId, uint256 accountInNayms, uint256 accountInRebasingContract);
+
 /// @dev This error is used to indicate that the signature could not be verified.
 /// @param hash The hash of the message that was signed.
 /// @notice This error suggests that the signature itself is malformed or does not correspond to the hash provided.
@@ -172,3 +180,35 @@ error InvalidSignatureError(bytes32 hash);
 /// @param sValue The 's' value of the ECDSA signature that was deemed invalid.
 /// @notice This error is triggered when the 's' value of the signature is not within the lower half of the secp256k1 curve's order, which can lead to malleability issues.
 error InvalidSignatureSError(bytes32 sValue);
+
+/// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
+error InvalidReceiverCount(uint256 numberOfReceivers);
+
+/// @dev User cannot have a parent entity for the given context.
+error UserAlreadyHasParentEntity(address userAddress, bytes32 usersParentEntity);
+
+/// @dev The entity ID is invalid for the given context.
+error InvalidEntityId(bytes32 entityId);
+
+/// @dev Thrown when the maturation date of a policy is set beyond the allowable future date limit.
+/// This prevents setting unrealistic maturation dates that could affect the contract's operability or the enforceability of the policy.
+error MaturationDateTooFar(uint256 maturationDate);
+
+/// @dev Thrown when the number of commission receivers for a policy exceeds the system's maximum limit.
+/// This limit is enforced to prevent out-of-gas errors during commission payouts, ensuring the system remains functional and efficient.
+error ExcessiveCommissionReceivers(uint256 numberOfReceivers, uint256 maxReceivers);
+
+/// @dev Thrown when the initialization date for staking is set too far in the future, beyond the system-defined maximum limit.
+error InitDateTooFar(uint256 initDate);
+
+/// @dev Thrown when the staking interval is set outside the allowed range, either too short or too long, as defined by system limits.
+error IntervalOutOfRange(uint256 interval);
+
+/// @dev Thrown when the sum of parameters 'a' and 'r' does not equal the 'divider', which is necessary for the boost multiplier to asymptotically converge to 2.
+error BoostMultiplierConvergenceFailure(uint256 a, uint256 r, uint256 divider);
+
+/// @dev This internal token ID is invalid for the given context.
+error InvalidTokenId();
+
+/// @dev Cannot stake an amount lower than objectMinimumSell[tokenId].
+error InvalidStakingAmount();

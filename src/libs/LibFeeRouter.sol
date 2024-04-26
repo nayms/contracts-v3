@@ -5,7 +5,7 @@ import { AppStorage, LibAppStorage, CalculatedFees, FeeAllocation, FeeSchedule }
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
-import { FeeBasisPointsExceedHalfMax } from "../shared/CustomErrors.sol";
+import { FeeBasisPointsExceedHalfMax, EntityDoesNotExist, InvalidReceiverCount } from "../shared/CustomErrors.sol";
 
 library LibFeeRouter {
     event FeePaid(bytes32 indexed fromId, bytes32 indexed toId, bytes32 tokenId, uint256 amount, uint256 feeType);
@@ -168,7 +168,14 @@ library LibFeeRouter {
     function _addFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType, bytes32[] calldata _receiver, uint16[] calldata _basisPoints) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
+        // The entity must exist or it must be the default fee schedule
+        if (!(s.existingEntities[_entityId] || _entityId == LibConstants.DEFAULT_FEE_SCHEDULE)) {
+            revert EntityDoesNotExist(_entityId);
+        }
+
         require(_receiver.length == _basisPoints.length, "receivers and basis points mismatch");
+
+        if (_receiver.length < 1 || _receiver.length > 10) revert InvalidReceiverCount(_receiver.length);
 
         // Remove the fee schedule for this _entityId/_feeScheduleType if it already exists
         delete s.feeSchedules[_entityId][_feeScheduleType];
