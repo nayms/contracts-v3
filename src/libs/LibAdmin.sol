@@ -36,6 +36,9 @@ library LibAdmin {
     event SelfOnboardingCompleted(address indexed userAddress);
     event SelfOnboardingCancelled(address indexed userAddress);
 
+    /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
+    event MinimumSellUpdated(bytes32 objectId, uint256 minimumSell);
+
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
     }
@@ -91,6 +94,7 @@ library LibAdmin {
         s.objectMinimumSell[tokenId] = _minimumSell;
 
         emit SupportedTokenAdded(_tokenAddress);
+        emit MinimumSellUpdated(tokenId, _minimumSell);
     }
 
     function _getSupportedExternalTokens() internal view returns (address[] memory) {
@@ -285,5 +289,14 @@ library LibAdmin {
         delete s.selfOnboarding[_userAddress];
 
         emit SelfOnboardingCancelled(_userAddress);
+    }
+
+    function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (_minimumSell == 0) revert MinimumSellCannotBeZero();
+
+        s.objectMinimumSell[_objectId] = _minimumSell;
+
+        emit MinimumSellUpdated(_objectId, _minimumSell);
     }
 }

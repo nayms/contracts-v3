@@ -300,18 +300,4 @@ library LibTokenizedVault {
         s.tokenBalances[_tokenId][_tokenId] += _amount;
         s.depositTotal[_tokenId] += _amount;
     }
-
-    // This should only be called once for all coins on the network, then deleted in a future upgrade
-    function _rebaseERC20(bytes32 _tokenId, uint256 _amount) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
-
-        uint256 currentBalance = LibERC20.balanceOf(tokenAddress, address(this));
-
-        if (_amount > currentBalance) {
-            revert RebasingAmountInvalid(_tokenId, _amount, currentBalance);
-        }
-
-        s.depositTotal[_tokenId] = _amount;
-    }
 }

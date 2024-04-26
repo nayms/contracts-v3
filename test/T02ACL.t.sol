@@ -349,6 +349,17 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
     }
 
+    function test_UpdateRoleGroup_NullPaddedGroupName() public {
+        // Pad "System Admins" with null characters
+        // "System Admins\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        string memory paddedGroup = string(LC.GROUP_SYSTEM_ADMINS._stringToBytes32()._bytes32ToBytes());
+
+        changePrank(sa);
+        // Ensure that "System Admins" concatenated with null values does not bypass the check
+        vm.expectRevert("system admins group is not modifiable");
+        nayms.updateRoleGroup(LC.ROLE_SYSTEM_UNDERWRITER, paddedGroup, true);
+    }
+
     function testUpdateRoleGroup() public {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);

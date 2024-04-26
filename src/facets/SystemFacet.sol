@@ -52,6 +52,15 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
+     * @dev Update existing objects mapping directly. Use with great caution! Requires System Admin privilidge.
+     * @param _id object ids.
+     * @param _isExisting set the flag to this value
+     */
+    function setExistingObjects(bytes32[] calldata _id, bool _isExisting) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        LibObject._setExistingObjects(_id, _isExisting);
+    }
+
+    /**
      * @dev Get meta of given object.
      * @param _id object id.
      * @return parent object parent
