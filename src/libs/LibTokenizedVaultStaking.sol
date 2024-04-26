@@ -10,7 +10,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -124,15 +124,9 @@ library LibTokenizedVaultStaking {
     function _stake(bytes32 _stakerId, bytes32 _entityId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (!s.existingEntities[_stakerId]) {
-            revert EntityDoesNotExist(_stakerId);
-        }
-
-        if (!s.existingEntities[_entityId]) {
-            revert EntityDoesNotExist(_entityId);
-        }
-
-        require(_stakerId != _entityId, "staking entity itself cannot stake");
+        if (!s.existingEntities[_stakerId]) revert EntityDoesNotExist(_stakerId);
+        if (!s.existingEntities[_entityId]) revert EntityDoesNotExist(_entityId);
+        if (_stakerId == _entityId) revert InvalidStaker(_stakerId);
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 

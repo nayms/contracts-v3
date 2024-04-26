@@ -10,7 +10,7 @@ import { StakingFixture } from "test/fixtures/StakingFixture.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -887,7 +887,8 @@ contract T06Staking is D03ProtocolDefaults {
         naymToken.approve(address(nayms), 10_000_000e18);
         nayms.externalDeposit(address(naymToken), 10_000_000e18);
 
-        vm.expectRevert("staking entity itself cannot stake");
+        vm.expectRevert(abi.encodeWithSelector(InvalidStaker.selector, nlf.entityId));
+
         nayms.stake(nlf.entityId, 10 ether);
     }
 }

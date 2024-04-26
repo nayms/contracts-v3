@@ -153,6 +153,9 @@ error InvalidIntervalSecondsValue();
 /// @dev Invalid staking start date provided
 error InvalidStakingInitDate();
 
+/// @dev staking entity itself should not be allowed to stake
+error InvalidStaker(bytes32 entityId);
+
 /// @dev Only one reward payment is allowed per interval
 error IntervalRewardPayedOutAlready(uint64 interval);
 
