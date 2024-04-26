@@ -206,3 +206,6 @@ error BoostMultiplierConvergenceFailure(uint256 a, uint256 r, uint256 divider);
 
 /// @dev This internal token ID is invalid for the given context.
 error InvalidTokenId();
+
+/// @dev Cannot stake 0 amount.
+error InvalidStakingAmount();

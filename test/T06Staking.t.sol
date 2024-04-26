@@ -10,7 +10,7 @@ import { DummyToken } from "./utils/DummyToken.sol";
 
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -161,6 +161,16 @@ contract T06Staking is D03ProtocolDefaults {
 
         vm.warp(stakingConfig.initDate + stakingConfig.interval * 2);
         assertEq(nayms.currentInterval(nlf.entityId), 2, "current interval not 2");
+    }
+
+    function test_Stake_InvalidStakingAmount() public {
+        uint256 start = block.timestamp + 1;
+
+        initStaking(start);
+
+        startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(InvalidStakingAmount.selector));
+        nayms.stake(nlf.entityId, 0);
     }
 
     function test_stake() public {
