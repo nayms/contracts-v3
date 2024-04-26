@@ -68,8 +68,10 @@ library LibFeeRouter {
         for (uint256 i; i < commissionsCount; ++i) {
             fee = (_premiumPaid * commissionBasisPoints[i]) / LibConstants.BP_FACTOR;
 
-            emit FeePaid(parentEntityId, commissionReceivers[i], asset, fee, LibConstants.FEE_TYPE_PREMIUM);
-            LibTokenizedVault._internalTransfer(parentEntityId, commissionReceivers[i], asset, fee);
+            if (fee > 0) {
+                emit FeePaid(parentEntityId, commissionReceivers[i], asset, fee, LibConstants.FEE_TYPE_PREMIUM);
+                LibTokenizedVault._internalTransfer(parentEntityId, commissionReceivers[i], asset, fee);
+            }
         }
 
         FeeSchedule memory feeSchedule = _getFeeSchedule(parentEntityId, LibConstants.FEE_TYPE_PREMIUM);
