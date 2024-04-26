@@ -333,27 +333,29 @@ library LibTokenizedVaultStaking {
     function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) public pure returns (RewardsBalances memory, uint256) {
         require(rewards.currencies.length == rewards.amounts.length, "Different array lengths!");
 
-        for (uint256 i = 0; i < rewards.currencies.length; i++) {
+        uint256 length = rewards.currencies.length;
+        for (uint256 i = 0; i < length; i++) {
             if (rewards.currencies[i] == newValue) {
                 return (rewards, i);
             }
         }
 
+        // prettier-ignore
         RewardsBalances memory rewards_ = RewardsBalances({
-            currencies: new bytes32[](rewards.currencies.length + 1),
+            currencies: new bytes32[](length + 1),
             amounts: new uint256[](rewards.amounts.length + 1),
             lastPaidInterval: 0
         });
 
-        for (uint64 i = 0; i < rewards.currencies.length; i++) {
+        for (uint64 i = 0; i < length; i++) {
             rewards_.currencies[i] = rewards.currencies[i];
             rewards_.amounts[i] = rewards.amounts[i];
             rewards_.lastPaidInterval = i;
         }
 
-        rewards_.currencies[rewards.currencies.length] = newValue;
+        rewards_.currencies[length] = newValue;
 
-        return (rewards_, rewards.currencies.length);
+        return (rewards_, length);
     }
 
     /**
