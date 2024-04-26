@@ -79,7 +79,7 @@ library LibSimplePolicy {
             s.entities[entityId].utilizedCapacity -= (_amount * entity.collateralRatio) / LC.BP_FACTOR;
         } else {
             uint256 availableBalance = LibTokenizedVault._internalBalanceOf(entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(entityId, simplePolicy.asset);
-            require(availableBalance > _amount, "not enough balance");
+            require(availableBalance >= _amount, "not enough balance");
         }
 
         LibObject._createObject(_claimId, LC.OBJECT_TYPE_CLAIM);
