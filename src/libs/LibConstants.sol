@@ -144,7 +144,7 @@ library LibConstants {
 
     /// @dev The maximum period of time the staking initDate can be from the current time.
     uint256 internal constant MAX_INIT_DATE_PERIOD = 120 days;
-    uint256 internal constant MIN_STAKING_INTERVAL = 0 days;
+    uint256 internal constant MIN_STAKING_INTERVAL = 5 minutes;
     uint256 internal constant MAX_STAKING_INTERVAL = 90 days;
 
     string internal constant VE_NAYM_NAME = "veNAYM";
