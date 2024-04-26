@@ -95,7 +95,7 @@ library LibTokenizedVaultStaking {
         uint64 interval = _currentInterval(_entityId);
         bytes32 vTokenId = _vTokenId(tokenId, interval);
 
-        StakingState memory stakingState = _getStakingState(_entityId, _entityId);
+        (StakingState memory stakingState, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, interval);
 
         if (block.timestamp < s.stakingConfigs[_entityId].initDate) {
             revert StakingNotStarted(_entityId, tokenId);
@@ -261,22 +261,6 @@ library LibTokenizedVaultStaking {
         }
     }
 
-    function _getStakingState(bytes32 _stakerId, bytes32 _entityId) internal view returns (StakingState memory state) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        state.lastCollectedInterval = s.stakeCollected[_entityId][_stakerId];
-        uint64 currentInterval = _currentInterval(_entityId);
-        {
-            state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
-            state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
-            for (uint64 i = state.lastCollectedInterval + 1; i <= currentInterval; ++i) {
-                state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
-                state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
-            }
-        }
-    }
-
     function _collectRewards(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -333,27 +317,29 @@ library LibTokenizedVaultStaking {
     function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) public pure returns (RewardsBalances memory, uint256) {
         require(rewards.currencies.length == rewards.amounts.length, "Different array lengths!");
 
-        for (uint256 i = 0; i < rewards.currencies.length; i++) {
+        uint256 length = rewards.currencies.length;
+        for (uint256 i = 0; i < length; i++) {
             if (rewards.currencies[i] == newValue) {
                 return (rewards, i);
             }
         }
 
+        // prettier-ignore
         RewardsBalances memory rewards_ = RewardsBalances({
-            currencies: new bytes32[](rewards.currencies.length + 1),
+            currencies: new bytes32[](length + 1),
             amounts: new uint256[](rewards.amounts.length + 1),
             lastPaidInterval: 0
         });
 
-        for (uint64 i = 0; i < rewards.currencies.length; i++) {
+        for (uint64 i = 0; i < length; i++) {
             rewards_.currencies[i] = rewards.currencies[i];
             rewards_.amounts[i] = rewards.amounts[i];
             rewards_.lastPaidInterval = i;
         }
 
-        rewards_.currencies[rewards.currencies.length] = newValue;
+        rewards_.currencies[length] = newValue;
 
-        return (rewards_, rewards.currencies.length);
+        return (rewards_, length);
     }
 
     /**

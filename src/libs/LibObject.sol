@@ -82,11 +82,6 @@ library LibObject {
         return (bytes(s.objectTokenSymbol[_objectId]).length != 0);
     }
 
-    function _tokenSymbolNotUsed(string memory _symbol) internal view returns (bool) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.tokenSymbolObjectId[_symbol] == bytes32(0);
-    }
-
     function _validateTokenNameAndSymbol(bytes32 _objectId, string memory _symbol, string memory _name) private view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 

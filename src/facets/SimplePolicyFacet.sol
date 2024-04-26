@@ -50,16 +50,17 @@ contract SimplePolicyFacet is Modifiers {
      * @return Simple policy metadata
      */
     function getSimplePolicyInfo(bytes32 _policyId) external view returns (SimplePolicyInfo memory) {
+        SimplePolicy memory simplePolicy = LibSimplePolicy._getSimplePolicyInfo(_policyId);
         return
             SimplePolicyInfo({
-                startDate: LibSimplePolicy._getSimplePolicyInfo(_policyId).startDate,
-                maturationDate: LibSimplePolicy._getSimplePolicyInfo(_policyId).maturationDate,
-                asset: LibSimplePolicy._getSimplePolicyInfo(_policyId).asset,
-                limit: LibSimplePolicy._getSimplePolicyInfo(_policyId).limit,
-                fundsLocked: LibSimplePolicy._getSimplePolicyInfo(_policyId).fundsLocked,
-                cancelled: LibSimplePolicy._getSimplePolicyInfo(_policyId).cancelled,
-                claimsPaid: LibSimplePolicy._getSimplePolicyInfo(_policyId).claimsPaid,
-                premiumsPaid: LibSimplePolicy._getSimplePolicyInfo(_policyId).premiumsPaid
+                startDate: simplePolicy.startDate,
+                maturationDate: simplePolicy.maturationDate,
+                asset: simplePolicy.asset,
+                limit: simplePolicy.limit,
+                fundsLocked: simplePolicy.fundsLocked,
+                cancelled: simplePolicy.cancelled,
+                claimsPaid: simplePolicy.claimsPaid,
+                premiumsPaid: simplePolicy.premiumsPaid
             });
     }
 

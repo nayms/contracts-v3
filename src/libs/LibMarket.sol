@@ -293,10 +293,10 @@ library LibMarket {
         marketInfo.buyAmountInitial = _buyAmountInitial;
         marketInfo.feeSchedule = _feeScheduleType;
 
-        if (
-            _buyAmount < (s.objectMinimumSell[_buyToken] == 0 ? 1 : s.objectMinimumSell[_buyToken]) ||
-            _sellAmount < (s.objectMinimumSell[_sellToken] == 0 ? 1 : s.objectMinimumSell[_sellToken])
-        ) {
+        uint256 btMin = s.objectMinimumSell[_buyToken];
+        uint256 stMin = s.objectMinimumSell[_sellToken];
+
+        if (_buyAmount < (btMin == 0 ? 1 : btMin) || _sellAmount < (stMin == 0 ? 1 : stMin)) {
             marketInfo.state = LibConstants.OFFER_STATE_FULFILLED;
         } else {
             marketInfo.state = LibConstants.OFFER_STATE_ACTIVE;
@@ -349,12 +349,13 @@ library LibMarket {
 
             LibTokenizedVault._internalTransfer(s.offers[_offerId].creator, _takerId, s.offers[_offerId].sellToken, _buyAmount);
             LibTokenizedVault._internalTransfer(_takerId, s.offers[_offerId].creator, s.offers[_offerId].buyToken, _sellAmount);
-        }
 
-        // close offer if it has become dust
-        if (s.offers[_offerId].sellAmount < (s.objectMinimumSell[s.offers[_offerId].sellToken] == 0 ? 1 : s.objectMinimumSell[s.offers[_offerId].sellToken])) {
-            s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
-            _cancelOffer(_offerId);
+            // close offer if it has become dust
+            uint256 stMin = s.objectMinimumSell[s.offers[_offerId].sellToken];
+            if (s.offers[_offerId].sellAmount < (stMin == 0 ? 1 : stMin)) {
+                s.offers[_offerId].state = LibConstants.OFFER_STATE_FULFILLED;
+                _cancelOffer(_offerId);
+            }
         }
 
         emit OrderExecuted(
