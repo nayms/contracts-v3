@@ -2,20 +2,43 @@
 pragma solidity 0.8.20;
 
 import { Modifiers } from "../shared/Modifiers.sol";
-import { SimplePolicyInfo, SimplePolicy, CalculatedFees } from "../shared/AppStorage.sol";
+import { SimplePolicyInfo, SimplePolicy, CalculatedFees, Stakeholders } from "../shared/AppStorage.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibSimplePolicy } from "../libs/LibSimplePolicy.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
-
+import { LibEntity } from "../libs/LibEntity.sol";
 /**
  * @title Simple Policies
  * @notice Facet for working with Simple Policies
  * @dev Simple Policy facet
  */
 contract SimplePolicyFacet is Modifiers {
+    modifier assertSimplePolicyEnabled(bytes32 _entityId) {
+        require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
+        _;
+    }
+
+    /**
+     * @notice Create a Simple Policy
+     * @param _policyId id of the policy
+     * @param _entityId id of the entity
+     * @param _stakeholders Struct of roles, entity IDs and signatures for the policy
+     * @param _simplePolicy policy to create
+     * @param _dataHash hash of the offchain data
+     */
+    function createSimplePolicy(
+        bytes32 _policyId,
+        bytes32 _entityId,
+        Stakeholders calldata _stakeholders,
+        SimplePolicy calldata _simplePolicy,
+        bytes32 _dataHash
+    ) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
+        LibSimplePolicy._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
+    }
+
     /**
      * @dev Pay a premium of `_amount` on simple policy
      * @param _policyId Id of the simple policy

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppStorage.sol";
+import { Entity, FeeSchedule } from "../shared/AppStorage.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -18,11 +18,6 @@ import { LibFeeRouter } from "src/libs/LibFeeRouter.sol";
  * @dev Mainly used for token sale and policies
  */
 contract EntityFacet is Modifiers, ReentrancyGuard {
-    modifier assertSimplePolicyEnabled(bytes32 _entityId) {
-        require(LibEntity._getEntityInfo(_entityId).simplePolicyEnabled, "simple policy creation disabled");
-        _;
-    }
-
     /**
      * @dev Returns the domain separator for the current chain.
      */
@@ -32,24 +27,6 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
 
     function hashTypedDataV4(bytes32 structHash) external view returns (bytes32) {
         return LibEIP712._hashTypedDataV4(structHash);
-    }
-
-    /**
-     * @notice Create a Simple Policy
-     * @param _policyId id of the policy
-     * @param _entityId id of the entity
-     * @param _stakeholders Struct of roles, entity IDs and signatures for the policy
-     * @param _simplePolicy policy to create
-     * @param _dataHash hash of the offchain data
-     */
-    function createSimplePolicy(
-        bytes32 _policyId,
-        bytes32 _entityId,
-        Stakeholders calldata _stakeholders,
-        SimplePolicy calldata _simplePolicy,
-        bytes32 _dataHash
-    ) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
-        LibEntity._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
     /**
