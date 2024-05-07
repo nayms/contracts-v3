@@ -29,7 +29,7 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
         bytes32 _entityAdmin,
         Entity calldata _entityData,
         bytes32 _dataHash
-    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+    ) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
     }
 
@@ -49,6 +49,15 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
      */
     function isObject(bytes32 _id) external view returns (bool) {
         return LibObject._isObject(_id);
+    }
+
+    /**
+     * @dev Update existing objects mapping directly. Use with great caution! Requires System Admin privilidge.
+     * @param _id object ids.
+     * @param _isExisting set the flag to this value
+     */
+    function setExistingObjects(bytes32[] calldata _id, bool _isExisting) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        LibObject._setExistingObjects(_id, _isExisting);
     }
 
     /**

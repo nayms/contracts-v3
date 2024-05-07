@@ -35,10 +35,10 @@ library LibTokenizedVaultIO {
         LibTokenizedVault._internalMint(_receiverId, internalTokenId, mintAmount);
 
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.depositTotal[internalTokenId] += _amount;
+        s.depositTotal[internalTokenId] += mintAmount;
 
         // emit event
-        emit ExternalDeposit(_receiverId, _externalTokenAddress, _amount);
+        emit ExternalDeposit(_receiverId, _externalTokenAddress, mintAmount);
     }
 
     function _externalWithdraw(bytes32 _entityId, address _receiver, address _externalTokenAddress, uint256 _amount) internal {

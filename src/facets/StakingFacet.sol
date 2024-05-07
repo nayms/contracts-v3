@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibTokenizedVaultStaking, StakingConfig } from "../libs/LibTokenizedVaultStaking.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
@@ -40,13 +39,11 @@ contract StakingFacet is Modifiers {
     }
 
     function lastCollectedInterval(bytes32 _entityId, bytes32 _stakerId) external view returns (uint64) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.stakeCollected[_entityId][_stakerId];
+        return LibTokenizedVaultStaking._lastCollectedInterval(_entityId, _stakerId);
     }
 
-    function lastIntervalPaid(bytes32 _entityId) external view returns (uint64) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.stakeCollected[_entityId][_entityId];
+    function lastPaidInterval(bytes32 _entityId) external view returns (uint64) {
+        return LibTokenizedVaultStaking._lastPaidInterval(_entityId);
     }
 
     function calculateStartTimeOfInterval(bytes32 _entityId, uint64 _interval) external view returns (uint256) {
@@ -67,14 +64,16 @@ contract StakingFacet is Modifiers {
     }
 
     function collectRewards(bytes32 _entityId) external notLocked(msg.sig) {
-        uint64 interval = LibTokenizedVaultStaking._currentInterval(_entityId);
         bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        uint64 lastPaid = LibTokenizedVaultStaking._lastPaidInterval(_entityId);
 
-        LibTokenizedVaultStaking._collectRewards(parentId, _entityId, interval);
+        LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }
 
     function getStakingState(bytes32 _stakerId, bytes32 _entityId) external view returns (StakingState memory) {
-        return LibTokenizedVaultStaking._getStakingState(_stakerId, _entityId);
+        uint64 interval = LibTokenizedVaultStaking._currentInterval(_entityId);
+        (StakingState memory state, ) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_stakerId, _entityId, interval);
+        return state;
     }
 
     function payReward(
@@ -87,7 +86,9 @@ contract StakingFacet is Modifiers {
     }
 
     function getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) external view returns (uint256 stakedAmount_, uint256 boostedAmount_) {
+        uint64 interval = LibTokenizedVaultStaking._currentInterval(_entityId);
+        (StakingState memory state, ) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_stakerId, _entityId, interval);
         stakedAmount_ = LibTokenizedVaultStaking._stakedAmount(_stakerId, _entityId);
-        boostedAmount_ = LibTokenizedVaultStaking._getStakingState(_stakerId, _entityId).balance;
+        boostedAmount_ = state.balance;
     }
 }

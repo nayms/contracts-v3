@@ -9,7 +9,6 @@ import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 import { LibEntity } from "./LibEntity.sol";
 import { LibACL } from "./LibACL.sol";
-
 // prettier-ignore
 import {
     CannotAddNullDiscountToken,
@@ -20,7 +19,9 @@ import {
     EntityExistsAlready,
     EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
-    InvalidSelfOnboardRoleApproval
+    InvalidSelfOnboardRoleApproval,
+    UserAlreadyHasParentEntity,
+    InvalidEntityId
 } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
@@ -34,6 +35,9 @@ library LibAdmin {
     event SelfOnboardingApproved(address indexed userAddress);
     event SelfOnboardingCompleted(address indexed userAddress);
     event SelfOnboardingCancelled(address indexed userAddress);
+
+    /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
+    event MinimumSellUpdated(bytes32 objectId, uint256 minimumSell);
 
     function _getSystemId() internal pure returns (bytes32) {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
@@ -90,6 +94,7 @@ library LibAdmin {
         s.objectMinimumSell[tokenId] = _minimumSell;
 
         emit SupportedTokenAdded(_tokenAddress);
+        emit MinimumSellUpdated(tokenId, _minimumSell);
     }
 
     function _getSupportedExternalTokens() internal view returns (address[] memory) {
@@ -142,8 +147,11 @@ library LibAdmin {
         s.locked[IDiamondProxy.unstake.selector] = true;
         s.locked[IDiamondProxy.collectRewards.selector] = true;
         s.locked[IDiamondProxy.payReward.selector] = true;
+        s.locked[IDiamondProxy.cancelSimplePolicy.selector] = true;
+        s.locked[IDiamondProxy.createSimplePolicy.selector] = true;
+        s.locked[IDiamondProxy.createEntity.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](18);
+        bytes4[] memory lockedFunctions = new bytes4[](21);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -162,6 +170,9 @@ library LibAdmin {
         lockedFunctions[15] = IDiamondProxy.unstake.selector;
         lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
         lockedFunctions[17] = IDiamondProxy.payReward.selector;
+        lockedFunctions[18] = IDiamondProxy.cancelSimplePolicy.selector;
+        lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
+        lockedFunctions[20] = IDiamondProxy.createEntity.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -186,8 +197,11 @@ library LibAdmin {
         s.locked[IDiamondProxy.unstake.selector] = false;
         s.locked[IDiamondProxy.collectRewards.selector] = false;
         s.locked[IDiamondProxy.payReward.selector] = false;
+        s.locked[IDiamondProxy.cancelSimplePolicy.selector] = false;
+        s.locked[IDiamondProxy.createSimplePolicy.selector] = false;
+        s.locked[IDiamondProxy.createEntity.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](18);
+        bytes4[] memory lockedFunctions = new bytes4[](21);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -206,12 +220,21 @@ library LibAdmin {
         lockedFunctions[15] = IDiamondProxy.unstake.selector;
         lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
         lockedFunctions[17] = IDiamondProxy.payReward.selector;
+        lockedFunctions[18] = IDiamondProxy.cancelSimplePolicy.selector;
+        lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
+        lockedFunctions[20] = IDiamondProxy.createEntity.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
     }
 
     function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, string calldata _role) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+
+        // The entityId must be the valid type (entity).
+        if (!LibObject._isObjectType(_entityId, LC.OBJECT_TYPE_ENTITY)) revert InvalidEntityId(_entityId);
+
+        // Require that the user doesn't have a parent entity set already.
+        if (LibObject._getParentFromAddress(_userAddress) != 0) revert UserAlreadyHasParentEntity(_userAddress, LibObject._getParentFromAddress(_userAddress));
 
         bytes32 roleId = LibHelpers._stringToBytes32(_role);
 
@@ -266,5 +289,14 @@ library LibAdmin {
         delete s.selfOnboarding[_userAddress];
 
         emit SelfOnboardingCancelled(_userAddress);
+    }
+
+    function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        if (_minimumSell == 0) revert MinimumSellCannotBeZero();
+
+        s.objectMinimumSell[_objectId] = _minimumSell;
+
+        emit MinimumSellUpdated(_objectId, _minimumSell);
     }
 }

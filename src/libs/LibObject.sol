@@ -82,11 +82,6 @@ library LibObject {
         return (bytes(s.objectTokenSymbol[_objectId]).length != 0);
     }
 
-    function _tokenSymbolNotUsed(string memory _symbol) internal view returns (bool) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.tokenSymbolObjectId[_symbol] == bytes32(0);
-    }
-
     function _validateTokenNameAndSymbol(bytes32 _objectId, string memory _symbol, string memory _name) private view {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -165,6 +160,14 @@ library LibObject {
     function _isObject(bytes32 _id) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.existingObjects[_id];
+    }
+
+    function _setExistingObjects(bytes32[] calldata _id, bool _isExisting) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_id.length <= 10, "too many ids");
+        for (uint i = 0; i < _id.length; i++) {
+            s.existingObjects[_id[i]] = _isExisting;
+        }
     }
 
     function _getObjectType(bytes32 _objectId) internal pure returns (bytes12 objectType) {
