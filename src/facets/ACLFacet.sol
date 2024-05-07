@@ -6,7 +6,6 @@ import { LibACL, LibHelpers } from "../libs/LibACL.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { AssignerCannotUnassignRole } from "../shared/CustomErrors.sol";
-import { LibString } from "solady/utils/LibString.sol";
 
 /**
  * @title Access Control List
