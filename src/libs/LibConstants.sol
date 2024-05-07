@@ -133,6 +133,8 @@ library LibConstants {
     uint256 internal constant STAKING_MINTIME = 60 days; // 60 days min lock
     uint256 internal constant STAKING_MAXTIME = 4 * 365 days; // 4 years max lock
     uint256 internal constant SCALE = 1e18; //10 ^ 18
+    uint256 internal constant MAX_MATURATION_PERIOD = 3650 days; // ~ 10 years
+    uint256 internal constant MAX_POLICY_COMMISSION_RECEIVERS = 10;
 
     /// _depositFor Types for events
     int128 internal constant STAKING_DEPOSIT_FOR_TYPE = 0;
@@ -140,9 +142,11 @@ library LibConstants {
     int128 internal constant STAKING_INCREASE_LOCK_AMOUNT = 2;
     int128 internal constant STAKING_INCREASE_UNLOCK_TIME = 3;
 
-    string internal constant VE_NAYM_NAME = "veNAYM";
-    string internal constant VE_NAYM_SYMBOL = "veNAYM";
-    uint8 internal constant VE_NAYM_DECIMALS = 18;
+    /// @dev The maximum period of time the staking initDate can be from the current time.
+    uint256 internal constant MAX_INIT_DATE_PERIOD = 120 days;
+    uint256 internal constant MIN_STAKING_INTERVAL = 5 minutes;
+    uint256 internal constant MAX_STAKING_INTERVAL = 90 days;
+
     uint8 internal constant INTERNAL_TOKEN_DECIMALS = 18;
     address internal constant DAI_CONSTANT = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 }

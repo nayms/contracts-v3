@@ -39,15 +39,6 @@ contract Modifiers {
         _;
     }
 
-    modifier assertIsInGroup(
-        bytes32 _objectId,
-        bytes32 _contextId,
-        bytes32 _group
-    ) {
-        require(LibACL._isInGroup(_objectId, _contextId, _group), "not in group");
-        _;
-    }
-
     modifier assertERC20Wrapper(bytes32 _tokenId) {
         (, , , , address erc20Wrapper) = LibObject._getObjectMeta(_tokenId);
         require(msg.sender == erc20Wrapper, "only wrapper calls allowed");

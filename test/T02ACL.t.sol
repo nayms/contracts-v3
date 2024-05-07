@@ -19,6 +19,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
     /// deployer, owner, address(this), account0 are all the same address. This address should not be able to have the system admin role
     /// systemAdmin is another address
 
+    function test_SystemAdminCannotUnassignTheirOwnSystemAdminRole() public {
+        changePrank(sa);
+        vm.expectRevert(abi.encodeWithSelector(CannotUnassignRoleFromSelf.selector, LC.ROLE_SYSTEM_ADMIN));
+        nayms.unassignRole(sa.id, systemContext);
+    }
     // the deployer should NOT be a system admin
     function testDeployerIsNotASystemAdmin() public {
         assertFalse(nayms.isInGroup(account0Id, systemContext, LC.GROUP_SYSTEM_ADMINS));
@@ -342,6 +347,17 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, account1._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
         nayms.updateRoleGroup("role", "group", false);
         vm.stopPrank();
+    }
+
+    function test_UpdateRoleGroup_NullPaddedGroupName() public {
+        // Pad "System Admins" with null characters
+        // "System Admins\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        string memory paddedGroup = string(LC.GROUP_SYSTEM_ADMINS._stringToBytes32()._bytes32ToBytes());
+
+        changePrank(sa);
+        // Ensure that "System Admins" concatenated with null values does not bypass the check
+        vm.expectRevert("system admins group is not modifiable");
+        nayms.updateRoleGroup(LC.ROLE_SYSTEM_UNDERWRITER, paddedGroup, true);
     }
 
     function testUpdateRoleGroup() public {

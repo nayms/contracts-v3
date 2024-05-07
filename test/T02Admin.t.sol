@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 
-import { Entity } from "../src/shared/FreeStructs.sol";
+import { Entity, Stakeholders, SimplePolicy } from "../src/shared/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { IDiamondProxy } from "../src/generated/IDiamondProxy.sol";
@@ -241,7 +241,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
-        bytes4[] memory lockedFunctions = new bytes4[](18);
+        bytes4[] memory lockedFunctions = new bytes4[](21);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -260,6 +260,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         lockedFunctions[15] = IDiamondProxy.unstake.selector;
         lockedFunctions[16] = IDiamondProxy.collectRewards.selector;
         lockedFunctions[17] = IDiamondProxy.payReward.selector;
+        lockedFunctions[18] = IDiamondProxy.cancelSimplePolicy.selector;
+        lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
+        lockedFunctions[20] = IDiamondProxy.createEntity.selector;
 
         for (uint256 i = 0; i < lockedFunctions.length; i++) {
             assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
@@ -319,6 +322,18 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("function is locked");
         nayms.collectRewards(bytes32(0));
 
+        vm.expectRevert("function is locked");
+        nayms.cancelSimplePolicy(bytes32(0));
+
+        Stakeholders memory stakeholders;
+        SimplePolicy memory simplePolicy;
+
+        vm.expectRevert("function is locked");
+        nayms.createSimplePolicy(bytes32(0), bytes32(0), stakeholders, simplePolicy, bytes32(0));
+
+        vm.expectRevert("function is locked");
+        nayms.createEntity(bytes32(0), bytes32(0), entity, bytes32(0));
+
         nayms.unlockAllFundTransferFunctions();
 
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.startTokenSale.selector), "function startTokenSale locked");
@@ -339,5 +354,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.unstake.selector), "function unstake locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.payReward.selector), "function payReward locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.collectRewards.selector), "function collectRewards locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.cancelSimplePolicy.selector), "function cancelSimplePolicy locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.createSimplePolicy.selector), "function createSimplePolicy locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.createEntity.selector), "function createEntity locked");
     }
 }

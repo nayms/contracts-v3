@@ -7,12 +7,16 @@ import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import "src/shared/CustomErrors.sol";
+import { IERC20 } from "forge-std/interfaces/IERC20.sol";
+import { StdStyle } from "forge-std/Test.sol";
 
 // solhint-disable max-states-count
 // solhint-disable no-console
 
 contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     using LibHelpers for *;
+    using StdStyle for *;
+
     bytes32 internal nWETH;
     bytes32 internal nWBTC;
     bytes32 internal dividendBankId;
@@ -200,10 +204,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testSingleInternalTransferFromEntity() public {
-        // note Add a role to GROUP_INTERNAL_TRANSFER_FROM_ENTITY to allow internalTransferFromEntity
-        nayms.updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY, true);
+        // make entityId acc1's parent
 
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        changePrank(sm);
+        nayms.setEntity(bobId, acc0EntityId);
 
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should start at 0");
 
@@ -217,10 +222,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // from parent of sender (address(this)) to
         nayms.internalTransferFromEntity(account0Id, nWETH, 1 ether);
+
         assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether - 1 ether, "account0's entityId (account0's parent) nWETH balance should DECREASE (transfer to account0Id)");
         assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether, "account0Id nWETH balance should INCREASE (transfer from acc0EntityId)");
 
         assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME (transfer)");
+
+        // Must have ENTITY ADMIN role in order to internalTransferFromEntity
+        changePrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, bobId, acc0EntityId, "", LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY));
+        nayms.internalTransferFromEntity(bobId, nWETH, 1 ether);
     }
 
     function testSingleExternalWithdraw() public {
@@ -539,8 +550,6 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
         assertEq(nayms.internalBalanceOf(eCharlie, nWETH), 85_000);
         assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 0);
-
-        weth.balanceOf(bob);
     }
 
     function testFuzzTwoEntityDepositDividendWithdraw(
@@ -1115,6 +1124,125 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // 9. Alice tries to withdraw the 500 WETH dividend, should withdraw all 500 WETH
         nayms.withdrawDividend(eAlice, eAlice, nWETH);
         assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's current balance should increase by 500 WETH after receiving dividend.");
+    }
+
+    function test_WithdrawDividendBurn() public {
+        // - Entity1 issues 100 tokens for $1 each
+        // - Bob buys 2 tokens
+        // - Charlie buys 3 tokens
+        // - Entity1 issues a dividend for $100
+        // - Entity1 burns its 95 tokens
+        // - Bob's dividend is $2
+        // - Bob withdraws dividend of $2
+        // - Charlie's dividend is $3
+        // - Charlie withdraws dividend of $3
+
+        alice = account0;
+        eAlice = nayms.getEntity(account0Id);
+        bob = signer1;
+        eBob = nayms.getEntity(signer1Id);
+        address charlie = signer2;
+        bytes32 eCharlie = nayms.getEntity(signer2Id);
+        changePrank(sm);
+        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
+        changePrank(sa);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+        changePrank(em);
+        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+
+        changePrank(sm);
+        bytes32 entityId = createTestEntity(account0Id);
+
+        changePrank(alice);
+        writeTokenBalance(alice, naymsAddress, wethAddress, 1000e18);
+        nayms.externalDeposit(wethAddress, 1000e18); // to be used for dividend payments
+
+        changePrank(bob);
+        writeTokenBalance(bob, naymsAddress, wethAddress, 1000e18);
+        nayms.externalDeposit(wethAddress, 100e18);
+
+        changePrank(charlie);
+        writeTokenBalance(charlie, naymsAddress, wethAddress, 1000e18);
+        nayms.externalDeposit(wethAddress, 100e18);
+
+        changePrank(sm);
+        // now start token sale to create an offer
+        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token", 1);
+        nayms.startTokenSale(entityId, 100e18, 100e18); // orderId
+
+        // bob buys 2 p tokens
+        changePrank(bob);
+        nayms.executeLimitOffer({ _sellToken: nWETH, _sellAmount: 2e18, _buyToken: entityId, _buyAmount: 2e18 });
+
+        // charlie buys 3 p tokens
+        changePrank(charlie);
+        nayms.executeLimitOffer({ _sellToken: nWETH, _sellAmount: 3e18, _buyToken: entityId, _buyAmount: 3e18 });
+
+        changePrank(em);
+        nayms.assignRole(account0Id, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+
+        changePrank(alice);
+        nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 100e18);
+
+        assertEq(nayms.getWithdrawableDividend(eBob, entityId, nWETH), 2e18);
+        assertEq(nayms.getWithdrawableDividend(eCharlie, entityId, nWETH), 3e18);
+
+        // burn 95 p tokens
+        changePrank(em);
+        nayms.unassignRole(account0Id, systemContext);
+        changePrank(sm);
+        nayms.assignRole(account0Id, systemContext, LC.ROLE_ENTITY_CP);
+        changePrank(alice);
+
+        nayms.cancelOffer(1);
+
+        // Withdrawable dividend should still be the same as above.
+        assertEq(nayms.getWithdrawableDividend(eBob, entityId, nWETH), 2e18);
+        assertEq(nayms.getWithdrawableDividend(eCharlie, entityId, nWETH), 3e18);
+
+        // Check that weth balances increases as expected after withdrawing dividends.
+        changePrank(bob);
+        uint256 balanceBefore = nayms.internalBalanceOf(eBob, nWETH);
+        c.log(balanceBefore);
+        nayms.withdrawDividend(eBob, entityId, nWETH);
+        c.log(nayms.internalBalanceOf(eBob, nWETH));
+        assertEq(nayms.internalBalanceOf(eBob, nWETH), balanceBefore + 2e18);
+
+        changePrank(charlie);
+        balanceBefore = nayms.internalBalanceOf(eCharlie, nWETH);
+        nayms.withdrawDividend(eCharlie, entityId, nWETH);
+        assertEq(nayms.internalBalanceOf(eCharlie, nWETH), balanceBefore + 3e18);
+    }
+    
+    function testRebasingTokenInterest() public {
+        bytes32 acc0EntityId = nayms.getEntity(account0Id);
+        nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
+
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "acc0EntityId wethId balance should start at 0");
+
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestNotInitialized.selector, wethId));
+        changePrank(sm);
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        changePrank(account0);
+        writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
+
+        nayms.externalDeposit(wethAddress, 1 ether);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
+
+        assertEq(nayms.accruedInterest(wethId), 0, "Accrued interest should be zero");
+        vm.mockCall(wethAddress, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(2 ether));
+        assertEq(nayms.accruedInterest(wethId), 1 ether, "Accrued interest should increase");
+
+        changePrank(sm);
+        vm.expectRevert(abi.encodeWithSelector(RebasingInterestInsufficient.selector, wethId, 5 ether, 1 ether));
+        nayms.distributeAccruedInterest(wethId, 5 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
+
+        nayms.withdrawDividend(acc0EntityId, wethId, wethId);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 2 ether, "acc0EntityId wethId balance should INCREASE (mint)");
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,

@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import { LibAppStorage, AppStorage } from "../shared/AppStorage.sol";
-import { Entity, SimplePolicy, Stakeholders, FeeSchedule } from "../shared/AppStorage.sol";
+import { Entity } from "../shared/AppStorage.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibHelpers } from "./LibHelpers.sol";
@@ -10,30 +10,17 @@ import { LibObject } from "./LibObject.sol";
 import { LibACL } from "./LibACL.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibMarket } from "./LibMarket.sol";
-import { LibSimplePolicy } from "./LibSimplePolicy.sol";
-import { LibFeeRouter } from "./LibFeeRouter.sol";
-
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 // prettier-ignore
 import { 
-    FeeBasisPointsExceedHalfMax, 
     EntityDoesNotExist, 
-    DuplicateSignerCreatingSimplePolicy, 
-    PolicyIdCannotBeZero, 
     ObjectCannotBeTokenized, 
     EntityExistsAlready, 
-    SimplePolicyStakeholderSignatureInvalid, 
-    SimplePolicyClaimsPaidShouldStartAtZero, 
-    SimplePolicyPremiumsPaidShouldStartAtZero, 
-    CancelCannotBeTrueWhenCreatingSimplePolicy, 
     UtilizedCapacityGreaterThanMaxCapacity, 
-    EntityOnboardingNotApproved 
+    EntityOnboardingNotApproved
 } from "../shared/CustomErrors.sol";
 
 library LibEntity {
-    using ECDSA for bytes32;
     /**
      * @notice New entity has been created
      * @dev Emitted when entity is created
@@ -47,13 +34,6 @@ library LibEntity {
      * @param entityId Unique ID for the entity
      */
     event EntityUpdated(bytes32 indexed entityId);
-    /**
-     * @notice New policy has been created
-     * @dev Emitted when policy is created
-     * @param id Unique ID for the policy
-     * @param entityId ID of the entity
-     */
-    event SimplePolicyCreated(bytes32 indexed id, bytes32 entityId);
     /**
      * @notice New token sale has been started
      * @dev Emitted when token sale is started
@@ -72,172 +52,16 @@ library LibEntity {
      */
     event CollateralRatioUpdated(bytes32 indexed entityId, uint256 collateralRatio, uint256 utilizedCapacity);
 
-    /**
-     * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
-     */
-
-    function _validateSimplePolicyCreation(bytes32 _entityId, SimplePolicy memory simplePolicy, Stakeholders calldata _stakeholders) internal view {
-        // The policy's limit cannot be 0. If a policy's limit is zero, this essentially means the policy doesn't require any capital, which doesn't make business sense.
-        require(simplePolicy.limit > 0, "limit not > 0");
-        require(LibAdmin._isSupportedExternalToken(simplePolicy.asset), "external token is not supported");
-
-        if (simplePolicy.claimsPaid != 0) {
-            revert SimplePolicyClaimsPaidShouldStartAtZero();
-        }
-        if (simplePolicy.premiumsPaid != 0) {
-            revert SimplePolicyPremiumsPaidShouldStartAtZero();
-        }
-        if (simplePolicy.cancelled) {
-            revert CancelCannotBeTrueWhenCreatingSimplePolicy();
-        }
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        Entity memory entity = s.entities[_entityId];
-
-        require(simplePolicy.asset == entity.assetId, "asset not matching with entity");
-
-        // Calculate the entity's utilized capacity after it writes this policy.
-        uint256 additionalCapacityNeeded = ((simplePolicy.limit * entity.collateralRatio) / LC.BP_FACTOR);
-        uint256 updatedUtilizedCapacity = entity.utilizedCapacity + additionalCapacityNeeded;
-
-        // The entity must have enough capacity available to write this policy.
-        // An entity is not able to write an additional policy that will utilize its capacity beyond its assigned max capacity.
-        require(entity.maxCapacity >= updatedUtilizedCapacity, "not enough available capacity");
-
-        // The entity's balance must be >= to the updated capacity requirement
-        uint256 availableBalance = LibTokenizedVault._internalBalanceOf(_entityId, simplePolicy.asset) - LibTokenizedVault._getLockedBalance(_entityId, simplePolicy.asset);
-        require(availableBalance >= additionalCapacityNeeded, "not enough capital");
-
-        require(simplePolicy.startDate >= block.timestamp, "start date < block.timestamp");
-        require(simplePolicy.maturationDate > simplePolicy.startDate, "start date > maturation date");
-
-        require(simplePolicy.maturationDate - simplePolicy.startDate > 1 days, "policy period must be more than a day");
-
-        FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, LC.FEE_TYPE_PREMIUM);
-        uint256 feeReceiversCount = feeSchedule.receiver.length;
-        // There must be at least one receiver from the fee schedule
-        require(feeReceiversCount > 0, "must have fee schedule receivers"); // error there must be at least one receiver from fee schedule
-
-        // policy-level receivers are expected
-        uint256 commissionReceiversArrayLength = simplePolicy.commissionReceivers.length;
-        require(commissionReceiversArrayLength <= _stakeholders.roles.length, "too many commission receivers"); // error too many POLICY level commission receivers
-
-        uint256 commissionBasisPointsArrayLength = simplePolicy.commissionBasisPoints.length;
-        require(commissionReceiversArrayLength == commissionBasisPointsArrayLength, "number of commissions don't match");
-
-        uint256 commissionReceiversTotalBP;
-        for (uint256 i; i < commissionBasisPointsArrayLength; ++i) {
-            commissionReceiversTotalBP += simplePolicy.commissionBasisPoints[i];
-        }
-
-        if (commissionReceiversTotalBP > LC.BP_FACTOR / 2) {
-            revert FeeBasisPointsExceedHalfMax(commissionReceiversTotalBP, LC.BP_FACTOR / 2);
-        }
-
-        require(_stakeholders.roles.length == _stakeholders.entityIds.length, "stakeholders roles mismatch");
-    }
-
-    function _createSimplePolicy(
-        bytes32 _policyId,
-        bytes32 _entityId,
-        Stakeholders calldata _stakeholders,
-        SimplePolicy calldata _simplePolicy,
-        bytes32 _offchainDataHash
-    ) internal {
-        if (_policyId == 0) {
-            revert PolicyIdCannotBeZero();
-        }
-
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        if (!s.existingEntities[_entityId]) {
-            revert EntityDoesNotExist(_entityId);
-        }
-        require(_stakeholders.entityIds.length == _stakeholders.signatures.length, "incorrect number of signatures");
-
-        s.simplePolicies[_policyId] = _simplePolicy;
-
-        _validateSimplePolicyCreation(_entityId, s.simplePolicies[_policyId], _stakeholders);
-
-        Entity storage entity = s.entities[_entityId];
-        uint256 factoredLimit = (_simplePolicy.limit * entity.collateralRatio) / LC.BP_FACTOR;
-
-        entity.utilizedCapacity += factoredLimit;
-        s.lockedBalances[_entityId][entity.assetId] += factoredLimit;
-
-        // hash contents are implicitly checked by making sure that resolved signer is the stakeholder entity's admin
-        bytes32 signingHash = LibSimplePolicy._getSigningHash(_simplePolicy.startDate, _simplePolicy.maturationDate, _simplePolicy.asset, _simplePolicy.limit, _offchainDataHash);
-
-        LibObject._createObject(_policyId, LC.OBJECT_TYPE_POLICY, _entityId, signingHash);
-        s.simplePolicies[_policyId].fundsLocked = true;
-
-        uint256 rolesCount = _stakeholders.roles.length;
-        address signer;
-        address previousSigner;
-
-        for (uint256 i = 0; i < rolesCount; i++) {
-            previousSigner = signer;
-
-            signer = getSigner(signingHash, _stakeholders.signatures[i]);
-
-            if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
-                revert SimplePolicyStakeholderSignatureInvalid(
-                    signingHash,
-                    _stakeholders.signatures[i],
-                    LibHelpers._getIdForAddress(signer),
-                    LibObject._getParentFromAddress(signer),
-                    _stakeholders.entityIds[i]
-                );
-            }
-
-            // Ensure there are no duplicate signers.
-            if (previousSigner >= signer) {
-                revert DuplicateSignerCreatingSimplePolicy(previousSigner, signer);
-            }
-
-            LibACL._assignRole(_stakeholders.entityIds[i], _policyId, _stakeholders.roles[i]);
-        }
-
-        s.existingSimplePolicies[_policyId] = true;
-        emit SimplePolicyCreated(_policyId, _entityId);
-    }
-
-    function getSigner(bytes32 signingHash, bytes memory signature) private pure returns (address) {
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        // ecrecover takes the signature parameters, and the only way to get them
-        if (signature.length == 65) {
-            // currently is to use assembly.
-            /// @solidity memory-safe-assembly
-            assembly {
-                r := mload(add(signature, 0x20))
-                s := mload(add(signature, 0x40))
-                v := byte(0, mload(add(signature, 0x60)))
-
-                switch v
-                // if v == 0, then v = 27
-                case 0 {
-                    v := 27
-                }
-                // if v == 1, then v = 28
-                case 1 {
-                    v := 28
-                }
-            }
-        }
-
-        (address signer, , ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
-
-        return signer;
-    }
-
     /// @param _amount the amount of entity token that is minted and put on sale
     /// @param _totalPrice the buy amount
     function _startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
         require(_amount > 0, "mint amount must be > 0");
         require(_totalPrice > 0, "total price must be > 0");
 
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        bytes32 assetId = s.entities[_entityId].assetId;
+        require(_totalPrice > s.objectMinimumSell[assetId], "total price must be greater than asset minimum sell amount");
 
         if (!s.existingEntities[_entityId]) {
             revert EntityDoesNotExist(_entityId);

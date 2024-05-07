@@ -6,6 +6,8 @@ import { LibAdmin } from "./LibAdmin.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
+import { LibERC20 } from "./LibERC20.sol";
+import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
 
 import { InsufficientBalance } from "../shared/CustomErrors.sol";
 
@@ -123,6 +125,21 @@ library LibTokenizedVault {
         }
     }
 
+    /// @dev Recalculate totalDividends for all denominations when tokens are burned
+    function _normalizeDividendsBurn(bytes32 _tokenId, uint256 _amount) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 supply = _internalTokenSupply(_tokenId);
+
+        bytes32[] memory dividendDenominations = s.dividendDenominations[_tokenId];
+
+        for (uint256 i; i < dividendDenominations.length; ++i) {
+            bytes32 dividendDenominationId = dividendDenominations[i];
+
+            // new total dividends = old total dividends * new total supply of p token / old total supply of p token
+            s.totalDividends[_tokenId][dividendDenominationId] = (s.totalDividends[_tokenId][dividendDenominationId] * (supply - _amount)) / supply;
+        }
+    }
+
     function _internalBurn(bytes32 _from, bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -130,7 +147,7 @@ library LibTokenizedVault {
         require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalBurn: insufficient balance available, funds locked");
 
         _withdrawAllDividends(_from, _tokenId);
-
+        _normalizeDividendsBurn(_tokenId, _amount);
         s.tokenSupply[_tokenId] -= _amount;
         s.tokenBalances[_tokenId][_from] -= _amount;
 
@@ -266,5 +283,36 @@ library LibTokenizedVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         return s.totalDividends[_tokenId][_dividendDenominationId];
+    }
+
+    function _accruedInterest(bytes32 _tokenId) internal view returns (uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
+
+        uint256 depositTotal = s.depositTotal[_tokenId];
+        uint256 total = LibERC20.balanceOf(tokenAddress, address(this));
+
+        // If the Nayms balance of the rebasing token has decreased and is lower than the deposit total, revert
+        if (total < depositTotal) {
+            revert RebasingSupplyDecreased(_tokenId, depositTotal, total);
+        }
+        return total - depositTotal;
+    }
+
+    function _claimRebasingInterest(bytes32 _tokenId, uint256 _amount) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.depositTotal[_tokenId] == 0) {
+            revert RebasingInterestNotInitialized(_tokenId);
+        }
+
+        uint256 accruedAmount = _accruedInterest(_tokenId);
+        if (_amount > accruedAmount) {
+            revert RebasingInterestInsufficient(_tokenId, _amount, accruedAmount);
+        }
+
+        s.tokenBalances[_tokenId][_tokenId] += _amount;
+        s.depositTotal[_tokenId] += _amount;
     }
 }

@@ -20,6 +20,14 @@ struct TokenAmount {
     uint256 amount;
 }
 
+/// @dev Used in the order matching algorithm.
+struct OrderMatchingCalcs {
+    uint256 currentSellAmount;
+    uint256 currentBuyAmount;
+    uint256 normalizedBuyAmount;
+    uint256 normalizedSellAmount;
+}
+
 /**
  * @param maxCapacity Maximum allowable amount of capacity that an entity is given. Denominated by assetId.
  * @param utilizedCapacity The utilized capacity of the entity. Denominated by assetId.
@@ -94,9 +102,7 @@ struct FeeSchedule {
 }
 
 struct FeeAllocation {
-    bytes32 from; // The ID of the entity that paid the fee
     bytes32 to; // The ID of the entity that receives the fee
-    bytes32 token; // The ID of the token that was used to pay the fee
     uint256 fee; // The amount of fees paid to the receiver
     uint256 basisPoints; // The basis points taken from the amount transacted
 }

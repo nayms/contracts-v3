@@ -514,20 +514,21 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         // fee schedule receivers
         // change fee schedule to one that does not have any receivers
-        bytes32[] memory r;
-        uint16[] memory bp;
+        // bytes32[] memory r;
+        // uint16[] memory bp;
 
-        vm.startPrank(systemAdmin);
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
-        vm.startPrank(su.addr);
-        vm.expectRevert("must have fee schedule receivers");
-        nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
+        // note: this test is not possible anymore because the fee schedule cannot be reset to be empty
+        // vm.startPrank(systemAdmin);
+        // nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
+        // vm.startPrank(su.addr);
+        // vm.expectRevert("must have fee schedule receivers");
+        // nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        // add back fee receiver
-        r = b32Array1(NAYMS_LTD_IDENTIFIER);
-        bp = u16Array1(300);
-        vm.startPrank(systemAdmin);
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
+        // // add back fee receiver
+        // r = b32Array1(NAYMS_LTD_IDENTIFIER);
+        // bp = u16Array1(300);
+        // vm.startPrank(systemAdmin);
+        // nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, r, bp);
 
         vm.startPrank(su.addr);
         vm.expectRevert("number of commissions don't match");
@@ -1007,6 +1008,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.expectRevert("total price must be > 0");
         nayms.startTokenSale(entityId1, sellAmount, 0);
 
+        vm.expectRevert("total price must be greater than asset minimum sell amount");
+        nayms.startTokenSale(entityId1, sellAmount, 1);
+
         uint256 lastOfferId = nayms.getLastOfferId();
 
         nayms.startTokenSale(entityId1, sellAmount, sellAtPrice);
@@ -1173,7 +1177,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, LC.ROLE_SYSTEM_MANAGER));
-        nayms.approveSelfOnboarding(signer1, randomEntityId(1), LC.ROLE_SYSTEM_MANAGER);
+        nayms.approveSelfOnboarding(address(111), randomEntityId(1), LC.ROLE_SYSTEM_MANAGER);
         vm.stopPrank();
     }
 
@@ -1183,18 +1187,18 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32 entityId = randomEntityId(2);
 
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
 
-        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, signer1));
-        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_CP);
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, address(111)));
+        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_CP);
         vm.stopPrank();
     }
 
     function testSelfOnboardingSuccess() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        _selfOnboard(signer1, randomEntityId(1), LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
-        _selfOnboard(signer2, randomEntityId(2), LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
+        _selfOnboard(address(111), randomEntityId(1), LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
+        _selfOnboard(address(222), randomEntityId(2), LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
     }
 
     function testSelfOnboardingCancel() public {
@@ -1203,17 +1207,17 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32 entityId = randomEntityId(2);
 
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
 
-        assertTrue(nayms.isSelfOnboardingApproved(signer1, entityId), "Onboarding should be approved");
+        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId), "Onboarding should be approved");
 
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
-        nayms.cancelSelfOnboarding(signer1);
+        nayms.cancelSelfOnboarding(address(111));
 
         vm.startPrank(sm.addr);
-        nayms.cancelSelfOnboarding(signer1);
+        nayms.cancelSelfOnboarding(address(111));
 
-        assertFalse(nayms.isSelfOnboardingApproved(signer1, entityId), "Onboarding should have been cancelled");
+        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId), "Onboarding should have been cancelled");
     }
 
     function _selfOnboard(address _userAddress, bytes32 entityId, string memory roleName, string memory groupName) private {
@@ -1243,12 +1247,32 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 entityId = randomEntityId(9);
 
-        _selfOnboard(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
+        _selfOnboard(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(EntityExistsAlready.selector, entityId));
-        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(address(222), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
         vm.stopPrank();
+    }
+
+    function test_ApproveSelfOnboarding_InvalidEntityId() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        bytes32 entityId = keccak256("invalid entity id");
+
+        vm.startPrank(em.addr);
+        vm.expectRevert(abi.encodeWithSelector(InvalidEntityId.selector, entityId));
+        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+    }
+
+    function test_ApproveSelfOnboarding_UserAlreadyHasParentEntity() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        bytes32 entityId = randomEntityId(9);
+
+        vm.startPrank(em.addr);
+        vm.expectRevert(abi.encodeWithSelector(UserAlreadyHasParentEntity.selector, signer1, nayms.getEntity(signer1Id)));
+        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
     }
 
     function randomEntityId(uint256 salt) public view returns (bytes32) {
