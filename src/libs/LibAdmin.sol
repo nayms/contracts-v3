@@ -279,6 +279,16 @@ library LibAdmin {
         emit SelfOnboardingCompleted(_userAddress);
     }
 
+    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, string calldata _role) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 roleId = LibHelpers._stringToBytes32(_role);
+
+        EntityApproval memory approval = s.selfOnboarding[_userAddress];
+
+        return _entityId == approval.entityId && roleId == approval.roleId;
+    }
+
     function _cancelSelfOnboarding(address _userAddress) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 

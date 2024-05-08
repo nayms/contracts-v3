@@ -1209,7 +1209,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.startPrank(em.addr);
         nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
 
-        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId), "Onboarding should be approved");
+        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER), "Onboarding should be approved");
 
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
         nayms.cancelSelfOnboarding(address(111));
@@ -1217,7 +1217,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.startPrank(sm.addr);
         nayms.cancelSelfOnboarding(address(111));
 
-        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId), "Onboarding should have been cancelled");
+        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER), "Onboarding should have been cancelled");
     }
 
     function _selfOnboard(address _userAddress, bytes32 entityId, string memory roleName, string memory groupName) private {
