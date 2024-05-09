@@ -593,7 +593,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         getReadyToCreatePolicies();
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
-        vm.expectRevert("objectId is already being used by another object");
+        vm.expectRevert(abi.encodeWithSelector(ObjectExistsAlready.selector, policyId1));
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
     }
 
@@ -679,11 +679,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.createSimplePolicy(policyId1, entityId1, stakeholders, simplePolicy, testPolicyDataHash);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        // events: 4 role assignments + 1 policy creation => we want event at index 4
-        assertEq(entries[6].topics.length, 2);
-        assertEq(entries[6].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
-        assertEq(entries[6].topics[1], policyId1);
-        bytes32 entityId = abi.decode(entries[6].data, (bytes32));
+        // events: 1 object creation, 4 role assignments + 1 policy creation => we want event at index 5
+        assertEq(entries[5].topics.length, 2);
+        assertEq(entries[5].topics[0], keccak256("SimplePolicyCreated(bytes32,bytes32)"));
+        assertEq(entries[5].topics[1], policyId1);
+        bytes32 entityId = abi.decode(entries[5].data, (bytes32));
         assertEq(entityId, entityId1);
     }
 

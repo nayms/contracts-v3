@@ -38,6 +38,9 @@ error CannotSupportExternalTokenWithMoreThan18Decimals();
 /// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
 error CannotAddNullDiscountToken();
 
+/// @dev Object exsists when it should not.
+error ObjectExistsAlready(bytes32 objectId);
+
 /// @dev Object does not exsit when it should.
 error ObjectDoesNotExist(bytes32 objectId);
 
