@@ -20,7 +20,6 @@ import {
     EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
     InvalidSelfOnboardRoleApproval,
-    UserAlreadyHasParentEntity,
     InvalidEntityId
 } from "../shared/CustomErrors.sol";
 
@@ -227,30 +226,28 @@ library LibAdmin {
         emit FunctionsUnlocked(lockedFunctions);
     }
 
+    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, string calldata _role) internal view returns (bool) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        EntityApproval memory approval = s.selfOnboarding[_userAddress];
+
+        return approval.entityId == _entityId && approval.roleId == LibHelpers._stringToBytes32(_role);
+    }
+
     function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, string calldata _role) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         // The entityId must be the valid type (entity).
         if (!LibObject._isObjectType(_entityId, LC.OBJECT_TYPE_ENTITY)) revert InvalidEntityId(_entityId);
 
-        // Require that the user doesn't have a parent entity set already.
-        if (LibObject._getParentFromAddress(_userAddress) != 0) revert UserAlreadyHasParentEntity(_userAddress, LibObject._getParentFromAddress(_userAddress));
-
+        // Require that the user is not approved for the role already
         bytes32 roleId = LibHelpers._stringToBytes32(_role);
+        if (_isSelfOnboardingApproved(_userAddress, _entityId, _role)) revert EntityOnboardingAlreadyApproved(_userAddress);
 
         bool isTokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
         bool isCapitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
-
         if (!isTokenHolder && !isCapitalProvider) {
             revert InvalidSelfOnboardRoleApproval(_role);
-        }
-
-        if (s.selfOnboarding[_userAddress].entityId != 0 && s.selfOnboarding[_userAddress].roleId != 0) {
-            revert EntityOnboardingAlreadyApproved(_userAddress);
-        }
-
-        if (s.existingEntities[_entityId]) {
-            revert EntityExistsAlready(_entityId);
         }
 
         s.selfOnboarding[_userAddress] = EntityApproval({ entityId: _entityId, roleId: roleId });
@@ -260,16 +257,18 @@ library LibAdmin {
 
     function _onboardUser(address _userAddress) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        EntityApproval memory approval = s.selfOnboarding[_userAddress];
 
-        if (s.selfOnboarding[_userAddress].entityId == 0 || s.selfOnboarding[_userAddress].roleId == 0) {
+        if (approval.entityId == 0 || approval.roleId == 0) {
             revert EntityOnboardingNotApproved(_userAddress);
         }
 
         bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
-        EntityApproval memory approval = s.selfOnboarding[_userAddress];
 
-        Entity memory entity;
-        LibEntity._createEntity(approval.entityId, userId, entity, 0);
+        if (!s.existingEntities[approval.entityId]) {
+            Entity memory entity;
+            LibEntity._createEntity(approval.entityId, userId, entity, 0);
+        }
 
         LibACL._assignRole(approval.entityId, LibAdmin._getSystemId(), approval.roleId);
         LibACL._assignRole(approval.entityId, approval.entityId, approval.roleId);

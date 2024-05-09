@@ -1265,16 +1265,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
     }
 
-    function test_ApproveSelfOnboarding_UserAlreadyHasParentEntity() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
-
-        bytes32 entityId = randomEntityId(9);
-
-        vm.startPrank(em.addr);
-        vm.expectRevert(abi.encodeWithSelector(UserAlreadyHasParentEntity.selector, signer1, nayms.getEntity(signer1Id)));
-        nayms.approveSelfOnboarding(signer1, entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
-    }
-
     function randomEntityId(uint256 salt) public view returns (bytes32) {
         bytes32 hash = keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, salt));
         return bytes32(abi.encodePacked(LC.OBJECT_TYPE_ENTITY, bytes20(hash)));
