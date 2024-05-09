@@ -190,9 +190,11 @@ library LibTokenizedVaultStaking {
         _collectRewards(_stakerId, _entityId, currentInterval);
         s.stakeCollected[_entityId][_stakerId] = currentInterval;
 
-        s.stakingDistributionAmount[vTokenIdLastPaid] -=
-            (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaid][_stakerId]) /
-            s.stakeBalance[vTokenIdLastPaid][_entityId];
+        if (s.stakingDistributionAmount[vTokenIdLastPaid] != 0 && s.stakeBalance[vTokenIdLastPaid][_entityId] != 0) {
+            s.stakingDistributionAmount[vTokenIdLastPaid] -=
+                (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaid][_stakerId]) /
+                s.stakeBalance[vTokenIdLastPaid][_entityId];
+        }
 
         s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId];
 
@@ -273,7 +275,7 @@ library LibTokenizedVaultStaking {
             bytes32 vTokenId = _vTokenId(tokenId, _interval);
 
             // Update state
-            s.stakeCollected[_entityId][_stakerId] = _interval; // TODO: set to the actual reward interval, not current!
+            s.stakeCollected[_entityId][_stakerId] = _interval;
             s.stakeBoost[vTokenId][_stakerId] = state.boost;
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
