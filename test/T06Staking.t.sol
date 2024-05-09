@@ -576,6 +576,21 @@ contract T06Staking is D03ProtocolDefaults {
                 : (stakingStates[na.entityId][interval].balance * rewardAmount) / stakingStates[nlf.entityId][interval].balance;
     }
 
+    function test_simpleStakeUnstake() public {
+        initStaking(I);
+        vm.warp(2 * I + 10 days); // important not to stake at [0] interval!
+
+        uint256 balanceBefore = nayms.internalBalanceOf(bob.entityId, usdcId);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+
+        vm.warp(6 * I + 15 days);
+        nayms.unstake(nlf.entityId);
+
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), balanceBefore, "balance should be the same");
+    }
+
     function test_unstakeScenario1() public {
         test_StakingScenario1();
 
