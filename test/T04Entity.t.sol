@@ -1197,8 +1197,30 @@ contract T04EntityTest is D03ProtocolDefaults {
     function testSelfOnboardingSuccess() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        _selfOnboard(address(111), randomEntityId(1), LC.ROLE_ENTITY_TOKEN_HOLDER, LC.GROUP_TOKEN_HOLDERS);
-        _selfOnboard(address(222), randomEntityId(2), LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS);
+        bytes32 e1 = randomEntityId(1);
+        _approveSelfOnboarding(address(111), e1, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        _selfOnboard(address(111), e1, LC.GROUP_TOKEN_HOLDERS);
+
+        bytes32 e2 = randomEntityId(2);
+        _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_CP);
+        _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
+    }
+
+    function testSelfOnboardingUpgradeToCapitalProvider() public {
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        // test upgrade before onboarding
+        bytes32 e1 = randomEntityId(1);
+        _approveSelfOnboarding(address(111), e1, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        _approveSelfOnboarding(address(111), e1, LC.ROLE_ENTITY_CP);
+        _selfOnboard(address(111), e1, LC.GROUP_CAPITAL_PROVIDERS);
+
+        // test upgrade after onboarding
+        bytes32 e2 = randomEntityId(2);
+        _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        _selfOnboard(address(222), e2, LC.GROUP_TOKEN_HOLDERS);
+        _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_CP);
+        _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
     }
 
     function testSelfOnboardingCancel() public {
@@ -1220,7 +1242,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER), "Onboarding should have been cancelled");
     }
 
-    function _selfOnboard(address _userAddress, bytes32 entityId, string memory roleName, string memory groupName) private {
+    function _approveSelfOnboarding(address _userAddress, bytes32 entityId, string memory roleName) private {
         vm.recordLogs();
 
         vm.startPrank(em.addr);
@@ -1228,12 +1250,12 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        // events: 4 role assignments + 1 policy creation => we want event at index 4
         assertEq(entries[0].topics.length, 2);
-        // assertEq(entries[0].topics[0], keccak256("SelfOnboardingApproved(address)"));
-        // address eventAddress = abi.decode(entries[0].data, (address));
-        // assertEq(eventAddress, _userAddress);
+        assertEq(entries[0].topics[0], keccak256("SelfOnboardingApproved(address)"));
+        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[1]), (address)), _userAddress);
+    }
 
+    function _selfOnboard(address _userAddress, bytes32 entityId, string memory groupName) private {
         vm.startPrank(_userAddress);
         nayms.onboard();
         vm.stopPrank();
