@@ -226,14 +226,6 @@ library LibAdmin {
         emit FunctionsUnlocked(lockedFunctions);
     }
 
-    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, string calldata _role) internal view returns (bool) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        EntityApproval memory approval = s.selfOnboarding[_userAddress];
-
-        return approval.entityId == _entityId && approval.roleId == LibHelpers._stringToBytes32(_role);
-    }
-
     function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, string calldata _role) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
@@ -281,11 +273,9 @@ library LibAdmin {
     function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, string calldata _role) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        bytes32 roleId = LibHelpers._stringToBytes32(_role);
-
         EntityApproval memory approval = s.selfOnboarding[_userAddress];
 
-        return _entityId == approval.entityId && roleId == approval.roleId;
+        return approval.entityId == _entityId && approval.roleId == LibHelpers._stringToBytes32(_role);
     }
 
     function _cancelSelfOnboarding(address _userAddress) internal {
