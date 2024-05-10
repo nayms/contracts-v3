@@ -162,6 +162,12 @@ fork-base: ## fork base locally with anvil
 fork-base-sepolia: ## fork base locally with anvil
 	anvil -f ${BASE_SEPOLIA_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
 
+fork-aurora-mainnet: ## fork aurora locally with anvil
+	anvil -f ${AURORA_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+
+fork-aurora-testnet: ## fork aurora locally with anvil
+	anvil -f ${AURORA_TESTNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+
 anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \
 		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \

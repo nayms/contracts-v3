@@ -49,18 +49,20 @@ jobs:
         env:
           ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
           ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
-          ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
           BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          AURORA_MAINNET_RPC_URL: ${{ secrets.AURORA_MAINNET_RPC_URL}}
+          AURORA_TESTNET_RPC_URL: ${{ secrets.AURORA_TESTNET_RPC_URL}}
 
       - name: Tests - local
         run: make test
         env:
           ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
           ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
-          ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
           BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          AURORA_MAINNET_RPC_URL: ${{ secrets.AURORA_MAINNET_RPC_URL}}
+          AURORA_TESTNET_RPC_URL: ${{ secrets.AURORA_TESTNET_RPC_URL}}
 
       - name: Coverage report
         env:
