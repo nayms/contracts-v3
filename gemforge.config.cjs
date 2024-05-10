@@ -3,9 +3,9 @@ require("dotenv").config();
 const fs = require("fs");
 const ethers = require("ethers");
 
-const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
-  ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
-  : "test test test test test test test test test test test junk";
+const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt") ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim() : "test test test test test test test test test test test junk";
+
+const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
 
 module.exports = {
   // Configuration file version
@@ -155,18 +155,18 @@ module.exports = {
     },
   },
   targets: {
-    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    mainnet: { network: "mainnet", wallet: "wallet3" },
-    mainnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    baseSepolia: { network: "baseSepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    baseSepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    base: { network: "base", wallet: "wallet3" },
-    baseFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    aurora: { network: "aurora", wallet: "devOwnerWallet" },
-    auroraFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    auroraTestnet: { network: "auroraTestnet", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
-    auroraTestnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    mainnet: { network: "mainnet", wallet: "wallet3", initArgs: [sysAdminAddress] },
+    mainnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [] },
+    baseSepolia: { network: "baseSepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    baseSepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    base: { network: "base", wallet: "wallet3", initArgs: [sysAdminAddress] },
+    baseFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [] },
+    aurora: { network: "aurora", wallet: "devOwnerWallet", initArgs: [sysAdminAddress] },
+    auroraFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [] },
+    auroraTestnet: { network: "auroraTestnet", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    auroraTestnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
   },
 };

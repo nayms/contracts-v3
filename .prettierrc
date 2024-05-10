@@ -32,7 +32,7 @@
     {
       "files": "*.cjs",
       "options": {
-        "printWidth": 120
+        "printWidth": 180
       }
     }
   ]
