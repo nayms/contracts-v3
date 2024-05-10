@@ -141,6 +141,7 @@ module.exports = {
         {
           verifierName: "aurora",
           verifierUrl: "https://explorer.mainnet.aurora.dev/api",
+          verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
         },
       ],
     },
@@ -150,6 +151,7 @@ module.exports = {
         {
           verifierName: "aurora",
           verifierUrl: "https://explorer.testnet.aurora.dev/api",
+          verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
         },
       ],
     },
