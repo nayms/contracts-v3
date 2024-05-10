@@ -7,8 +7,6 @@ const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt")
   ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim()
   : "test test test test test test test test test test test junk";
 
-const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
-
 module.exports = {
   // Configuration file version
   version: 2,
@@ -74,23 +72,13 @@ module.exports = {
     // Names of core facet contracts - these will not be modified/removed once deployed and are also reserved names.
     // This default list is taken from the diamond-2-hardhat library.
     // NOTE: WE RECOMMEND NOT CHANGING ANY OF THESE EXISTING NAMES UNLESS YOU KNOW WHAT YOU ARE DOING.
-    coreFacets: [
-      "DiamondCutFacet",
-      "DiamondLoupeFacet",
-      "NaymsOwnershipFacet",
-      "ACLFacet",
-      "GovernanceFacet",
-    ],
+    coreFacets: ["DiamondCutFacet", "DiamondLoupeFacet", "NaymsOwnershipFacet", "ACLFacet", "GovernanceFacet"],
   },
-  // lifecycle hooks
+  // lifecycle shell command hooks
   hooks: {
-    // shell command to execute before build
     preBuild: "",
-    // shell command to execute after build
     postBuild: "",
-    // shell command to execute before deploy
     preDeploy: "",
-    // shell command to execute after deploy
     postDeploy: "./script/gemforge/verify.js",
   },
   // Wallets to use for deployment
@@ -147,59 +135,38 @@ module.exports = {
         },
       ],
     },
+    aurora: {
+      rpcUrl: process.env.AURORA_MAINNET_RPC_URL,
+      verifiers: [
+        {
+          verifierName: "aurora",
+          verifierUrl: "https://explorer.mainnet.aurora.dev/api",
+        },
+      ],
+    },
+    auroraTestnet: {
+      rpcUrl: process.env.AURORA_TESTNET_RPC_URL,
+      verifiers: [
+        {
+          verifierName: "aurora",
+          verifierUrl: "https://explorer.testnet.aurora.dev/api",
+        },
+      ],
+    },
   },
   targets: {
-    local: {
-      network: "local",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [sysAdminAddress],
-    },
-    sepolia: {
-      network: "sepolia",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [sysAdminAddress],
-    },
-    sepoliaFork: {
-      network: "local",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [sysAdminAddress],
-    },
-    mainnet: {
-      network: "mainnet",
-      wallet: "wallet3",
-      initArgs: [sysAdminAddress],
-    },
-    mainnetFork: {
-      network: "local",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [],
-    },
-    baseSepolia: {
-      network: "baseSepolia",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [sysAdminAddress],
-    },
-    baseSepoliaFork: {
-      network: "local",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [sysAdminAddress],
-    },
-    base: {
-      network: "base",
-      wallet: "wallet3",
-      initArgs: [sysAdminAddress],
-    },
-    baseFork: {
-      network: "local",
-      wallet: "devOwnerWallet",
-      governance: "devSysAdminWallet",
-      initArgs: [sysAdminAddress],
-    },
+    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    mainnet: { network: "mainnet", wallet: "wallet3" },
+    mainnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    baseSepolia: { network: "baseSepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    baseSepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    base: { network: "base", wallet: "wallet3" },
+    baseFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    aurora: { network: "aurora", wallet: "devOwnerWallet" },
+    auroraFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    auroraTestnet: { network: "auroraTestnet", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
+    auroraTestnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet" },
   },
 };

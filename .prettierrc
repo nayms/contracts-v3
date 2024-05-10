@@ -28,6 +28,12 @@
         "singleQuote": false,
         "bracketSpacing": true
       }
+    },
+    {
+      "files": "*.cjs",
+      "options": {
+        "printWidth": 120
+      }
     }
   ]
 }
