@@ -187,9 +187,6 @@ error InvalidSignatureSError(bytes32 sValue);
 /// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
 error InvalidReceiverCount(uint256 numberOfReceivers);
 
-/// @dev User cannot have a parent entity for the given context.
-error UserAlreadyHasParentEntity(address userAddress, bytes32 usersParentEntity);
-
 /// @dev The entity ID is invalid for the given context.
 error InvalidEntityId(bytes32 entityId);
 
