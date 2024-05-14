@@ -31,7 +31,7 @@ cast send $DIAMOND "assignRole(bytes32,bytes32,string)" \
         --mnemonic-path ./nayms_mnemonic.txt \
         --mnemonic-index 0 \
         --chain-id 31337 \
-        --from $ACC1
+        --from $ACC1 || exit 2
 
 echo
 echo " 🔏 [ Assigning Onboarding Approver: ${GREEN}$ACC_BACKEND${NC} ]"
@@ -42,19 +42,19 @@ cast send $DIAMOND "assignRole(bytes32,bytes32,string)" \
         --mnemonic-path ./nayms_mnemonic.txt \
         --mnemonic-index 1 \
         --chain-id 31337 \
-        --from $ACC2
+        --from $ACC2 || exit 3
 
 echo
 echo " 🦋 [ ${GREEN}Deploying GTOKEN${NC} ]"
 echo
-make anvil-gtoken || exit 5
+make anvil-gtoken || exit 4
 
 echo
 echo " 🐳 [ ${GREEN}Support GTOKEN${NC}: $GTOKEN ]"
 echo
 make anvil-add-supported-external-token \
         naymsDiamondAddress=$DIAMOND \
-        externalToken=$GTOKEN || exit 6
+        externalToken=$GTOKEN || exit 5
 
 # fund account 1
 echo
@@ -65,7 +65,7 @@ cast send $GTOKEN "mint(address,uint256)" \
         -r http:\\127.0.0.1:8545 \
         --mnemonic-path ./nayms_mnemonic.txt \
         --chain-id 31337 \
-        --from $ACC1
+        --from $ACC1 || exit 6
 
 # fund account 2
 echo
@@ -77,7 +77,7 @@ cast send $GTOKEN "mint(address,uint256)" \
         --mnemonic-path ./nayms_mnemonic.txt \
         --mnemonic-index 1 \
         --chain-id 31337 \
-        --from $ACC2
+        --from $ACC2 || exit 7
 
 # fund account 3
 echo
@@ -89,7 +89,7 @@ cast send $GTOKEN "mint(address,uint256)" \
         --mnemonic-path ./nayms_mnemonic.txt \
         --mnemonic-index 2 \
         --chain-id 31337 \
-        --from $ACC3
+        --from $ACC3 || exit 8
 
 # fund account 4
 echo
@@ -101,7 +101,7 @@ cast send $GTOKEN "mint(address,uint256)" \
         --mnemonic-path ./nayms_mnemonic.txt \
         --mnemonic-index 3 \
         --chain-id 31337 \
-        --from $ACC4
+        --from $ACC4 || exit 9
 
 # fund account 5
 echo
@@ -113,8 +113,23 @@ cast send $GTOKEN "mint(address,uint256)" \
         --mnemonic-path ./nayms_mnemonic.txt \
         --mnemonic-index 4 \
         --chain-id 31337 \
-        --from $ACC5
+        --from $ACC5 || exit 10
 
 echo
-echo  " ✨ [ ${GREEN}Done${NC} ]"
+echo " 🦋 [ ${GREEN}Deploying NAYM${NC} ]"
 echo
+
+cd ../naym-coin
+yarn deploy local --fresh || exit 11
+
+NAYM=$(jq -r '.local.contracts[] | select(.name == "DiamondProxy").onChain.address' gemforge.deployments.json)
+echo " 💎 NAYM address: $NAYM"
+
+echo
+echo " 🐳 [ ${GREEN}Support NAYM${NC}: $NAYM ]"
+echo
+
+cd ../contracts-v3
+make anvil-add-supported-external-token \
+        naymsDiamondAddress=$DIAMOND \
+        externalToken=$NAYM || exit 12
