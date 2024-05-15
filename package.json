@@ -1,6 +1,6 @@
 {
   "name": "@nayms/contracts",
-  "version": "3.8.7",
+  "version": "3.8.8",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts-v3.git",
   "author": "Kevin Park <kevin@fruitful.gg>",
