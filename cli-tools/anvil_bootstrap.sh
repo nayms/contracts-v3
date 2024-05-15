@@ -133,3 +133,15 @@ cd ../contracts-v3
 make anvil-add-supported-external-token \
         naymsDiamondAddress=$DIAMOND \
         externalToken=$NAYM || exit 12
+
+# fund account 5
+echo
+echo " 💰 [ Minting NAYM to ACC5:${GREEN} $ACC5 ${NC} ]"
+echo
+cast send $NAYM "mint(address,uint256)" \
+        "$ACC5" '1000000000000000000000000' \
+        -r http:\\127.0.0.1:8545 \
+        --mnemonic-path ./nayms_mnemonic.txt \
+        --mnemonic-index 0 \
+        --chain-id 31337 \
+        --from $ACC1 || exit 13
