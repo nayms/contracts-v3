@@ -9,7 +9,9 @@
         "txHash": "0x6d1ea0b274d7af0ca022b64f517f4f3be762995d87552d77a6f4ee2ff6978cbe",
         "onChain": {
           "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -158,13 +160,25 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x35245803d091c034804c6325c1d306a6fcfecef176e0a9ada0c8c857c22cc743",
+        "onChain": {
+          "address": "0xf3D3A7Dce67305EAC4bD90da03860495E0AC2D87",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
         "txHash": "0x5b6ae69190004390b09f34538e398e6c119fdfa05ace4120d03fe190c4a4d8a7",
         "onChain": {
           "address": "0xb967807422a53aCa74E539269BfB8b6fD4140525",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -244,16 +258,6 @@
         "txHash": "0xf2f5b2c158317d42bcc3c5aa1d1371fbdb71d3d62480a5d56bfdcb5c9b77f3e6",
         "onChain": {
           "address": "0xfBd074Ef3b06E02A90fF69EC56C5EC014a50C173",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xaa31d6db513e0ec16921d965f6d70744f6c466725e4039913bb846bde10f1bc3",
-        "onChain": {
-          "address": "0xd714316eed217420abb7B82F1634f1085493fCF8",
           "constructorArgs": []
         }
       },
@@ -349,7 +353,9 @@
         "txHash": "0x98873f00e84337dde1885cc509a9ead082008f9b5ef7aec6fff03499cce35915",
         "onChain": {
           "address": "0x99AEa617F26CF33d9e077D09776dFed6CAf8D3CC",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -744,7 +750,9 @@
         "txHash": "0x977e0b4ba49eab5c9411da8d643c5747f1bbc02b72f0b5bfd783b7789b8b6645",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": ["0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"]
+          "constructorArgs": [
+            "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"
+          ]
         }
       },
       {
@@ -859,7 +867,9 @@
         "txHash": "0x23a3b79f63ae77f4220f2fa218b085bf769716a1212d3296b8bb064883638ef7",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       }
     ]
@@ -874,7 +884,9 @@
         "txHash": "0xc39d80473198c0e543bc4fa29f232d8b2fb6e7ae98cadc89598d6d64a7322851",
         "onChain": {
           "address": "0x6404f9C48562F39E1BAf2cD160c6f16D80b2f37F",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       }
     ]
@@ -883,13 +895,25 @@
     "chainId": 84532,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x7b09121bb4cfdb2a4dec190c5823d9edd6bd1fa2d218250ec77cb8e7a8c487c2",
+        "onChain": {
+          "address": "0xfB745DE4Fe187b5Ab18f0e5afB00ca38bC561c71",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
         "txHash": "0x15392a8082b5f2a3b45c612f7bc8b027cb37fd59fe89a31a1c643f583ac1de07",
         "onChain": {
           "address": "0x6404f9C48562F39E1BAf2cD160c6f16D80b2f37F",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -973,16 +997,6 @@
         }
       },
       {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xd69afbde3dd9e8771861cc73a9e3da8f03e2ebe105924f81f38f0a26b823f9c9",
-        "onChain": {
-          "address": "0xCbD6efdaB1bEe69a72917790c338d948d924DA6F",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "SystemFacet",
         "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -1044,7 +1058,9 @@
         "txHash": "0x094735b16130b5e29d9f454e65edf86c6970930b18610a90de1c3c2990ffd5ee",
         "onChain": {
           "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
