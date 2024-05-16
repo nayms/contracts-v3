@@ -10,7 +10,7 @@ import { StakingFixture } from "test/fixtures/StakingFixture.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, ExceededMaxCollectableIntervals } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -739,56 +739,6 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount);
         assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether);
-    }
-
-    function test_collectRewardsThroughInterval() public {
-        initStaking({ initDate: 1 });
-        c.log(" ~ [%s] Staking start".blue(), nayms.currentInterval(nlf.entityId));
-
-        vm.warp(31 days);
-
-        startPrank(bob);
-        nayms.stake(nlf.entityId, bobStakeAmount);
-
-        vm.warp(61 days);
-
-        assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
-
-        startPrank(nlf);
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
-        c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
-
-        vm.warp(121 days);
-
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, wethId, 1 ether);
-        c.log(" ~ [%s] Reward paid out".blue(), nayms.currentInterval(nlf.entityId));
-
-        vm.warp(151 days);
-
-        startPrank(bob);
-        nayms.internalBalanceOf(bob.entityId, usdcId);
-
-        // Collect only the 1st reward
-        nayms.collectRewardsThroughInterval(nlf.entityId, 3);
-        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount, "Should have 1st reward USDC on balance");
-        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 0, "Should not have WETH balance");
-
-        // Collect only the 2nd reward
-        nayms.collectRewardsThroughInterval(nlf.entityId, 4);
-        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount, "Should have 2nd reward USDC on balance");
-        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether, "Should have 1 WETH");
-    }
-
-    function test_MaxCollectRewardsThroughInterval() public {
-        initStaking({ initDate: 1 });
-        c.log(" ~ [%s] Staking start".blue(), nayms.currentInterval(nlf.entityId));
-
-        vm.warp(1801 days);
-        startPrank(bob);
-        nayms.stake(nlf.entityId, bobStakeAmount);
-
-        vm.expectRevert(abi.encodeWithSelector(ExceededMaxCollectableIntervals.selector, 60, LC.MAX_COLLECTABLE_INTERVALS));
-        nayms.collectRewardsThroughInterval(nlf.entityId, 60);
     }
 
     function calculateBalanceAtTime(uint256 t, uint256 initialBalance) public pure returns (uint256 boostedBalanceAtTime) {

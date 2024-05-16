@@ -212,6 +212,3 @@ error InvalidTokenId();
 
 /// @dev Cannot stake an amount lower than objectMinimumSell[tokenId].
 error InvalidStakingAmount();
-
-/// @dev Exceeded the manximum number of collectable intervals. Collect a smaller number of intervals with the method `collectRewardsThroughInterval`.
-error ExceededMaxCollectableIntervals(uint256 intervals, uint256 maxIntervals);
