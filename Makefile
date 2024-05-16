@@ -137,7 +137,7 @@ erc20g: ## deploy test ERC20 to Goerli
 		-vvvv
 
 anvil:	## run anvil with shared wallet
-	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
+	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}" --state anvil.json
 
 anvil-docker:	## run anvil in a container
 	docker run --platform linux/amd64 -d \
@@ -148,25 +148,25 @@ anvil-docker:	## run anvil in a container
 		-c "cd nayms && make anvil"
 
 anvil-dbg:	## run anvil in debug mode with shared wallet
-	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
+	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m "${shell cat ./nayms_mnemonic.txt}" --state anvil.json
 
 fork-mainnet: ## fork mainnet locally with anvil
-	anvil -f ${ETH_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+	anvil -f ${ETH_MAINNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
 fork-sepolia: ## fork sepolia locally with anvil
-	anvil -f ${ETH_SEPOLIA_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+	anvil -f ${ETH_SEPOLIA_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
 fork-base: ## fork base locally with anvil
-	anvil -f ${BASE_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+	anvil -f ${BASE_MAINNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
-fork-base-sepolia: ## fork base locally with anvil
-	anvil -f ${BASE_SEPOLIA_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+fork-base-sepolia: ## fork base sepolia locally with anvil
+	anvil -f ${BASE_SEPOLIA_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
-fork-aurora-mainnet: ## fork aurora locally with anvil
-	anvil -f ${AURORA_MAINNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+fork-aurora: ## fork aurora locally with anvil
+	anvil -f ${AURORA_MAINNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
-fork-aurora-testnet: ## fork aurora locally with anvil
-	anvil -f ${AURORA_TESTNET_RPC_URL} --accounts 20 -m ./nayms_mnemonic.txt
+fork-aurora-testnet: ## fork aurora testnet locally with anvil
+	anvil -f ${AURORA_TESTNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
 anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \
