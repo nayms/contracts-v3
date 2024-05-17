@@ -10,7 +10,7 @@ import { StakingFixture } from "test/fixtures/StakingFixture.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -149,6 +149,32 @@ contract T06Staking is D03ProtocolDefaults {
         });
 
         startPrank(sa);
+        nayms.initStaking(nlf.entityId, config);
+        vm.stopPrank();
+    }
+
+    function test_initStaking() public {
+        StakingConfig memory config;
+
+        startPrank(sa);
+
+        vm.expectRevert(abi.encodeWithSelector(EntityDoesNotExist.selector, bytes32(0)));
+        nayms.initStaking(bytes32(0), config);
+        vm.stopPrank();
+
+        initStaking(block.timestamp + 1);
+
+        config = StakingConfig({
+            tokenId: NAYMSID,
+            initDate: block.timestamp + 2,
+            a: A, // Amplification factor
+            r: R, // Boost decay factor
+            divider: SCALE_FACTOR,
+            interval: I // Amount of time per interval in seconds
+        });
+
+        startPrank(sa);
+        vm.expectRevert(abi.encodeWithSelector(StakingAlreadyStarted.selector, nlf.entityId, config.tokenId));
         nayms.initStaking(nlf.entityId, config);
         vm.stopPrank();
     }

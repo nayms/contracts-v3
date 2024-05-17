@@ -42,10 +42,6 @@ library LibAdmin {
         return LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER);
     }
 
-    function _getEmptyId() internal pure returns (bytes32) {
-        return LibHelpers._stringToBytes32(LC.EMPTY_IDENTIFIER);
-    }
-
     function _updateMaxDividendDenominations(uint8 _newMaxDividendDenominations) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint8 old = s.maxDividendDenominations;

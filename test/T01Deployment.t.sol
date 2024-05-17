@@ -35,6 +35,10 @@ contract T01DeploymentTest is D03ProtocolDefaults {
         nayms.facetAddresses();
     }
 
+    function testIsInitialized() public {
+        assertTrue(nayms.isDiamondInitialized(), "Diamond should be initialised");
+    }
+
     function testInitDiamond() public skipWhenForking {
         InitDiamondFixture fixture = new InitDiamondFixture();
 

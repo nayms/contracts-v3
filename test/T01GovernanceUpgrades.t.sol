@@ -62,7 +62,9 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        vm.warp(7 days + STARTING_BLOCK_TIMESTAMP + 1);
+        uint256 expirationPeriod = 7 days;
+        assertEq(nayms.getUpgradeExpiration(), expirationPeriod, "upgrade expiration should be 7 days");
+        vm.warp(expirationPeriod + STARTING_BLOCK_TIMESTAMP + 1);
 
         // try to call diamondCut() without scheduling
         bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
@@ -77,8 +79,10 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
         bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        assertEq(nayms.calculateUpgradeId(cut, address(0), ""), upgradeId, "Upgrade ID should match");
 
         nayms.createUpgrade(upgradeId);
+
         changePrank(owner);
         nayms.diamondCut(cut, address(0), "");
 

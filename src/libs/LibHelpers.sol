@@ -5,10 +5,6 @@ import { LibConstants as LC } from "./LibConstants.sol";
 
 /// @notice Pure functions
 library LibHelpers {
-    function _getIdForObjectAtIndex(uint256 _index) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_index));
-    }
-
     function _getIdForAddress(address _addr) internal pure returns (bytes32) {
         return bytes32(bytes20(_addr));
     }
@@ -23,15 +19,6 @@ library LibHelpers {
 
         // returns true if bottom 12 bytes are empty
         return bottom12Bytes == 0;
-    }
-
-    function _checkUpper12BytesAreEmpty(bytes32 value) internal pure returns (bool) {
-        bytes32 mask = 0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000;
-
-        bytes32 upper12Bytes = value & mask;
-
-        // returns true if upper 12 bytes are empty
-        return upper12Bytes == 0;
     }
 
     function _getAddressFromId(bytes32 _id) internal pure returns (address) {

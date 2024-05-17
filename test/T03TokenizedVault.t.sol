@@ -133,6 +133,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // deposit to entity1
         changePrank(address(signer1));
+
+        vm.expectRevert(abi.encodePacked(ExternalDepositAmountCannotBeZero.selector));
+        nayms.externalDeposit(wethAddress, 0);
+
         writeTokenBalance(signer1, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, externalDepositAmount);
         assertEq(weth.balanceOf(signer1), depositAmount - externalDepositAmount, "signer1 WETH balance after externalDeposit should DECREASE (transfer)");
@@ -249,6 +253,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(account0Id, entity1, LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW);
 
         changePrank(signer1);
+
+        vm.expectRevert(abi.encodePacked(ExternalWithdrawAmountCannotBeZero.selector));
+        nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 0);
+
         nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 100);
 
         assertEq(weth.balanceOf(account0), account0WethBalanceAccount0 + 100, "account0 got WETH");
@@ -1214,7 +1222,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.withdrawDividend(eCharlie, entityId, nWETH);
         assertEq(nayms.internalBalanceOf(eCharlie, nWETH), balanceBefore + 3e18);
     }
-    
+
     function testRebasingTokenInterest() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
