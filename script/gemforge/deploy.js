@@ -18,7 +18,7 @@ const _showTargetInfo = async (targetId) => {
 const tellUserToEnableUpgrade = async (targetId, cutFile) => {
     const upgradeId = await calculateUpgradeId(cutFile);
 
-    console.log(`\nUpgrade id: ${chalk.green(upgradeId)}\n`);
+    console.log(`\nUpgrade ID: ${chalk.green(upgradeId)}\n`);
 
     if (targetId === "mainnet") {
         console.log(`Please log into the MPC and enable this upgrade!`);

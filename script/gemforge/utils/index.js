@@ -1,3 +1,4 @@
+const chalk = require("chalk");
 const path = require("path");
 const rootFolder = path.join(__dirname, "..", "..", "..");
 
@@ -47,7 +48,7 @@ exports.enableUpgradeViaGovernance = async (targetId, cutFile) => {
     const { contract } = loadTarget(targetId, "governance");
 
     const upgradeId = await exports.calculateUpgradeId(cutFile);
-    console.log(`Enabling upgrade in contract, upgrade id: ${upgradeId}`);
+    console.log(`Approving the upgrade ID: ${chalk.green(upgradeId)}`);
 
     const tx = await contract.createUpgrade(upgradeId);
     console.log(`Transaction hash: ${tx.hash}`);
