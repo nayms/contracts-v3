@@ -258,6 +258,14 @@ library LibAdmin {
             LibEntity._createEntity(approval.entityId, userId, entity, 0);
         }
 
+        if (s.roles[approval.entityId][approval.entityId] != 0) {
+            LibACL._unassignRole(approval.entityId, approval.entityId);
+        }
+
+        if (s.roles[approval.entityId][LibAdmin._getSystemId()] != 0) {
+            LibACL._unassignRole(approval.entityId, LibAdmin._getSystemId());
+        }
+
         LibACL._assignRole(approval.entityId, LibAdmin._getSystemId(), approval.roleId);
         LibACL._assignRole(approval.entityId, approval.entityId, approval.roleId);
 
