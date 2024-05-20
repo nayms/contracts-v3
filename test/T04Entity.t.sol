@@ -1220,7 +1220,27 @@ contract T04EntityTest is D03ProtocolDefaults {
         _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_TOKEN_HOLDER);
         _selfOnboard(address(222), e2, LC.GROUP_TOKEN_HOLDERS);
         _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_CP);
+
+        vm.recordLogs();
+
         _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries[0].topics.length, 2);
+        assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
+        assertEq(entries[0].topics[1], e2);
+        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
+        assertEq(contextId, e2);
+        assertEq(roleId, LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER));
+        assertEq(action, "_unassignRole");
+
+        assertEq(entries[1].topics.length, 2);
+        assertEq(entries[1].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
+        assertEq(entries[1].topics[1], e2, "object ID doesn't match");
+        (bytes32 contextId2, bytes32 roleId2, string memory action2) = abi.decode(entries[1].data, (bytes32, bytes32, string));
+        assertEq(contextId2, systemContext, "incorrect context");
+        assertEq(roleId2, LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER), "wrong role");
+        assertEq(action2, "_unassignRole", "wrong operation");
     }
 
     function testSelfOnboardingCancel() public {
