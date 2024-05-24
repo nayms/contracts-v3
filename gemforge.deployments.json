@@ -160,22 +160,22 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xfa443f86d5c49e9a7c65b28d38aa1bfe2b4933b3505c312ff0c201eb658bcefe",
+        "onChain": {
+          "address": "0x43EA9F8fAEbA469D1703de4e387333384008145d",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
         "txHash": "0x993476c962bbe86862c6a8971d292ecf806d9e40e64cdc5d04459b3309b9747f",
         "onChain": {
           "address": "0x7D513C6914C26bFda3eff2C85043072c706A0A9F",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x35245803d091c034804c6325c1d306a6fcfecef176e0a9ada0c8c857c22cc743",
-        "onChain": {
-          "address": "0xf3D3A7Dce67305EAC4bD90da03860495E0AC2D87",
           "constructorArgs": []
         }
       },
@@ -895,22 +895,22 @@
     "chainId": 84532,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x506613ccb8a97c929869b1fb35c863789f2fa3e63e929c2573579c5d1440b01c",
+        "onChain": {
+          "address": "0x6254eFd84cE152306448E2d10c4dF7DCE6C99765",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
         "txHash": "0xdeb6984ded7ed5d765023fbba841a16e2c23d3156fdce3aad4987baf30641bb8",
         "onChain": {
           "address": "0xE33cb0263Cd518E689a6b2c838cc1CA9FcD56030",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x7b09121bb4cfdb2a4dec190c5823d9edd6bd1fa2d218250ec77cb8e7a8c487c2",
-        "onChain": {
-          "address": "0xfB745DE4Fe187b5Ab18f0e5afB00ca38bC561c71",
           "constructorArgs": []
         }
       },
