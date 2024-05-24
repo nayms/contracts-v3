@@ -225,8 +225,7 @@ library LibTokenizedVaultStaking {
         // Get the last interval where distribution was collected by the user.
         state.lastCollectedInterval = s.stakeCollected[_entityId][_stakerId];
         if (_interval < state.lastCollectedInterval) {
-            // nothing to do, return zeroes
-            return (state, rewards);
+            return (state, rewards); // nothing to do, return zeroes
         }
         if (_interval > _currentInterval(_entityId)) {
             revert("interval is in the future");

@@ -163,9 +163,9 @@
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xfa443f86d5c49e9a7c65b28d38aa1bfe2b4933b3505c312ff0c201eb658bcefe",
+        "txHash": "0xe225da67abec24c800d9013060c473982b23a97e373e750b2eb4acf94d05a2ab",
         "onChain": {
-          "address": "0x43EA9F8fAEbA469D1703de4e387333384008145d",
+          "address": "0x9fe477A2f188EdecDaF491CcE5Be7EF24Fa837C5",
           "constructorArgs": []
         }
       },
@@ -898,9 +898,9 @@
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x506613ccb8a97c929869b1fb35c863789f2fa3e63e929c2573579c5d1440b01c",
+        "txHash": "0x1651e616eb28cb3c0bbae64ffc180b0380859bc58f8de466feb78a42da506d1a",
         "onChain": {
-          "address": "0x6254eFd84cE152306448E2d10c4dF7DCE6C99765",
+          "address": "0x0d6B1372B47eC993a7E530F914906fC31C82AaFd",
           "constructorArgs": []
         }
       },
