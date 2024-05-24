@@ -181,22 +181,25 @@ library LibTokenizedVaultStaking {
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 currentInterval = _currentInterval(_entityId);
+        uint64 lastPaidInterval = s.stakeCollected[_entityId][_entityId];
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
-        bytes32 vTokenIdLastPaid = _vTokenId(tokenId, s.stakeCollected[_entityId][_entityId]);
+        bytes32 vTokenIdLastPaid = _vTokenId(tokenId, lastPaidInterval);
+
+        (StakingState memory lastPaidState, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, lastPaidInterval);
+        (StakingState memory lastCollectedState, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, lastPaidInterval);
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
         s.stakeCollected[_entityId][_stakerId] = currentInterval;
 
         if (s.stakingDistributionAmount[vTokenIdLastPaid] != 0 && s.stakeBalance[vTokenIdLastPaid][_entityId] != 0) {
-            s.stakingDistributionAmount[vTokenIdLastPaid] -=
-                (s.stakingDistributionAmount[vTokenIdLastPaid] * s.stakeBalance[vTokenIdLastPaid][_stakerId]) /
-                s.stakeBalance[vTokenIdLastPaid][_entityId];
+            s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * lastPaidState.balance) / lastCollectedState.balance;
         }
 
-        s.stakeBalance[vTokenIdLastPaid][_entityId] -= s.stakeBalance[vTokenIdLastPaid][_stakerId];
+        s.stakeBalance[vTokenIdLastPaid][_entityId] -= lastPaidState.balance;
+        s.stakeBoost[vTokenIdLastPaid][_entityId] -= lastPaidState.boost;
 
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
@@ -230,27 +233,24 @@ library LibTokenizedVaultStaking {
         }
 
         {
-            uint256 totalDistributionAmount;
-            uint256 userDistributionAmount;
-            bytes32 stakingDistributionDenomination;
-            uint256 currencyIndex;
-
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
             state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
 
             for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
-                totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
+                uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
 
                 state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
 
                 if (totalDistributionAmount > 0) {
-                    stakingDistributionDenomination = s.stakingDistributionDenomination[_vTokenId(tokenId, i)];
-                    (rewards, currencyIndex) = addUniqueValue(rewards, stakingDistributionDenomination);
+                    uint256 currencyIndex;
+                    (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(tokenId, i)]);
+
+                    // c.log("  -- reward share[%s]: %s / %s".yellow(), i, state.balance / 1e18, s.stakeBalance[_vTokenId(tokenId, i)][_entityId] / 1e18);
 
                     // Use the same math as dividend distributions, assuming zero has already been collected
-                    userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
+                    uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
                         state.balance,
                         s.stakeBalance[_vTokenId(tokenId, i)][_entityId],
                         totalDistributionAmount,
