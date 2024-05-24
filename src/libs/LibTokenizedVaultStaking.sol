@@ -247,8 +247,6 @@ library LibTokenizedVaultStaking {
                     uint256 currencyIndex;
                     (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(tokenId, i)]);
 
-                    // c.log("  -- reward share[%s]: %s / %s".yellow(), i, state.balance / 1e18, s.stakeBalance[_vTokenId(tokenId, i)][_entityId] / 1e18);
-
                     // Use the same math as dividend distributions, assuming zero has already been collected
                     uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
                         state.balance,
