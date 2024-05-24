@@ -152,10 +152,10 @@ contract T06Staking is D03ProtocolDefaults {
         StakingState memory stakingState = nayms.getStakingState(stakerId, entityId);
 
         c.log("");
-        c.log("     ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
-        c.log("     Balance[%s]:".green(), interval, stakingState.balance / 1e18);
-        c.log("       Boost[%s]:".green(), interval, stakingState.boost / 1e17);
-        c.log("     Rewards[%s]:".green(), interval, getRewards(stakerId, entityId) / 1e6);
+        c.log("   ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
+        c.log("     Balance[%s]:".green(), interval, stakingState.balance);
+        c.log("       Boost[%s]:".green(), interval, stakingState.boost);
+        c.log("     Rewards[%s]:".green(), interval, getRewards(stakerId, entityId));
         c.log("");
     }
 
@@ -935,5 +935,117 @@ contract T06Staking is D03ProtocolDefaults {
         vm.expectRevert(abi.encodeWithSelector(InvalidStaker.selector, nlf.entityId));
 
         nayms.stake(nlf.entityId, 10 ether);
+    }
+
+    function test_twoStakersAndRewards_BoostOverflow() public {
+        uint256 stake100 = 100e18;
+        uint256 reward1000usdc = 1_000_000000;
+
+        initStaking(block.timestamp + 1);
+        vm.warp(I + 10 days);
+        c.log("\n  ~ START Staking\n".blue());
+
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), 0);
+        assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), 0);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, stake100);
+
+        c.log("~ [%s] Bob staked 100 NAYM".blue(), currentInterval());
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+
+        vm.warp(2 * I + 10 days);
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r1")), nlf.entityId, usdcId, reward1000usdc);
+
+        c.log("~ [%s] NLF payed out 1000 USDC reward".blue(), currentInterval());
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+
+        startPrank(bob);
+        nayms.collectRewards(nlf.entityId);
+
+        c.log("~ [%s] Bob collected reward".blue(), currentInterval());
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), reward1000usdc);
+
+        startPrank(sue);
+        nayms.stake(nlf.entityId, stake100);
+
+        c.log("~ [%s] Sue staked 100 NAYM".blue(), currentInterval());
+        printBoosts(nlf.entityId, sue.entityId, "Sue");
+
+        vm.warp(3 * I + 10 days);
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r2")), nlf.entityId, usdcId, reward1000usdc);
+        c.log("~ [%s] NLF payed out 1000 USDC reward".blue(), currentInterval());
+        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printBoosts(nlf.entityId, sue.entityId, "Sue");
+
+        vm.warp(4 * I + 10 days);
+
+        startPrank(bob);
+        nayms.unstake(nlf.entityId);
+        c.log("~ [%s] Bob unstaked 100 NAYM".blue(), currentInterval());
+
+        printBoosts(nlf.entityId, sue.entityId, "Sue");
+
+        uint256 suesExpectedReward2 = 2 * reward1000usdc - nayms.internalBalanceOf(bob.entityId, usdcId);
+
+        vm.warp(5 * I + 10 days);
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r3")), nlf.entityId, usdcId, reward1000usdc);
+        c.log("~ [%s] NLF payed out 1000 USDC reward".blue(), currentInterval());
+
+        printBoosts(nlf.entityId, sue.entityId, "Sue");
+
+        c.log("  Sue last collected: %s".green(), nayms.lastCollectedInterval(nlf.entityId, sue.entityId));
+
+        c.log("~ [%s] Sue collects rewards".blue(), currentInterval());
+        startPrank(sue);
+        nayms.collectRewards(nlf.entityId);
+        assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), reward1000usdc + suesExpectedReward2, "Sue's reward should be around 1500");
+
+        // printAppstorage();
+    }
+
+    function printAppstorage() public {
+        uint64 curr = currentInterval();
+
+        c.log();
+        c.log(" -------- apstorage [%s] --------", curr);
+        c.log();
+
+        c.log("  --   Bob  --");
+        for (uint64 i = 0; i <= curr; i++) {
+            logStateAt(i, bob.entityId, nlf.entityId);
+        }
+        c.log();
+
+        c.log("  --   Sue  --");
+        for (uint64 i = 0; i <= curr; i++) {
+            logStateAt(i, sue.entityId, nlf.entityId);
+        }
+        c.log();
+
+        c.log("  --   Lou  --");
+        for (uint64 i = 0; i <= curr; i++) {
+            logStateAt(i, lou.entityId, nlf.entityId);
+        }
+        c.log();
+
+        c.log("  --   NLF  --");
+        for (uint64 i = 0; i <= curr; i++) {
+            logStateAt(i, nlf.entityId, nlf.entityId);
+        }
+        c.log();
+        c.log(" -------------------------------");
+        c.log();
+    }
+
+    function logStateAt(uint64 interval, bytes32 staker, bytes32 entityId) private {
+        c.log("  [%s] balance: %s, boost: %s", interval, stakeBalance(staker, entityId, interval), stakeBoost(staker, entityId, interval));
     }
 }
