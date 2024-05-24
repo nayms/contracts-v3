@@ -175,7 +175,6 @@ library LibTokenizedVaultStaking {
     // Unstakes the full amount for a staker
     function _unstake(bytes32 _stakerId, bytes32 _entityId) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-
         require(LibObject._isObjectType(_stakerId, LC.OBJECT_TYPE_ENTITY), "only an entity can unstake");
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
@@ -226,7 +225,8 @@ library LibTokenizedVaultStaking {
         // Get the last interval where distribution was collected by the user.
         state.lastCollectedInterval = s.stakeCollected[_entityId][_stakerId];
         if (_interval < state.lastCollectedInterval) {
-            revert("rewards already collected");
+            // nothing to do, return zeroes
+            return (state, rewards);
         }
         if (_interval > _currentInterval(_entityId)) {
             revert("interval is in the future");
