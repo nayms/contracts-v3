@@ -147,7 +147,7 @@ contract T06Staking is D03ProtocolDefaults {
         return amounts.length > 0 ? amounts[0] : 0;
     }
 
-    function printBoosts(bytes32 entityId, bytes32 stakerId, string memory name) internal view {
+    function printCurrentState(bytes32 entityId, bytes32 stakerId, string memory name) internal view {
         uint64 interval = currentInterval();
         StakingState memory stakingState = nayms.getStakingState(stakerId, entityId);
 
@@ -279,7 +279,7 @@ contract T06Staking is D03ProtocolDefaults {
 
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         recordStakingState(bob.entityId); // re-read state
         assertEq(stakingStates[bob.entityId][0].balance, bobStakeAmount, "Bob's staking balance[0] should increase");
@@ -293,8 +293,8 @@ contract T06Staking is D03ProtocolDefaults {
         vm.warp(stakingStart - 10 days);
         startPrank(sue);
         nayms.stake(nlf.entityId, sueStakeAmount);
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
 
         recordStakingState(sue.entityId);
         assertEq(stakingStates[sue.entityId][0].balance, sueStakeAmount, "Sue's staking balance[0] should increase");
@@ -311,8 +311,8 @@ contract T06Staking is D03ProtocolDefaults {
         vm.warp(stakingStart + 20 days);
         startPrank(lou);
         nayms.stake(nlf.entityId, louStakeAmount);
-        printBoosts(nlf.entityId, lou.entityId, "Lou");
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
 
         recordStakingState(lou.entityId);
         assertEq(stakingStates[lou.entityId][0].balance, louStakeAmount, "Lou's staking balance[0] should increase");
@@ -345,7 +345,7 @@ contract T06Staking is D03ProtocolDefaults {
         vm.expectRevert(abi.encodeWithSelector(IntervalRewardPayedOutAlready.selector, 1));
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1a")), nlf.entityId, usdcId, rewardAmount);
 
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
 
         recordStakingState(nlf.entityId); // re-read state
         assertEq(stakingStates[nlf.entityId][1].balance, 765e6, "Nayms' staking balance[1] should increase");
@@ -363,7 +363,7 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(stakingStates[lou.entityId][1].balance, 420e6, "Lou's staking balance[1] should increase");
         assertEq(stakingStates[lou.entityId][1].boost, 57e6, "Lou's boost[1] should increase");
 
-        printBoosts(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
 
         c.log("(TIME: 60)".blue(), " ~~~~~~~~~~~~~ Distribution[2] Paid ~~~~~~~~~~~~~".yellow());
         vm.warp(stakingStart + 60 days);
@@ -379,8 +379,8 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(stakingStates[nlf.entityId][2].balance, 86025e4, "Nayms' staking balance[2] should increase");
         assertEq(stakingStates[nlf.entityId][2].boost, 809625e2, "Nayms' boost[2] should increase");
 
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         c.log("(TIME: 62)".blue(), " ~~~~~~~~~~~~~ Bob Claimed Rewards ~~~~~~~~~~~~~".yellow());
         vm.warp(stakingStart + 62 days);
@@ -415,10 +415,10 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(stakingStates[lou.entityId][2].balance, calculateBalanceAtTime(40 days, louStakeAmount), "Lou's staking balance[2] should increase");
         assertEq(stakingStates[lou.entityId][2].boost, 4845e4, "Lou's boost[2] should increase");
 
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
-        printBoosts(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
 
         c.log("(TIME: 90)".blue(), " ~~~~~~~~~~~~~ 3rd Distribution Paid ~~~~~~~~~~~~~".yellow());
         startPrank(nlf);
@@ -429,7 +429,7 @@ contract T06Staking is D03ProtocolDefaults {
         recordStakingState(nlf.entityId); // re-read state
         assertEq(stakingStates[nlf.entityId][3].balance, 9412125e2, "Nayms' staking balance[3] should increase");
         assertEq(stakingStates[nlf.entityId][3].boost, 68818125, "Nayms' boost[3] should increase");
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
 
         c.log("(TIME: 91)".blue(), " ~~~~~~~~~~~~~ Sue Claimed Rewards ~~~~~~~~~~~~~".yellow());
         vm.warp(stakingStart + 91 days);
@@ -505,10 +505,10 @@ contract T06Staking is D03ProtocolDefaults {
             assertEq(louStakedAmount_, louStakeAmount, "Incorrect Lou's original stake amount");
         }
 
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
-        printBoosts(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
     }
 
     function test_scenario1Extended() public {
@@ -522,7 +522,7 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(bob);
         uint256 balBeforeStaking = nayms.internalBalanceOf(bob.entityId, usdcId);
         nayms.stake(nlf.entityId, bobStakeAmount);
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         recordStakingState(bob.entityId);
         assertEq(stakingStates[bob.entityId][4].balance, 247799375, "Bob's staking balance[4] should increase");
@@ -532,7 +532,7 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(sue);
         balBeforeStaking = nayms.internalBalanceOf(sue.entityId, usdcId);
         nayms.stake(nlf.entityId, sueStakeAmount);
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
         recordStakingState(sue.entityId);
         // assertEq(stakingStates[sue.entityId][4].balance, 495598750, "Sue's staking balance[4] should increase");
         assertEq(stakingStates[sue.entityId][4].balance, 495598750, "Sue's staking balance[4] should increase");
@@ -542,7 +542,7 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(lou);
         balBeforeStaking = nayms.internalBalanceOf(lou.entityId, usdcId);
         nayms.stake(nlf.entityId, louStakeAmount);
-        printBoosts(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
         recordStakingState(lou.entityId);
         assertEq(stakingStates[lou.entityId][4].balance, 966632500, "Lou's staking balance[4] should increase");
         assertEq(stakingStates[lou.entityId][4].boost, 93005125, "Lou's boost[4] should increase");
@@ -554,7 +554,7 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.currentInterval(nlf.entityId), 5);
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("5")), nlf.entityId, usdcId, rewardAmount);
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
         recordStakingState(nlf.entityId);
         assertEq(stakingStates[nlf.entityId][5].balance, 1870026031, "Nayms' staking balance[5] should increase");
         assertEq(stakingStates[nlf.entityId][5].boost, 139496095, "Nayms' boost[5] should increase");
@@ -572,7 +572,7 @@ contract T06Staking is D03ProtocolDefaults {
 
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("6")), nlf.entityId, usdcId, rewardAmount);
-        printBoosts(nlf.entityId, nlf.entityId, "Nayms");
+        printCurrentState(nlf.entityId, nlf.entityId, "Nayms");
         recordStakingState(nlf.entityId);
         assertEq(stakingStates[nlf.entityId][6].balance, 2009522126, "Nayms' staking balance[6] should increase");
         assertEq(stakingStates[nlf.entityId][6].boost, 118571680, "Nayms' boost[6] should increase");
@@ -952,7 +952,7 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, stake100);
 
         c.log("~ [%s] Bob staked 100 NAYM".blue(), currentInterval());
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         vm.warp(2 * I + 10 days);
 
@@ -960,13 +960,13 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r1")), nlf.entityId, usdcId, reward1000usdc);
 
         c.log("~ [%s] NLF payed out 1000 USDC reward".blue(), currentInterval());
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         startPrank(bob);
         nayms.collectRewards(nlf.entityId);
 
         c.log("~ [%s] Bob collected reward".blue(), currentInterval());
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), reward1000usdc);
 
@@ -974,14 +974,14 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, stake100);
 
         c.log("~ [%s] Sue staked 100 NAYM".blue(), currentInterval());
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
         vm.warp(3 * I + 10 days);
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r2")), nlf.entityId, usdcId, reward1000usdc);
         c.log("~ [%s] NLF payed out 1000 USDC reward".blue(), currentInterval());
-        printBoosts(nlf.entityId, bob.entityId, "Bob");
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
         vm.warp(4 * I + 10 days);
 
@@ -989,7 +989,7 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.unstake(nlf.entityId);
         c.log("~ [%s] Bob unstaked 100 NAYM".blue(), currentInterval());
 
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
         uint256 suesExpectedReward2 = 2 * reward1000usdc - nayms.internalBalanceOf(bob.entityId, usdcId);
 
@@ -999,7 +999,7 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r3")), nlf.entityId, usdcId, reward1000usdc);
         c.log("~ [%s] NLF payed out 1000 USDC reward".blue(), currentInterval());
 
-        printBoosts(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
         c.log("  Sue last collected: %s".green(), nayms.lastCollectedInterval(nlf.entityId, sue.entityId));
 
