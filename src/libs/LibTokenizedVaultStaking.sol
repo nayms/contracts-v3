@@ -186,12 +186,12 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
         bytes32 vTokenIdLastPaid = _vTokenId(tokenId, lastPaidInterval);
 
+        // must read states before the reward is claimed!
         (StakingState memory userStateAtLastPaid, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, lastPaidInterval);
         (StakingState memory totalStateAtLastPaid, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, lastPaidInterval);
 
-        // collect your rewards first
-        _collectRewards(_stakerId, _entityId, currentInterval);
-        s.stakeCollected[_entityId][_stakerId] = currentInterval;
+        _collectRewards(_stakerId, _entityId, currentInterval); // collect rewards first
+        s.stakeCollected[_entityId][_stakerId] = currentInterval; // update collection interval, even if no reward
 
         if (s.stakingDistributionAmount[vTokenIdLastPaid] != 0 && s.stakeBalance[vTokenIdLastPaid][_entityId] != 0) {
             s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * userStateAtLastPaid.balance) / totalStateAtLastPaid.balance;
