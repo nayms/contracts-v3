@@ -186,19 +186,19 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
         bytes32 vTokenIdLastPaid = _vTokenId(tokenId, lastPaidInterval);
 
-        (StakingState memory lastPaidState, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, lastPaidInterval);
-        (StakingState memory lastCollectedState, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, lastPaidInterval);
+        (StakingState memory userStateAtLastPaid, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, lastPaidInterval);
+        (StakingState memory totalStateAtLastPaid, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, lastPaidInterval);
 
         // collect your rewards first
         _collectRewards(_stakerId, _entityId, currentInterval);
         s.stakeCollected[_entityId][_stakerId] = currentInterval;
 
         if (s.stakingDistributionAmount[vTokenIdLastPaid] != 0 && s.stakeBalance[vTokenIdLastPaid][_entityId] != 0) {
-            s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * lastPaidState.balance) / lastCollectedState.balance;
+            s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * userStateAtLastPaid.balance) / totalStateAtLastPaid.balance;
         }
 
-        s.stakeBalance[vTokenIdLastPaid][_entityId] -= lastPaidState.balance;
-        s.stakeBoost[vTokenIdLastPaid][_entityId] -= lastPaidState.boost;
+        s.stakeBalance[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.balance;
+        s.stakeBoost[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.boost;
 
         s.stakeBoost[vTokenId][_stakerId] = 0;
         s.stakeBoost[vTokenIdNext][_stakerId] = 0;
