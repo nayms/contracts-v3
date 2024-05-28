@@ -313,7 +313,7 @@ library LibTokenizedVaultStaking {
         return s.stakingConfigs[_entityId].divider;
     }
 
-    function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) public pure returns (RewardsBalances memory, uint256) {
+    function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) internal pure returns (RewardsBalances memory, uint256) {
         require(rewards.currencies.length == rewards.amounts.length, "Different array lengths!");
 
         uint256 length = rewards.currencies.length;
