@@ -98,10 +98,7 @@ library LibTokenizedVaultStaking {
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
-        uint64 currentInterval = _currentInterval(_entityId);
-        if (currentInterval == 0) revert InvalidRewardInterval();
-
-        uint64 interval = currentInterval - 1;
+        uint64 interval = _currentInterval(_entityId);
         bytes32 vTokenId = _vTokenId(tokenId, interval);
 
         (StakingState memory stakingState, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, interval);
@@ -247,7 +244,6 @@ library LibTokenizedVaultStaking {
             for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
                 uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
-                c.log(" -- totalDistributionAmount[%s]: %s".yellow(), i, totalDistributionAmount);
 
                 state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
@@ -265,8 +261,6 @@ library LibTokenizedVaultStaking {
                     );
                     rewards.amounts[currencyIndex] += userDistributionAmount;
                     rewards.lastPaidInterval = i;
-                    c.log(" -- userDistributionAmount: %s".yellow(), userDistributionAmount);
-                    c.log(" -- user share: %s / %s".yellow(), state.balance / 1e18, s.stakeBalance[_vTokenId(tokenId, i)][_entityId] / 1e18);
                 }
             }
         }
