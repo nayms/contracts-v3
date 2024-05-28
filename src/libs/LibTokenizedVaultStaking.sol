@@ -10,9 +10,15 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
+import "../shared/CustomErrors.sol";
+
+// solhint-disable no-console
+import { console2 as c } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
 
 library LibTokenizedVaultStaking {
+    using StdStyle for *;
+
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
     event TokenStaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
     event TokenUnstaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
@@ -92,7 +98,10 @@ library LibTokenizedVaultStaking {
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
-        uint64 interval = _currentInterval(_entityId);
+        uint64 currentInterval = _currentInterval(_entityId);
+        if (currentInterval == 0) revert InvalidRewardInterval();
+
+        uint64 interval = currentInterval - 1;
         bytes32 vTokenId = _vTokenId(tokenId, interval);
 
         (StakingState memory stakingState, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, interval);
@@ -238,6 +247,7 @@ library LibTokenizedVaultStaking {
             for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
                 uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
+                c.log(" -- totalDistributionAmount[%s]: %s".yellow(), i, totalDistributionAmount);
 
                 state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
                 state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
@@ -255,6 +265,8 @@ library LibTokenizedVaultStaking {
                     );
                     rewards.amounts[currencyIndex] += userDistributionAmount;
                     rewards.lastPaidInterval = i;
+                    c.log(" -- userDistributionAmount: %s".yellow(), userDistributionAmount);
+                    c.log(" -- user share: %s / %s".yellow(), state.balance / 1e18, s.stakeBalance[_vTokenId(tokenId, i)][_entityId] / 1e18);
                 }
             }
         }
@@ -276,10 +288,13 @@ library LibTokenizedVaultStaking {
             s.stakeBoost[vTokenId][_stakerId] = state.boost;
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
+            uint256 totalCollected;
             for (uint64 i = 0; i < rewards.currencies.length; ++i) {
                 LibTokenizedVault._internalTransfer(_vTokenIdBucket(tokenId), _stakerId, rewards.currencies[i], rewards.amounts[i]);
+                totalCollected += rewards.amounts[i];
                 emit TokenRewardCollected(_stakerId, _entityId, tokenId, _interval, rewards.currencies[i], rewards.amounts[i]);
             }
+            if (totalCollected != 0) c.log(" -- totalCollected[%s]: %s".yellow(), _interval, totalCollected / 1e6);
         }
     }
 

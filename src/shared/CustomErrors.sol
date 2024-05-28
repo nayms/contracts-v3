@@ -212,3 +212,6 @@ error InvalidTokenId();
 
 /// @dev Cannot stake an amount lower than objectMinimumSell[tokenId].
 error InvalidStakingAmount();
+
+/// @dev Reward cannot be paid before at least one interval passes since staking is enabled.
+error InvalidRewardInterval();
