@@ -139,23 +139,15 @@ library LibTokenizedVaultStaking {
         if (_amount < s.objectMinimumSell[tokenId]) revert InvalidStakingAmount();
 
         uint64 currentInterval = _currentInterval(_entityId);
+        uint64 stakingInterval = _isStakingInitialized(_entityId) ? (currentInterval + 1) : 0;
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
-        bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
-        bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
+        bytes32 nextVTokenId = _vTokenId(tokenId, stakingInterval);
 
         // First collect rewards. This will update the current state.
         _collectRewards(_stakerId, _entityId, currentInterval);
 
         // get the tokens
         LibTokenizedVault._internalTransfer(_stakerId, vTokenIdMax, tokenId, _amount);
-
-        // update the share of staking reward
-        s.stakeBalance[vTokenId][_stakerId] += _amount;
-
-        // needed for the original staked amount when unstaking
-        s.stakeBalance[vTokenIdMax][_stakerId] += _amount;
-
-        s.stakeBalance[vTokenId][_entityId] += _amount;
 
         // update the boosts on the current and next intervals depending on time
         uint256 boostTotal = (_amount * _getA(_entityId)) / _getD(_entityId);
@@ -168,12 +160,17 @@ library LibTokenizedVaultStaking {
         uint256 boost = boostTotal - boostNext;
 
         // give to the staker
-        s.stakeBoost[vTokenId][_stakerId] += boost;
         s.stakeBoost[nextVTokenId][_stakerId] += boostNext;
 
         // give to the totals!!!
-        s.stakeBoost[vTokenId][_entityId] += boost;
         s.stakeBoost[nextVTokenId][_entityId] += boostNext;
+
+        // update the share of staking reward
+        s.stakeBalance[nextVTokenId][_stakerId] += _amount + boost;
+        s.stakeBalance[nextVTokenId][_entityId] += _amount + boost;
+
+        // needed for the original staked amount when unstaking
+        s.stakeBalance[vTokenIdMax][_stakerId] += _amount;
 
         emit TokenStaked(_stakerId, _entityId, tokenId, _amount);
     }
