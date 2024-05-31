@@ -86,9 +86,6 @@ contract StakingFacet is Modifiers {
     }
 
     function getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) external view returns (uint256 stakedAmount_, uint256 boostedAmount_) {
-        uint64 interval = LibTokenizedVaultStaking._currentInterval(_entityId);
-        (StakingState memory state, ) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_stakerId, _entityId, interval);
-        stakedAmount_ = LibTokenizedVaultStaking._stakedAmount(_stakerId, _entityId);
-        boostedAmount_ = state.balance;
+        return LibTokenizedVaultStaking._getStakingAmounts(_stakerId, _entityId);
     }
 }

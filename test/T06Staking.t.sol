@@ -149,13 +149,13 @@ contract T06Staking is D03ProtocolDefaults {
 
     function printCurrentState(bytes32 entityId, bytes32 stakerId, string memory name) internal view {
         uint64 interval = currentInterval();
-        StakingState memory stakingState = nayms.getStakingState(stakerId, entityId);
+        (uint256 stakedAmount_, uint256 boostedAmount_) = nayms.getStakingAmounts(stakerId, entityId);
 
         c.log("");
         c.log("   ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
-        c.log("     Balance[%s]:".green(), interval, stakingState.balance);
-        c.log("       Boost[%s]:".green(), interval, stakingState.boost);
-        c.log("     Rewards[%s]:".green(), interval, getRewards(stakerId, entityId));
+        c.log("     Balance[%s]:".green(), interval, stakedAmount_);
+        c.log("     Boosted[%s]:".green(), interval, boostedAmount_);
+        c.log("     Rewards[%s]:".green(), interval, getRewards(stakerId, entityId) / 1e6);
         c.log("");
     }
 
@@ -1011,33 +1011,176 @@ contract T06Staking is D03ProtocolDefaults {
         // printAppstorage();
     }
 
+    /**
+     *  [40] Bob stakes 100 NAYM
+     *  [40] Sue stakes 100 NAYM
+     *  [70] NLF pays reward1: 1000 USDC
+     *  [70] Sue stakes 100 NAYM
+     *  [70] Lou stakes 100 NAYM
+     *  [70] Bob unstakes (collects 50% reward1)
+     * [100] NLF pays reward2: 1000 USDC
+     * [100] Sue collects (collects: 50% reward1 + 60% reward2)
+     * [130] Bob stakes 100 NAYM
+     * [130] Sue stakes 100 NAYM
+     * [160] NLF pays reward3: 1000 USDC
+     * [160] Bob unstakes (collects ~20% reward3)
+     * [160] Sue unstakes (collects ~60% reward3)
+     * [160] Lou unstakes (collects: ~30% reward2, 20% reward3)
+     */
+    function test_threeStakersAndRewardsIntertwine() public {
+        uint256 stake100 = 100e18;
+        uint256 reward1000usdc = 1_000_000000;
+
+        uint256 startStaking = block.timestamp + 100 days;
+
+        initStaking(startStaking);
+
+        vm.warp(startStaking + 50 days);
+        c.log("\n  ~ START Staking\n".blue());
+
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), 0);
+        assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), 0);
+        assertEq(nayms.internalBalanceOf(lou.entityId, usdcId), 0);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, stake100);
+        c.log("~ [%s] Bob staked 100 NAYM".blue(), currentInterval());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        startPrank(sue);
+        nayms.stake(nlf.entityId, stake100);
+        c.log("~ [%s] Sue staked 100 NAYM".blue(), currentInterval());
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        vm.warp(startStaking + 70 days);
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, reward1000usdc);
+        c.log("~ [%s] NLF payed out reward1: 1000 USDC".blue(), currentInterval());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        startPrank(sue);
+        nayms.stake(nlf.entityId, stake100);
+        assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), reward1000usdc / 2, "Sue's USDC balance should increase");
+        c.log("~ [%s] Sue staked 100 NAYM (collects 50% reward1)".blue(), currentInterval());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        c.log("     Sue's USDC balance: %s".green(), nayms.internalBalanceOf(sue.entityId, usdcId) / 1e6);
+
+        startPrank(lou);
+        nayms.stake(nlf.entityId, stake100);
+        assertEq(nayms.internalBalanceOf(lou.entityId, usdcId), 0);
+        c.log("~ [%s] Lou staked 100 NAYM".blue(), currentInterval());
+
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        startPrank(bob);
+        nayms.unstake(nlf.entityId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), reward1000usdc / 2, "Bob's USDC balance should increase");
+        c.log("~ [%s] Bob unstaked (collects 50% reward1)".blue(), currentInterval());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        c.log("     Bob's USDC balance: %s".green(), nayms.internalBalanceOf(bob.entityId, usdcId) / 1e6);
+
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        vm.warp(startStaking + 100 days);
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, usdcId, reward1000usdc);
+        c.log("~ [%s] NLF payed out reward2: 1000 USDC".blue(), currentInterval());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
+
+        startPrank(sue);
+        nayms.collectRewards(nlf.entityId);
+        c.log("~ [%s] Sue collects rewards (collects: 66% reward2)".blue(), currentInterval());
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        c.log("     Sue's USDC balance: %s".green(), nayms.internalBalanceOf(sue.entityId, usdcId) / 1e6);
+
+        vm.warp(startStaking + 130 days);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, stake100);
+        c.log("~ [%s] Bob staked 100 NAYM".blue(), currentInterval());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        startPrank(sue);
+        nayms.stake(nlf.entityId, stake100);
+        c.log("~ [%s] Sue staked 100 NAYM".blue(), currentInterval());
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        vm.warp(startStaking + 160 days);
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward3")), nlf.entityId, usdcId, reward1000usdc);
+        c.log("~ [%s] NLF payed out reward3: 1000 USDC".blue(), currentInterval());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
+        printCurrentState(nlf.entityId, lou.entityId, "Lou");
+
+        vm.warp(startStaking + 190 days);
+
+        startPrank(bob);
+        nayms.unstake(nlf.entityId);
+        c.log("~ [%s] Bob unstaked".blue(), currentInterval());
+
+        startPrank(sue);
+        nayms.unstake(nlf.entityId);
+        c.log("~ [%s] Sue unstaked".blue(), currentInterval());
+
+        startPrank(lou);
+        nayms.unstake(nlf.entityId);
+        c.log("~ [%s] Lou unstaked".blue(), currentInterval());
+
+        c.log("     Bob's USDC balance: %s".green(), nayms.internalBalanceOf(bob.entityId, usdcId) / 1e6);
+        c.log("     Sue's USDC balance: %s".green(), nayms.internalBalanceOf(sue.entityId, usdcId) / 1e6);
+        c.log("     Lou's USDC balance: %s".green(), nayms.internalBalanceOf(lou.entityId, usdcId) / 1e6);
+
+        uint256 bobsBalance = nayms.internalBalanceOf(bob.entityId, usdcId);
+        uint256 suesBalance = nayms.internalBalanceOf(lou.entityId, usdcId);
+        uint256 lousBalance = nayms.internalBalanceOf(sue.entityId, usdcId);
+
+        assertEq(bobsBalance + suesBalance + lousBalance, 3 * reward1000usdc, "All rewards should have been distributed");
+
+        printAppstorage();
+    }
+
     function printAppstorage() public {
-        uint64 curr = currentInterval();
+        // uint64 interval = currentInterval();
+        uint64 interval = currentInterval() + 1;
 
         c.log();
-        c.log(" -------- apstorage [%s] --------", curr);
+        c.log(" -------- apstorage [%s] --------", interval);
         c.log();
 
         c.log("  --   Bob  --");
-        for (uint64 i = 0; i <= curr; i++) {
+        for (uint64 i = 0; i <= interval; i++) {
             logStateAt(i, bob.entityId, nlf.entityId);
         }
         c.log();
 
         c.log("  --   Sue  --");
-        for (uint64 i = 0; i <= curr; i++) {
+        for (uint64 i = 0; i <= interval; i++) {
             logStateAt(i, sue.entityId, nlf.entityId);
         }
         c.log();
 
         c.log("  --   Lou  --");
-        for (uint64 i = 0; i <= curr; i++) {
+        for (uint64 i = 0; i <= interval; i++) {
             logStateAt(i, lou.entityId, nlf.entityId);
         }
         c.log();
 
         c.log("  --   NLF  --");
-        for (uint64 i = 0; i <= curr; i++) {
+        for (uint64 i = 0; i <= interval; i++) {
             logStateAt(i, nlf.entityId, nlf.entityId);
         }
         c.log();
