@@ -134,8 +134,6 @@ library LibTokenizedVaultStaking {
 
         uint64 currentInterval = _currentInterval(_entityId);
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
-        bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
-        bytes32 nextVTokenId = _vTokenId(tokenId, currentInterval + 1);
 
         // First collect rewards. This will update the current state.
         _collectRewards(_stakerId, _entityId, currentInterval);
@@ -143,31 +141,25 @@ library LibTokenizedVaultStaking {
         // get the tokens
         LibTokenizedVault._internalTransfer(_stakerId, vTokenIdMax, tokenId, _amount);
 
-        // update the share of staking reward
-        s.stakeBalance[vTokenId][_stakerId] += _amount;
-
         // needed for the original staked amount when unstaking
         s.stakeBalance[vTokenIdMax][_stakerId] += _amount;
 
-        s.stakeBalance[vTokenId][_entityId] += _amount;
+        // ratio = d * (t_current - ti) / tn
+        uint256 ratio = (_getD(_entityId) * (block.timestamp - _calculateStartTimeOfCurrentInterval(_entityId))) / s.stakingConfigs[_entityId].interval;
 
-        // update the boosts on the current and next intervals depending on time
-        uint256 boostTotal = (_amount * _getA(_entityId)) / _getD(_entityId);
-        uint256 boostNext;
+        uint256 boost1 = ((((_getD(_entityId) - ratio) * _amount) / _getD(_entityId)) * _getA(_entityId)) / _getD(_entityId);
+        uint256 boost2 = (((ratio * _amount) / _getD(_entityId)) * _getA(_entityId)) / _getD(_entityId);
+        uint256 balance1 = _amount - (ratio * _amount) / _getD(_entityId);
+        uint256 balance2 = (ratio * _amount) / _getD(_entityId);
 
-        if (_isStakingInitialized(_entityId)) {
-            boostNext = (boostTotal * (block.timestamp - _calculateStartTimeOfCurrentInterval(_entityId))) / s.stakingConfigs[_entityId].interval;
-        }
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_stakerId] += balance1 + boost1;
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_entityId] += balance1 + boost1;
 
-        uint256 boost = boostTotal - boostNext;
+        s.stakeBoost[_vTokenId(tokenId, currentInterval + 1)][_stakerId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
+        s.stakeBoost[_vTokenId(tokenId, currentInterval + 1)][_entityId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
 
-        // give to the staker
-        s.stakeBoost[vTokenId][_stakerId] += boost;
-        s.stakeBoost[nextVTokenId][_stakerId] += boostNext;
-
-        // give to the totals!!!
-        s.stakeBoost[vTokenId][_entityId] += boost;
-        s.stakeBoost[nextVTokenId][_entityId] += boostNext;
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_stakerId] += balance2;
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_entityId] += balance2;
 
         emit TokenStaked(_stakerId, _entityId, tokenId, _amount);
     }
@@ -183,7 +175,8 @@ library LibTokenizedVaultStaking {
         uint64 lastPaidInterval = s.stakeCollected[_entityId][_entityId];
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
-        bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
+        // bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
+        // bytes32 vTokenIdNext2 = _vTokenId(tokenId, currentInterval + 2);
         bytes32 vTokenIdLastPaid = _vTokenId(tokenId, lastPaidInterval);
 
         // must read states before the reward is claimed!
@@ -197,12 +190,18 @@ library LibTokenizedVaultStaking {
             s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * userStateAtLastPaid.balance) / totalStateAtLastPaid.balance;
         }
 
-        s.stakeBalance[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.balance;
         s.stakeBoost[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.boost;
-
         s.stakeBoost[vTokenId][_stakerId] = 0;
-        s.stakeBoost[vTokenIdNext][_stakerId] = 0;
+        s.stakeBoost[_vTokenId(tokenId, currentInterval + 1)][_stakerId] = 0;
+        s.stakeBoost[_vTokenId(tokenId, currentInterval + 2)][_stakerId] = 0;
+
+        s.stakeBalance[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.balance;
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_entityId] -= s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_stakerId];
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_entityId] -= s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_stakerId];
+
         s.stakeBalance[vTokenId][_stakerId] = 0;
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_stakerId] = 0;
+        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_stakerId] = 0;
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
         s.stakeBalance[vTokenIdMax][_stakerId] = 0;
@@ -227,9 +226,10 @@ library LibTokenizedVaultStaking {
         if (_interval < state.lastCollectedInterval) {
             return (state, rewards); // nothing to do, return zeroes
         }
-        if (_interval > _currentInterval(_entityId)) {
-            revert("interval is in the future");
-        }
+        // TODO check back on this, should we allow looking into future, or enforce up to current interval with arguments
+        // if (_interval > _currentInterval(_entityId)) {
+        //     revert("interval is in the future");
+        // }
 
         {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
@@ -362,5 +362,27 @@ library LibTokenizedVaultStaking {
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
 
         return s.stakeBalance[vTokenIdMax][_stakerId];
+    }
+
+    function _getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) internal view returns (uint256 stakedBalance_, uint256 boostedBalance_) {
+        uint64 currentInterval = _currentInterval(_entityId);
+
+        stakedBalance_ = _stakedAmount(_stakerId, _entityId);
+
+        (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval + 2);
+
+        uint256 boostPrevious = state.boost;
+        uint256 balancePrevious = state.balance;
+
+        for (uint i = 0; i < 2; i++) {
+            boostPrevious = (boostPrevious * _getD(_entityId)) / _getR(_entityId);
+            balancePrevious = balancePrevious - boostPrevious;
+        }
+
+        boostedBalance_ = balancePrevious;
+
+        if (boostedBalance_ < stakedBalance_) {
+            boostedBalance_ = stakedBalance_;
+        }
     }
 }
