@@ -369,6 +369,11 @@ library LibTokenizedVaultStaking {
 
         stakedBalance_ = _stakedAmount(_stakerId, _entityId);
 
+        if (!_isStakingInitialized(_entityId)) {
+            // boost is always 1 before init
+            return (stakedBalance_, boostedBalance_);
+        }
+
         (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval + 2);
 
         uint256 boostPrevious = state.boost;
