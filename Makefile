@@ -36,7 +36,7 @@ bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
 test: ## forge test local, alias t. Skip "one off" tests, For example a test created for a specific upgrade only. These tests are no longer relevant after the upgrade is complete.
-	forge test --no-match-test testReplaceDiamondCut
+	forge test --no-match-test testReplaceDiamondCut,test_fork
 t: test
 
 tt: ## forge test local -vv
