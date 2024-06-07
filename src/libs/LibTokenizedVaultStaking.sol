@@ -180,8 +180,6 @@ library LibTokenizedVaultStaking {
         uint64 lastPaidInterval = s.stakeCollected[_entityId][_entityId];
         bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
         bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
-        // bytes32 vTokenIdNext = _vTokenId(tokenId, currentInterval + 1);
-        // bytes32 vTokenIdNext2 = _vTokenId(tokenId, currentInterval + 2);
         bytes32 vTokenIdLastPaid = _vTokenId(tokenId, lastPaidInterval);
 
         // must read states before the reward is claimed!
