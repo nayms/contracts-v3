@@ -702,32 +702,33 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     function test_skipPayingAnInterval() public {
-        initStaking({ initDate: 1 });
+        uint256 startStaking = block.timestamp + 100 days;
+        initStaking(startStaking);
         c.log(" ~ [%s] Staking start".blue(), currentInterval());
 
-        vm.warp(31 days);
+        vm.warp(startStaking + 31 days);
 
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
-        recordStakingState(bob.entityId);
-        assertEq(stakingStates[bob.entityId][1].balance, bobStakeAmount, "Bob's staking balance[1] should increase");
+        assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
         c.log(" ~ [%s] Bob staked".blue(), currentInterval());
 
-        vm.warp(61 days);
+        vm.warp(startStaking + 61 days);
 
         assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
 
         startPrank(nlf);
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("1")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
-        c.log(" ~ [%s] Reward paid out".blue(), currentInterval());
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        c.log(" ~ [%s] Reward1 paid out".blue(), currentInterval());
 
         assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should be 2");
 
-        vm.warp(151 days);
+        vm.warp(startStaking + 151 days);
         assertEq(nayms.currentInterval(nlf.entityId), 5);
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("2")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, usdcId, rewardAmount); // 100 USDC
+        c.log(" ~ [%s] Reward1 paid out".blue(), currentInterval());
 
-        vm.warp(181 days);
+        vm.warp(startStaking + 181 days);
 
         startPrank(bob);
         nayms.collectRewards(nlf.entityId);
