@@ -233,7 +233,9 @@ contract D03ProtocolDefaults is D02TestSetup {
         } else {
             objectToContext[_entityAdmin.id] = _entityId;
         }
-        c.log(string.concat("The entity admin's parent has been updated from ", vm.toString(previousParent), " to ", vm.toString(_entityId)));
+        if (previousParent != 0) {
+            c.log(string.concat("The entity admin's parent has been updated from ", vm.toString(previousParent), " to ", vm.toString(_entityId)));
+        }
         _entityAdmin.entityId = _entityId;
     }
 
@@ -248,7 +250,9 @@ contract D03ProtocolDefaults is D02TestSetup {
         } else {
             objectToContext[_entityAdmin.id] = entityId;
         }
-        c.log(string.concat("The entity admin's parent has been updated from ", vm.toString(previousParent), " to ", vm.toString(entityId)));
+        if (previousParent != 0) {
+            c.log(string.concat("The entity admin's parent has been updated from ", vm.toString(previousParent), " to ", vm.toString(entityId)));
+        }
         _entityAdmin.entityId = entityId;
     }
 
