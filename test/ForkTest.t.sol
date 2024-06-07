@@ -12,7 +12,7 @@ import { StakingFacet } from "src/facets/StakingFacet.sol";
 import { IERC20 } from "src/interfaces/IERC20.sol";
 import { StakingState } from "src/shared/FreeStructs.sol";
 
-contract TForkTest is Test {
+contract ForkTest is Test {
     using stdStorage for StdStorage;
     using StdStyle for *;
     using LibHelpers for *;
@@ -43,7 +43,7 @@ contract TForkTest is Test {
 
         c.log("  -- getting amounts again".green());
         (uint256 stakedAmount_2, uint256 boostedAmount_2) = nayms.getStakingAmounts(parentId, nlfId);
-        c.log("  -- amount: %s, bosted: %s".green(), stakedAmount_2 / 1e18, boostedAmount_2 / 1e18);
+        c.log("  -- amount: %s, boosted: %s".green(), stakedAmount_2 / 1e18, boostedAmount_2 / 1e18);
 
         c.log(" >> unstake DONE!".green());
     }
