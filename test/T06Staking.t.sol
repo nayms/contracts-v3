@@ -796,89 +796,57 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     function test_NAY2_stakingBalanceTotalAfterUnstake() public {
-        initStaking(I);
-        vm.warp(I + 10 days);
+        uint256 startStaking = block.timestamp + 100 days;
+        initStaking(startStaking);
+
+        vm.warp(startStaking + 40 days);
 
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
-
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's balance[0] incorrect");
-        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 0), bobStakeAmount, "NLF's balance[0] incorrect");
-
-        c.log(" -- bob staked --".yellow());
-        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
-        c.log(" -- bob's reward[%s]: %s".blue(), 1, getRewards(bob.entityId, nlf.entityId));
-        c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
+        assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's staked amount [1] should increase");
+        c.log("~ [%s] Bob staked".blue(), currentInterval());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         startPrank(sue);
         nayms.stake(nlf.entityId, sueStakeAmount);
+        assertStakedAmount(sue.entityId, sueStakeAmount, "Sue's staked amount [1] should increase");
+        c.log("~ [%s] Sue staked".blue(), currentInterval());
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
-        assertEq(stakeBalance(sue.entityId, nlf.entityId, 0), sueStakeAmount, "Sue's balance[0] incorrect");
-        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] incorrect");
-
-        c.log(" -- sue staked --".yellow());
-        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
-        c.log(" -- bob's reward[%s]: %s".blue(), 0, getRewards(bob.entityId, nlf.entityId));
-        c.log(" ");
-        c.log(" -- sue[0]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 0));
-        c.log("    sue[1]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 1));
-        c.log(" -- sue's reward[%s]: %s".blue(), 0, getRewards(sue.entityId, nlf.entityId));
-        c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
-
-        vm.warp(2 * I);
+        vm.warp(startStaking + 70 days);
 
         startPrank(nlf);
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("r1")), nlf.entityId, usdcId, rewardAmount);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, rewardAmount);
+        c.log("~ [%s] Reward1 paid out: 100 USDC".blue(), currentInterval());
 
-        vm.warp(2 * I + 1);
+        vm.warp(startStaking + 71 days);
 
-        assertEq(getRewards(bob.entityId, nlf.entityId), (rewardAmount * bobStakeAmount) / (bobStakeAmount + sueStakeAmount), "Bob's reward[1] incorrect");
-        assertEq(getRewards(sue.entityId, nlf.entityId), (rewardAmount * sueStakeAmount) / (bobStakeAmount + sueStakeAmount), "Sue's reward[1] incorrect");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
-        c.log(" -- rewards payed out [1] --".yellow());
-        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
-        c.log(" -- bob's reward[%s]: %s".blue(), 1, getRewards(bob.entityId, nlf.entityId));
-        c.log(" ");
-        c.log(" -- sue[0]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 0));
-        c.log("    sue[1]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 1));
-        c.log(" -- sue's reward[%s]: %s".blue(), 1, getRewards(sue.entityId, nlf.entityId));
-        c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
+        uint256 totalStakedAmount = bobStakeAmount + sueStakeAmount;
+
+        uint256 bobBoost = calculateBoost(40 days, 71 days, R, I);
+        uint256 sueBoost = calculateBoost(40 days, 71 days, R, I);
+        uint256 totalBoost = bobBoost + sueBoost;
+
+        uint256 bobReward = (2 * ((rewardAmount * bobBoost) / totalBoost) * bobStakeAmount) / totalStakedAmount;
+        uint256 sueReward = (2 * ((rewardAmount * sueBoost) / totalBoost) * sueStakeAmount) / totalStakedAmount;
+
+        assertEq(getRewards(bob.entityId, nlf.entityId), bobReward, "Bob's reward [2] should increase");
+        assertEq(getRewards(sue.entityId, nlf.entityId), sueReward, "Sue's reward [2] should increase");
 
         startPrank(sue);
         nayms.unstake(nlf.entityId);
+        c.log("~ [%s] Sue unstaked".blue(), currentInterval());
 
-        assertEq(stakeBalance(sue.entityId, nlf.entityId, 1), 0, "Sue's balance[1] should be 0");
-        assertEq(getRewards(sue.entityId, nlf.entityId), 0, "Sue's reward[1] should have been claimed and be zero now");
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
-        assertEq(
-            getRewards(bob.entityId, nlf.entityId),
-            rewardAmount - (rewardAmount * sueStakeAmount) / (bobStakeAmount + sueStakeAmount), // this way we consider rounding error margin
-            "Bob's reward[1] should not change after sue unstakes"
-        );
+        assertEq(stakeBalance(sue.entityId, nlf.entityId, 1), 0, "Sue's balance[2] should be 0");
+        assertEq(getRewards(sue.entityId, nlf.entityId), 0, "Sue's reward[2] should have been claimed and be zero now");
 
-        c.log(" -- sue unstaked --".yellow());
-        c.log(" -- bob[0]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 0));
-        c.log("    bob[1]: %s".blue(), stakeBalance(bob.entityId, nlf.entityId, 1));
-        c.log(" -- bob's reward[%s]: %s".blue(), 1, getRewards(bob.entityId, nlf.entityId));
-        c.log(" ");
-        c.log(" -- sue[0]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 0));
-        c.log("    sue[1]: %s".blue(), stakeBalance(sue.entityId, nlf.entityId, 1));
-        c.log("    last collected: %s".blue(), nayms.lastCollectedInterval(nlf.entityId, sue.entityId));
-        c.log(" ");
-        c.log(" -- nlf[0]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 0));
-        c.log("    nlf[1]: %s".blue(), stakeBalance(nlf.entityId, nlf.entityId, 1));
-
-        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 0), bobStakeAmount + sueStakeAmount, "NLF's balance[0] should not change");
-        assertEq(stakeBalance(nlf.entityId, nlf.entityId, 1), bobStakeAmount + stakeBoost(bob.entityId, nlf.entityId, 0), "NLF's balance[1] should change");
+        assertEq(getRewards(bob.entityId, nlf.entityId), bobReward + 1, "Bob's reward[2] should not change after Sue unstakes"); // +1 is rounding imprecision
     }
 
     function test_NAY3_nlfItselfCantStake() public {
