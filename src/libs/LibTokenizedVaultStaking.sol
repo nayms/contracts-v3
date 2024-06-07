@@ -229,10 +229,6 @@ library LibTokenizedVaultStaking {
         if (_interval < state.lastCollectedInterval) {
             return (state, rewards); // nothing to do, return zeroes
         }
-        // TODO check back on this, should we allow looking into future, or enforce up to current interval with arguments
-        // if (_interval > _currentInterval(_entityId)) {
-        //     revert("interval is in the future");
-        // }
 
         {
             state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
