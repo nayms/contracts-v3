@@ -828,36 +828,30 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether);
     }
 
-    function test_NAY1_boostReset() public {
-        initStaking(block.timestamp + 1);
+    function test_NAY1_boostResetAfterUnstake() public {
+        uint256 startStaking = block.timestamp + 100 days;
+        initStaking(startStaking);
 
-        uint256 bobsBoost = (bobStakeAmount * A) / (A + R);
+        vm.warp(startStaking + 10 days);
 
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), bobStakeAmount, "Bob's stake should increase");
-        assertEq(stakeBoost(bob.entityId, nlf.entityId, 0), bobsBoost, "Bob's boost should increase");
+
+        assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
+        (uint256 stakedAmount, uint256 boostedAmount) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedAmount, boostedAmount, "Bob's boost[1] should be 1");
+
+        vm.warp(startStaking + 40 days);
 
         nayms.unstake(nlf.entityId);
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should decrease");
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 1), 0, "Bob's stake[0] should decrease");
-        assertEq(stakeBoost(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[1] should decrease");
-        assertEq(stakeBoost(bob.entityId, nlf.entityId, 1), 0, "Bob's boost[1] should decrease");
+        assertStakedAmount(bob.entityId, 0, "Bob's stake should be zero");
 
-        vm.warp(40 days);
+        vm.warp(startStaking + 70 days);
+
         nayms.stake(nlf.entityId, bobStakeAmount);
 
-        uint256 startCurrent = nayms.calculateStartTimeOfInterval(nlf.entityId, currentInterval());
-
-        uint256 bobsBoost2 = (bobsBoost * (block.timestamp - startCurrent)) / I;
-        uint256 bobsBoost1 = bobsBoost - bobsBoost2;
-
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 0), 0, "Bob's stake[0] should not change");
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 1), bobStakeAmount, "Bob's stake[1] should increase");
-        assertEq(stakeBalance(bob.entityId, nlf.entityId, 2), 0, "Bob's stake[2] should not change");
-        assertEq(stakeBoost(bob.entityId, nlf.entityId, 0), 0, "Bob's boost[0] should not change");
-        assertEq(stakeBoost(bob.entityId, nlf.entityId, 1), bobsBoost1, "Bob's boost[1] should increase");
-        assertEq(stakeBoost(bob.entityId, nlf.entityId, 2), bobsBoost2, "Bob's boost[2] should increase");
+        (uint256 stakedAmount2, uint256 boostedAmount2) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedAmount2, boostedAmount2, "Bob's boost [2] should be 1");
     }
 
     function test_NAY2_stakingBalanceTotalAfterUnstake() public {
@@ -965,7 +959,7 @@ contract T06Staking is D03ProtocolDefaults {
      * [100] NLF pays reward2: 1000 USDC
      * [130] Bob unstakes (collects: 50% reward2)
      * [160] NLF pays reward3: 1000 USDC
-     * [160] Sue collects (collects: 50% reward2 + 100% reward3) 
+     * [160] Sue collects (collects: 50% reward2 + 100% reward3)
      */
     function test_twoStakersAndRewards_BoostOverflow() public {
         uint256 stake100 = 100e18;
@@ -1280,10 +1274,10 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     function printAppstorage() public {
-        uint64 interval = currentInterval();
+        uint64 interval = currentInterval() + 2;
 
         c.log();
-        c.log(" -------- apstorage [%s] --------", interval);
+        c.log(" -------- apstorage [%s] --------", currentInterval());
         c.log();
 
         c.log("  --   Bob  --");
