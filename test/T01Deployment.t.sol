@@ -60,8 +60,8 @@ contract T01DeploymentTest is D03ProtocolDefaults {
     function testCallInitDiamondTwice() public skipWhenForking {
         // note: Cannot use the InitDiamond contract more than once to initialize a diamond.
         IDiamondCut.FacetCut[] memory cut;
-
-        bytes32 upgradeHash = LibGovernance._calculateUpgradeId(cut, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin)));
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        bytes32 upgradeHash = LibGovernance._calculateUpgradeId(codeHashes, address(initDiamond), abi.encodeCall(initDiamond.init, (systemAdmin)));
 
         changePrank(systemAdmin);
         nayms.createUpgrade(upgradeHash);

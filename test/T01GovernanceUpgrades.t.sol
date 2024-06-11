@@ -17,7 +17,8 @@ contract TestFacet {
     function sayHello() external pure returns (string memory greeting) {
         greeting = "hello";
     }
-
+}
+contract TestFacet2 {
     function sayHello2() external pure returns (string memory greeting) {
         greeting = "hello2";
     }
@@ -28,6 +29,7 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
 
     uint256 public constant STARTING_BLOCK_TIMESTAMP = 100;
     address public testFacetAddress;
+    address public testFacet2Address;
 
     function setUp() public {
         // note: The diamond starts with the PhasedDiamondCutFacet insteaad of the original DiamondCutFacet
@@ -35,6 +37,7 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
 
         testFacetAddress = address(new TestFacet());
+        testFacet2Address = address(new TestFacet2());
         bytes4[] memory f0 = new bytes4[](1);
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
@@ -50,8 +53,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
         // try to call diamondCut() without scheduling
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         vm.expectRevert(abi.encodeWithSelector(PhasedDiamondCutUpgradeFailed.selector, upgradeId, block.timestamp));
         nayms.diamondCut(cut, address(0), "");
     }
@@ -62,10 +69,15 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
         vm.warp(7 days + STARTING_BLOCK_TIMESTAMP + 1);
 
         // try to call diamondCut() without scheduling
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         vm.expectRevert(abi.encodeWithSelector(PhasedDiamondCutUpgradeFailed.selector, upgradeId, block.timestamp));
         nayms.diamondCut(cut, address(0), "");
     }
@@ -76,7 +88,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
 
         nayms.createUpgrade(upgradeId);
         changePrank(owner);
@@ -94,7 +111,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         nayms.createUpgrade(upgradeId);
 
         changePrank(address(0xAAAAAAAAA));
@@ -108,7 +130,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
 
         vm.expectRevert("invalid upgrade ID");
         nayms.cancelUpgrade(upgradeId);
@@ -127,7 +154,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         nayms.createUpgrade(upgradeId);
 
         vm.expectRevert("Upgrade has already been scheduled");
@@ -145,16 +177,26 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         nayms.createUpgrade(upgradeId);
 
         // cut in the method sayHello2()
         IDiamondCut.FacetCut[] memory cut2 = new IDiamondCut.FacetCut[](1);
         bytes4[] memory f1 = new bytes4[](1);
-        f1[0] = TestFacet.sayHello2.selector;
-        cut2[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f1 });
+        f1[0] = TestFacet2.sayHello2.selector;
+        cut2[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacet2Address), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f1 });
 
-        bytes32 upgradeId2 = LibGovernance._calculateUpgradeId(cut2, address(0), "");
+        codeHashes = new bytes32[](cut2.length);
+        for (uint i; i < cut2.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut2[i].facetAddress);
+        }
+
+        bytes32 upgradeId2 = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         nayms.createUpgrade(upgradeId2);
 
         changePrank(owner);
@@ -170,7 +212,12 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
         f0[0] = TestFacet.sayHello.selector;
         cut[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f0 });
 
-        bytes32 upgradeId = LibGovernance._calculateUpgradeId(cut, address(0), "");
+        bytes32[] memory codeHashes = new bytes32[](cut.length);
+        for (uint i; i < cut.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut[i].facetAddress);
+        }
+
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         nayms.createUpgrade(upgradeId);
 
         changePrank(address(0xAAAAAAAAA));
@@ -190,10 +237,15 @@ contract T01GovernanceUpgrades is D03ProtocolDefaults, MockAccounts {
 
         IDiamondCut.FacetCut[] memory cut2 = new IDiamondCut.FacetCut[](1);
         bytes4[] memory f1 = new bytes4[](1);
-        f1[0] = TestFacet.sayHello2.selector;
-        cut2[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacetAddress), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f1 });
+        f1[0] = TestFacet2.sayHello2.selector;
+        cut2[0] = IDiamondCut.FacetCut({ facetAddress: address(testFacet2Address), action: IDiamondCut.FacetCutAction.Add, functionSelectors: f1 });
 
-        bytes32 upgradeId2 = LibGovernance._calculateUpgradeId(cut2, address(0), "");
+        codeHashes = new bytes32[](cut2.length);
+        for (uint i; i < cut2.length; i++) {
+            codeHashes[i] = LibGovernance._getCodeHash(cut2[i].facetAddress);
+        }
+
+        bytes32 upgradeId2 = LibGovernance._calculateUpgradeId(codeHashes, address(0), "");
         nayms.createUpgrade(upgradeId2);
         assertEq(block.timestamp + 1 days, nayms.getUpgrade(upgradeId2));
     }
