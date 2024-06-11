@@ -7,7 +7,7 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
-import { RewardsBalances, StakingState } from "../shared/FreeStructs.sol";
+import { RewardsBalances } from "../shared/FreeStructs.sol";
 
 contract StakingFacet is Modifiers {
     using LibHelpers for address;
