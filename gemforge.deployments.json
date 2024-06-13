@@ -175,6 +175,16 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x5ae5cc95f83e79486d6ade4505e901290f43a016a89a217d8ac1d3fd97000419",
+        "onChain": {
+          "address": "0x8126e84EcADED064d7E69907FcC73bBC3A9568eB",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -191,16 +201,6 @@
         "txHash": "0x830155b7b45d26fe0c224e5bfc4a84e4b34ae7f35269e00b0d88c48381aee60a",
         "onChain": {
           "address": "0xD5113C5d157Cd3A01Bb0708b8aCEE345c54D20f0",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x9ecb3d403e62128a923bc3ead8d9c9c58b71aa5a8384ed261ef9fd13ba51c573",
-        "onChain": {
-          "address": "0xa8E41CA9f507975b6f9dFeaAA5109a89F217385B",
           "constructorArgs": []
         }
       },
@@ -895,6 +895,16 @@
     "chainId": 84532,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x963c907c61d3b8274518566c8dd0b8b2bb6e984b7407344ccd40204183b9faab",
+        "onChain": {
+          "address": "0x85A1f2F1394E537432f0ff1d7d1C24D7f1712866",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -911,16 +921,6 @@
         "txHash": "0x137d72258a26cc48391e169996df0c4287061080a6fc6bfd6e2ec63f6cb2eb73",
         "onChain": {
           "address": "0xe85A9D3253F0b36eE9AE39f8d91589Fee1bE5f03",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x49fa4fc8684796fd4c57f41b784bca458647f414ec94387bca7218b55257e22f",
-        "onChain": {
-          "address": "0x6aF28959434F4371eC62fA3EE19a710a323D9D1E",
           "constructorArgs": []
         }
       },
@@ -1069,6 +1069,16 @@
     "chainId": 1313161555,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x89109cbc314a2d8a787df8385c7f3e9b03a40430236400bace066503201d8f50",
+        "onChain": {
+          "address": "0x0397dDa927dbc11F9C427216E7e91329B42cecE4",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -1085,16 +1095,6 @@
         "txHash": "0xf81039e05d58c026382eb9427ad324b8322fbfa3ee832e420bdb4d12cdd341d0",
         "onChain": {
           "address": "0xf7D79E6324596Fcf7f6D060EF46A9e1C90493582",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xe710d0366ee5969c220fb32c728b19094eb1d4f06e21d281c6918f3919f0f417",
-        "onChain": {
-          "address": "0x414281ba7100e9A35FECb08c3e2B2515887307D1",
           "constructorArgs": []
         }
       },

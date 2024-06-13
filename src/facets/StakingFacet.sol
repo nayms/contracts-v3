@@ -12,8 +12,8 @@ import { RewardsBalances } from "../shared/FreeStructs.sol";
 contract StakingFacet is Modifiers {
     using LibHelpers for address;
 
-    function vTokenId(bytes32 _tokenId, uint64 _interval) external pure returns (bytes32) {
-        return LibTokenizedVaultStaking._vTokenId(_tokenId, _interval);
+    function vTokenId(bytes32 _entityId, bytes32 _tokenId, uint64 _interval) external pure returns (bytes32) {
+        return LibTokenizedVaultStaking._vTokenId(_entityId, _tokenId, _interval);
     }
 
     function currentInterval(bytes32 _entityId) external view returns (uint64) {

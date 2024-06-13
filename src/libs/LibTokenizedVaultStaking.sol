@@ -22,12 +22,12 @@ library LibTokenizedVaultStaking {
      * @param _tokenId The internal ID of the token.
      * @param _interval The interval of staking.
      */
-    function _vTokenId(bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32 vTokenId_) {
-        vTokenId_ = bytes32(abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, bytes20(_tokenId)));
+    function _vTokenId(bytes32 _entityId, bytes32 _tokenId, uint64 _interval) internal pure returns (bytes32) {
+        return bytes32(abi.encodePacked(bytes4(LC.OBJECT_TYPE_STAKED), _interval, bytes20(keccak256(abi.encodePacked(_entityId, _tokenId)))));
     }
 
-    function _vTokenIdBucket(bytes32 _tokenId) internal pure returns (bytes32) {
-        return _vTokenId(_tokenId, type(uint64).max);
+    function _vTokenIdBucket(bytes32 _entityId, bytes32 _tokenId) internal pure returns (bytes32) {
+        return _vTokenId(_entityId, _tokenId, type(uint64).max);
     }
 
     function _initStaking(bytes32 _entityId, StakingConfig calldata _config) internal {
@@ -91,7 +91,7 @@ library LibTokenizedVaultStaking {
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         uint64 interval = _currentInterval(_entityId);
-        bytes32 vTokenId = _vTokenId(tokenId, interval);
+        bytes32 vTokenId = _vTokenId(_entityId, tokenId, interval);
 
         (StakingState memory stakingState, ) = _getStakingStateWithRewardsBalances(_entityId, _entityId, interval);
 
@@ -114,7 +114,7 @@ library LibTokenizedVaultStaking {
         s.stakeCollected[_entityId][_entityId] = interval;
 
         // Transfer the funds
-        LibTokenizedVault._internalTransfer(_entityId, _vTokenIdBucket(tokenId), _rewardTokenId, _rewardAmount);
+        LibTokenizedVault._internalTransfer(_entityId, _vTokenIdBucket(_entityId, tokenId), _rewardTokenId, _rewardAmount);
 
         emit TokenRewardPaid(_stakingRewardId, _entityId, tokenId, _rewardTokenId, _rewardAmount);
     }
@@ -131,7 +131,7 @@ library LibTokenizedVaultStaking {
         if (_amount < s.objectMinimumSell[tokenId]) revert InvalidStakingAmount();
 
         uint64 currentInterval = _currentInterval(_entityId);
-        bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
+        bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
 
         // First collect rewards. This will update the current state.
         _collectRewards(_stakerId, _entityId, currentInterval);
@@ -155,14 +155,14 @@ library LibTokenizedVaultStaking {
         uint256 balance1 = _amount - (ratio * _amount) / _getD(_entityId);
         uint256 balance2 = (ratio * _amount) / _getD(_entityId);
 
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_stakerId] += balance1 + boost1;
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_entityId] += balance1 + boost1;
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] += balance1 + boost1;
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] += balance1 + boost1;
 
-        s.stakeBoost[_vTokenId(tokenId, currentInterval + 1)][_stakerId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
-        s.stakeBoost[_vTokenId(tokenId, currentInterval + 1)][_entityId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
+        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
+        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
 
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_stakerId] += balance2;
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_entityId] += balance2;
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] += balance2;
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_entityId] += balance2;
 
         emit TokenStaked(_stakerId, _entityId, tokenId, _amount);
     }
@@ -176,9 +176,9 @@ library LibTokenizedVaultStaking {
 
         uint64 currentInterval = _currentInterval(_entityId);
         uint64 lastPaidInterval = s.stakeCollected[_entityId][_entityId];
-        bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
-        bytes32 vTokenId = _vTokenId(tokenId, currentInterval);
-        bytes32 vTokenIdLastPaid = _vTokenId(tokenId, lastPaidInterval);
+        bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
+        bytes32 vTokenId = _vTokenId(_entityId, tokenId, currentInterval);
+        bytes32 vTokenIdLastPaid = _vTokenId(_entityId, tokenId, lastPaidInterval);
 
         // must read states before the reward is claimed!
         (StakingState memory userStateAtLastPaid, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, lastPaidInterval);
@@ -193,16 +193,16 @@ library LibTokenizedVaultStaking {
 
         s.stakeBoost[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.boost;
         s.stakeBoost[vTokenId][_stakerId] = 0;
-        s.stakeBoost[_vTokenId(tokenId, currentInterval + 1)][_stakerId] = 0;
-        s.stakeBoost[_vTokenId(tokenId, currentInterval + 2)][_stakerId] = 0;
+        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] = 0;
+        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] = 0;
 
         s.stakeBalance[vTokenIdLastPaid][_entityId] -= userStateAtLastPaid.balance;
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_entityId] -= s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_stakerId];
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_entityId] -= s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_stakerId];
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] -= s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_entityId] -= s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId];
 
         s.stakeBalance[vTokenId][_stakerId] = 0;
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 1)][_stakerId] = 0;
-        s.stakeBalance[_vTokenId(tokenId, currentInterval + 2)][_stakerId] = 0;
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] = 0;
+        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] = 0;
 
         uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
         s.stakeBalance[vTokenIdMax][_stakerId] = 0;
@@ -229,24 +229,24 @@ library LibTokenizedVaultStaking {
         }
 
         {
-            state.balance = s.stakeBalance[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
-            state.boost = s.stakeBoost[_vTokenId(tokenId, state.lastCollectedInterval)][_stakerId];
+            state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
+            state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
 
             for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
                 // check to see if there are rewards for this interval, and update arrays
-                uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(tokenId, i)];
+                uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
 
-                state.balance += s.stakeBalance[_vTokenId(tokenId, i)][_stakerId] + state.boost;
-                state.boost = s.stakeBoost[_vTokenId(tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
+                state.balance += s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId] + state.boost;
+                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
 
                 if (totalDistributionAmount > 0) {
                     uint256 currencyIndex;
-                    (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(tokenId, i)]);
+                    (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
 
                     // Use the same math as dividend distributions, assuming zero has already been collected
                     uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
                         state.balance,
-                        s.stakeBalance[_vTokenId(tokenId, i)][_entityId],
+                        s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_entityId],
                         totalDistributionAmount,
                         0
                     );
@@ -266,7 +266,7 @@ library LibTokenizedVaultStaking {
 
         (StakingState memory state, RewardsBalances memory rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, _interval);
         if (rewards.currencies.length > 0) {
-            bytes32 vTokenId = _vTokenId(tokenId, _interval);
+            bytes32 vTokenId = _vTokenId(_entityId, tokenId, _interval);
 
             // Update state
             s.stakeCollected[_entityId][_stakerId] = _interval;
@@ -274,7 +274,7 @@ library LibTokenizedVaultStaking {
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
             for (uint64 i = 0; i < rewards.currencies.length; ++i) {
-                LibTokenizedVault._internalTransfer(_vTokenIdBucket(tokenId), _stakerId, rewards.currencies[i], rewards.amounts[i]);
+                LibTokenizedVault._internalTransfer(_vTokenIdBucket(_entityId, tokenId), _stakerId, rewards.currencies[i], rewards.amounts[i]);
                 emit TokenRewardCollected(_stakerId, _entityId, tokenId, _interval, rewards.currencies[i], rewards.amounts[i]);
             }
         }
@@ -356,7 +356,7 @@ library LibTokenizedVaultStaking {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        bytes32 vTokenIdMax = _vTokenIdBucket(tokenId);
+        bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
 
         return s.stakeBalance[vTokenIdMax][_stakerId];
     }
