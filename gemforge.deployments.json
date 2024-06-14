@@ -175,12 +175,22 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xb25af109873f94eaa99ab3b5ef8a4c7d95a003abfe9f89012464b1cc5eb8ffa3",
+        "onChain": {
+          "address": "0x0639a051BD87E19dB7534b759de7c95d6e285a6A",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x5ae5cc95f83e79486d6ade4505e901290f43a016a89a217d8ac1d3fd97000419",
+        "txHash": "0x966e5a97b6a36607792d50d79cd586a78ae33f8bbea3740348d7064fe9672254",
         "onChain": {
-          "address": "0x8126e84EcADED064d7E69907FcC73bBC3A9568eB",
+          "address": "0xed9F49c6f4Aea18dc079C54DE84bB5DFF3babE88",
           "constructorArgs": []
         }
       },
@@ -191,16 +201,6 @@
         "txHash": "0xba47229c39f24fac420eaf47b1350b8fdafa61d012ffd00f80446c17cafa8641",
         "onChain": {
           "address": "0x1794B49b04dDF3af1C822D1E02B727f3acF7802b",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x830155b7b45d26fe0c224e5bfc4a84e4b34ae7f35269e00b0d88c48381aee60a",
-        "onChain": {
-          "address": "0xD5113C5d157Cd3A01Bb0708b8aCEE345c54D20f0",
           "constructorArgs": []
         }
       },
@@ -895,12 +895,22 @@
     "chainId": 84532,
     "contracts": [
       {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x2aa2ad32dcf222f2af7c68374adef9c204ce8c2dc21a4d28034c3d9b0dca141d",
+        "onChain": {
+          "address": "0x4DFf560895F62eCae213c4AED8A76fD6a4C41276",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x963c907c61d3b8274518566c8dd0b8b2bb6e984b7407344ccd40204183b9faab",
+        "txHash": "0xd3423acf487ccfc97e08a42ff9a68f7c6b9bd0416a8e9397d165d7d434a90d2f",
         "onChain": {
-          "address": "0x85A1f2F1394E537432f0ff1d7d1C24D7f1712866",
+          "address": "0x5a84Aca1447cD6f14447cb0F76d14b473fE8ff3B",
           "constructorArgs": []
         }
       },
@@ -911,16 +921,6 @@
         "txHash": "0xfa23ff2bb4499b059885bc0ab69fd333ae0927919dba380e4284baed6c992d03",
         "onChain": {
           "address": "0xcD6670ffe9b0Ea4c8d3a031eAE0F9030D102ab8B",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x137d72258a26cc48391e169996df0c4287061080a6fc6bfd6e2ec63f6cb2eb73",
-        "onChain": {
-          "address": "0xe85A9D3253F0b36eE9AE39f8d91589Fee1bE5f03",
           "constructorArgs": []
         }
       },
