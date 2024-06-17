@@ -1150,12 +1150,12 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     /**
-     *  [40] Bob stakes 100 NAYM => 100/100
-     *  [40] Sue stakes 100 NAYM => 100/200
-     *  [70] NLF pays reward1: 1000 USDC           (Bob: 100, Sue: 100, Total: 200)
-     *  [70] Sue stakes 100 NAYM => 100/300        (collects: 50% reward1)
-     *  [70] Bob stakes 100 NAYM => 100/400        (collects: 50% reward1)
-     *  [70] NLF pays reward2: 1000 USDC           (Bob: 200, Sue: 200, Total: 400)
+     *   [40] Bob stakes 100 NAYM => 100/100
+     *   [40] Sue stakes 100 NAYM => 100/200
+     *   [70] NLF pays reward1: 1000 USDC           (Bob: 100, Sue: 100, Total: 200)
+     *  [100] Sue stakes 100 NAYM => 100/300        (collects: 50% reward1)
+     *  [100] Bob stakes 100 NAYM => 100/400        (collects: 50% reward1)
+     *  [100] NLF pays reward2: 1000 USDC           (Bob: 200, Sue: 200, Total: 400)
      */
     function test_stakeAndPayRewardAtSameInterval() public {
         uint256 stake100 = 100e18;

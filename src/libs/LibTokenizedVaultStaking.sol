@@ -251,6 +251,7 @@ library LibTokenizedVaultStaking {
                         0
                     );
                     rewards.amounts[currencyIndex] += userDistributionAmount;
+                    // last interval the reward was paid out, but before the one provided in the input
                     rewards.lastPaidInterval = i;
                 }
             }
