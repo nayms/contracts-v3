@@ -271,7 +271,7 @@ library LibTokenizedVaultStaking {
         if (rewards.currencies.length > 0) {
             if (rewards.lastPaidInterval < _interval) {
                 // we must update the stake collected for the user, to the interval when that reward was actually paid out, not the current one
-                // also update the state and boosts up to that interval, not later than that, that is why we make this call again with different intelval
+                // also update the state and boosts up to that interval, not later than that, that is why we make this call again with different interval
                 // so that we can calculate the boosted amounts up to the desired interval
                 (state, rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, rewards.lastPaidInterval);
             }
