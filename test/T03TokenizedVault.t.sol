@@ -635,12 +635,12 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
             nayms.payDividendFromEntity(randomGuid, dividendAmount); // eAlice is paying out a dividend
 
             uint256 calc = (balanceOfEbob * dividendAmount) / eAliceParTokenSaleAmount;
-            assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), calc);
+            assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), calc, "Bob's withdrawable dividend doesn't match".red());
 
             changePrank(bob);
             uint256 bobWethBalance = nayms.internalBalanceOf(eBob, nWETH);
             nayms.withdrawDividend(eBob, eAlice, nWETH);
-            assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethBalance + calc);
+            assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethBalance + calc, "Bob's balance after dividend withdrawal doesn't match".red());
         }
     }
 
