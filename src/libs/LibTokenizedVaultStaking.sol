@@ -270,6 +270,7 @@ library LibTokenizedVaultStaking {
 
             // Update state
             s.stakeCollected[_entityId][_stakerId] = _interval;
+            // s.stakeCollected[_entityId][_stakerId] = rewards.lastPaidInterval;
             s.stakeBoost[vTokenId][_stakerId] = state.boost;
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 
