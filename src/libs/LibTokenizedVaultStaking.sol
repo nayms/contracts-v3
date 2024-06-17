@@ -264,13 +264,21 @@ library LibTokenizedVaultStaking {
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
-        (StakingState memory state, RewardsBalances memory rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, _interval);
+        StakingState memory state;
+        RewardsBalances memory rewards;
+
+        (state, rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, _interval);
         if (rewards.currencies.length > 0) {
-            bytes32 vTokenId = _vTokenId(_entityId, tokenId, _interval);
+            if (rewards.lastPaidInterval != _interval) {
+                // we must update the stake collected for the user, to the interval when that reward was actually paid out, not the current one
+                // also update the state and boosts up to that interval, not later than that, that is why we make this call again with different intelval
+                // so that we can calculate the boosted amounts up to the desired interval
+                (state, rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, rewards.lastPaidInterval);
+            }
+            bytes32 vTokenId = _vTokenId(_entityId, tokenId, rewards.lastPaidInterval);
 
             // Update state
-            s.stakeCollected[_entityId][_stakerId] = _interval;
-            // s.stakeCollected[_entityId][_stakerId] = rewards.lastPaidInterval;
+            s.stakeCollected[_entityId][_stakerId] = rewards.lastPaidInterval;
             s.stakeBoost[vTokenId][_stakerId] = state.boost;
             s.stakeBalance[vTokenId][_stakerId] = state.balance;
 

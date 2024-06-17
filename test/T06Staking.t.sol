@@ -1203,9 +1203,9 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(sue.entityId, usdcId), usdcBalance[sue.entityId], "Sue's USDC balance should increase");
         c.log("~ [%s] Sue staked 100 NAYM (collects 50% reward1)".blue(), currentInterval());
 
-        printCurrentState(nlf.entityId, bob.entityId, "Bob");
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
-        c.log("     Sue's USDC balance: %s".green(), nayms.internalBalanceOf(sue.entityId, usdcId) / 1e6);
+        c.log("     Sue's USDC: %s".green(), nayms.internalBalanceOf(sue.entityId, usdcId) / 1e6);
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
         startPrank(bob);
         nayms.stake(nlf.entityId, stake100);
@@ -1215,8 +1215,8 @@ contract T06Staking is D03ProtocolDefaults {
         c.log("~ [%s] Bob staked 100 NAYM (collects 50% reward1)".blue(), currentInterval());
 
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
+        c.log("     Bob's USDC: %s".green(), nayms.internalBalanceOf(bob.entityId, usdcId) / 1e6);
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
-        c.log("     Bob's USDC balance: %s".green(), nayms.internalBalanceOf(bob.entityId, usdcId) / 1e6);
 
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, usdcId, reward1000usdc);
@@ -1235,15 +1235,9 @@ contract T06Staking is D03ProtocolDefaults {
             uint256 sueReward = (reward1000usdc * sueBoost) / totalBoost;
             uint256 bobReward = (reward1000usdc * bobBoost) / totalBoost;
 
-            // unclaimedReward[lou.entityId][2] = louRewardR2;
-
             assertEq(getRewards(bob.entityId, nlf.entityId), bobReward, "Bob's reward [3] should increase");
             assertEq(getRewards(sue.entityId, nlf.entityId), sueReward, "Sue's reward [3] should increase");
-
-            // usdcBalance[sue.entityId] += sueReward;
         }
-
-        printAppstorage();
     }
 
     function printAppstorage() public {
