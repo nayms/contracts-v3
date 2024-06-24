@@ -83,13 +83,12 @@ struct AppStorage {
     mapping(address userAddress => EntityApproval) selfOnboarding; // map address => { entityId, roleId }
     /// Staking
     mapping(bytes32 entityId => StakingConfig) stakingConfigs; // StakingConfig for an entity
-    // The totals for boost and reward are stored in the index of the vTokenID0
-    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 reward)) stakeBalance; // [vTokenId][ownerId] Reward per interval
-    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] Boost per interval
-    mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakeCollected; // the entityId index is used to keep track of the last paid interval for a staker
-    mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId] Reward per interval
+    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalance; // [vTokenId][ownerId] boost at interval
+    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] Boost at interval
+    mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakeCollected; // last interval reward was collected or pain for a staker in staking entity
+    mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId] Reward at interval
     mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId] Reward currency
-    mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakingSynced;
+    mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakingSynced; // last interval when data was synced into storage for staker
 }
 
 struct FunctionLockedStorage {
