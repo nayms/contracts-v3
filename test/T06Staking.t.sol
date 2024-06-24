@@ -1273,11 +1273,15 @@ contract T06Staking is D03ProtocolDefaults {
         c.log("~ [%s] Bob staked 100 NAYM".blue(), currentInterval());
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
+        printAppstorage();
+
         startPrank(sue);
         nayms.stake(nlf.entityId, stake100);
         assertStakedAmount(sue.entityId, stake100, "Sue's staked amount [1] should increase");
         c.log("~ [%s] Sue staked 100 NAYM".blue(), currentInterval());
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        printAppstorage();
 
         vm.warp(startStaking + 70 days);
 
@@ -1287,6 +1291,8 @@ contract T06Staking is D03ProtocolDefaults {
 
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        printAppstorage();
 
         vm.warp(startStaking + 100 days);
 
@@ -1301,6 +1307,8 @@ contract T06Staking is D03ProtocolDefaults {
         c.log("     Sue's USDC: %s".green(), nayms.internalBalanceOf(sue.entityId, usdcId) / 1e6);
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
+        printAppstorage();
+
         startPrank(bob);
         nayms.stake(nlf.entityId, stake100);
         assertStakedAmount(bob.entityId, 2 * stake100, "Bob's staked amount [2] should increase");
@@ -1312,12 +1320,16 @@ contract T06Staking is D03ProtocolDefaults {
         c.log("     Bob's USDC: %s".green(), nayms.internalBalanceOf(bob.entityId, usdcId) / 1e6);
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
 
+        printAppstorage();
+
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, usdcId, reward1000usdc);
         c.log("~ [%s] NLF payed out reward2: 1000 USDC".blue(), currentInterval());
 
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
+
+        printAppstorage();
 
         {
             uint256 totalStakedAmount = 2 * stake100;
@@ -1365,9 +1377,13 @@ contract T06Staking is D03ProtocolDefaults {
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
         printCurrentState(nlf.entityId, nlf.entityId, "NLF");
 
+        printAppstorage();
+
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward3")), nlf.entityId, usdcId, reward1000usdc);
         c.log("~ [%s] NLF payed out reward3: 1000 USDC".blue(), currentInterval());
+
+        printAppstorage();
 
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
         printCurrentState(nlf.entityId, sue.entityId, "Sue");
