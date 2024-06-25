@@ -329,9 +329,7 @@ library LibTokenizedVaultStaking {
         if (_config.a + _config.r > _config.divider) revert APlusRCannotBeGreaterThanDivider();
         if (_config.a + _config.r != _config.divider) revert BoostMultiplierConvergenceFailure(_config.a, _config.r, _config.divider);
         if (_config.interval == 0) revert InvalidIntervalSecondsValue();
-        if (_config.interval < LC.MIN_STAKING_INTERVAL || _config.interval > LC.MAX_STAKING_INTERVAL) {
-            revert IntervalOutOfRange(_config.interval);
-        }
+        if (_config.interval < LC.MIN_STAKING_INTERVAL || _config.interval > LC.MAX_STAKING_INTERVAL) revert IntervalOutOfRange(_config.interval);
         if (_config.initDate <= block.timestamp) revert InvalidStakingInitDate();
         if (_config.initDate > block.timestamp + LC.MAX_INIT_DATE_PERIOD) revert InitDateTooFar(_config.initDate);
         if (_config.tokenId == 0) revert InvalidTokenId();

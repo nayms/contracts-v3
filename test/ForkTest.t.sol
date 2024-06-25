@@ -17,34 +17,39 @@ contract ForkTest is Test {
     using StdStyle for *;
     using LibHelpers for *;
 
-    IDiamondProxy nayms = IDiamondProxy(0x6404f9C48562F39E1BAf2cD160c6f16D80b2f37F);
+    IDiamondProxy nayms = IDiamondProxy(0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95);
 
     function test_fork() public {
-        vm.createSelectFork("base_sepolia", 10828508);
+        vm.createSelectFork("base_sepolia", 11773451);
+        // vm.createSelectFork("base_sepolia");
 
-        bytes32 nlfId = 0x454e544954590000000000000f474eb52b77eec4308fb39fdf589b68ce4775c5;
+        bytes32 nlfId = 0x454e544954590000000000003bb87a26cb3adfbaa9931e33505cb23a50abca90;
 
         StakingFacet sf = new StakingFacet();
-        vm.etch(0x5eA7b3745061DbF892A7114f749A5ba2b8696607, address(sf).code);
+        vm.etch(0x3E81ba215eBF5B209a4fB03E698535a3056438D6, address(sf).code);
 
-        address sender = 0x9e55dbaED8480E0955F25D9269beD1ce4f1Ba437;
-        // bytes32 senderId = 0x9e55dbaED8480E0955F25D9269beD1ce4f1Ba437000000000000000000000000;
-        bytes32 parentId = 0x454e544954590000000000000af39486c725cb99db01684e91c7579ed7882033;
+        address sender = 0xDD3e88c074B272Da66ff5Be7EA5BF4263080dDA3;
+        bytes32 parentId = nayms.getEntity(LibHelpers._getIdForAddress(sender));
+        // bytes32 senderId = 0xdd3e88c074b272da66ff5be7ea5bf4263080dda3000000000000000000000000;
+        // bytes32 parentId = 454E544954590000000000006F26B7C2A46C0194FFDB21295DB1F12A93EC3988;
+        c.log("parentId: ", parentId.greenBytes32());
+
         vm.label(sender, "Sender Account");
         vm.startPrank(sender);
 
-        c.log(" current interval: %s", nayms.currentInterval(nlfId));
+        c.log("interval:  %s", nayms.currentInterval(nlfId));
 
-        c.log("  -- getting amounts".green());
+        c.log("getting amounts...".green());
         (uint256 stakedAmount_, uint256 boostedAmount_) = nayms.getStakingAmounts(parentId, nlfId);
-        c.log("  -- amount: %s, bosted: %s".green(), stakedAmount_ / 1e18, boostedAmount_ / 1e18);
+        c.log("amount: %s, bosted: %s".green(), stakedAmount_ / 1e18, boostedAmount_ / 1e18);
 
-        nayms.unstake(nlfId);
+        // nayms.unstake(nlfId);
+        nayms.stake(nlfId, 50_000_000_000_000_000_000);
 
-        c.log("  -- getting amounts again".green());
+        c.log("getting amounts again".green());
         (uint256 stakedAmount_2, uint256 boostedAmount_2) = nayms.getStakingAmounts(parentId, nlfId);
-        c.log("  -- amount: %s, boosted: %s".green(), stakedAmount_2 / 1e18, boostedAmount_2 / 1e18);
+        c.log("amount: %s, boosted: %s".green(), stakedAmount_2 / 1e18, boostedAmount_2 / 1e18);
 
-        c.log(" >> unstake DONE!".green());
+        c.log("[+] Done");
     }
 }

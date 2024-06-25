@@ -29,12 +29,12 @@ contract StakingFacet is Modifiers {
     }
 
     function stake(bytes32 _entityId, uint256 _amount) external notLocked(msg.sig) {
-        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVaultStaking._stake(parentId, _entityId, _amount);
     }
 
     function unstake(bytes32 _entityId) external notLocked(msg.sig) {
-        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVaultStaking._unstake(parentId, _entityId);
     }
 
