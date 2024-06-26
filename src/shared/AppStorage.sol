@@ -84,7 +84,7 @@ struct AppStorage {
     /// Staking
     mapping(bytes32 entityId => StakingConfig) stakingConfigs; // StakingConfig for an entity
     mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalance; // [vTokenId][ownerId] boost at interval
-    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] Boost at interval
+    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] boost at interval
     mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakeCollected; // last interval reward was collected or pain for a staker in staking entity
     mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId] Reward at interval
     mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId] Reward currency
