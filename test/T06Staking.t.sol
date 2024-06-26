@@ -11,7 +11,7 @@ import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "src/interfaces/IERC20.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted, StakingNotStarted } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -318,6 +318,19 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(bob);
         nayms.stake(nlf.entityId, 1 ether);
         assertStakedAmount(bob.entityId, 1 ether, "Bob's staked amount should increase");
+    }
+
+    function test_payRewardBeforeStakingStarted() public {
+        uint256 start = block.timestamp + 10 days;
+
+        initStaking(start);
+
+        StakingConfig memory config = nayms.getStakingConfig(nlf.entityId);
+
+        startPrank(nlf);
+
+        vm.expectRevert(abi.encodeWithSelector(StakingNotStarted.selector, nlf.entityId, config.tokenId));
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 100 ether);
     }
 
     function test_StakingScenario1() public {
