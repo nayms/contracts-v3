@@ -212,13 +212,13 @@ library LibTokenizedVaultStaking {
     function _adjustStateOnUnstake(bytes32 _stakerId, bytes32 _entityId, bytes32 _tokenId, uint64 _interval) private {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        bytes32 vTokenIdCurrent = _vTokenId(_entityId, _tokenId, _interval);
+        bytes32 vTokenId = _vTokenId(_entityId, _tokenId, _interval);
 
-        s.stakeBoost[vTokenIdCurrent][_entityId] -= s.stakeBoost[vTokenIdCurrent][_stakerId];
-        s.stakeBalance[vTokenIdCurrent][_entityId] -= s.stakeBalance[vTokenIdCurrent][_stakerId];
+        s.stakeBoost[vTokenId][_entityId] -= s.stakeBoost[vTokenId][_stakerId];
+        s.stakeBalance[vTokenId][_entityId] -= s.stakeBalance[vTokenId][_stakerId];
 
-        s.stakeBoost[vTokenIdCurrent][_stakerId] = 0;
-        s.stakeBalance[vTokenIdCurrent][_stakerId] = 0;
+        s.stakeBoost[vTokenId][_stakerId] = 0;
+        s.stakeBalance[vTokenId][_stakerId] = 0;
     }
 
     // This function is used to calculate the correct current state for the user,
