@@ -176,8 +176,6 @@ library LibTokenizedVaultStaking {
 
         uint64 currentInterval = _currentInterval(_entityId);
         uint64 lastPaidInterval = s.stakeCollected[_entityId][_entityId];
-        bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
-        bytes32 vTokenIdLastPaid = _vTokenId(_entityId, tokenId, lastPaidInterval);
 
         // must read states before the reward is claimed!
         (StakingState memory userStateAtLastPaid, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, lastPaidInterval);
@@ -193,31 +191,34 @@ library LibTokenizedVaultStaking {
         // stakers and NLF balances are adjusted in the current interval when unstaking
         // in the current interval, if a reward was paid and therefor collected, staking distribution need to be adjusted according to the balances
         if (lastPaidInterval == currentInterval) {
+            bytes32 vTokenIdLastPaid = _vTokenId(_entityId, tokenId, lastPaidInterval);
             s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * userStateAtLastPaid.balance) / totalStateAtLastPaid.balance;
         }
 
-        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval)][_entityId] -= s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval)][_stakerId];
-        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] -= s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
-        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 2)][_entityId] -= s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId];
+        _adjustStateOnUnstake(_stakerId, _entityId, tokenId, currentInterval);
+        _adjustStateOnUnstake(_stakerId, _entityId, tokenId, currentInterval + 1);
+        _adjustStateOnUnstake(_stakerId, _entityId, tokenId, currentInterval + 2);
 
-        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval)][_stakerId] = 0;
-        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] = 0;
-        s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] = 0;
-
-        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval)][_entityId] -= s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval)][_stakerId];
-        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] -= s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
-        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_entityId] -= s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId];
-
-        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval)][_stakerId] = 0;
-        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] = 0;
-        s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] = 0;
-
+        bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
         uint256 originalAmountStaked = s.stakeBalance[vTokenIdMax][_stakerId];
+
         s.stakeBalance[vTokenIdMax][_stakerId] = 0;
 
         LibTokenizedVault._internalTransfer(vTokenIdMax, _stakerId, tokenId, originalAmountStaked);
 
         emit TokenUnstaked(_stakerId, _entityId, tokenId, originalAmountStaked);
+    }
+
+    function _adjustStateOnUnstake(bytes32 _stakerId, bytes32 _entityId, bytes32 _tokenId, uint64 _interval) private {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        bytes32 vTokenIdCurrent = _vTokenId(_entityId, _tokenId, _interval);
+
+        s.stakeBoost[vTokenIdCurrent][_entityId] -= s.stakeBoost[vTokenIdCurrent][_stakerId];
+        s.stakeBalance[vTokenIdCurrent][_entityId] -= s.stakeBalance[vTokenIdCurrent][_stakerId];
+
+        s.stakeBoost[vTokenIdCurrent][_stakerId] = 0;
+        s.stakeBalance[vTokenIdCurrent][_stakerId] = 0;
     }
 
     // This function is used to calculate the correct current state for the user,
