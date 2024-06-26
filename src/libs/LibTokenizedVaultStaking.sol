@@ -229,8 +229,8 @@ library LibTokenizedVaultStaking {
         uint64 _interval
     ) internal view returns (StakingState memory state, RewardsBalances memory rewards) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
+        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
         uint64 lastSynced = s.stakingSynced[_entityId][_stakerId];
 
         // Get the last interval where distribution was collected by the user.
@@ -239,38 +239,34 @@ library LibTokenizedVaultStaking {
             return (state, rewards); // nothing to do, return zeroes
         }
 
-        {
-            state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
-            state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
+        state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
+        state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
 
-            for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
-                // check to see if there are rewards for this interval, and update arrays
-                uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
+        for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
+            if (i == lastSynced) {
+                state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId];
+                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId];
+            } else {
+                state.balance += s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId] + state.boost;
+                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
+            }
 
-                if (i == lastSynced) {
-                    state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId];
-                    state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId];
-                } else {
-                    state.balance += s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId] + state.boost;
-                    state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
-                }
+            // check to see if there are rewards for this interval, and update arrays
+            uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
+            if (totalDistributionAmount > 0) {
+                uint256 currencyIndex;
+                (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
 
-                if (totalDistributionAmount > 0) {
-                    uint256 currencyIndex;
-                    (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
+                // Use the same math as dividend distributions, assuming zero has already been collected
+                uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
+                    state.balance,
+                    s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_entityId],
+                    totalDistributionAmount,
+                    0
+                );
 
-                    // Use the same math as dividend distributions, assuming zero has already been collected
-                    uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
-                        state.balance,
-                        s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_entityId],
-                        totalDistributionAmount,
-                        0
-                    );
-
-                    rewards.amounts[currencyIndex] += userDistributionAmount;
-                    // last interval the reward was paid out, but before the one provided in the input
-                    rewards.lastPaidInterval = i;
-                }
+                rewards.amounts[currencyIndex] += userDistributionAmount;
+                rewards.lastPaidInterval = i; // interval when reward was paid out, but before the one provided as input
             }
         }
     }
