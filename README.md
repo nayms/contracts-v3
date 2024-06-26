@@ -14,12 +14,16 @@ Check `.env.example` to see some of the environment variables you should have se
 Create a `.env` and ensure it contains:
 
 ```
-LOCAL_RPC_URL=
-ETH_MAINNET_RPC_URL=
-ETH_SEPOLIA_RPC_URL=
-BASE_MAINNET_RPC_URL=
-BASE_SEPOLIA_RPC_URL=
-ETHERSCAN_API_KEY=
+ETHERSCAN_API_KEY=...
+BASESCAN_API_KEY=...
+BLOCKSCOUT_API_KEY=...
+ETH_MAINNET_RPC_URL=...
+ETH_SEPOLIA_RPC_URL=...
+ETH_LOCAL_RPC_URL=...
+BASE_SEPOLIA_RPC_URL=...
+BASE_MAINNET_RPC_URL=...
+AURORA_MAINNET_RPC_URL=...
+AURORA_TESTNET_RPC_URL=...
 ```
 
 Create a `nayms_mnemonic.txt` file and ensure it contains the team mnemonic.
@@ -48,12 +52,17 @@ Currently supported deployment targets are:
 - `local`: Local Anvil Node
 - `sepolia`: Sepolia
 - `sepoliaFork`: a local fork of Sepolia
-- `mainnet`: Mainnet
-- `mainnetFork`: a local for of Mainnet
-- `base`: Base
-- `baseFork`: Base Sepolia testnet
-- `baseSepolia`: Base Sepolia testnet
-- `baseSepoliaFork`: Base Sepolia testnet
+- `mainnet`: Ethereum Mainnet
+- `mainnetFork`: a local for of Ethereum Mainnet
+- `base`: Base Mainnet
+- `baseFork`: a local fork of Base Mainnet
+- `baseSepolia`: Base Sepolia
+- `baseSepoliaFork`: a local fork of Base Sepolia
+- `aurora`: Aurora Mainnet (NEAR)
+- `auroraFork`: a local fork of Aurora Mainnet (NEAR)
+- `auroraTestnet`: Aurora Testnet (NEAR)
+- `auroraTestnetFork`: a local fork of Aurora Testnet (NEAR)
+
 
 #### Querying
 
@@ -98,8 +107,10 @@ Following commands are provided for working with `anvil`, to make it more conven
 | `make anvil-add-supported-external-token` | Add `GToken` as supported external token |
 | `make fork-sepolia`| Fork `Sepolia` test net locally |
 | `make fork-base-sepolia`| Fork `Base Sepolia` test net locally |
-| `make fork-mainnet`| Fork `Mainnet` locally |
-| `make fork-base`| Fork `Base` locally |
+| `make fork-mainnet`| Fork `Ethereum Mainnet` locally |
+| `make fork-base`| Fork `Base Mainnet` locally |
+| `make fork-aurora`| Fork `Aurora Mainnet` locally |
+| `make fork-aurora-testnet`| Fork `Aurora Testnet` locally |
 
 > :warning: Anvil state is kept in `anvil.json` file in project root, except for forks. If this file is not present, node starts fresh and creates this file. In which case you need to do the deployment and setup.
 
