@@ -14,7 +14,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
 // solhint-disable state-visibility
 
-contract NewFeesTest is D03ProtocolDefaults {
+contract T05FeesTest is D03ProtocolDefaults {
     using LibHelpers for *;
 
     Entity entityInfo;
