@@ -17,11 +17,13 @@ contract ForkTest is Test {
     using StdStyle for *;
     using LibHelpers for *;
 
-    IDiamondProxy nayms = IDiamondProxy(0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95);
+    IDiamondProxy nayms = IDiamondProxy(0xc9FBBCA30856A960f48667834C129011EFD5612a); // sepolia
+    // IDiamondProxy nayms = IDiamondProxy(0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95); // base sepolia
+    // IDiamondProxy nayms = IDiamondProxy(0x4F10acBA59A206a66713380De02F9c09880A822F); // aurora testnet
 
-    function test_fork() public {
+    function testFork() public {
         vm.createSelectFork("base_sepolia", 11773451);
-        // vm.createSelectFork("base_sepolia");
+        // vm.createSelectFork("sepolia");
 
         bytes32 nlfId = 0x454e544954590000000000003bb87a26cb3adfbaa9931e33505cb23a50abca90;
 
