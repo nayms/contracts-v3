@@ -9,7 +9,7 @@ contract StakingFixture {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        bytes32 vTokenId = LibTokenizedVaultStaking._vTokenId(tokenId, _interval);
+        bytes32 vTokenId = LibTokenizedVaultStaking._vTokenId(_entityId, tokenId, _interval);
 
         return s.stakeBoost[vTokenId][_stakerId];
     }
@@ -18,7 +18,7 @@ contract StakingFixture {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        bytes32 vTokenId = LibTokenizedVaultStaking._vTokenId(tokenId, _interval);
+        bytes32 vTokenId = LibTokenizedVaultStaking._vTokenId(_entityId, tokenId, _interval);
 
         return s.stakeBalance[vTokenId][_stakerId];
     }

@@ -23,7 +23,7 @@ contract ACLFacet is Modifiers {
      * @param _role Name of the role being assigned
      */
     function assignRole(bytes32 _objectId, bytes32 _contextId, string memory _role) external {
-        bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
+        bytes32 assignerId = LibHelpers._getSenderId();
         require(LibACL._canAssign(assignerId, _objectId, _contextId, LibHelpers._stringToBytes32(_role)), "not in assigners group");
 
         /// @dev First, assigner attempts to unassign the role.
@@ -44,7 +44,7 @@ contract ACLFacet is Modifiers {
      */
     function unassignRole(bytes32 _objectId, bytes32 _contextId) external {
         bytes32 roleId = LibACL._getRoleInContext(_objectId, _contextId);
-        bytes32 assignerId = LibHelpers._getIdForAddress(msg.sender);
+        bytes32 assignerId = LibHelpers._getSenderId();
         require(LibACL._canAssign(assignerId, _objectId, _contextId, roleId), "not in assigners group");
         LibACL._unassignRole(_objectId, _contextId);
     }

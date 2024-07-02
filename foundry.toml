@@ -78,10 +78,10 @@ include_push_bytes = true
 
 [rpc_endpoints]
 mainnet = "${ETH_MAINNET_RPC_URL}"
-goerli = "${ETH_GOERLI_RPC_URL}"
 sepolia = "${ETH_SEPOLIA_RPC_URL}"
+base = "${BASE_MAINNET_RPC_URL}"
+base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 anvil = "${LOCAL_RPC_URL}"
-bases = "${BASE_SEPOLIA_RPC_URL}"
 aurora = "${AURORA_MAINNET_RPC_URL}"
 aurora_testnet = "${AURORA_TESTNET_RPC_URL}"
 

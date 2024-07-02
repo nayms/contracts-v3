@@ -45,7 +45,7 @@ contract SimplePolicyFacet is Modifiers {
      * @param _amount Amount of the premium
      */
     function paySimplePremium(bytes32 _policyId, uint256 _amount) external notLocked(msg.sig) assertPrivilege(_policyId, LC.GROUP_PAY_SIMPLE_PREMIUM) {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
+        bytes32 senderId = LibHelpers._getSenderId();
         bytes32 payerEntityId = LibObject._getParent(senderId);
 
         LibSimplePolicy._payPremium(payerEntityId, _policyId, _amount);

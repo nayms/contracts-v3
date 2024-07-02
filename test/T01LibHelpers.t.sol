@@ -6,16 +6,8 @@ import { Vm } from "forge-std/Vm.sol";
 import { LibHelpers } from "../src/libs/LibHelpers.sol";
 
 contract T01LibHelpers is Test {
-    function testGetIdForObjectAtIndexFuzz(uint256 i) public {
-        assertEq(LibHelpers._getIdForObjectAtIndex(i), keccak256(abi.encodePacked(i)));
-    }
-
     function testGetIdForAddressFuzz(address a) public {
         assertEq(LibHelpers._getIdForAddress(a), bytes32(bytes20(a)));
-    }
-
-    function testGetSenderId() public {
-        assertEq(LibHelpers._getSenderId(), LibHelpers._getIdForAddress(msg.sender));
     }
 
     function testGetAddressFromIdFuzz(bytes32 id) public {

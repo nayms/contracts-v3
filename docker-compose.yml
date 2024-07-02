@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+
+  anvil:
+    image: ghcr.io/nayms/contracts-builder:latest
+    platform: linux/amd64
+    container_name: anvil
+    ports:
+      - "8545:8545"
+    volumes:
+      - type: bind
+        source: "."
+        target: "/nayms"
+    working_dir: /nayms
+    command: -c "make anvil"
+
+  otterscan:
+    image: otterscan/otterscan:latest
+    container_name: otter
+    ports:
+      - "5100:80"

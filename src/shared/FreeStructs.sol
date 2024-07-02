@@ -89,13 +89,6 @@ struct LockedBalance {
     uint256 endTime;
 }
 
-struct StakingCheckpoint {
-    int128 bias;
-    int128 slope; // - dweight / dt
-    uint256 ts; // timestamp
-    uint256 blk; // block number
-}
-
 struct FeeSchedule {
     bytes32[] receiver;
     uint16[] basisPoints;

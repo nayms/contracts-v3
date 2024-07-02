@@ -49,6 +49,8 @@ jobs:
           ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
           BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          AURORA_MAINNET_RPC_URL: ${{ secrets.AURORA_MAINNET_RPC_URL}}
+          AURORA_TESTNET_RPC_URL: ${{ secrets.AURORA_TESTNET_RPC_URL}}
 
       - name: Filter ABI
         run: make filter-abi
