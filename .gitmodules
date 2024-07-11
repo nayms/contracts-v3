@@ -6,7 +6,7 @@
 	url = https://github.com/brockelmore/forge-std
 [submodule "lib/solmate"]
 	path = lib/solmate
-	url = https://github.com/rari-capital/solmate
+	url = https://github.com/transmissions11/solmate
 [submodule "lib/solidity-lib"]
 	path = lib/solidity-lib
 	url = https://github.com/uniswap/solidity-lib
