@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 /// @notice Quickly deploy a mock ERC20 token, for testing only!
 
