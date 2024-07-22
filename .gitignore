@@ -48,6 +48,7 @@ bin/
 .idea/runConfigurations.xml
 .idea/vcs.xml
 .metals
+.supermaven
 
 broadcast/**/31337/*
 
