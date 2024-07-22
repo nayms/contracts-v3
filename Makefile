@@ -80,7 +80,7 @@ cov: ## coverage report -vvv
 	forge coverage -vvv
 
 coverage: ## coverage report (lcov), filtered for CI
-	forge coverage -vvv --report lcov --via-ir && node ./cli-tools/filter-lcov.js
+	forge coverage --no-match-test testFork -vvv --report lcov --via-ir && node ./cli-tools/filter-lcov.js
 
 lcov: ## coverage report (lcov)
 	forge coverage --report lcov --via-ir
