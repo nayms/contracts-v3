@@ -5,9 +5,17 @@
 
 This repository contains Nayms V3 smart contracts.
 
-This is a [Foundry](https://book.getfoundry.sh/) based project, so make sure you have it installed.
+## Contract Deployments
+
+| Network | Address |
+| --- | --- |
+| Ethereum | `0x39e2f550fef9ee15b459d16bD4B243b04b1f60e5` |
+| Base | `0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03` |
+
 
 ### Set up your project configuration
+
+This is a [Foundry](https://book.getfoundry.sh/) based project, so make sure you have it installed.
 
 Check `.env.example` to see some of the environment variables you should have set in `.env` in order to run some of the commands.
 
