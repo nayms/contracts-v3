@@ -11,24 +11,17 @@ import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "src/interfaces/IERC20.sol";
 
-// import { PoolManager } from "v4-core/PoolManager.sol";
-import { Deployers } from "@v4-core/test/utils/Deployers.sol";
-import { PoolId, PoolIdLibrary } from "@v4-core/src/types/PoolId.sol";
-import { PoolKey } from "@v4-core/src/types/PoolKey.sol";
-import { IHooks } from "@v4-core/src/interfaces/IHooks.sol";
-import { Currency, CurrencyLibrary } from "@v4-core/src/types/Currency.sol";
+import "v4-core/../test/utils/Deployers.sol";
 
 contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
     using LibHelpers for address;
     using stdStorage for StdStorage;
     using StdStyle for *;
-    using PoolIdLibrary for PoolKey;
+    using Hooks for IHooks;
 
     function setUp() public {
-        deployFreshManagerAndRouters();
-        deployMintAndApprove2Currencies();
-
-        PoolKey memory pk = PoolKey({ currency0: currency0, currency1: currency1, fee: 3000, hooks: IHooks(address(0)), tickSpacing: 60 });
+        vm.startPrank(address(this));
+        initializeManagerRoutersAndPoolsWithLiq(IHooks(address(0)));
     }
 
     function testUniswapV4() public {}
