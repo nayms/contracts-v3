@@ -22,6 +22,12 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
     function setUp() public {
         vm.startPrank(address(this));
         initializeManagerRoutersAndPoolsWithLiq(IHooks(address(0)));
+
+        // For these tests, we will use currency0 as the NAYM Token
+        address naymsTokenAddress = Currency.unwrap(currency0);
+
+        changePrank(systemAdmin);
+        nayms.addSupportedExternalToken(naymsTokenAddress, 1);
     }
 
     function testUniswapV4() public {}
