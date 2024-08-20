@@ -1,3 +1,5 @@
 *.json
 *.sol
 *.log
+
+!templates/*.sol
