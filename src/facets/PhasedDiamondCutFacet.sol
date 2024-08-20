@@ -21,16 +21,14 @@ contract PhasedDiamondCutFacet is DiamondCutFacet {
     /// @param _calldata A function call, including function selector and arguments
     ///                  _calldata is executed with delegatecall on _init
     function diamondCut(FacetCut[] calldata _diamondCut, address _init, bytes calldata _calldata) public override {
-        {
-            AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.diamondStorage();
 
-            bytes32 upgradeId = LibGovernance._calculateUpgradeId(_diamondCut, _init, _calldata);
-            if (s.upgradeScheduled[upgradeId] < block.timestamp) {
-                revert PhasedDiamondCutUpgradeFailed(upgradeId, block.timestamp);
-            }
-            // Reset back to 0 if an upgrade is executed.
-            delete s.upgradeScheduled[upgradeId];
+        bytes32 upgradeId = LibGovernance._calculateUpgradeId(_diamondCut, _init, _calldata);
+        if (s.upgradeScheduled[upgradeId] < block.timestamp) {
+            revert PhasedDiamondCutUpgradeFailed(upgradeId, block.timestamp);
         }
+        // Reset back to 0 if an upgrade is executed.
+        delete s.upgradeScheduled[upgradeId];
 
         super.diamondCut(_diamondCut, _init, _calldata);
     }
