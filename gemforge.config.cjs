@@ -57,7 +57,7 @@ module.exports = {
   generator: {
     proxy: {
       // custom template to use instead of the Gemforge default one
-      template: ".gemforge/templates/DiamondProxy.sol",
+      template: "templates/DiamondProxy.sol",
     },
     // proxy interface options
     proxyInterface: {
