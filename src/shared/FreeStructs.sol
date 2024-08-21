@@ -1,6 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import { PoolKey } from "v4-core/types/PoolKey.sol";
+import { IPoolManager } from "v4-core/interfaces/IPoolManager.sol";
+
+struct SwapParams {
+    PoolKey key;
+    IPoolManager.SwapParams params;
+    bool takeClaims;
+    bool settleUsingBurn;
+    bytes hookData;
+}
+
+struct CallbackData {
+    address sender;
+    PoolKey key;
+    IPoolManager.SwapParams params;
+    bool takeClaims;
+    bool settleUsingBurn;
+    bytes hookData;
+}
+
 struct MarketInfo {
     bytes32 creator; // entity ID
     bytes32 sellToken;
