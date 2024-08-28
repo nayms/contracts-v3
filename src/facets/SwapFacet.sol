@@ -10,8 +10,10 @@ import { IPoolManager } from "v4-core/interfaces/IPoolManager.sol";
 import { PoolKey } from "v4-core/types/PoolKey.sol";
 import { BalanceDelta } from "v4-core/types/BalanceDelta.sol";
 import { Currency } from "v4-core/types/Currency.sol";
-import { CurrencySettler } from "v4-core/../test/utils/CurrencySettler.sol";
+import { CurrencySettler } from "lib/v4-core/test/utils/CurrencySettler.sol";
 import { SwapParams, CallbackData } from "../shared/FreeStructs.sol";
+import { StateLibrary } from "v4-core/libraries/StateLibrary.sol";
+import { TransientStateLibrary } from "v4-core/libraries/TransientStateLibrary.sol";
 
 /**
  * @title Swap
@@ -20,6 +22,8 @@ import { SwapParams, CallbackData } from "../shared/FreeStructs.sol";
  */
 contract SwapFacet is Modifiers {
     using CurrencySettler for Currency;
+    // using StateLibrary for IPoolManager;
+    using TransientStateLibrary for IPoolManager;
 
     function swap(IPoolManager _manager, SwapParams memory swapParams) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) returns (BalanceDelta delta) {
         AppStorage storage s = LibAppStorage.diamondStorage();
