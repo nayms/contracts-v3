@@ -58,7 +58,7 @@ module.exports = {
     // proxy interface options
     proxyInterface: {
       // imports to include in the generated IDiamondProxy interface
-      imports: ["src/shared/FreeStructs.sol"],
+      imports: ["src/shared/FreeStructs.sol", "lib/v4-core/src/types/BalanceDelta.sol"],
     },
   },
   // diamond configuration
