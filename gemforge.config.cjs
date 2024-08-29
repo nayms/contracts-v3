@@ -55,6 +55,10 @@ module.exports = {
   },
   // generator options
   generator: {
+    proxy: {
+      // custom template to use instead of the Gemforge default one
+      template: "templates/DiamondProxy.sol",
+    },
     // proxy interface options
     proxyInterface: {
       // imports to include in the generated IDiamondProxy interface
@@ -156,17 +160,18 @@ module.exports = {
     },
   },
   targets: {
+    // `governance` attribute is only releveant for testnets, it's a wallet to use to auto approve the upgrade ID within the script
     local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     mainnet: { network: "mainnet", wallet: "wallet3", initArgs: [sysAdminAddress] },
-    mainnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    mainnetFork: { network: "local", wallet: "devOwnerWallet", initArgs: [sysAdminAddress] },
     baseSepolia: { network: "baseSepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     baseSepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     base: { network: "base", wallet: "wallet3", initArgs: [sysAdminAddress] },
-    baseFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
-    aurora: { network: "aurora", wallet: "devOwnerWallet", initArgs: [sysAdminAddress] },
-    auroraFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    baseFork: { network: "local", wallet: "devOwnerWallet", initArgs: [sysAdminAddress] },
+    aurora: { network: "aurora", wallet: "wallet3", initArgs: [sysAdminAddress] },
+    auroraFork: { network: "local", wallet: "wallet3", initArgs: [sysAdminAddress] },
     auroraTestnet: { network: "auroraTestnet", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     auroraTestnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
   },
