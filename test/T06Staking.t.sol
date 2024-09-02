@@ -678,6 +678,32 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(getRewards(lou.entityId, nlf.entityId), 0, "Lou's reward [5] should be zero".red());
     }
 
+    function test_stakeUnstakeBeforeInit() public {
+        initStaking(4 * I);
+
+        vm.warp(2 * I + 10 days);
+
+        uint256 balanceBefore = nayms.internalBalanceOf(bob.entityId, usdcId);
+
+        assertEq(nayms.currentInterval(nlf.entityId), 0, "should be interval zero"); // make sure staking has not started yet
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        startPrank(sue);
+        nayms.stake(nlf.entityId, sueStakeAmount);
+        startPrank(lou);
+        nayms.stake(nlf.entityId, louStakeAmount);
+        assertEq(nayms.currentInterval(nlf.entityId), 0, "should be interval zero"); // make sure staking has not started yet
+
+        startPrank(bob);
+        nayms.unstake(nlf.entityId);
+        assertEq(nayms.currentInterval(nlf.entityId), 0, "should be interval zero"); // make sure staking has not started yet
+
+        assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), balanceBefore, "balance should be the same");
+        assertStakedAmount(sue.entityId, sueStakeAmount, "Sue's staked amount should be the same".red());
+        assertStakedAmount(lou.entityId, louStakeAmount, "Lou's staked amount should be the same".red());
+    }
+
     function test_skipPayingAnInterval() public {
         uint256 startStaking = block.timestamp + 100 days;
         initStaking(startStaking);
