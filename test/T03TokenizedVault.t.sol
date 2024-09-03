@@ -759,7 +759,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         NaymsAccount memory charlie = makeNaymsAcc("Charlie");
         hCreateEntity(charlie.entityId, charlie.id, entityWbtc, "charlie entitytest hash");
 
-        uint256 defaultTradingFeeBP = 30;
+        uint256 defaultTradingFeeBP = defaultInitSaleFee;
 
         changePrank(alice);
         writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
@@ -1008,7 +1008,11 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.executeLimitOffer(alice.entityId, tokenAmount, wethId, 1 ether);
         changePrank(bob);
         writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
-        nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
+
+        // secondary trading implies different fees
+        (uint256 totalFees_2, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, tokenAmount);
+
+        nayms.externalDeposit(wethAddress, 1 ether + totalFees_2);
         nayms.executeLimitOffer(wethId, 1 ether, alice.entityId, tokenAmount);
 
         // STAGE 5: Alice wants to pay a dividend to the eAlice token holders.

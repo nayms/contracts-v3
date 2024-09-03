@@ -79,9 +79,15 @@ contract D03ProtocolDefaults is D02TestSetup {
     bytes32[] public defaultFeeRecipients;
     uint16[] public defaultPremiumFeeBPs;
     uint16[] public defaultTradingFeeBPs;
+    uint16[] public defaultInitSaleFeeBPs;
+
+    uint16 public defaultPremiumFee = 300;
+    uint16 public defaultTradingFee = 30;
+    uint16 public defaultInitSaleFee = 100;
 
     FeeSchedule premiumFeeScheduleDefault;
     FeeSchedule tradingFeeScheduleDefault;
+    FeeSchedule initialSaleFeeScheduleDefault;
 
     NaymsAccount sa = makeNaymsAcc("System Admin");
     NaymsAccount sm = makeNaymsAcc("System Manager");
@@ -145,19 +151,22 @@ contract D03ProtocolDefaults is D02TestSetup {
 
         // Setup fee schedules
         defaultFeeRecipients = b32Array1(NAYMS_LTD_IDENTIFIER);
-        defaultPremiumFeeBPs = u16Array1(300);
-        defaultTradingFeeBPs = u16Array1(30);
+        defaultPremiumFeeBPs = u16Array1(defaultPremiumFee);
+        defaultTradingFeeBPs = u16Array1(defaultTradingFee);
+        defaultInitSaleFeeBPs = u16Array1(defaultInitSaleFee);
 
-        premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 300);
-        tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, 30);
+        premiumFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, defaultPremiumFee);
+        tradingFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, defaultTradingFee);
+        initialSaleFeeScheduleDefault = feeSched1(NAYMS_LTD_IDENTIFIER, defaultInitSaleFee);
 
         changePrank(sa.addr);
+
         // For Premiums
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_PREMIUM, defaultFeeRecipients, defaultPremiumFeeBPs);
 
         // For Marketplace
         nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_TRADING, defaultFeeRecipients, defaultTradingFeeBPs);
-        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultTradingFeeBPs);
+        nayms.addFeeSchedule(LC.DEFAULT_FEE_SCHEDULE, LC.FEE_TYPE_INITIAL_SALE, defaultFeeRecipients, defaultInitSaleFeeBPs);
 
         c.log("\n -- END TEST SETUP D03 Protocol Defaults --\n");
     }
