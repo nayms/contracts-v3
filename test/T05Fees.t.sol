@@ -381,6 +381,35 @@ contract T05FeesTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
     }
 
+    function test_overrideDefaultFeeSchedule() public {
+        // acc1 is the par token seller (maker)
+        // acc2 is the par token buyer (taker)
+
+        uint256 saleAmount = 1 ether;
+        uint256 buyAmount = 0.5 ether;
+
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
+        nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
+
+        assertEq(nayms.internalBalanceOf(acc1.entityId, acc1.entityId), saleAmount, "maker balance is incorrect");
+
+        uint16 customFee = 50;
+        changePrank(sa.addr);
+        nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(customFee));
+
+        fundEntityWeth(acc2, saleAmount);
+        nayms.executeLimitOffer(wethId, buyAmount, acc1.entityId, buyAmount);
+
+        assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), buyAmount, "maker's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), buyAmount, "taker's par token (acc1.entityId) balance is incorrect");
+
+        uint256 commission = (buyAmount * customFee) / LC.BP_FACTOR;
+
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), buyAmount - commission, "entity's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
+    }
+
     function test_startTokenSale_PlaceOrderBeforeStartTokenSale() public {
         changePrank(sm.addr);
         nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
