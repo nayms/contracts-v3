@@ -49,7 +49,7 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
 
         SwapParams memory swapParams = SwapParams({
             key: PoolKey({ currency0: currency0, currency1: currency1, fee: 3000, tickSpacing: 60, hooks: IHooks(address(0)) }),
-            params: IPoolManager.SwapParams({ zeroForOne: false, amountSpecified: 1e15, sqrtPriceLimitX96: 112045541949572279837463876454 }),
+            params: IPoolManager.SwapParams({ zeroForOne: false, amountSpecified: 1e15, sqrtPriceLimitX96: SQRT_PRICE_2_1 }),
             takeClaims: false,
             settleUsingBurn: false,
             hookData: ""
