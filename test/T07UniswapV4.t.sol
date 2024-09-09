@@ -10,6 +10,7 @@ import { StakingFixture } from "test/fixtures/StakingFixture.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "src/interfaces/IERC20.sol";
+// import { TickMath } from "lib/v4-core/contracts/libraries/TickMath.sol";
 
 import "lib/v4-core/test/utils/Deployers.sol";
 
@@ -21,12 +22,15 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
 
     address naymsTokenAddress;
 
+    address currency1Address;
+
     function setUp() public {
         vm.startPrank(address(this));
         initializeManagerRoutersAndPoolsWithLiq(IHooks(address(0)));
 
         // For these tests, we will use currency0 as the NAYM Token
         naymsTokenAddress = Currency.unwrap(currency0);
+        currency1Address = Currency.unwrap(currency1);
 
         changePrank(systemAdmin);
         nayms.addSupportedExternalToken(naymsTokenAddress, 1);
@@ -35,13 +39,17 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
     function testSwap() public {
         // Test the swap function
 
-        deal(naymsTokenAddress, address(systemAdmin), 1 ether, true);
+        deal(naymsTokenAddress, address(systemAdmin), 100 ether, true);
+        deal(naymsTokenAddress, address(nayms), 100 ether, true);
+
+        deal(currency1Address, address(systemAdmin), 100 ether, true);
+        deal(currency1Address, address(nayms), 100 ether, true);
 
         // nayms.externalDeposit(naymsTokenAddress, 1 ether);
 
         SwapParams memory swapParams = SwapParams({
             key: PoolKey({ currency0: currency0, currency1: currency1, fee: 3000, tickSpacing: 60, hooks: IHooks(address(0)) }),
-            params: IPoolManager.SwapParams({ zeroForOne: true, amountSpecified: 1 ether, sqrtPriceLimitX96: 0 }),
+            params: IPoolManager.SwapParams({ zeroForOne: false, amountSpecified: 1e15, sqrtPriceLimitX96: 112045541949572279837463876454 }),
             takeClaims: false,
             settleUsingBurn: false,
             hookData: ""
@@ -49,6 +57,11 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
 
         address toTokenAddress = Currency.unwrap(currency1);
         bytes32 tokenId = LibHelpers._getIdForAddress(toTokenAddress);
+
+        IERC20(naymsTokenAddress).approve(address(manager), 100 ether);
+        IERC20(naymsTokenAddress).approve(address(nayms), 100 ether);
+        IERC20(currency1Address).approve(address(manager), 100 ether);
+        IERC20(currency1Address).approve(address(nayms), 100 ether);
 
         nayms.swap(manager, swapParams, naymsTokenId, tokenId);
     }
