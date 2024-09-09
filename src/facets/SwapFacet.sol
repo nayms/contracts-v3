@@ -32,14 +32,11 @@ contract SwapFacet is Modifiers {
         bytes32 _fromTokenId,
         bytes32 _toTokenId
     ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) returns (BalanceDelta delta) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        // Check and update appstorage state
-
         // NLFID: makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes(name))))
         bytes32 nlfId = 0x454e5449545900000000000079356590a83c6af5a59580e3ec1b0924626bbfdf;
 
         // swapParams.amountSpecified
-        LibTokenizedVault._internalBurn(nlfId, _fromTokenId, uint256(swapParams.params.amountSpecified));
+        // LibTokenizedVault._internalBurn(nlfId, _fromTokenId, uint256(swapParams.params.amountSpecified));
 
         // Swap tokens
         delta = abi.decode(
@@ -50,8 +47,8 @@ contract SwapFacet is Modifiers {
         LibTokenizedVault._internalMint(nlfId, _toTokenId, uint256(uint128(delta.amount0())));
     }
 
-    function unlockCallback(IPoolManager _manager, bytes calldata rawData) external returns (bytes memory) {
-        require(msg.sender == address(_manager), "Unauthorized caller");
+    function unlockCallback(bytes calldata rawData) external returns (bytes memory) {
+        IPoolManager _manager = IPoolManager(msg.sender);
 
         // Decode the callback data
         CallbackData memory data = abi.decode(rawData, (CallbackData));
