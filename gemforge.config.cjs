@@ -167,7 +167,7 @@ module.exports = {
     base: { network: "base", wallet: "wallet3", initArgs: [sysAdminAddress] },
     baseFork: { network: "local", wallet: "devOwnerWallet", initArgs: [sysAdminAddress] },
     aurora: { network: "aurora", wallet: "wallet3", initArgs: [sysAdminAddress] },
-    auroraFork: { network: "local", wallet: "wallet3", initArgs: [sysAdminAddress] },
+    auroraFork: { network: "local", wallet: "devOwnerWallet", initArgs: [sysAdminAddress] },
     auroraTestnet: { network: "auroraTestnet", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     auroraTestnetFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
   },
