@@ -24,7 +24,18 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
 
     address currency1Address;
 
+    NaymsAccount bob;
+    NaymsAccount nlf;
+
     function setUp() public {
+        bob = makeNaymsAcc("Bob");
+        nlf = makeNaymsAcc(LC.NLF_IDENTIFIER);
+
+        vm.startPrank(sm.addr);
+        hCreateEntity(bob.entityId, bob, entity, "Bob data");
+        hCreateEntity(nlf.entityId, nlf, entity, "NLF");
+        hCreateEntity(sa.entityId, sa, entity, "System Admin");
+
         vm.startPrank(address(this));
         initializeManagerRoutersAndPoolsWithLiq(IHooks(address(0)));
 
@@ -32,20 +43,21 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
         naymsTokenAddress = Currency.unwrap(currency0);
         currency1Address = Currency.unwrap(currency1);
 
-        changePrank(systemAdmin);
+        changePrank(sa.addr);
         nayms.addSupportedExternalToken(naymsTokenAddress, 1);
     }
 
     function testSwap() public {
         // Test the swap function
+        deal(naymsTokenAddress, address(bob.addr), 100 ether, true);
 
-        deal(naymsTokenAddress, address(systemAdmin), 100 ether, true);
-        deal(naymsTokenAddress, address(nayms), 100 ether, true);
+        deal(currency1Address, address(sa.addr), 100 ether, true);
 
-        deal(currency1Address, address(systemAdmin), 100 ether, true);
-        deal(currency1Address, address(nayms), 100 ether, true);
+        vm.startPrank(bob.addr);
+        IERC20(naymsTokenAddress).approve(address(nayms), 100 ether);
+        nayms.externalDeposit(naymsTokenAddress, 1 ether);
 
-        // nayms.externalDeposit(naymsTokenAddress, 1 ether);
+        nayms.internalTransferFromEntity(sa.entityId, naymsTokenAddress._getIdForAddress(), 1 ether);
 
         SwapParams memory swapParams = SwapParams({
             key: PoolKey({ currency0: currency0, currency1: currency1, fee: 3000, tickSpacing: 60, hooks: IHooks(address(0)) }),
@@ -58,11 +70,10 @@ contract T07UniswapV4 is D03ProtocolDefaults, Deployers {
         address toTokenAddress = Currency.unwrap(currency1);
         bytes32 tokenId = LibHelpers._getIdForAddress(toTokenAddress);
 
+        vm.startPrank(sa.addr);
         IERC20(naymsTokenAddress).approve(address(manager), 100 ether);
-        IERC20(naymsTokenAddress).approve(address(nayms), 100 ether);
-        IERC20(currency1Address).approve(address(manager), 100 ether);
         IERC20(currency1Address).approve(address(nayms), 100 ether);
 
-        nayms.swap(manager, swapParams, naymsTokenId, tokenId);
+        nayms.swap(manager, swapParams, naymsTokenAddress._getIdForAddress(), tokenId);
     }
 }

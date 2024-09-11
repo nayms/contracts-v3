@@ -2,13 +2,11 @@
 pragma solidity 0.8.24;
 
 import { LibAdmin } from "src/libs/LibAdmin.sol";
+import { LibObject } from "src/libs/LibObject.sol";
 import { LibConstants as LC } from "src/libs/LibConstants.sol";
 import { LibTokenizedVault } from "src/libs/LibTokenizedVault.sol";
 import { Modifiers } from "src/shared/Modifiers.sol";
-import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
-
 import { IPoolManager } from "v4-core/interfaces/IPoolManager.sol";
-import { PoolKey } from "v4-core/types/PoolKey.sol";
 import { BalanceDelta } from "v4-core/types/BalanceDelta.sol";
 import { Currency } from "v4-core/types/Currency.sol";
 import { CurrencySettler } from "lib/v4-core/test/utils/CurrencySettler.sol";
@@ -22,8 +20,8 @@ import { TransientStateLibrary } from "v4-core/libraries/TransientStateLibrary.s
  * @dev Swap facet
  */
 contract SwapFacet is Modifiers {
+    using LibObject for address;
     using CurrencySettler for Currency;
-    // using StateLibrary for IPoolManager;
     using TransientStateLibrary for IPoolManager;
 
     function swap(
@@ -35,8 +33,7 @@ contract SwapFacet is Modifiers {
         // NLFID: makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes(name))))
         bytes32 nlfId = 0x454e5449545900000000000079356590a83c6af5a59580e3ec1b0924626bbfdf;
 
-        // swapParams.amountSpecified
-        // LibTokenizedVault._internalBurn(nlfId, _fromTokenId, uint256(swapParams.params.amountSpecified));
+        LibTokenizedVault._internalBurn(msg.sender._getParentFromAddress(), _fromTokenId, uint256(swapParams.params.amountSpecified));
 
         // Swap tokens
         delta = abi.decode(
