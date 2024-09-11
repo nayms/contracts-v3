@@ -55,10 +55,6 @@ module.exports = {
   },
   // generator options
   generator: {
-    proxy: {
-      // custom template to use instead of the Gemforge default one
-      template: "templates/DiamondProxy.sol",
-    },
     // proxy interface options
     proxyInterface: {
       // imports to include in the generated IDiamondProxy interface
@@ -68,7 +64,7 @@ module.exports = {
   // diamond configuration
   diamond: {
     // Whether to include public methods when generating the IDiamondProxy interface. Default is to only include external methods.
-    publicMethods: false,
+    publicMethods: true,
     init: {
       contract: "InitDiamond",
       function: "init",
