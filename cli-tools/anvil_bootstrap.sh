@@ -5,7 +5,6 @@
 GREEN=$'\e[0;32m'
 NC=$'\e[0m'
 
-GTOKEN=0x909677ebf6e09b669dbe01950e9f3ffce7602097
 ACC1=0x2dF0a6dB2F0eF1269bE777C856A7665eeC00649f
 ACC2=0x4C9f9947491c72C668efAA09e033ffe03C976456
 ACC3=0x2328d0d782B9939a982997F2C3F35C2E0f069D86
@@ -48,6 +47,8 @@ echo
 echo " 🦋 [ ${GREEN}Deploying GTOKEN${NC} ]"
 echo
 make anvil-gtoken || exit 4
+
+GTOKEN=$(jq -r '.receipts[0].contractAddress' broadcast/DeployERC20.s.sol/31337/deploy-latest.json)
 
 echo
 echo " 🐳 [ ${GREEN}Support GTOKEN${NC}: $GTOKEN ]"
