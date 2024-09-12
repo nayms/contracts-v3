@@ -48,6 +48,7 @@ bin/
 .idea/runConfigurations.xml
 .idea/vcs.xml
 .metals
+.supermaven
 
 broadcast/**/31337/*
 
@@ -61,6 +62,7 @@ cov-html
 
 # Gemforge
 # gemforge.deployments.json
+.gemforge/*.json
 
 # Generated files
 script/deployment/S03UpgradeDiamond.s.sol

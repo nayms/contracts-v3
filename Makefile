@@ -36,7 +36,7 @@ bscript: ## build forge scripts
 	forge build --root . --contracts script/
 
 test: ## forge test local, alias t. Skip "one off" tests, For example a test created for a specific upgrade only. These tests are no longer relevant after the upgrade is complete.
-	forge test --no-match-test testReplaceDiamondCut
+	forge test --no-match-test testFork
 t: test
 
 tt: ## forge test local -vv
@@ -80,7 +80,7 @@ cov: ## coverage report -vvv
 	forge coverage -vvv
 
 coverage: ## coverage report (lcov), filtered for CI
-	forge coverage -vvv --report lcov --via-ir && node ./cli-tools/filter-lcov.js
+	forge coverage --no-match-test testFork -vvv --report lcov --via-ir && node ./cli-tools/filter-lcov.js
 
 lcov: ## coverage report (lcov)
 	forge coverage --report lcov --via-ir
@@ -94,9 +94,13 @@ gencovf: ## generate filtered html coverage report
 # solidity scripts
 erc20: ## deploy test ERC20
 	forge script DeployERC20 \
-		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
-		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
-		-vvvv
+		-s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" "Ether" "ETH" 18 \
+		-f ${AURORA_TESTNET_RPC_URL} \
+        --chain-id 1313161555 \
+        --sender 0x931c3aC09202650148Edb2316e97815f904CF4fa \
+        --mnemonic-paths ./nayms_mnemonic.txt \
+        --mnemonic-indexes 19 \
+		-vvvv --broadcast --legacy --verify --delay 30 --retries 10
 
 erc20-mainnet: ## deploy mock ERC20
 	forge script DeployERC20 \
@@ -124,20 +128,8 @@ erc20-mainnet-sim: ## simulate deploy mock ERC20
 		--ffi \
 		; node cli-tools/postproc-broadcasts.js
 
-erc20g: ## deploy test ERC20 to Goerli
-	@forge script DeployERC20 -s "deploy(string memory _name, string memory _symbol, uint8 _decimals)" \
-		${ERC20_NAME} ${ERC20_SYMBOL} ${ERC20_DECIMALS} \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${ownerAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		--broadcast \
-		--verify \
-		-vvvv
-
 anvil:	## run anvil with shared wallet
-	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m ./nayms_mnemonic.txt --state anvil.json
+	anvil --host 0.0.0.0 --chain-id 31337 --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}" --state anvil.json
 
 anvil-docker:	## run anvil in a container
 	docker run --platform linux/amd64 -d \
@@ -148,7 +140,7 @@ anvil-docker:	## run anvil in a container
 		-c "cd nayms && make anvil"
 
 anvil-dbg:	## run anvil in debug mode with shared wallet
-	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m ./nayms_mnemonic.txt  --state anvil.json
+	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m "${shell cat ./nayms_mnemonic.txt}" --state anvil.json
 
 fork-mainnet: ## fork mainnet locally with anvil
 	anvil -f ${ETH_MAINNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
@@ -168,7 +160,9 @@ fork-aurora: ## fork aurora locally with anvil
 fork-aurora-testnet: ## fork aurora testnet locally with anvil
 	anvil -f ${AURORA_TESTNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
 
-
+otterscan: ## run otterscan locally. otterscan is a local block explorer
+	docker run --rm -p 5100:80 --name otterscan -d otterscan/otterscan:latest
+	
 anvil-gtoken:	## deploy dummy erc20 token to local node
 	forge script DeployERC20 \
 		-s "deploy(string memory, string memory, uint8)" "GToken" "GTK" 18 \

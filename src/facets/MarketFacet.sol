@@ -32,10 +32,10 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
      *
      * @param _offerId offer ID
      */
-    function cancelOffer(uint256 _offerId) external notLocked(msg.sig) nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_CANCEL_OFFER) {
+    function cancelOffer(uint256 _offerId) external notLocked nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_CANCEL_OFFER) {
         require(LibMarket._getOffer(_offerId).state == LC.OFFER_STATE_ACTIVE, "offer not active");
         bytes32 creator = LibMarket._getOffer(_offerId).creator;
-        require(LibObject._getParent(LibHelpers._getIdForAddress(msg.sender)) == creator, "only member of entity can cancel");
+        require(LibObject._getParent(LibHelpers._getSenderId()) == creator, "only member of entity can cancel");
         LibMarket._cancelOffer(_offerId);
     }
 
@@ -57,7 +57,7 @@ contract MarketFacet is Modifiers, ReentrancyGuard {
         uint256 _buyAmount
     )
         external
-        notLocked(msg.sig)
+        notLocked
         nonReentrant
         assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXECUTE_LIMIT_OFFER)
         returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_)

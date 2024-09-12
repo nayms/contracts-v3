@@ -61,7 +61,7 @@ contract ERC20Wrapper is IERC20, ReentrancyGuard {
     }
 
     function transfer(address to, uint256 value) external nonReentrant returns (bool) {
-        bytes32 fromId = LibHelpers._getIdForAddress(msg.sender);
+        bytes32 fromId = LibHelpers._getSenderId();
         bytes32 toId = LibHelpers._getIdForAddress(to);
 
         emit Transfer(msg.sender, to, value);

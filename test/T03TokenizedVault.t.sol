@@ -17,69 +17,47 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     using LibHelpers for *;
     using StdStyle for *;
 
-    bytes32 internal nWETH;
-    bytes32 internal nWBTC;
     bytes32 internal dividendBankId;
 
     bytes32 internal entity1 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e5"));
     bytes32 internal entity2 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e6"));
-    bytes32 internal entity3 = makeId(LC.OBJECT_TYPE_ENTITY, bytes20("e7"));
 
     uint256 internal constant collateralRatio_500 = 500;
     uint256 internal constant maxCapital_3000eth = 3_000 ether;
-    uint256 internal constant totalLimit_2000eth = 2_000 ether;
 
     uint256 internal constant depositAmount = 2_000 ether;
 
-    address public immutable david = vm.addr(0x11111D);
-    address public immutable emily = vm.addr(0x11111E);
-    address public immutable faith = vm.addr(0x11111F);
-
-    bytes32 public immutable davidId = LibHelpers._getIdForAddress(vm.addr(0x11111D));
-    bytes32 public immutable emilyId = LibHelpers._getIdForAddress(vm.addr(0x11111E));
-    bytes32 public immutable faithId = LibHelpers._getIdForAddress(vm.addr(0x11111F));
-
-    address internal alice;
-    bytes32 internal aliceId;
-    bytes32 internal eAlice;
-    address internal bob;
-    bytes32 internal bobId;
-    bytes32 internal eBob;
-    bytes32 internal eDavid;
-    bytes32 internal eEmily;
-    bytes32 internal eFaith;
+    NaymsAccount alice;
+    NaymsAccount bob;
+    NaymsAccount david;
+    NaymsAccount emily;
+    NaymsAccount faith;
 
     Entity internal entityWbtc;
+    Entity internal entityWeth;
 
     TokenizedVaultFixture internal tokenizedVaultFixture;
 
     function setUp() public {
-        nWETH = LibHelpers._getIdForAddress(wethAddress);
-        nWBTC = LibHelpers._getIdForAddress(wbtcAddress);
         dividendBankId = LibHelpers._stringToBytes32(LC.DIVIDEND_BANK_IDENTIFIER);
 
         nayms.addSupportedExternalToken(wbtcAddress, 1);
-        entityWbtc = Entity({
-            assetId: LibHelpers._getIdForAddress(wbtcAddress),
-            collateralRatio: LC.BP_FACTOR,
-            maxCapacity: 100 ether,
-            utilizedCapacity: 0,
-            simplePolicyEnabled: true
-        });
-        changePrank(sm.addr);
-        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x11111")), davidId, entityWbtc, "entity wbtc test hash");
-        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x22222")), emilyId, entityWbtc, "entity wbtc test hash");
-        nayms.createEntity(makeId(LC.OBJECT_TYPE_ENTITY, bytes20("0x33333")), faithId, entityWbtc, "entity wbtc test hash");
+        entityWbtc = Entity({ assetId: wbtcId, collateralRatio: LC.BP_FACTOR, maxCapacity: 100 ether, utilizedCapacity: 0, simplePolicyEnabled: true });
+        entityWeth = Entity({ assetId: wethId, collateralRatio: LC.BP_FACTOR, maxCapacity: 100 ether, utilizedCapacity: 0, simplePolicyEnabled: true });
 
-        alice = account0;
-        aliceId = account0Id;
-        eAlice = nayms.getEntity(account0Id);
-        bob = signer1;
-        bobId = signer1Id;
-        eBob = nayms.getEntity(signer1Id);
-        eDavid = nayms.getEntity(davidId);
-        eEmily = nayms.getEntity(emilyId);
-        eFaith = nayms.getEntity(faithId);
+        alice = makeNaymsAcc("Alice");
+        bob = makeNaymsAcc("Bob");
+        david = makeNaymsAcc("David");
+        emily = makeNaymsAcc("Emily");
+        faith = makeNaymsAcc("Faith");
+
+        changePrank(sm.addr);
+
+        hCreateEntity(alice.entityId, alice.id, entityWeth, "alice entitytest hash");
+        hCreateEntity(bob.entityId, bob.id, entityWeth, "bob entitytest hash");
+        hCreateEntity(david.entityId, david.id, entityWbtc, "david entitytest hash");
+        hCreateEntity(emily.entityId, emily.id, entityWbtc, "emily entitytest hash");
+        hCreateEntity(faith.entityId, faith.id, entityWbtc, "faith entitytest hash");
 
         tokenizedVaultFixture = new TokenizedVaultFixture();
         bytes4[] memory tvSelectors = new bytes4[](1);
@@ -133,12 +111,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // deposit to entity1
         changePrank(address(signer1));
+
+        vm.expectRevert(abi.encodePacked(ExternalDepositAmountCannotBeZero.selector));
+        nayms.externalDeposit(wethAddress, 0);
+
         writeTokenBalance(signer1, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, externalDepositAmount);
         assertEq(weth.balanceOf(signer1), depositAmount - externalDepositAmount, "signer1 WETH balance after externalDeposit should DECREASE (transfer)");
         assertEq(weth.balanceOf(naymsAddress), externalDepositAmount, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(entity1, nWETH), externalDepositAmount, "entity1 nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount, "nWETH total supply should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalBalanceOf(entity1, wethId), externalDepositAmount, "entity1 wethId balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(wethId), externalDepositAmount, "wethId total supply should INCREASE (1:1 internal mint)");
 
         // deposit to entity2
         changePrank(address(signer2));
@@ -147,8 +129,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.stopPrank();
         assertEq(weth.balanceOf(signer2), depositAmount - externalDepositAmount, "signer2 WETH balance after externalDeposit should DECREASE (transfer)");
         assertEq(weth.balanceOf(naymsAddress), externalDepositAmount * 2, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(entity2, nWETH), externalDepositAmount, "entity2 nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount * 2, "nWETH total supply should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalBalanceOf(entity2, wethId), externalDepositAmount, "entity2 wethId balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(wethId), externalDepositAmount * 2, "wethId total supply should INCREASE (1:1 internal mint)");
     }
 
     // note: when creating entities for another userId, e.g. Alice is creating an entity for Bob, Alice needs to make sure they create the internal Nayms Id of Bob correctly.
@@ -190,8 +172,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         assertEq(weth.balanceOf(_signer1), depositAmount - externalDepositAmount, "signer1 WETH balance after externalDeposit should DECREASE (transfer)");
         assertEq(weth.balanceOf(naymsAddress), externalDepositAmount, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(_entity1, nWETH), externalDepositAmount, "entity1 nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount, "nWETH total supply should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalBalanceOf(_entity1, wethId), externalDepositAmount, "entity1 wethId balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(wethId), externalDepositAmount, "wethId total supply should INCREASE (1:1 internal mint)");
 
         // deposit to entity2
         vm.startPrank(address(_signer2));
@@ -199,8 +181,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.externalDeposit(wethAddress, externalDepositAmount);
         assertEq(weth.balanceOf(_signer2), depositAmount - externalDepositAmount, "signer2 WETH balance after externalDeposit should DECREASE (transfer)");
         assertEq(weth.balanceOf(naymsAddress), externalDepositAmount * 2, "nayms WETH balance after externalDeposit should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(_entity2, nWETH), externalDepositAmount, "entity2 nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), externalDepositAmount * 2, "nWETH total supply should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalBalanceOf(_entity2, wethId), externalDepositAmount, "entity2 wethId balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(wethId), externalDepositAmount * 2, "wethId total supply should INCREASE (1:1 internal mint)");
     }
 
     function testSingleInternalTransferFromEntity() public {
@@ -208,30 +190,34 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         changePrank(sm);
-        nayms.setEntity(bobId, acc0EntityId);
+        nayms.setEntity(bob.id, acc0EntityId);
 
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "account0Id nWETH balance should start at 0");
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "account0Id wethId balance should start at 0");
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
         // note Depositing to account0's associated entity
         nayms.externalDeposit(wethAddress, 1 ether);
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "account0's entityId (account0's parent) nWETH balance should INCREASE (1:1 internal mint)");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "account0's entityId (account0's parent) wethId balance should INCREASE (1:1 internal mint)");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether, "wethId total supply should INCREASE (1:1 internal mint)");
 
         // from parent of sender (address(this)) to
-        nayms.internalTransferFromEntity(account0Id, nWETH, 1 ether);
+        nayms.internalTransferFromEntity(account0Id, wethId, 1 ether);
 
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether - 1 ether, "account0's entityId (account0's parent) nWETH balance should DECREASE (transfer to account0Id)");
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether, "account0Id nWETH balance should INCREASE (transfer from acc0EntityId)");
+        assertEq(
+            nayms.internalBalanceOf(acc0EntityId, wethId),
+            1 ether - 1 ether,
+            "account0's entityId (account0's parent) wethId balance should DECREASE (transfer to account0Id)"
+        );
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 1 ether, "account0Id wethId balance should INCREASE (transfer from acc0EntityId)");
 
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME (transfer)");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether, "wethId total supply should STAY THE SAME (transfer)");
 
         // Must have ENTITY ADMIN role in order to internalTransferFromEntity
         changePrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, bobId, acc0EntityId, "", LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY));
-        nayms.internalTransferFromEntity(bobId, nWETH, 1 ether);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, bob.id, acc0EntityId, "", LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY));
+        nayms.internalTransferFromEntity(bob.id, wethId, 1 ether);
     }
 
     function testSingleExternalWithdraw() public {
@@ -239,8 +225,8 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         uint256 account0WethBalanceAccount0 = weth.balanceOf(account0);
         uint256 naymsWethBalancePre = weth.balanceOf(naymsAddress);
-        uint256 entity1WethInternalBalance = nayms.internalBalanceOf(entity1, nWETH);
-        uint256 naymsWethInternalTokenSupply = nayms.internalTokenSupply(nWETH);
+        uint256 entity1WethInternalBalance = nayms.internalBalanceOf(entity1, wethId);
+        uint256 naymsWethInternalTokenSupply = nayms.internalTokenSupply(wethId);
 
         vm.startPrank(sa.addr);
         nayms.assignRole(em.id, entity1, LC.ROLE_ENTITY_MANAGER);
@@ -249,12 +235,16 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.assignRole(account0Id, entity1, LC.ROLE_ENTITY_COMPTROLLER_WITHDRAW);
 
         changePrank(signer1);
+
+        vm.expectRevert(abi.encodePacked(ExternalWithdrawAmountCannotBeZero.selector));
+        nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 0);
+
         nayms.externalWithdrawFromEntity(entity1, account0, wethAddress, 100);
 
         assertEq(weth.balanceOf(account0), account0WethBalanceAccount0 + 100, "account0 got WETH");
         assertEq(weth.balanceOf(naymsAddress), naymsWethBalancePre - 100, "nayms lost WETH");
-        assertEq(nayms.internalBalanceOf(entity1, nWETH), entity1WethInternalBalance - 100, "entity1 lost internal WETH");
-        assertEq(nayms.internalTokenSupply(nWETH), naymsWethInternalTokenSupply - 100, "nayms burned internal WETH");
+        assertEq(nayms.internalBalanceOf(entity1, wethId), entity1WethInternalBalance - 100, "entity1 lost internal WETH");
+        assertEq(nayms.internalTokenSupply(wethId), naymsWethInternalTokenSupply - 100, "nayms burned internal WETH");
     }
 
     function testOnlyRolesInGroupPayDividendFromEntityCanPayDividend() public {
@@ -279,15 +269,15 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
 
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 0, "account0Id nWETH balance should start at 0");
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 0, "account0Id wethId balance should start at 0");
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
         nayms.externalDeposit(wethAddress, 1 ether);
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "account0Id nWETH balance should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "account0Id wethId balance should INCREASE (mint)");
 
-        uint256 withdrawableDiv = nayms.getWithdrawableDividend(account0Id, nWETH, nWETH);
+        uint256 withdrawableDiv = nayms.getWithdrawableDividend(account0Id, wethId, wethId);
         // No withdrawable dividends.
         assertEq(withdrawableDiv, 0);
 
@@ -314,9 +304,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.payDividendFromEntity(randomGuid, 1 ether);
 
         // note: When the participation token supply is 0, payDividend() should transfer the payout directly to the payee
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (transfer)");
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 1 ether - 1 ether, "account0Id nWETH balance should DECREASE (transfer)");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME");
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (transfer)");
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 1 ether - 1 ether, "account0Id wethId balance should DECREASE (transfer)");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether, "wethId total supply should STAY THE SAME");
     }
 
     // start token sale, pay dividend,
@@ -324,22 +314,22 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);
 
-        assertEq(nayms.internalBalanceOf(account0Id, nWETH), 0, "acc0EntityId nWETH balance should start at 0");
+        assertEq(nayms.internalBalanceOf(account0Id, wethId), 0, "acc0EntityId wethId balance should start at 0");
 
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, depositAmount);
 
         // note Depositing to account0's associated entity
         nayms.externalDeposit(wethAddress, 1 ether);
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 1 ether, "acc0EntityId nWETH balance should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
 
-        uint256 withdrawableDiv = nayms.getWithdrawableDividend(account0Id, nWETH, nWETH);
+        uint256 withdrawableDiv = nayms.getWithdrawableDividend(account0Id, wethId, wethId);
         // No withdrawable dividends.
         assertEq(withdrawableDiv, 0);
 
         changePrank(sm.addr);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
+        nayms.enableEntityTokenization(acc0EntityId, "eAlice", "eAlice", 1e6);
         nayms.startTokenSale(acc0EntityId, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
@@ -352,27 +342,27 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(account0);
         nayms.payDividendFromEntity(randomGuid, 1 ether);
         // note:When the participation token supply is non zero,
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 0, "acc0EntityId nWETH balance should DECREASE (transfer)");
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH total supply should STAY THE SAME");
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 0, "acc0EntityId wethId balance should DECREASE (transfer)");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether, "wethId total supply should STAY THE SAME");
 
         assertEq(
-            nayms.internalBalanceOf(dividendBankId, nWETH),
+            nayms.internalBalanceOf(dividendBankId, wethId),
             1 ether,
             "The balance of the dividend bank should be non zero after payDividend() is called on a par token with a non zero supply."
         );
 
-        assertEq(nayms.internalBalanceOf(signer1Id, nWETH), 0, "");
+        assertEq(nayms.internalBalanceOf(signer1Id, wethId), 0, "");
 
         changePrank(signer1);
         writeTokenBalance(signer1, naymsAddress, wethAddress, depositAmount);
 
         bytes32 signer1EntityId = nayms.getEntity(signer1Id);
 
-        // give signer1's entity nWETH
+        // give signer1's entity wethId
         nayms.externalDeposit(wethAddress, 2 ether);
-        assertEq(nayms.internalBalanceOf(signer1EntityId, nWETH), 2 ether, "signer1EntityId nWETH balance should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 1 ether, "dividendBankId nWETH balance should STAY THE SAME");
-        assertEq(nayms.internalTokenSupply(nWETH), 3 ether, "nWETH total supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(signer1EntityId, wethId), 2 ether, "signer1EntityId wethId balance should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 1 ether, "dividendBankId wethId balance should STAY THE SAME");
+        assertEq(nayms.internalTokenSupply(wethId), 3 ether, "wethId total supply should INCREASE (mint)");
 
         changePrank(sm.addr);
         nayms.assignRole(signer1Id, systemContext, LC.ROLE_ENTITY_CP);
@@ -380,176 +370,161 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // the taker's buy amount
         uint256 takerBuyAmount = 1 ether;
         changePrank(signer1);
-        nayms.internalBalanceOf(signer1Id, nWETH);
-        nayms.executeLimitOffer(nWETH, 1 ether, acc0EntityId, takerBuyAmount);
+        nayms.internalBalanceOf(signer1Id, wethId);
+        nayms.executeLimitOffer(wethId, 1 ether, acc0EntityId, takerBuyAmount);
 
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 1 ether - 1 ether, "The dividend should've been transferred when executeLimitOffer() is called and executed");
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 1 ether - 1 ether, "The dividend should've been transferred when executeLimitOffer() is called and executed");
 
         assertEq(
-            nayms.internalBalanceOf(acc0EntityId, nWETH),
+            nayms.internalBalanceOf(acc0EntityId, wethId),
             2 ether,
             "account0's entity should've received 1 ether from dividends and 1 ether from their order being filled for their participation tokens"
         );
-        nayms.internalBalanceOf(signer1Id, nWETH); // no change
+        nayms.internalBalanceOf(signer1Id, wethId); // no change
 
         changePrank(account0);
-        nayms.withdrawDividend(acc0EntityId, nWETH, nWETH);
-        nayms.withdrawAllDividends(account0Id, nWETH);
-        assertEq(nayms.internalBalanceOf(acc0EntityId, nWETH), 2 ether, "acc0EntityId nWETH balance should STAY THE SAME");
+        nayms.withdrawDividend(acc0EntityId, wethId, wethId);
+        nayms.withdrawAllDividends(account0Id, wethId);
+        assertEq(nayms.internalBalanceOf(acc0EntityId, wethId), 2 ether, "acc0EntityId wethId balance should STAY THE SAME");
 
         (uint256 totalFees_, ) = nayms.calculateTradingFees(signer1EntityId, wethId, acc0EntityId, takerBuyAmount);
 
         // the amount the taker receives from the matching order
         uint256 calculatedTakerAmount = takerBuyAmount - totalFees_;
-        assertEq(nayms.internalBalanceOf(signer1EntityId, nWETH), calculatedTakerAmount, "balance of signer1's entity should be the their buy amount minus the commission fees"); // order filled minus trading commissions)
+        assertEq(nayms.internalBalanceOf(signer1EntityId, wethId), calculatedTakerAmount, "balance of signer1's entity should be the their buy amount minus the commission fees"); // order filled minus trading commissions)
     }
 
     function testMultipleDepositDividends() public {
-        // naming conventions for this test:
-        // alice == account0
-        // aliceId == account0Id
-        // eAlice == account0's parent, aka entity
-        // bob == signer1
-        // bobId == signer1Id
-        // nBob == signer1's parent, aka entity
-
-        alice = account0;
-        bob = signer1;
-        eAlice = nayms.getEntity(account0Id);
-        eBob = nayms.getEntity(signer1Id);
-
-        nayms.assignRole(em.id, eAlice, LC.ROLE_ENTITY_MANAGER);
+        nayms.assignRole(em.id, alice.entityId, LC.ROLE_ENTITY_MANAGER);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
-        nayms.startTokenSale(eAlice, 1e18, 1e18);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1e6);
+        nayms.startTokenSale(alice.entityId, 1e18, 1e18);
 
         // check token supply of participation token (entity token)
-        assertEq(nayms.internalTokenSupply(eAlice), 1e18, "eAlice participation token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), 1e18, "eAlice's eAlice balance should INCREASE (mint)");
+        assertEq(nayms.internalTokenSupply(alice.entityId), 1e18, "eAlice participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), 1e18, "eAlice's eAlice balance should INCREASE (mint)");
 
         changePrank(alice);
         nayms.externalDeposit(wethAddress, 1 ether);
-        assertEq(nayms.internalTokenSupply(nWETH), 1 ether, "nWETH token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether, "eAlice's nWETH balance should INCREASE (deposit)");
+        assertEq(nayms.internalTokenSupply(wethId), 1 ether, "wethId token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 1 ether, "eAlice's wethId balance should INCREASE (deposit)");
 
         changePrank(em.addr);
-        nayms.assignRole(eAlice, eAlice, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
         bytes32 randomGuid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1"));
         nayms.payDividendFromEntity(randomGuid, 1 ether); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether - 1 ether, "eAlice's nWETH balance should DECREASE (transfer to dividend bank)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 1 ether - 1 ether, "eAlice's wethId balance should DECREASE (transfer to dividend bank)");
 
         assertEq(
-            nayms.internalBalanceOf(dividendBankId, nWETH),
+            nayms.internalBalanceOf(dividendBankId, wethId),
             1 ether,
             "The balance of the dividend bank should be non zero after payDividend() is called on a par token with a non zero supply."
         );
 
         uint256 takerBuyAmount = 1e18;
-        c.log(nayms.getLockedBalance(eAlice, eAlice));
+        c.log(nayms.getLockedBalance(alice.entityId, alice.entityId));
 
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, takerBuyAmount);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, takerBuyAmount);
 
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether + totalFees_, "eBob's nWETH balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether + totalFees_, "eBob's wethId balance should INCREASE");
 
         changePrank(sm.addr);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
         changePrank(bob);
-        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, 1e18);
+        nayms.executeLimitOffer(wethId, 1 ether, alice.entityId, 1e18);
         vm.stopPrank();
 
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 0, "eBob's nWETH balance should DECREASE");
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 2 ether, "eAlice's nWETH balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 0, "eBob's wethId balance should DECREASE");
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 2 ether, "eAlice's wethId balance should INCREASE");
     }
 
     function testMultipleDepositDividendWithdraw2() public {
-        alice = account0;
-        eAlice = nayms.getEntity(account0Id);
-        bob = signer1;
-        eBob = nayms.getEntity(signer1Id);
-        address charlie = signer2;
-        bytes32 eCharlie = nayms.getEntity(signer2Id);
+        changePrank(sm.addr);
+        NaymsAccount memory charlie = makeNaymsAcc("Charlie");
+        hCreateEntity(charlie.entityId, charlie.id, entityWbtc, "charlie entitytest hash");
 
         changePrank(sm.addr);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(charlie.entityId, charlie.entityId, LC.ROLE_ENTITY_CP);
+
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
 
         nayms.externalDeposit(wethAddress, 80_000); // to be used for dividend payments
 
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, 3_000);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, 3_000);
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 3_000 + totalFees_);
 
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + totalFees_);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 3_000 + totalFees_);
 
-        (totalFees_, ) = nayms.calculateTradingFees(eCharlie, wethId, eAlice, 17_000);
+        (totalFees_, ) = nayms.calculateTradingFees(charlie.entityId, wethId, alice.entityId, 17_000);
         changePrank(charlie);
-        writeTokenBalance(charlie, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(charlie.addr, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 17_000 + totalFees_);
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
-        nayms.startTokenSale(eAlice, 20_000, 20_000);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1);
+        nayms.startTokenSale(alice.entityId, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
-        assertEq(nayms.internalTokenSupply(eAlice), 20_000, "eAlice participation token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
+        assertEq(nayms.internalTokenSupply(alice.entityId), 20_000, "eAlice participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
 
         changePrank(bob);
-        nayms.executeLimitOffer(nWETH, 3_000, eAlice, 3_000); // 1:1 purchase price
+        nayms.executeLimitOffer(wethId, 3_000, alice.entityId, 3_000); // 1:1 purchase price
 
         changePrank(charlie);
-        nayms.executeLimitOffer(nWETH, 17_000, eAlice, 17_000); // 1:1 purchase price
+        nayms.executeLimitOffer(wethId, 17_000, alice.entityId, 17_000); // 1:1 purchase price
 
-        assertEq(nayms.internalBalanceOf(eBob, eAlice), 3_000);
-        assertEq(nayms.internalBalanceOf(eCharlie, eAlice), 17_000);
+        assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), 3_000);
+        assertEq(nayms.internalBalanceOf(charlie.entityId, alice.entityId), 17_000);
 
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 100_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 100_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 0);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 0);
 
         changePrank(alice);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 40_000); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 60_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 40_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 6_000);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 34_000);
 
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 60_000); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 0);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 100_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 15_000);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 85_000);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 15_000);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 85_000);
 
-        nayms.withdrawDividend(eBob, eAlice, nWETH);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 85_000);
+        nayms.withdrawDividend(bob.entityId, alice.entityId, wethId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 15_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 85_000);
 
-        nayms.withdrawDividend(eCharlie, eAlice, nWETH);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
-        assertEq(nayms.internalBalanceOf(eCharlie, nWETH), 85_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 0);
+        nayms.withdrawDividend(charlie.entityId, alice.entityId, wethId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 15_000);
+        assertEq(nayms.internalBalanceOf(charlie.entityId, wethId), 85_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 0);
     }
 
     function testFuzzTwoEntityDepositDividendWithdraw(
@@ -568,36 +543,36 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         require(bobEAliceBuyAmount >= 10_000 && bobEAliceBuyAmount <= type(uint128).max);
 
         changePrank(sm.addr);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, type(uint256).max);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, type(uint256).max);
 
         // --- Deposit WETH to eAlice --- //
         nayms.externalDeposit(wethAddress, type(uint256).max);
 
-        // --- Internal transfer nWETH from eAlice to eBob ---/
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, eAliceParTokenPrice);
-        nayms.internalTransferFromEntity(eBob, nWETH, bobWethDepositAmount + eAliceParTokenPrice + totalFees_);
+        // --- Internal transfer wethId from eAlice to eBob ---/
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, eAliceParTokenPrice);
+        nayms.internalTransferFromEntity(bob.entityId, wethId, bobWethDepositAmount + eAliceParTokenPrice + totalFees_);
 
         c.log("commissions amount:", totalFees_);
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
-        nayms.startTokenSale(eAlice, eAliceParTokenSaleAmount, eAliceParTokenPrice);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1e6);
+        nayms.startTokenSale(alice.entityId, eAliceParTokenSaleAmount, eAliceParTokenPrice);
 
         // check token supply of participation token (entity token)
-        assertEq(nayms.internalTokenSupply(eAlice), eAliceParTokenSaleAmount, "eAlice participation token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), eAliceParTokenSaleAmount, "eAlice's eAlice balance should INCREASE (mint)");
+        assertEq(nayms.internalTokenSupply(alice.entityId), eAliceParTokenSaleAmount, "eAlice participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), eAliceParTokenSaleAmount, "eAlice's eAlice balance should INCREASE (mint)");
 
         changePrank(bob);
         // note: Purchase an arbitrary amount of eAlice
-        // note: bob is selling bobWethDepositAmount of nWETH for bobEAliceBuyAmount of eAlice
+        // note: bob is selling bobWethDepositAmount of wethId for bobEAliceBuyAmount of eAlice
         // if the buy amount is less than the price of 1, then the buy amount is calculated to be 0 and the transaction will revert
         uint256 relativePriceOfEAlice = eAliceParTokenSaleAmount / eAliceParTokenPrice;
         c.log(string.concat(vm.toString(eAliceParTokenPrice), " relativePriceOfEAlice"), relativePriceOfEAlice);
@@ -612,264 +587,256 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         uint256 relativeOfferPrice = bobWethDepositAmount / bobEAliceBuyAmount;
 
         if (bobEAliceBuyAmount < relativePriceOfEAlice || (bobEAliceBuyAmount < relativePriceOfEAlice && relativeOfferPrice < relativePriceOfEAlice)) {
-            assertEq(nayms.internalBalanceOf(eBob, eAlice), 0, "eBob's eAlice balance should STAY THE SAME (executeLimitOffer)");
+            assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), 0, "eBob's eAlice balance should STAY THE SAME (executeLimitOffer)");
 
             // when bob is trying to buy an amount of eAlice that is valued at less than 1 token, the buy amount is calculated to be 0
             vm.expectRevert("buy amount must be >0");
-            nayms.executeLimitOffer(nWETH, bobWethDepositAmount, eAlice, bobEAliceBuyAmount);
+            nayms.executeLimitOffer(wethId, bobWethDepositAmount, alice.entityId, bobEAliceBuyAmount);
         } else {
-            nayms.executeLimitOffer(nWETH, bobWethDepositAmount, eAlice, bobEAliceBuyAmount);
+            nayms.executeLimitOffer(wethId, bobWethDepositAmount, alice.entityId, bobEAliceBuyAmount);
 
-            uint256 balanceOfEbob = nayms.internalBalanceOf(eBob, eAlice);
+            uint256 balanceOfEbob = nayms.internalBalanceOf(bob.entityId, alice.entityId);
 
             changePrank(alice);
             bytes32 randomGuid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1"));
             nayms.payDividendFromEntity(randomGuid, dividendAmount); // eAlice is paying out a dividend
 
             uint256 calc = (balanceOfEbob * dividendAmount) / eAliceParTokenSaleAmount;
-            assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), calc);
+            assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), calc, "Bob's withdrawable dividend doesn't match".red());
 
             changePrank(bob);
-            uint256 bobWethBalance = nayms.internalBalanceOf(eBob, nWETH);
-            nayms.withdrawDividend(eBob, eAlice, nWETH);
-            assertEq(nayms.internalBalanceOf(eBob, nWETH), bobWethBalance + calc);
+            uint256 bobWethBalance = nayms.internalBalanceOf(bob.entityId, wethId);
+            nayms.withdrawDividend(bob.entityId, alice.entityId, wethId);
+            assertEq(nayms.internalBalanceOf(bob.entityId, wethId), bobWethBalance + calc, "Bob's balance after divqidend withdrawal doesn't match".red());
         }
     }
 
     function testMultipleDepositDividendWithdrawWithTwoDividendTokens() public {
-        alice = account0;
-        eAlice = nayms.getEntity(account0Id);
-        bob = signer1;
-        eBob = nayms.getEntity(signer1Id);
-        address charlie = signer2;
-        bytes32 eCharlie = nayms.getEntity(signer2Id);
+        changePrank(sm.addr);
+        NaymsAccount memory charlie = makeNaymsAcc("Charlie");
+        hCreateEntity(charlie.entityId, charlie.id, entityWbtc, "charlie entitytest hash");
 
         changePrank(sm.addr);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eEmily, eEmily, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eFaith, eFaith, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(charlie.entityId, charlie.entityId, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(emily.entityId, emily.entityId, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(faith.entityId, faith.entityId, LC.ROLE_ENTITY_CP);
+
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+
         changePrank(em.addr);
-        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
-        nayms.assignRole(eDavid, eDavid, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(david.entityId, david.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
-        writeTokenBalance(alice, naymsAddress, wbtcAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wbtcAddress, depositAmount);
 
         nayms.externalDeposit(wethAddress, 80_000); // to be used for dividend payments
 
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, 3_000);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, 3_000);
         nayms.externalDeposit(wethAddress, 3_000 + totalFees_);
 
         changePrank(charlie);
-        writeTokenBalance(charlie, naymsAddress, wethAddress, depositAmount);
-        (totalFees_, ) = nayms.calculateTradingFees(eCharlie, wethId, eAlice, 17_000);
+        writeTokenBalance(charlie.addr, naymsAddress, wethAddress, depositAmount);
+        (totalFees_, ) = nayms.calculateTradingFees(charlie.entityId, wethId, alice.entityId, 17_000);
         nayms.externalDeposit(wethAddress, 17_000 + totalFees_);
 
         changePrank(david);
-        writeTokenBalance(david, naymsAddress, wbtcAddress, depositAmount);
+        writeTokenBalance(david.addr, naymsAddress, wbtcAddress, depositAmount);
         nayms.externalDeposit(wbtcAddress, 80_000); // to be used for dividend payments
 
         changePrank(emily);
-        writeTokenBalance(emily, naymsAddress, wbtcAddress, depositAmount);
-        (totalFees_, ) = nayms.calculateTradingFees(eEmily, wbtcId, eDavid, 3_000);
+        writeTokenBalance(emily.addr, naymsAddress, wbtcAddress, depositAmount);
+        (totalFees_, ) = nayms.calculateTradingFees(emily.entityId, wbtcId, david.entityId, 3_000);
         nayms.externalDeposit(wbtcAddress, 3_000 + totalFees_);
 
         changePrank(faith);
-        writeTokenBalance(faith, naymsAddress, wbtcAddress, depositAmount);
-        (totalFees_, ) = nayms.calculateTradingFees(eFaith, wbtcId, eDavid, 17_000);
+        writeTokenBalance(faith.addr, naymsAddress, wbtcAddress, depositAmount);
+        (totalFees_, ) = nayms.calculateTradingFees(faith.entityId, wbtcId, david.entityId, 17_000);
         nayms.externalDeposit(wbtcAddress, 17_000 + totalFees_);
 
-        (uint256 bobTotalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, 3_000);
-        (uint256 emiliyTotalFees_, ) = nayms.calculateTradingFees(eEmily, wbtcId, eDavid, 3_000);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + bobTotalFees_);
-        assertEq(nayms.internalBalanceOf(eEmily, nWBTC), 3_000 + emiliyTotalFees_);
+        (uint256 bobTotalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, 3_000);
+        (uint256 emiliyTotalFees_, ) = nayms.calculateTradingFees(emily.entityId, wbtcId, david.entityId, 3_000);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 3_000 + bobTotalFees_);
+        assertEq(nayms.internalBalanceOf(emily.entityId, wbtcId), 3_000 + emiliyTotalFees_);
 
         changePrank(sm.addr);
         // note: starting a token sale which mints participation tokens
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
-        nayms.enableEntityTokenization(eDavid, "eDavid", "eDavid", 1);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1);
+        nayms.enableEntityTokenization(david.entityId, "eDavid", "eDavid", 1);
 
-        nayms.startTokenSale(eAlice, 20_000, 20_000);
-        nayms.startTokenSale(eDavid, 20_000, 20_000);
-        vm.stopPrank();
+        nayms.startTokenSale(alice.entityId, 20_000, 20_000);
+        nayms.startTokenSale(david.entityId, 20_000, 20_000);
 
         // check token supply of participation token (entity token)
-        assertEq(nayms.internalTokenSupply(eAlice), 20_000, "eAlice participation token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
-        assertEq(nayms.internalTokenSupply(eDavid), 20_000, "eDavid participation token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eDavid, eDavid), 20_000, "eDavid's eDavid balance should INCREASE (mint)");
+        assertEq(nayms.internalTokenSupply(alice.entityId), 20_000, "eAlice participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
+        assertEq(nayms.internalTokenSupply(david.entityId), 20_000, "eDavid participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(david.entityId, david.entityId), 20_000, "eDavid's eDavid balance should INCREASE (mint)");
 
-        vm.prank(bob);
-        nayms.executeLimitOffer(nWETH, 3_000, eAlice, 3_000); // 1:1 purchase price
+        changePrank(bob);
+        nayms.executeLimitOffer(wethId, 3_000, alice.entityId, 3_000); // 1:1 purchase price
+        assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), 3_000, "Bob's eAlice balance should increase".red());
 
-        vm.prank(charlie);
-        nayms.executeLimitOffer(nWETH, 17_000, eAlice, 17_000); // 1:1 purchase price
+        startPrank(charlie);
+        nayms.executeLimitOffer(wethId, 17_000, alice.entityId, 17_000); // 1:1 purchase price
+        assertEq(nayms.internalBalanceOf(charlie.entityId, alice.entityId), 17_000, "Charlie's eAlice balance should increase".red());
 
-        vm.prank(emily);
-        nayms.executeLimitOffer(nWBTC, 3_000, eDavid, 3_000); // 1:1 purchase price
+        changePrank(emily);
+        nayms.executeLimitOffer(wbtcId, 3_000, david.entityId, 3_000); // 1:1 purchase price
+        assertEq(nayms.internalBalanceOf(emily.entityId, david.entityId), 3_000, "Emily's eAlice balance should increase".red());
 
-        vm.prank(faith);
-        nayms.executeLimitOffer(nWBTC, 17_000, eDavid, 17_000); // 1:1 purchase price
+        changePrank(faith);
+        nayms.executeLimitOffer(wbtcId, 17_000, david.entityId, 17_000); // 1:1 purchase price
+        assertEq(nayms.internalBalanceOf(faith.entityId, david.entityId), 17_000, "Faith's eAlice balance should increase".red());
 
-        assertEq(nayms.internalBalanceOf(eBob, eAlice), 3_000);
-        assertEq(nayms.internalBalanceOf(eCharlie, eAlice), 17_000);
-        assertEq(nayms.internalBalanceOf(eEmily, eDavid), 3_000);
-        assertEq(nayms.internalBalanceOf(eFaith, eDavid), 17_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 100_000, "Alice's WETH balance should increase".red());
 
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 100_000);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 0);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 0);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
-
-        vm.startPrank(alice);
+        startPrank(alice);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 40_000); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 60_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 40_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 6_000);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 34_000);
 
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 60_000); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 0, "Alice' balance should be zero".red());
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 100_000, "Dividend bank balance should increase".red());
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 15_000);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 85_000);
-        vm.stopPrank();
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 15_000);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 85_000);
 
         // eDavid, eEmily, eFaith
-        assertEq(nayms.getWithdrawableDividend(eEmily, eDavid, nWETH), 0);
-        assertEq(nayms.getWithdrawableDividend(eFaith, eDavid, nWETH), 0);
+        assertEq(nayms.getWithdrawableDividend(emily.entityId, david.entityId, wethId), 0);
+        assertEq(nayms.getWithdrawableDividend(faith.entityId, david.entityId, wethId), 0);
 
-        assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 100_000);
-        vm.prank(david);
+        assertEq(nayms.internalBalanceOf(david.entityId, wbtcId), 100_000);
+        startPrank(david);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x3")), 40_000); // eDavid is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 60_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 40_000);
+        assertEq(nayms.internalBalanceOf(david.entityId, wbtcId), 60_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wbtcId), 40_000);
 
-        assertEq(nayms.getWithdrawableDividend(eEmily, eDavid, nWBTC), 6_000);
-        assertEq(nayms.getWithdrawableDividend(eFaith, eDavid, nWBTC), 34_000);
+        assertEq(nayms.getWithdrawableDividend(emily.entityId, david.entityId, wbtcId), 6_000);
+        assertEq(nayms.getWithdrawableDividend(faith.entityId, david.entityId, wbtcId), 34_000);
 
-        vm.prank(david);
+        startPrank(david);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x4")), 60_000); // eDavid is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eDavid, nWBTC), 0);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 100_000);
+        assertEq(nayms.internalBalanceOf(david.entityId, wbtcId), 0);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wbtcId), 100_000);
 
-        assertEq(nayms.getWithdrawableDividend(eEmily, eDavid, nWBTC), 15_000);
-        assertEq(nayms.getWithdrawableDividend(eFaith, eDavid, nWBTC), 85_000);
+        assertEq(nayms.getWithdrawableDividend(emily.entityId, david.entityId, wbtcId), 15_000);
+        assertEq(nayms.getWithdrawableDividend(faith.entityId, david.entityId, wbtcId), 85_000);
 
-        nayms.withdrawDividend(eBob, eAlice, nWETH);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 85_000);
+        nayms.withdrawDividend(bob.entityId, alice.entityId, wethId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 15_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 85_000);
 
-        nayms.withdrawDividend(eCharlie, eAlice, nWETH);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
-        assertEq(nayms.internalBalanceOf(eCharlie, nWETH), 85_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 0);
+        nayms.withdrawDividend(charlie.entityId, alice.entityId, wethId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 15_000);
+        assertEq(nayms.internalBalanceOf(charlie.entityId, wethId), 85_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 0);
 
-        nayms.withdrawDividend(eEmily, eDavid, nWBTC);
-        assertEq(nayms.internalBalanceOf(eEmily, nWBTC), 15_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 85_000);
+        nayms.withdrawDividend(emily.entityId, david.entityId, wbtcId);
+        assertEq(nayms.internalBalanceOf(emily.entityId, wbtcId), 15_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wbtcId), 85_000);
 
-        nayms.withdrawDividend(eFaith, eDavid, nWBTC);
-        assertEq(nayms.internalBalanceOf(eEmily, nWBTC), 15_000);
-        assertEq(nayms.internalBalanceOf(eFaith, nWBTC), 85_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWBTC), 0);
+        nayms.withdrawDividend(faith.entityId, david.entityId, wbtcId);
+        assertEq(nayms.internalBalanceOf(emily.entityId, wbtcId), 15_000);
+        assertEq(nayms.internalBalanceOf(faith.entityId, wbtcId), 85_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wbtcId), 0);
     }
 
     function testDepositAndBurn() public {
-        alice = account0;
-        eAlice = nayms.getEntity(account0Id);
-        bob = signer1;
-        eBob = nayms.getEntity(signer1Id);
-        address charlie = signer2;
-        bytes32 eCharlie = nayms.getEntity(signer2Id);
+        changePrank(sm.addr);
+        NaymsAccount memory charlie = makeNaymsAcc("Charlie");
+        hCreateEntity(charlie.entityId, charlie.id, entityWbtc, "charlie entitytest hash");
 
-        uint256 defaultTradingFeeBP = 30;
+        uint256 defaultTradingFeeBP = defaultInitSaleFee;
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
 
         nayms.externalDeposit(wethAddress, 80_000); // to be used for dividend payments
 
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
         uint256 totalFees = (defaultTradingFeeBP * 3_000) / LC.BP_FACTOR;
         nayms.externalDeposit(wethAddress, 3_000 + totalFees);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 3_000 + totalFees);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 3_000 + totalFees);
 
         changePrank(charlie);
-        writeTokenBalance(charlie, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(charlie.addr, naymsAddress, wethAddress, depositAmount);
         totalFees = (defaultTradingFeeBP * 17_000) / LC.BP_FACTOR;
         nayms.externalDeposit(wethAddress, 17_000 + totalFees);
 
         // note: starting a token sale which mints participation tokens
         changePrank(sm.addr);
-        // nayms.setMinimumSell(nWETH, 1);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
-        nayms.startTokenSale(eAlice, 20_000, 20_000);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1);
+        nayms.startTokenSale(alice.entityId, 20_000, 20_000);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         // check token supply of participation token (entity token)
-        assertEq(nayms.internalTokenSupply(eAlice), 20_000, "eAlice participation token supply should INCREASE (mint)");
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
+        assertEq(nayms.internalTokenSupply(alice.entityId), 20_000, "eAlice participation token supply should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), 20_000, "eAlice's eAlice balance should INCREASE (mint)");
 
         changePrank(sm.addr);
 
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(charlie.entityId, charlie.entityId, LC.ROLE_ENTITY_CP);
 
         changePrank(bob);
-        nayms.executeLimitOffer(nWETH, 3_000, eAlice, 3_000); // 1:1 purchase price
+        nayms.executeLimitOffer(wethId, 3_000, alice.entityId, 3_000); // 1:1 purchase price
 
         changePrank(charlie);
-        nayms.executeLimitOffer(nWETH, 17_000, eAlice, 17_000); // 1:1 purchase price
+        nayms.executeLimitOffer(wethId, 17_000, alice.entityId, 17_000); // 1:1 purchase price
 
-        assertEq(nayms.internalBalanceOf(eBob, eAlice), 3_000);
-        assertEq(nayms.internalBalanceOf(eCharlie, eAlice), 17_000);
+        assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), 3_000);
+        assertEq(nayms.internalBalanceOf(charlie.entityId, alice.entityId), 17_000);
 
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 100_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 100_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 0);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 0);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 0);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 0);
 
         changePrank(alice);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 40_000); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 60_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 40_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 60_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 40_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 6_000);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 34_000);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 6_000);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 34_000);
 
         vm.expectRevert("nonunique dividend distribution identifier");
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 60_000); // eAlice is paying out a dividend
 
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")), 60_000); // eAlice is paying out a dividend
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 0);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 100_000);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 0);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 100_000);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, eAlice, nWETH), 15_000);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, eAlice, nWETH), 85_000);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 15_000);
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 85_000);
 
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 0, "eBob's nWETH balance should be 0");
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 0, "eBob's wethId balance should be 0");
 
         changePrank(systemAdmin);
-        nayms.internalBurn(eBob, eAlice, 3_000);
+        nayms.internalBurn(bob.entityId, alice.entityId, 3_000);
 
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 15_000);
 
-        nayms.withdrawAllDividends(eBob, eAlice);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 15_000);
-        assertEq(nayms.internalBalanceOf(dividendBankId, nWETH), 85_000);
+        nayms.withdrawAllDividends(bob.entityId, alice.entityId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 15_000);
+        assertEq(nayms.internalBalanceOf(dividendBankId, wethId), 85_000);
     }
 
     function scopeToDefaults(uint256 _input) internal pure {
@@ -897,7 +864,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // prettier-ignore
         Entity memory e = Entity({ 
-            assetId: nWETH, 
+            assetId: wethId, 
             collateralRatio: 1_000, 
             maxCapacity: _parTokenSupply, 
             utilizedCapacity: 0, 
@@ -914,7 +881,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(account0Id, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(sm.addr);
         // 1. ---- start token sale ----
@@ -928,9 +895,9 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // fund entity0 to distribute as dividends
         changePrank(account0);
         writeTokenBalance(account0, naymsAddress, wethAddress, _dividendAmount * 2);
-        assertEq(nayms.internalBalanceOf(entity0Id, nWETH), 0, "entity0 nWETH balance should start at 0");
+        assertEq(nayms.internalBalanceOf(entity0Id, wethId), 0, "entity0 wethId balance should start at 0");
         nayms.externalDeposit(wethAddress, _dividendAmount);
-        assertEq(nayms.internalBalanceOf(entity0Id, nWETH), _dividendAmount, "entity0 nWETH balance should INCREASE (mint)");
+        assertEq(nayms.internalBalanceOf(entity0Id, wethId), _dividendAmount, "entity0 wethId balance should INCREASE (mint)");
 
         // distribute dividends to entity0 shareholders
         bytes32 guid = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0xc0ffe"));
@@ -938,7 +905,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // entity1 has no share, thus no withdrawable dividend at this point
         changePrank(signer1);
-        uint256 entity1Div = nayms.getWithdrawableDividend(entity1Id, nWETH, nWETH);
+        uint256 entity1Div = nayms.getWithdrawableDividend(entity1Id, wethId, wethId);
         assertEq(entity1Div, 0, "Entity 1 has no tokens, so should NOT have dividend to claim");
         vm.stopPrank();
 
@@ -947,18 +914,18 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // fund entity1 to by par-tokens
         uint256 takeAmount = (_parTokenSupply * _holdersShare) / 100;
 
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, entity0Id, takeAmount);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, entity0Id, takeAmount);
 
         vm.startPrank(signer1);
         writeTokenBalance(signer1, naymsAddress, wethAddress, takeAmount + totalFees_);
         nayms.externalDeposit(wethAddress, takeAmount + totalFees_);
         vm.stopPrank();
-        assertEq(nayms.internalBalanceOf(entity1Id, nWETH), takeAmount + totalFees_, "entity1 nWETH balance should INCREASE (mint)");
-        c.log(" -- e1 balance: ", nayms.internalBalanceOf(entity1Id, nWETH));
+        assertEq(nayms.internalBalanceOf(entity1Id, wethId), takeAmount + totalFees_, "entity1 wethId balance should INCREASE (mint)");
+        c.log(" -- e1 balance: ", nayms.internalBalanceOf(entity1Id, wethId));
 
         // place order, get the tokens
         vm.startPrank(signer1);
-        nayms.executeLimitOffer(nWETH, takeAmount, entity0Id, takeAmount);
+        nayms.executeLimitOffer(wethId, takeAmount, entity0Id, takeAmount);
         assertEq(nayms.internalBalanceOf(entity1Id, entity0Id), takeAmount, "entity1 SHOULD have entity0-tokens in his balance");
         vm.stopPrank();
 
@@ -966,13 +933,13 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // withdrawable dividend should still be zero!
         vm.startPrank(signer1);
-        uint256 entity1DivAfterPurchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, nWETH);
+        uint256 entity1DivAfterPurchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, wethId);
         assertEq(entity1DivAfterPurchase, 0, "Entity 1 should NOT have dividend to claim here!");
         vm.stopPrank();
 
         // 5.  ---- distribute another round of dividends  ----
         vm.startPrank(account0);
-        c.log(nayms.internalBalanceOf(entity0Id, nWETH));
+        c.log(nayms.internalBalanceOf(entity0Id, wethId));
         bytes32 guid2 = makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0xbEEf"));
         nayms.payDividendFromEntity(guid2, _dividendAmount);
 
@@ -980,7 +947,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         uint256 expectedDividend = (_dividendAmount * takeAmount) / _parTokenSupply;
         changePrank(signer1);
-        uint256 entity1DivAfter2Purchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, nWETH);
+        uint256 entity1DivAfter2Purchase = nayms.getWithdrawableDividend(entity1Id, entity0Id, wethId);
 
         // tolerate rounding errors
         uint256 absDiff = entity1DivAfter2Purchase > expectedDividend ? entity1DivAfter2Purchase - expectedDividend : expectedDividend - entity1DivAfter2Purchase;
@@ -995,58 +962,58 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
     }
 
     function testReceivingDividendAfterTokenTrading() public {
-        alice = account0;
-        bob = signer1;
-        eAlice = nayms.getEntity(account0Id);
-        eBob = nayms.getEntity(signer1Id);
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
         changePrank(sm.addr);
-        nayms.assignRole(eAlice, eAlice, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_CP);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(aliceId, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.id, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         // STAGE 1: Alice is starting an eAlice token sale.
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1);
         uint256 tokenAmount = 1e18;
-        nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
+        nayms.startTokenSale(alice.entityId, tokenAmount, tokenAmount);
         changePrank(alice);
         nayms.externalDeposit(wethAddress, 1 ether);
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), 1 ether, "eAlice's nWETH balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 1 ether, "eAlice's wethId balance should INCREASE");
         // eAlice is paying out a dividend with guid 0x1
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 1 ether);
 
         // STAGE 2: Bob is trying to buy all of the newly sold eAlice Tokens.
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
 
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, tokenAmount);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, tokenAmount);
 
         nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether + totalFees_, "eBob's nWETH balance should INCREASE");
-        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether + totalFees_, "eBob's wethId balance should INCREASE");
+        nayms.executeLimitOffer(wethId, 1 ether, alice.entityId, tokenAmount);
 
         // STAGE 3: Bob selling the newly purchased eAlice token back to Alice.
-        nayms.executeLimitOffer(eAlice, tokenAmount, nWETH, 1 ether);
+        nayms.executeLimitOffer(alice.entityId, tokenAmount, wethId, 1 ether);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
         nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
 
-        nayms.objectMinimumSell(nWETH);
-        nayms.objectMinimumSell(eAlice);
-        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
+        nayms.objectMinimumSell(wethId);
+        nayms.objectMinimumSell(alice.entityId);
+        nayms.executeLimitOffer(wethId, 1 ether, alice.entityId, tokenAmount);
 
         // STAGE 4: Alice selling the newly purchased eAlice token back to Bob.
-        nayms.executeLimitOffer(eAlice, tokenAmount, nWETH, 1 ether);
+        nayms.executeLimitOffer(alice.entityId, tokenAmount, wethId, 1 ether);
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
-        nayms.externalDeposit(wethAddress, 1 ether + totalFees_);
-        nayms.executeLimitOffer(nWETH, 1 ether, eAlice, tokenAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
+
+        // secondary trading implies different fees
+        (uint256 totalFees_2, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, tokenAmount);
+
+        nayms.externalDeposit(wethAddress, 1 ether + totalFees_2);
+        nayms.executeLimitOffer(wethId, 1 ether, alice.entityId, tokenAmount);
 
         // STAGE 5: Alice wants to pay a dividend to the eAlice token holders.
         changePrank(alice);
@@ -1055,41 +1022,38 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
 
         // STAGE 6: Bob tries to get this new dividend since he now has all the eAlice
         changePrank(bob);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 1 ether, "eBob's current balance");
-        nayms.withdrawDividend(eBob, eAlice, nWETH);
-        // This SHOULD NOT fail because nayms.getWithdrawableDividend(eBob, eAlice, nWETH) will return 0, so Bob will not receive the new dividend.
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), 2 ether, "eBob's current balance should increase by 1ETH after receiving dividend.");
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether, "eBob's current balance");
+        nayms.withdrawDividend(bob.entityId, alice.entityId, wethId);
+        // This SHOULD NOT fail because nayms.getWithdrawableDividend(eBob, eAlice, wethId) will return 0, so Bob will not receive the new dividend.
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 2 ether, "eBob's current balance should increase by 1ETH after receiving dividend.");
         vm.stopPrank();
     }
 
     function testDoubleCountingDividendPayoutsFix() public {
         uint256 eAliceStartAmount = 500 ether;
-        alice = account0;
-        bob = signer1;
-        eAlice = nayms.getEntity(account0Id);
-        eBob = nayms.getEntity(signer1Id);
+
         changePrank(sm.addr);
-        nayms.enableEntityTokenization(eAlice, "eAlice", "eAlice", 1e6);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
+        nayms.enableEntityTokenization(alice.entityId, "eAlice", "eAlice", 1e6);
+        nayms.assignRole(bob.entityId, bob.entityId, LC.ROLE_ENTITY_CP);
         changePrank(sa.addr);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
         changePrank(em.addr);
-        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        nayms.assignRole(alice.entityId, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
 
         // 1. Alice starts with 500 WETH in its internal balance
         nayms.externalDeposit(wethAddress, eAliceStartAmount);
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount, "eAlice's nWETH balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), eAliceStartAmount, "eAlice's wethId balance should INCREASE");
 
         // 2. Alice starts a sale, selling 100 ALICE tokens for 100 WETH;
         changePrank(sm.addr);
         uint256 tokenAmount = 100e18;
-        nayms.startTokenSale(eAlice, tokenAmount, tokenAmount);
+        nayms.startTokenSale(alice.entityId, tokenAmount, tokenAmount);
 
         // 3. Now Alice owns 100 ALICE but they are locked;
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), tokenAmount, "eAlice's nWETH balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), tokenAmount, "eAlice's wethId balance should INCREASE");
 
         // 4. Alice pays 100 WETH as a dividend;
         changePrank(alice);
@@ -1102,28 +1066,32 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         //    Alice would have withdrawn the 200 WETH dividend owed to her,
         //    so her balance is 600 WETH (300 + 200 for dividend + 100 from Bob's purchase);
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
 
-        (uint256 totalFees_, ) = nayms.calculateTradingFees(eBob, wethId, eAlice, tokenAmount);
+        (uint256 totalFees_, ) = nayms.calculateTradingFees(bob.entityId, wethId, alice.entityId, tokenAmount);
 
         nayms.externalDeposit(wethAddress, tokenAmount + totalFees_);
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), tokenAmount + totalFees_, "eBob's nWETH balance should INCREASE");
-        nayms.executeLimitOffer(nWETH, tokenAmount, eAlice, tokenAmount);
-        assertEq(nayms.internalBalanceOf(eBob, eAlice), tokenAmount, "eBob's eAlice balance should INCREASE");
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's nWETH balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), tokenAmount + totalFees_, "eBob's wethId balance should INCREASE");
+        nayms.executeLimitOffer(wethId, tokenAmount, alice.entityId, tokenAmount);
+        assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), tokenAmount, "eBob's eAlice balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), eAliceStartAmount + tokenAmount, "eAlice's wethId balance should INCREASE");
 
         // 7. Bob transfers all 100 ALICE back to Alice;
-        nayms.internalTransferFromEntity(eAlice, eAlice, tokenAmount);
-        assertEq(nayms.internalBalanceOf(eAlice, eAlice), tokenAmount, "eAlice's eAlice balance should INCREASE");
-        assertEq(nayms.internalBalanceOf(eBob, eAlice), 0, "eAlice's eAlice balance should INCREASE");
+        nayms.internalTransferFromEntity(alice.entityId, alice.entityId, tokenAmount);
+        assertEq(nayms.internalBalanceOf(alice.entityId, alice.entityId), tokenAmount, "eAlice's eAlice balance should INCREASE");
+        assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), 0, "eAlice's eAlice balance should INCREASE");
 
         // 8. Alice pays 500 WETH as a dividend;
         changePrank(alice);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x3")), eAliceStartAmount);
 
         // 9. Alice tries to withdraw the 500 WETH dividend, should withdraw all 500 WETH
-        nayms.withdrawDividend(eAlice, eAlice, nWETH);
-        assertEq(nayms.internalBalanceOf(eAlice, nWETH), eAliceStartAmount + tokenAmount, "eAlice's current balance should increase by 500 WETH after receiving dividend.");
+        nayms.withdrawDividend(alice.entityId, alice.entityId, wethId);
+        assertEq(
+            nayms.internalBalanceOf(alice.entityId, wethId),
+            eAliceStartAmount + tokenAmount,
+            "eAlice's current balance should increase by 500 WETH after receiving dividend."
+        );
     }
 
     function test_WithdrawDividendBurn() public {
@@ -1137,84 +1105,79 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         // - Charlie's dividend is $3
         // - Charlie withdraws dividend of $3
 
-        alice = account0;
-        eAlice = nayms.getEntity(account0Id);
-        bob = signer1;
-        eBob = nayms.getEntity(signer1Id);
-        address charlie = signer2;
-        bytes32 eCharlie = nayms.getEntity(signer2Id);
         changePrank(sm);
-        nayms.assignRole(eBob, eBob, LC.ROLE_ENTITY_CP);
-        nayms.assignRole(eCharlie, eCharlie, LC.ROLE_ENTITY_CP);
+        NaymsAccount memory aliceCC = makeNaymsAcc("Alice Comptroller");
+        NaymsAccount memory aliceEM = makeNaymsAcc("Alice Entity Manager");
+        aliceCC.entityId = alice.entityId;
+        aliceEM.entityId = alice.entityId;
+
+        NaymsAccount memory charlie = makeNaymsAcc("Charlie");
+        hCreateEntity(charlie.entityId, charlie.id, entityWbtc, "charlie entitytest hash");
+
         changePrank(sa);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_MANAGER);
+        nayms.assignRole(aliceEM.id, alice.entityId, LC.ROLE_ENTITY_MANAGER);
         changePrank(em);
-        nayms.assignRole(eAlice, nayms.getEntity(aliceId), LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
-
+        nayms.assignRole(aliceCC.id, alice.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
         changePrank(sm);
-        bytes32 entityId = createTestEntity(account0Id);
+        nayms.setEntity(aliceCC.id, alice.entityId);
+        nayms.setEntity(aliceEM.id, alice.entityId);
 
         changePrank(alice);
-        writeTokenBalance(alice, naymsAddress, wethAddress, 1000e18);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, 1000e18);
         nayms.externalDeposit(wethAddress, 1000e18); // to be used for dividend payments
 
         changePrank(bob);
-        writeTokenBalance(bob, naymsAddress, wethAddress, 1000e18);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, 1000e18);
         nayms.externalDeposit(wethAddress, 100e18);
 
         changePrank(charlie);
-        writeTokenBalance(charlie, naymsAddress, wethAddress, 1000e18);
+        writeTokenBalance(charlie.addr, naymsAddress, wethAddress, 1000e18);
         nayms.externalDeposit(wethAddress, 100e18);
 
         changePrank(sm);
         // now start token sale to create an offer
-        nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token", 1);
-        nayms.startTokenSale(entityId, 100e18, 100e18); // orderId
+        nayms.enableEntityTokenization(alice.entityId, "ALICE", "Alice Token", 1);
+        nayms.startTokenSale(alice.entityId, 100e18, 100e18);
 
         // bob buys 2 p tokens
         changePrank(bob);
-        nayms.executeLimitOffer({ _sellToken: nWETH, _sellAmount: 2e18, _buyToken: entityId, _buyAmount: 2e18 });
+        nayms.executeLimitOffer({ _sellToken: wethId, _sellAmount: 2e18, _buyToken: alice.entityId, _buyAmount: 2e18 });
+        assertEq(nayms.internalBalanceOf(bob.entityId, alice.entityId), 2e18, "Bob's internal balance should increase".red());
 
         // charlie buys 3 p tokens
         changePrank(charlie);
-        nayms.executeLimitOffer({ _sellToken: nWETH, _sellAmount: 3e18, _buyToken: entityId, _buyAmount: 3e18 });
+        nayms.executeLimitOffer({ _sellToken: wethId, _sellAmount: 3e18, _buyToken: alice.entityId, _buyAmount: 3e18 });
+        assertEq(nayms.internalBalanceOf(charlie.entityId, alice.entityId), 3e18, "Charlie's internal balance should increase".red());
 
-        changePrank(em);
-        nayms.assignRole(account0Id, systemContext, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
-
-        changePrank(alice);
+        changePrank(aliceCC);
         nayms.payDividendFromEntity(makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")), 100e18);
 
-        assertEq(nayms.getWithdrawableDividend(eBob, entityId, nWETH), 2e18);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, entityId, nWETH), 3e18);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 2e18, "Bob's withdrawable dividend should increase".red());
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 3e18, "Charlie's withdrawable dividend should increase".red());
 
         // burn 95 p tokens
-        changePrank(em);
-        nayms.unassignRole(account0Id, systemContext);
-        changePrank(sm);
-        nayms.assignRole(account0Id, systemContext, LC.ROLE_ENTITY_CP);
-        changePrank(alice);
-
+        changePrank(aliceEM);
         nayms.cancelOffer(1);
 
         // Withdrawable dividend should still be the same as above.
-        assertEq(nayms.getWithdrawableDividend(eBob, entityId, nWETH), 2e18);
-        assertEq(nayms.getWithdrawableDividend(eCharlie, entityId, nWETH), 3e18);
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, alice.entityId, wethId), 2e18, "Bob's withdrawable dividend should not change".red());
+        assertEq(nayms.getWithdrawableDividend(charlie.entityId, alice.entityId, wethId), 3e18, "Charlie's withdrawable dividend should not change".red());
 
         // Check that weth balances increases as expected after withdrawing dividends.
         changePrank(bob);
-        uint256 balanceBefore = nayms.internalBalanceOf(eBob, nWETH);
+        uint256 balanceBefore = nayms.internalBalanceOf(bob.entityId, wethId);
         c.log(balanceBefore);
-        nayms.withdrawDividend(eBob, entityId, nWETH);
-        c.log(nayms.internalBalanceOf(eBob, nWETH));
-        assertEq(nayms.internalBalanceOf(eBob, nWETH), balanceBefore + 2e18);
+        nayms.withdrawDividend(bob.entityId, alice.entityId, wethId);
+        c.log(nayms.internalBalanceOf(bob.entityId, wethId));
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), balanceBefore + 2e18, "Bob's internal balance should include the dividend".red());
 
         changePrank(charlie);
-        balanceBefore = nayms.internalBalanceOf(eCharlie, nWETH);
-        nayms.withdrawDividend(eCharlie, entityId, nWETH);
-        assertEq(nayms.internalBalanceOf(eCharlie, nWETH), balanceBefore + 3e18);
+        balanceBefore = nayms.internalBalanceOf(charlie.entityId, wethId);
+        nayms.withdrawDividend(charlie.entityId, alice.entityId, wethId);
+        assertEq(nayms.internalBalanceOf(charlie.entityId, wethId), balanceBefore + 3e18, "Charlie's internal balance should include the dividend".red());
     }
-    
+
     function testRebasingTokenInterest() public {
         bytes32 acc0EntityId = nayms.getEntity(account0Id);
         nayms.assignRole(em.id, acc0EntityId, LC.ROLE_ENTITY_MANAGER);

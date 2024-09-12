@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
-import { EntityDoesNotExist, ObjectCannotBeTokenized, ObjectTokenSymbolInvalid, ObjectTokenSymbolAlreadyInUse, ObjectTokenNameInvalid, InvalidObjectType, InvalidObjectIdForAddress, MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
+import { ObjectExistsAlready, EntityDoesNotExist, ObjectCannotBeTokenized, ObjectTokenSymbolInvalid, ObjectTokenSymbolAlreadyInUse, ObjectTokenNameInvalid, InvalidObjectType, InvalidObjectIdForAddress, MinimumSellCannotBeZero } from "../shared/CustomErrors.sol";
 
 import { ERC20Wrapper } from "../utils/ERC20Wrapper.sol";
 
@@ -18,7 +18,10 @@ library LibObject {
 
     function _createObject(bytes32 _objectId, bytes12 _objectType, bytes32 _parentId, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        _createObject(_objectId, _objectType);
+
+        _validateObjectTypeAndNonExistance(_objectId, _objectType);
+
+        s.existingObjects[_objectId] = true;
         s.objectParent[_objectId] = _parentId;
         s.objectDataHashes[_objectId] = _dataHash;
 
@@ -27,7 +30,10 @@ library LibObject {
 
     function _createObject(bytes32 _objectId, bytes12 _objectType, bytes32 _dataHash) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        _createObject(_objectId, _objectType);
+
+        _validateObjectTypeAndNonExistance(_objectId, _objectType);
+
+        s.existingObjects[_objectId] = true;
         s.objectDataHashes[_objectId] = _dataHash;
 
         emit ObjectCreated(_objectId, 0, _dataHash);
@@ -35,14 +41,21 @@ library LibObject {
 
     function _createObject(bytes32 _objectId, bytes12 _objectType) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        require(!s.existingObjects[_objectId], "objectId is already being used by another object");
-        if (_objectType == LC.OBJECT_TYPE_ADDRESS && !LibHelpers._isAddress(_objectId)) revert InvalidObjectIdForAddress(_objectId);
-        if (_objectType != LC.OBJECT_TYPE_ADDRESS && LibHelpers._isAddress(_objectId)) revert InvalidObjectType(_objectId, _objectType);
-        if (_objectType != LC.OBJECT_TYPE_ADDRESS && !_isObjectType(_objectId, _objectType)) revert InvalidObjectType(_objectId, _objectType);
+
+        _validateObjectTypeAndNonExistance(_objectId, _objectType);
 
         s.existingObjects[_objectId] = true;
 
         emit ObjectCreated(_objectId, 0, 0);
+    }
+
+    function _validateObjectTypeAndNonExistance(bytes32 _objectId, bytes12 _objectType) internal view {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        if (s.existingObjects[_objectId]) revert ObjectExistsAlready(_objectId);
+        if (_objectType == LC.OBJECT_TYPE_ADDRESS && !LibHelpers._isAddress(_objectId)) revert InvalidObjectIdForAddress(_objectId);
+        if (_objectType != LC.OBJECT_TYPE_ADDRESS && LibHelpers._isAddress(_objectId)) revert InvalidObjectType(_objectId, _objectType);
+        if (_objectType != LC.OBJECT_TYPE_ADDRESS && !_isObjectType(_objectId, _objectType)) revert InvalidObjectType(_objectId, _objectType);
     }
 
     function _setDataHash(bytes32 _objectId, bytes32 _dataHash) internal {

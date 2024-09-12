@@ -67,6 +67,8 @@ library LibInitDiamond {
 
         // setup assigners
         LibACL._updateRoleAssigner(LC.ROLE_ENTITY_CP, LC.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LC.ROLE_ENTITY_INSURED, LC.GROUP_SYSTEM_MANAGERS);
+        LibACL._updateRoleAssigner(LC.ROLE_ENTITY_BROKER, LC.GROUP_SYSTEM_MANAGERS);
         LibACL._updateRoleAssigner(LC.ROLE_ENTITY_BROKER, LC.GROUP_MANAGERS);
         LibACL._updateRoleAssigner(LC.ROLE_ENTITY_INSURED, LC.GROUP_MANAGERS);
         LibACL._updateRoleAssigner(LC.ROLE_ENTITY_COMPTROLLER_COMBINED, LC.GROUP_ENTITY_MANAGERS);

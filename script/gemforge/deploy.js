@@ -18,7 +18,7 @@ const _showTargetInfo = async (targetId) => {
 const tellUserToEnableUpgrade = async (targetId, cutFile) => {
     const upgradeId = await calculateUpgradeId(cutFile);
 
-    console.log(`\nUpgrade id: ${chalk.green(upgradeId)}\n`);
+    console.log(`\nUpgrade ID: ${chalk.green(upgradeId)}\n`);
 
     if (targetId === "mainnet") {
         console.log(`Please log into the MPC and enable this upgrade!`);
@@ -55,6 +55,11 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
     _showTargetInfo(targetArg);
 
     switch (process.argv[3]) {
+        case "--dry": {
+            console.log("Dry-run Deployment");
+            await $`yarn gemforge deploy ${targetArg} --dry`;
+            break;
+        }
         case "--fresh": {
             console.log(`Fresh Deploy`);
             await $`yarn gemforge deploy ${targetArg} -n`;

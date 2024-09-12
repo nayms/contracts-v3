@@ -35,7 +35,7 @@ contract SimplePolicyFacet is Modifiers {
         Stakeholders calldata _stakeholders,
         SimplePolicy calldata _simplePolicy,
         bytes32 _dataHash
-    ) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
+    ) external notLocked assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) assertSimplePolicyEnabled(_entityId) {
         LibSimplePolicy._createSimplePolicy(_policyId, _entityId, _stakeholders, _simplePolicy, _dataHash);
     }
 
@@ -44,8 +44,8 @@ contract SimplePolicyFacet is Modifiers {
      * @param _policyId Id of the simple policy
      * @param _amount Amount of the premium
      */
-    function paySimplePremium(bytes32 _policyId, uint256 _amount) external notLocked(msg.sig) assertPrivilege(_policyId, LC.GROUP_PAY_SIMPLE_PREMIUM) {
-        bytes32 senderId = LibHelpers._getIdForAddress(msg.sender);
+    function paySimplePremium(bytes32 _policyId, uint256 _amount) external notLocked assertPrivilege(_policyId, LC.GROUP_PAY_SIMPLE_PREMIUM) {
+        bytes32 senderId = LibHelpers._getSenderId();
         bytes32 payerEntityId = LibObject._getParent(senderId);
 
         LibSimplePolicy._payPremium(payerEntityId, _policyId, _amount);
@@ -63,7 +63,7 @@ contract SimplePolicyFacet is Modifiers {
         bytes32 _policyId,
         bytes32 _insuredId,
         uint256 _amount
-    ) external notLocked(msg.sig) assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_SIMPLE_CLAIM) {
+    ) external notLocked assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_SIMPLE_CLAIM) {
         LibSimplePolicy._payClaim(_claimId, _policyId, _insuredId, _amount);
     }
 
@@ -100,7 +100,7 @@ contract SimplePolicyFacet is Modifiers {
      * @dev Check and update simple policy state
      * @param _policyId Id of the simple policy
      */
-    function checkAndUpdateSimplePolicyState(bytes32 _policyId) external notLocked(msg.sig) {
+    function checkAndUpdateSimplePolicyState(bytes32 _policyId) external notLocked {
         LibSimplePolicy._checkAndUpdateState(_policyId);
     }
 
@@ -108,7 +108,7 @@ contract SimplePolicyFacet is Modifiers {
      * @dev Cancel a simple policy
      * @param _policyId Id of the simple policy
      */
-    function cancelSimplePolicy(bytes32 _policyId) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) {
+    function cancelSimplePolicy(bytes32 _policyId) external notLocked assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_UNDERWRITERS) {
         LibSimplePolicy._cancel(_policyId);
     }
 

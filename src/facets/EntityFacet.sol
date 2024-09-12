@@ -61,11 +61,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _amount amount of entity tokens to put on sale
      * @param _totalPrice total price of the tokens
      */
-    function startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
+    function startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) external notLocked nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 
@@ -100,10 +96,12 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @notice Get the fee schedule
      * @param _entityId ID of the entity
      * @param _feeScheduleType fee schedule type
-     * @return FeeSchedule of given type for the entity
+     * @return receiver_ and basisPoints_ arrays
      */
-    function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (FeeSchedule memory) {
-        return LibFeeRouter._getFeeSchedule(_entityId, _feeScheduleType);
+    function getFeeSchedule(bytes32 _entityId, uint256 _feeScheduleType) external view returns (bytes32[] memory receiver_, uint16[] memory basisPoints_) {
+        FeeSchedule memory feeSchedule = LibFeeRouter._getFeeSchedule(_entityId, _feeScheduleType);
+        receiver_ = feeSchedule.receiver;
+        basisPoints_ = feeSchedule.basisPoints;
     }
 
     /**

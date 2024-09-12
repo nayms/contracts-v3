@@ -5,6 +5,8 @@ on:
       - main
       - dev
   pull_request:
+    branches:
+      - dev
 
 jobs:
   run-tests:
@@ -16,6 +18,14 @@ jobs:
       packages: read
       contents: read
       security-events: write
+    env:
+      SOLC_VERSION: 0.8.20
+      ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
+      ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
+      BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
+      BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+      AURORA_MAINNET_RPC_URL: ${{ secrets.AURORA_MAINNET_RPC_URL}}
+      AURORA_TESTNET_RPC_URL: ${{ secrets.AURORA_TESTNET_RPC_URL}}
     timeout-minutes: 15
     container:
       image: ghcr.io/nayms/contracts-builder:latest
@@ -30,7 +40,7 @@ jobs:
           cache: "yarn"
 
       - name: Install solc
-        run: svm install 0.7.6 && svm install 0.8.20 && svm use 0.8.20
+        run: svm install 0.7.6 && svm install ${SOLC_VERSION} && svm use ${SOLC_VERSION}
 
       - name: Fix ownership
         run: git config --global --add safe.directory /__w/contracts-v3/contracts-v3
@@ -41,42 +51,23 @@ jobs:
       - name: Install Node dependencies
         run: yarn
 
-      - name: Drop-in Test Wallet
-        run: echo "test test test test test test test test test test test junk" > ./nayms_mnemonic.txt && echo "test test test test test test test test test test test junk" > ./nayms_mnemonic_mainnet.txt
-
       - name: Build solidity contracts
         run: make build
-        env:
-          ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
-          ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
-          ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
-          BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
-          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
 
       - name: Tests - local
         run: make test
-        env:
-          ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
-          ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
-          ETH_GOERLI_RPC_URL: ${{ secrets.ETH_GOERLI_RPC_URL }}
-          BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
-          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
 
       - name: Coverage report
-        env:
-          ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
         run: make coverage
 
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: "./lcov-filtered.info"
 
       - name: Slither Static Analyser
         id: slither
-        env:
-          SOLC_VERSION: 0.8.20
         run: make slither
 
       - name: Upload Slither SARIF file

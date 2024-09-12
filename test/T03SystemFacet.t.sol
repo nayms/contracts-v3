@@ -93,7 +93,7 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         assertEq(wrapperAddress, address(0));
     }
 
-    bytes12[9] internal objectTypes = [
+    bytes12[11] internal objectTypes = [
         LC.OBJECT_TYPE_ADDRESS,
         LC.OBJECT_TYPE_ENTITY,
         LC.OBJECT_TYPE_POLICY,
@@ -102,7 +102,9 @@ contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {
         LC.OBJECT_TYPE_DIVIDEND,
         LC.OBJECT_TYPE_PREMIUM,
         LC.OBJECT_TYPE_ROLE,
-        LC.OBJECT_TYPE_GROUP
+        LC.OBJECT_TYPE_GROUP,
+        LC.OBJECT_TYPE_STAKED,
+        LC.OBJECT_TYPE_STAKING_REWARD
     ];
 
     function test_IsObjectType() public {

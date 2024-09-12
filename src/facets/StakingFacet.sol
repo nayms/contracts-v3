@@ -7,13 +7,13 @@ import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
-import { RewardsBalances, StakingState } from "../shared/FreeStructs.sol";
+import { RewardsBalances } from "../shared/FreeStructs.sol";
 
 contract StakingFacet is Modifiers {
     using LibHelpers for address;
 
-    function vTokenId(bytes32 _tokenId, uint64 _interval) external pure returns (bytes32) {
-        return LibTokenizedVaultStaking._vTokenId(_tokenId, _interval);
+    function vTokenId(bytes32 _entityId, bytes32 _tokenId, uint64 _interval) external pure returns (bytes32) {
+        return LibTokenizedVaultStaking._vTokenId(_entityId, _tokenId, _interval);
     }
 
     function currentInterval(bytes32 _entityId) external view returns (uint64) {
@@ -28,13 +28,13 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._initStaking(_entityId, _config);
     }
 
-    function stake(bytes32 _entityId, uint256 _amount) external notLocked(msg.sig) {
-        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+    function stake(bytes32 _entityId, uint256 _amount) external notLocked {
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVaultStaking._stake(parentId, _entityId, _amount);
     }
 
-    function unstake(bytes32 _entityId) external notLocked(msg.sig) {
-        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+    function unstake(bytes32 _entityId) external notLocked {
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVaultStaking._unstake(parentId, _entityId);
     }
 
@@ -63,32 +63,18 @@ contract StakingFacet is Modifiers {
         rewardAmounts_ = b.amounts;
     }
 
-    function collectRewards(bytes32 _entityId) external notLocked(msg.sig) {
+    function collectRewards(bytes32 _entityId) external notLocked {
         bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
         uint64 lastPaid = LibTokenizedVaultStaking._lastPaidInterval(_entityId);
 
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }
 
-    function getStakingState(bytes32 _stakerId, bytes32 _entityId) external view returns (StakingState memory) {
-        uint64 interval = LibTokenizedVaultStaking._currentInterval(_entityId);
-        (StakingState memory state, ) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_stakerId, _entityId, interval);
-        return state;
-    }
-
-    function payReward(
-        bytes32 _stakingRewardId,
-        bytes32 _entityId,
-        bytes32 _rewardTokenId,
-        uint256 _amount
-    ) external notLocked(msg.sig) assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
+    function payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _amount) external notLocked assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
         LibTokenizedVaultStaking._payReward(_stakingRewardId, _entityId, _rewardTokenId, _amount);
     }
 
     function getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) external view returns (uint256 stakedAmount_, uint256 boostedAmount_) {
-        uint64 interval = LibTokenizedVaultStaking._currentInterval(_entityId);
-        (StakingState memory state, ) = LibTokenizedVaultStaking._getStakingStateWithRewardsBalances(_stakerId, _entityId, interval);
-        stakedAmount_ = LibTokenizedVaultStaking._stakedAmount(_stakerId, _entityId);
-        boostedAmount_ = state.balance;
+        return LibTokenizedVaultStaking._getStakingAmounts(_stakerId, _entityId);
     }
 }

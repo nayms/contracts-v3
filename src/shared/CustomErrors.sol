@@ -38,6 +38,9 @@ error CannotSupportExternalTokenWithMoreThan18Decimals();
 /// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
 error CannotAddNullDiscountToken();
 
+/// @dev Object exsists when it should not.
+error ObjectExistsAlready(bytes32 objectId);
+
 /// @dev Object does not exsit when it should.
 error ObjectDoesNotExist(bytes32 objectId);
 
@@ -183,9 +186,6 @@ error InvalidSignatureSError(bytes32 sValue);
 
 /// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
 error InvalidReceiverCount(uint256 numberOfReceivers);
-
-/// @dev User cannot have a parent entity for the given context.
-error UserAlreadyHasParentEntity(address userAddress, bytes32 usersParentEntity);
 
 /// @dev The entity ID is invalid for the given context.
 error InvalidEntityId(bytes32 entityId);
