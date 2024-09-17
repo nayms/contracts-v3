@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 // import { c as c } from "forge-std/c.sol";
 import { D03ProtocolDefaults, LibHelpers, LC, c } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, SimplePolicy, Stakeholders } from "src/shared/FreeStructs.sol";

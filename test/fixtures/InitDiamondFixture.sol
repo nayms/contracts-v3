@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import { InitDiamond } from "src/init/InitDiamond.sol";
 import { AdminFacet } from "src/facets/AdminFacet.sol";

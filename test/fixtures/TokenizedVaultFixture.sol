@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import { LibTokenizedVaultIO } from "src/libs/LibTokenizedVaultIO.sol";
 import { LibAdmin } from "src/libs/LibAdmin.sol";
