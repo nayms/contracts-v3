@@ -190,7 +190,7 @@ library LibTokenizedVaultStaking {
         // staker's balance in the past are never adjusted
         // stakers and NLF balances are adjusted in the current interval when unstaking
         // in the current interval, if a reward was paid and therefor collected, staking distribution need to be adjusted according to the balances
-        if (lastPaidInterval == currentInterval) {
+        if (lastPaidInterval == currentInterval && currentInterval != 0) {
             bytes32 vTokenIdLastPaid = _vTokenId(_entityId, tokenId, lastPaidInterval);
             s.stakingDistributionAmount[vTokenIdLastPaid] -= (s.stakingDistributionAmount[vTokenIdLastPaid] * userStateAtLastPaid.balance) / totalStateAtLastPaid.balance;
         }

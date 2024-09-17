@@ -28,12 +28,12 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._initStaking(_entityId, _config);
     }
 
-    function stake(bytes32 _entityId, uint256 _amount) external notLocked(msg.sig) {
+    function stake(bytes32 _entityId, uint256 _amount) external notLocked {
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVaultStaking._stake(parentId, _entityId, _amount);
     }
 
-    function unstake(bytes32 _entityId) external notLocked(msg.sig) {
+    function unstake(bytes32 _entityId) external notLocked {
         bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVaultStaking._unstake(parentId, _entityId);
     }
@@ -63,19 +63,14 @@ contract StakingFacet is Modifiers {
         rewardAmounts_ = b.amounts;
     }
 
-    function collectRewards(bytes32 _entityId) external notLocked(msg.sig) {
+    function collectRewards(bytes32 _entityId) external notLocked {
         bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
         uint64 lastPaid = LibTokenizedVaultStaking._lastPaidInterval(_entityId);
 
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }
 
-    function payReward(
-        bytes32 _stakingRewardId,
-        bytes32 _entityId,
-        bytes32 _rewardTokenId,
-        uint256 _amount
-    ) external notLocked(msg.sig) assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
+    function payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _amount) external notLocked assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
         LibTokenizedVaultStaking._payReward(_stakingRewardId, _entityId, _rewardTokenId, _amount);
     }
 

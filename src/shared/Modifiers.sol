@@ -21,8 +21,8 @@ contract Modifiers {
     using LibACL for *;
     using LibString for *;
 
-    modifier notLocked(bytes4 functionSelector) {
-        require(!LibAdmin._isFunctionLocked(functionSelector), "function is locked");
+    modifier notLocked() {
+        require(!LibAdmin._isFunctionLocked(msg.sig), "function is locked");
         _;
     }
 

@@ -29,7 +29,7 @@ contract SystemFacet is Modifiers, ReentrancyGuard {
         bytes32 _entityAdmin,
         Entity calldata _entityData,
         bytes32 _dataHash
-    ) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
+    ) external notLocked assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibEntity._createEntity(_entityId, _entityAdmin, _entityData, _dataHash);
     }
 

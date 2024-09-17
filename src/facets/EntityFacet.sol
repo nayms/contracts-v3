@@ -61,11 +61,7 @@ contract EntityFacet is Modifiers, ReentrancyGuard {
      * @param _amount amount of entity tokens to put on sale
      * @param _totalPrice total price of the tokens
      */
-    function startTokenSale(
-        bytes32 _entityId,
-        uint256 _amount,
-        uint256 _totalPrice
-    ) external notLocked(msg.sig) nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
+    function startTokenSale(bytes32 _entityId, uint256 _amount, uint256 _totalPrice) external notLocked nonReentrant assertPrivilege(_entityId, LC.GROUP_START_TOKEN_SALE) {
         LibEntity._startTokenSale(_entityId, _amount, _totalPrice);
     }
 

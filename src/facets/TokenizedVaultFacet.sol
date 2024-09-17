@@ -50,7 +50,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         bytes32 to,
         bytes32 tokenId,
         uint256 amount
-    ) external notLocked(msg.sig) nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY) {
+    ) external notLocked nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_INTERNAL_TRANSFER_FROM_ENTITY) {
         bytes32 senderEntityId = LibObject._getParentFromAddress(msg.sender);
         LibTokenizedVault._internalTransfer(senderEntityId, to, tokenId, amount);
     }
@@ -63,7 +63,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param tokenId Internal ID of the token
      * @param amount being transferred
      */
-    function wrapperInternalTransferFrom(bytes32 from, bytes32 to, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) nonReentrant assertERC20Wrapper(tokenId) {
+    function wrapperInternalTransferFrom(bytes32 from, bytes32 to, bytes32 tokenId, uint256 amount) external notLocked nonReentrant assertERC20Wrapper(tokenId) {
         LibTokenizedVault._internalTransfer(from, to, tokenId, amount);
     }
 
@@ -73,7 +73,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param tokenId tokenID to be burned internally
      * @param amount to be burned
      */
-    function internalBurn(bytes32 from, bytes32 tokenId, uint256 amount) external notLocked(msg.sig) assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+    function internalBurn(bytes32 from, bytes32 tokenId, uint256 amount) external notLocked assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._internalBurn(from, tokenId, amount);
     }
 
@@ -96,7 +96,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param tokenId Unique ID of token
      * @param dividendTokenId Unique ID of dividend token
      */
-    function withdrawDividend(bytes32 ownerId, bytes32 tokenId, bytes32 dividendTokenId) external notLocked(msg.sig) {
+    function withdrawDividend(bytes32 ownerId, bytes32 tokenId, bytes32 dividendTokenId) external notLocked {
         LibTokenizedVault._withdrawDividend(ownerId, tokenId, dividendTokenId);
     }
 
@@ -106,7 +106,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
      * @param ownerId Unique ID of the dividend receiver
      * @param tokenId Unique ID of token
      */
-    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external notLocked(msg.sig) {
+    function withdrawAllDividends(bytes32 ownerId, bytes32 tokenId) external notLocked {
         LibTokenizedVault._withdrawAllDividends(ownerId, tokenId);
     }
 
@@ -119,7 +119,7 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     function payDividendFromEntity(
         bytes32 guid,
         uint256 amount
-    ) external notLocked(msg.sig) assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_DIVIDEND_FROM_ENTITY) {
+    ) external notLocked assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_PAY_DIVIDEND_FROM_ENTITY) {
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         bytes32 dividendTokenId = LibEntity._getEntityInfo(entityId).assetId;
 

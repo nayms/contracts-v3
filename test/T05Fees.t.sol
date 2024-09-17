@@ -2,7 +2,8 @@
 pragma solidity 0.8.24;
 
 // solhint-disable no-console
-import { console2 } from "forge-std/console2.sol";
+import { console2 as c } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
 
 import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeSchedule, CalculatedFees } from "../src/shared/AppStorage.sol";
@@ -16,6 +17,7 @@ import { LibFeeRouterFixture } from "test/fixtures/LibFeeRouterFixture.sol";
 
 contract T05FeesTest is D03ProtocolDefaults {
     using LibHelpers for *;
+    using StdStyle for *;
 
     Entity entityInfo;
 
@@ -163,7 +165,7 @@ contract T05FeesTest is D03ProtocolDefaults {
         uint256 _buyAmount = 10 ether;
         (uint256 totalFees_, uint256 totalBP_) = nayms.calculateTradingFees(acc2.entityId, acc1.entityId, wethId, _buyAmount);
 
-        (, uint16[] memory basisPoints) = nayms.getFeeSchedule(acc2.entityId, LC.FEE_TYPE_TRADING);
+        (, uint16[] memory basisPoints) = nayms.getFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE);
         uint256 expectedValue = (_buyAmount * basisPoints[0]) / LC.BP_FACTOR;
 
         assertEq(totalFees_, expectedValue, "total fees is incorrect");
@@ -324,7 +326,7 @@ contract T05FeesTest is D03ProtocolDefaults {
     }
 
     function test_payTradingFees_MarketMakerFees() public {
-        uint256 defaultFeeScheduleTotalBP = 30;
+        uint256 defaultFeeScheduleTotalBP = defaultInitSaleFee;
         uint16 makerBP = 10;
         nayms.replaceMakerBP(makerBP);
 
@@ -379,6 +381,35 @@ contract T05FeesTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
     }
 
+    function test_overrideDefaultFeeSchedule() public {
+        // acc1 is the par token seller (maker)
+        // acc2 is the par token buyer (taker)
+
+        uint256 saleAmount = 1 ether;
+        uint256 buyAmount = 0.5 ether;
+
+        changePrank(sm.addr);
+        nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
+        nayms.startTokenSale(acc1.entityId, saleAmount, saleAmount);
+
+        assertEq(nayms.internalBalanceOf(acc1.entityId, acc1.entityId), saleAmount, "maker balance is incorrect");
+
+        uint16 customFee = 50;
+        changePrank(sa.addr);
+        nayms.addFeeSchedule(acc2.entityId, LC.FEE_TYPE_INITIAL_SALE, b32Array1(NAYMS_LTD_IDENTIFIER), u16Array1(customFee));
+
+        fundEntityWeth(acc2, saleAmount);
+        nayms.executeLimitOffer(wethId, buyAmount, acc1.entityId, buyAmount);
+
+        assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), buyAmount, "maker's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), buyAmount, "taker's par token (acc1.entityId) balance is incorrect");
+
+        uint256 commission = (buyAmount * customFee) / LC.BP_FACTOR;
+
+        assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), buyAmount - commission, "entity's weth balance is incorrect");
+        assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
+    }
+
     function test_startTokenSale_PlaceOrderBeforeStartTokenSale() public {
         changePrank(sm.addr);
         nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
@@ -395,8 +426,11 @@ contract T05FeesTest is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(acc1.entityId, wethId), 0.5 ether, "par token seller's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(acc2.entityId, acc1.entityId), 0.5 ether, "par token buyer's par token (acc1.entityId) balance is incorrect");
 
+        uint256 halfEther = 0.5 ether;
+
         // For FIRST_OFFER, the commission should be paid by the buyer of the par tokens
-        uint256 commission = (0.5 ether * basisPoints[0]) / LC.BP_FACTOR;
+        uint256 commission = (halfEther * basisPoints[0]) / LC.BP_FACTOR;
+
         assertEq(nayms.internalBalanceOf(acc2.entityId, wethId), 0.5 ether - commission, "par token buyer's weth balance is incorrect");
         assertEq(nayms.internalBalanceOf(NAYMS_LTD_IDENTIFIER, wethId), commission, "nayms ltd weth balance is incorrect");
     }
@@ -406,7 +440,7 @@ contract T05FeesTest is D03ProtocolDefaults {
         uint256 singleOrderAmount = 0.5 ether;
         uint256 singleSaleAmount = 1 ether;
 
-        uint256 defaultTotalBP = 30;
+        uint256 defaultTotalBP = defaultInitSaleFee;
         changePrank(sm.addr);
         nayms.assignRole(acc2.id, systemContext, LC.ROLE_ENTITY_CP);
 
