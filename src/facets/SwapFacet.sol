@@ -28,11 +28,9 @@ contract SwapFacet is Modifiers {
         IPoolManager _manager,
         SwapParams memory swapParams,
         bytes32 _fromTokenId,
-        bytes32 _toTokenId
+        bytes32 _toTokenId,
+        bytes32 _toEntityId
     ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) returns (BalanceDelta delta) {
-        // NLFID: makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes(name))))
-        bytes32 nlfId = 0x454e5449545900000000000079356590a83c6af5a59580e3ec1b0924626bbfdf;
-
         LibTokenizedVault._internalBurn(msg.sender._getParentFromAddress(), _fromTokenId, uint256(swapParams.params.amountSpecified));
 
         // Swap tokens
@@ -41,7 +39,7 @@ contract SwapFacet is Modifiers {
             (BalanceDelta)
         );
 
-        LibTokenizedVault._internalMint(nlfId, _toTokenId, uint256(uint128(delta.amount0())));
+        LibTokenizedVault._internalMint(_toEntityId, _toTokenId, uint256(uint128(delta.amount0())));
     }
 
     function unlockCallback(bytes calldata rawData) external returns (bytes memory) {
