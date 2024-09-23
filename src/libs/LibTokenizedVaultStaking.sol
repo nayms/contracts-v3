@@ -10,7 +10,13 @@ import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStru
 
 import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
 
+// solhint-disable no-console
+import { console2 as c } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 library LibTokenizedVaultStaking {
+    using StdStyle for *;
+
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
     event TokenStaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
     event TokenUnstaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
@@ -399,7 +405,10 @@ library LibTokenizedVaultStaking {
     }
 
     function _getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) internal view returns (uint256 stakedBalance_, uint256 boostedBalance_) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
         uint64 currentInterval = _currentInterval(_entityId);
+        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
         stakedBalance_ = _stakedAmount(_stakerId, _entityId);
 
@@ -408,17 +417,15 @@ library LibTokenizedVaultStaking {
             return (stakedBalance_, boostedBalance_);
         }
 
-        (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval + 2);
+        (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval);
 
-        uint256 boostPrevious = state.boost;
-        uint256 balancePrevious = state.balance;
+        // uint256 boost1 = ((s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] * _getD(_entityId)) / _getR(_entityId));
+        uint256 boost1 = s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
+        uint256 balance1 = s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
+        uint256 balance2 = s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId];
 
-        for (uint i = 0; i < 2; i++) {
-            boostPrevious = (boostPrevious * _getD(_entityId)) / _getR(_entityId);
-            balancePrevious = balancePrevious - boostPrevious;
-        }
-
-        boostedBalance_ = balancePrevious;
+        boostedBalance_ = state.balance + balance1 + balance2;
+        // boostedBalance_ = state.balance + balance1 + balance2 - boost1;
 
         if (boostedBalance_ < stakedBalance_) {
             boostedBalance_ = stakedBalance_;
