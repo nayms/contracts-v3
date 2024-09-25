@@ -416,9 +416,17 @@ library LibTokenizedVaultStaking {
             return (stakedBalance_, boostedBalance_);
         }
 
+        // we need to read the state at current interval + 2 (c+2) since the balance is always written to the future intervals when staking
+        // however this method will return future state including the boost the user will only qualify for, at the time of [c+2]
         (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval + 2);
 
+        // user only qualifies for boost up to the current interval [c]
+        // so we need to undo the boost for balance[c+1] and balance[c+2]
+        // boost for c+1 is already calculated into the balance at [c+1]
+        // so that boost will always be balance[c+1] * a/d
         uint256 boost = (s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] * _getA(_entityId)) / _getD(_entityId);
+
+        // boost at [c+1] is what applies to balance[c+2] so that one also needs to be taken out of the final boosted balance
         uint256 boost2 = s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
 
         boostedBalance_ = state.balance - boost - boost2;
