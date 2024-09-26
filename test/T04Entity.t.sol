@@ -1247,19 +1247,19 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         bytes32 entityId = randomEntityId(2);
+        bytes32 roleTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
 
         vm.startPrank(em.addr);
         nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
-
-        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER), "Onboarding should be approved");
+        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, roleTokenHolder), "Onboarding should be approved");
 
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
         nayms.cancelSelfOnboarding(address(111));
-
+        vm.stopPrank();
         vm.startPrank(sm.addr);
         nayms.cancelSelfOnboarding(address(111));
 
-        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER), "Onboarding should have been cancelled");
+        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, roleTokenHolder), "Onboarding should have been cancelled");
     }
 
     function _approveSelfOnboarding(address _userAddress, bytes32 entityId, string memory roleName) private {

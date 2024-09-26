@@ -230,7 +230,7 @@ library LibAdmin {
 
         // Require that the user is not approved for the role already
         bytes32 roleId = LibHelpers._stringToBytes32(_role);
-        if (_isSelfOnboardingApproved(_userAddress, _entityId, _role)) revert EntityOnboardingAlreadyApproved(_userAddress);
+        if (_isSelfOnboardingApproved(_userAddress, _entityId, roleId)) revert EntityOnboardingAlreadyApproved(_userAddress);
 
         bool isTokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
         bool isCapitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
@@ -274,12 +274,12 @@ library LibAdmin {
         emit SelfOnboardingCompleted(_userAddress);
     }
 
-    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, string calldata _role) internal view returns (bool) {
+    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _role) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         EntityApproval memory approval = s.selfOnboarding[_userAddress];
 
-        return approval.entityId == _entityId && approval.roleId == LibHelpers._stringToBytes32(_role);
+        return approval.entityId == _entityId && approval.roleId == _role;
     }
 
     function _cancelSelfOnboarding(address _userAddress) internal {
