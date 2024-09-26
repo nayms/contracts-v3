@@ -229,11 +229,11 @@ library LibAdmin {
         if (!LibObject._isObjectType(_entityId, LC.OBJECT_TYPE_ENTITY)) revert InvalidEntityId(_entityId);
 
         // Require that the user is not approved for the role already
-        bytes32 roleId = LibHelpers._stringToBytes32(_role);
-        if (_isSelfOnboardingApproved(_userAddress, _entityId, roleId)) revert EntityOnboardingAlreadyApproved(_userAddress);
+        bytes32 roleBytes32 = LibHelpers._stringToBytes32(_role);
+        if (_isSelfOnboardingApproved(_userAddress, _entityId, roleBytes32)) revert EntityOnboardingAlreadyApproved(_userAddress);
 
-        bool isTokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bool isCapitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+        bool isTokenHolder = roleBytes32 == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bool isCapitalProvider = roleBytes32 == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         if (!isTokenHolder && !isCapitalProvider) {
             revert InvalidSelfOnboardRoleApproval(_role);
         }
