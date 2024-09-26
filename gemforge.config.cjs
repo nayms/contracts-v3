@@ -20,7 +20,7 @@ module.exports = {
   // commands to execute
   commands: {
     // the build command
-    build: "forge build",
+    build: "forge build --ast",
   },
   paths: {
     // contract built artifacts folder
