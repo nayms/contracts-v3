@@ -238,7 +238,7 @@ library LibAdmin {
             revert InvalidSelfOnboardRoleApproval(_role);
         }
 
-        s.selfOnboarding[_userAddress] = EntityApproval({ entityId: _entityId, roleId: roleId });
+        s.selfOnboarding[_userAddress] = EntityApproval({ entityId: _entityId, roleId: roleBytes32 });
 
         emit SelfOnboardingApproved(_userAddress);
     }
