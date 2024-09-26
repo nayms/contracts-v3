@@ -423,13 +423,15 @@ library LibTokenizedVaultStaking {
         // user only qualifies for boost up to the current interval [c]
         // so we need to undo the boost for balance[c+1] and balance[c+2]
         // boost for c+1 is already calculated into the balance at [c+1]
-        // so that boost will always be balance[c+1] * a/d
-        uint256 boost = (s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] * _getA(_entityId)) / _getD(_entityId);
+        // so that deboost factor will always be balance[c+1] * (d - (d^2) / (a + d))
+        // mind the integer math here, whatever we multiply with this factor has to be divided by d
+        uint256 reverseBoostFactor = _getD(_entityId) - ((_getD(_entityId) * _getD(_entityId)) / (_getA(_entityId) + _getD(_entityId)));
+        uint256 boost1 = (s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] * reverseBoostFactor) / _getD(_entityId);
 
         // boost at [c+1] is what applies to balance[c+2] so that one also needs to be taken out of the final boosted balance
         uint256 boost2 = s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
 
-        boostedBalance_ = state.balance - boost - boost2;
+        boostedBalance_ = state.balance - boost1 - boost2;
 
         if (boostedBalance_ < stakedBalance_) {
             boostedBalance_ = stakedBalance_;
