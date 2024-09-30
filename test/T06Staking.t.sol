@@ -146,7 +146,7 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     function assertStakedAmount(bytes32 stakerId, uint256 amount, string memory message) private {
-        (uint256 staked, ) = nayms.getStakingAmounts(stakerId, nlf.entityId);
+        (uint256 staked, ) = nayms.getStakingAmounts(nlf.entityId, stakerId);
         assertEq(staked, amount, message);
     }
 
@@ -157,26 +157,12 @@ contract T06Staking is D03ProtocolDefaults {
 
     function printCurrentState(bytes32 entityId, bytes32 stakerId, string memory name) internal view {
         uint64 interval = currentInterval();
-        (uint256 stakedAmount_, uint256 boostedAmount_) = nayms.getStakingAmounts(stakerId, entityId);
+        (uint256 stakedAmount_, uint256 boostedAmount_) = nayms.getStakingAmounts(entityId, stakerId);
         c.log("");
         c.log("   ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
         c.log("     Balance[%s]:".green(), interval, stakedAmount_);
         c.log("     Boosted[%s]:".green(), interval, boostedAmount_);
         c.log("     Rewards[%s]:".green(), interval, getRewards(stakerId, entityId) / 1e6);
-        c.log("");
-    }
-
-    function printStatesBoosts(bytes32 entityId, bytes32 stakerId, uint64 interval, string memory name) internal {
-        // (uint256 s1, uint256 s2, uint s3) = nayms.getStakedAt(stakerId, entityId, inter);
-        // (uint256 b1, uint256 b2, uint b3) = nayms.getBoostAt(stakerId, entityId, inter);
-
-        c.log("");
-        c.log("   ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
-        c.log("     at i0 balance: %s boost: %s".yellow(), stakeBalance(stakerId, entityId, interval), stakeBoost(stakerId, entityId, interval));
-        c.log("     at i1 balance: %s boost: %s".yellow(), stakeBalance(stakerId, entityId, interval + 1), stakeBoost(stakerId, entityId, interval + 1));
-        c.log("     at i2 balance: %s boost: %s".yellow(), stakeBalance(stakerId, entityId, interval + 2), stakeBoost(stakerId, entityId, interval + 2));
-        c.log("     at i3 balance: %s boost: %s".yellow(), stakeBalance(stakerId, entityId, interval + 3), stakeBoost(stakerId, entityId, interval + 3));
-        c.log("     at i4 balance: %s boost: %s".yellow(), stakeBalance(stakerId, entityId, interval + 4), stakeBoost(stakerId, entityId, interval + 4));
         c.log("");
     }
 
@@ -798,7 +784,7 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, bobStakeAmount);
 
         assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
-        (uint256 stakedAmount, uint256 boostedAmount) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        (uint256 stakedAmount, uint256 boostedAmount) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
         assertEq(stakedAmount, boostedAmount, "Bob's boost[1] should be 1");
 
         vm.warp(startStaking + 40 days);
@@ -810,7 +796,7 @@ contract T06Staking is D03ProtocolDefaults {
 
         nayms.stake(nlf.entityId, bobStakeAmount);
 
-        (uint256 stakedAmount2, uint256 boostedAmount2) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        (uint256 stakedAmount2, uint256 boostedAmount2) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
         assertEq(stakedAmount2, boostedAmount2, "Bob's boost [2] should be 1");
     }
     /*
@@ -1339,6 +1325,42 @@ contract T06Staking is D03ProtocolDefaults {
         // printAppstorage();
     }
 
+    function test_stake_QS_4_4() public {
+        uint256 startTime = block.timestamp + 1;
+        uint256 stake1Time = startTime + 15 days;
+        uint256 stake2Time = startTime + 31 days;
+
+        initStaking(startTime);
+
+        vm.warp(stake1Time);
+
+        c.log("-- Stake 1 ETH -- ".yellow());
+        startPrank(bob);
+        nayms.stake(nlf.entityId, 1 ether);
+
+        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        assertEq(stakedBalance, boostedBalance, "Bob should have no boost".red());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        vm.warp(stake2Time);
+        c.log("-- WARP 31 DAYS -- ".yellow());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        uint256 bobBoost = calculateBoost(startTime, stake2Time, R, I, SCALE_FACTOR);
+        uint256 boostedBalance1 = (0.5 ether * bobBoost) / SCALE_FACTOR / SCALE_FACTOR + 0.5 ether;
+
+        (, uint256 boostedBalance2) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        assertEq(boostedBalance2, boostedBalance1, "Bob should have boost at[1]".red());
+
+        c.log("~~~ Stake 1 ETH -- ".yellow());
+        nayms.stake(nlf.entityId, 1 ether);
+
+        (, uint256 boostedBalance3) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        assertEq(boostedBalance3, boostedBalance1 + 1 ether, "Bob should have boost and more stake".red());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+    }
+
     function printAppstorage() public {
         uint64 interval = currentInterval() + 2;
 
@@ -1375,43 +1397,5 @@ contract T06Staking is D03ProtocolDefaults {
 
     function logStateAt(uint64 interval, bytes32 staker, bytes32 entityId) private {
         c.log("  [%s] balance: %s, boost: %s", interval, stakeBalance(staker, entityId, interval), stakeBoost(staker, entityId, interval));
-    }
-
-    function test_stake_QS3() public {
-        uint256 start = block.timestamp + 1;
-
-        initStaking(start);
-        vm.warp(start + 15 days);
-
-        startPrank(bob);
-        nayms.stake(nlf.entityId, 1 ether);
-        printStatesBoosts(nlf.entityId, bob.entityId, 0, "Bob");
-        printCurrentState(nlf.entityId, bob.entityId, "Bob");
-        vm.warp(start + 31 days);
-        printStatesBoosts(nlf.entityId, bob.entityId, 0, "Bob");
-        printCurrentState(nlf.entityId, bob.entityId, "Bob");
-    }
-
-    function test_stake_QS4() public {
-        uint256 start = block.timestamp + 1;
-
-        initStaking(start);
-        vm.warp(start + 15 days);
-
-        startPrank(bob);
-        nayms.stake(nlf.entityId, 1 ether);
-        c.log("-- Stake 1 ETH -- ");
-        printStatesBoosts(nlf.entityId, bob.entityId, 0, "Bob");
-        printCurrentState(nlf.entityId, bob.entityId, "Bob");
-
-        vm.warp(start + 50 days);
-        c.log("-- WARP DAYS -- ");
-        printStatesBoosts(nlf.entityId, bob.entityId, 0, "Bob");
-        printCurrentState(nlf.entityId, bob.entityId, "Bob");
-
-        c.log("~~~ Stake 1 ETH -- ");
-        nayms.stake(nlf.entityId, 1 ether);
-        printStatesBoosts(nlf.entityId, bob.entityId, 0, "Bob");
-        printCurrentState(nlf.entityId, bob.entityId, "Bob");
     }
 }

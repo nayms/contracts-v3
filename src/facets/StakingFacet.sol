@@ -74,7 +74,7 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._payReward(_stakingRewardId, _entityId, _rewardTokenId, _amount);
     }
 
-    function getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) external view returns (uint256 stakedAmount_, uint256 boostedAmount_) {
-        return LibTokenizedVaultStaking._getStakingAmounts(_stakerId, _entityId);
+    function getStakingAmounts(bytes32 _entityId, bytes32 _stakerId) external view returns (uint256 stakedAmount_, uint256 boostedAmount_) {
+        return LibTokenizedVaultStaking._getStakingAmounts(_entityId, _stakerId);
     }
 }

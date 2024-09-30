@@ -83,12 +83,13 @@ struct AppStorage {
     mapping(address userAddress => EntityApproval) selfOnboarding; // map address => { entityId, roleId }
     /// Staking
     mapping(bytes32 entityId => StakingConfig) stakingConfigs; // StakingConfig for an entity
-    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalance; // [vTokenId][ownerId] boost at interval
+    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalance; // [vTokenId][ownerId] balance at interval
     mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 boost)) stakeBoost; // [vTokenId][ownerId] boost at interval
     mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakeCollected; // last interval reward was collected or pain for a staker in staking entity
     mapping(bytes32 vTokenId => uint256 amount) stakingDistributionAmount; // [vTokenId] Reward at interval
     mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId] Reward currency
     mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakingSynced; // last interval when data was synced into storage for staker
+    mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalanceAdded; // raw balance staked at an interval, withouth any boost included, only for reading future intervals (to calculate the total boosted balance)
 }
 
 struct FunctionLockedStorage {

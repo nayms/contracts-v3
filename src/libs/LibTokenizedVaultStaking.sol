@@ -158,17 +158,24 @@ library LibTokenizedVaultStaking {
 
         uint256 boost1 = ((((_getD(_entityId) - ratio) * _amount) / _getD(_entityId)) * _getA(_entityId)) / _getD(_entityId);
         uint256 boost2 = (((ratio * _amount) / _getD(_entityId)) * _getA(_entityId)) / _getD(_entityId);
+
         uint256 balance1 = _amount - (ratio * _amount) / _getD(_entityId);
         uint256 balance2 = (ratio * _amount) / _getD(_entityId);
 
         s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] += balance1 + boost1;
         s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] += balance1 + boost1;
 
+        s.stakeBalanceAdded[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] += balance1;
+        s.stakeBalanceAdded[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] += balance1;
+
         s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
         s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_entityId] += (boost1 * _getR(_entityId)) / _getD(_entityId) + boost2;
 
         s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] += balance2;
         s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 2)][_entityId] += balance2;
+
+        s.stakeBalanceAdded[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId] += balance2;
+        s.stakeBalanceAdded[_vTokenId(_entityId, tokenId, currentInterval + 2)][_entityId] += balance2;
 
         emit TokenStaked(_stakerId, _entityId, tokenId, _amount);
     }
@@ -395,43 +402,25 @@ library LibTokenizedVaultStaking {
         intervalTime_ = _calculateStartTimeOfInterval(_entityId, _currentInterval(_entityId));
     }
 
-    function _stakedAmount(bytes32 _stakerId, bytes32 _entityId) internal view returns (uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
-
-        return s.stakeBalance[vTokenIdMax][_stakerId];
-    }
-
-    function _getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) internal view returns (uint256 stakedBalance_, uint256 boostedBalance_) {
+    function _getStakingAmounts(bytes32 _entityId, bytes32 _stakerId) internal view returns (uint256 stakedBalance_, uint256 boostedBalance_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint64 currentInterval = _currentInterval(_entityId);
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
-        stakedBalance_ = _stakedAmount(_stakerId, _entityId);
+
+        stakedBalance_ = s.stakeBalance[_vTokenIdBucket(_entityId, tokenId)][_stakerId];
 
         if (!_isStakingInitialized(_entityId)) {
             // boost is always 1 before init
             return (stakedBalance_, boostedBalance_);
         }
 
-        // we need to read the state at current interval + 2 (c+2) since the balance is always written to the future intervals when staking
-        // however this method will return future state including the boost the user will only qualify for, at the time of [c+2]
-        (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval + 2);
+        (StakingState memory state, ) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, currentInterval);
 
-        // user only qualifies for boost up to the current interval [c]
-        // so we need to undo the boost for balance[c+1] and balance[c+2]
-        // boost for c+1 is already calculated into the balance at [c+1]
-        // so that deboost factor will always be balance[c+1] * (d - (d^2) / (a + d))
-        // mind the integer math here, whatever we multiply with this factor has to be divided by d
-        uint256 reverseBoostFactor = _getD(_entityId) - ((_getD(_entityId) * _getD(_entityId)) / (_getA(_entityId) + _getD(_entityId)));
-        uint256 boost1 = (s.stakeBalance[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId] * reverseBoostFactor) / _getD(_entityId);
+        uint256 balance1 = s.stakeBalanceAdded[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
+        uint256 balance2 = s.stakeBalanceAdded[_vTokenId(_entityId, tokenId, currentInterval + 2)][_stakerId];
 
-        // boost at [c+1] is what applies to balance[c+2] so that one also needs to be taken out of the final boosted balance
-        uint256 boost2 = s.stakeBoost[_vTokenId(_entityId, tokenId, currentInterval + 1)][_stakerId];
-
-        boostedBalance_ = state.balance - boost1 - boost2;
+        boostedBalance_ = state.balance + balance1 + balance2;
 
         if (boostedBalance_ < stakedBalance_) {
             boostedBalance_ = stakedBalance_;
