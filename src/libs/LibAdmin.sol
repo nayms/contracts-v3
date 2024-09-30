@@ -141,12 +141,13 @@ library LibAdmin {
         s.locked[IDiamondProxy.stake.selector] = true;
         s.locked[IDiamondProxy.unstake.selector] = true;
         s.locked[IDiamondProxy.collectRewards.selector] = true;
+        s.locked[IDiamondProxy.collectRewardsToInterval.selector] = true;
         s.locked[IDiamondProxy.payReward.selector] = true;
         s.locked[IDiamondProxy.cancelSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createEntity.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](21);
+        bytes4[] memory lockedFunctions = new bytes4[](22);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -168,6 +169,7 @@ library LibAdmin {
         lockedFunctions[18] = IDiamondProxy.cancelSimplePolicy.selector;
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
+        lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -195,8 +197,9 @@ library LibAdmin {
         s.locked[IDiamondProxy.cancelSimplePolicy.selector] = false;
         s.locked[IDiamondProxy.createSimplePolicy.selector] = false;
         s.locked[IDiamondProxy.createEntity.selector] = false;
+        s.locked[IDiamondProxy.collectRewardsToInterval.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](21);
+        bytes4[] memory lockedFunctions = new bytes4[](22);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -218,6 +221,7 @@ library LibAdmin {
         lockedFunctions[18] = IDiamondProxy.cancelSimplePolicy.selector;
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
+        lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
     }

@@ -241,7 +241,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
-        bytes4[] memory lockedFunctions = new bytes4[](21);
+        bytes4[] memory lockedFunctions = new bytes4[](22);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -263,6 +263,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         lockedFunctions[18] = IDiamondProxy.cancelSimplePolicy.selector;
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
+        lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
 
         for (uint256 i = 0; i < lockedFunctions.length; i++) {
             assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
@@ -323,6 +324,9 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         nayms.collectRewards(bytes32(0));
 
         vm.expectRevert("function is locked");
+        nayms.collectRewardsToInterval(bytes32(0), 5);
+
+        vm.expectRevert("function is locked");
         nayms.cancelSimplePolicy(bytes32(0));
 
         Stakeholders memory stakeholders;
@@ -354,6 +358,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.unstake.selector), "function unstake locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.payReward.selector), "function payReward locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.collectRewards.selector), "function collectRewards locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.collectRewardsToInterval.selector), "function collectRewardsToInterval locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.cancelSimplePolicy.selector), "function cancelSimplePolicy locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.createSimplePolicy.selector), "function createSimplePolicy locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.createEntity.selector), "function createEntity locked");
