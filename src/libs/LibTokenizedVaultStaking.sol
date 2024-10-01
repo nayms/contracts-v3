@@ -396,7 +396,7 @@ library LibTokenizedVaultStaking {
         intervalTime_ = _calculateStartTimeOfInterval(_entityId, _currentInterval(_entityId));
     }
 
-    function _getStakingAmounts(bytes32 _entityId, bytes32 _stakerId) internal view returns (uint256 stakedBalance_, uint256 boostedBalance_) {
+    function _getStakingAmounts(bytes32 _stakerId, bytes32 _entityId) internal view returns (uint256 stakedBalance_, uint256 boostedBalance_) {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         uint64 currentInterval = _currentInterval(_entityId);

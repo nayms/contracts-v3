@@ -146,7 +146,7 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     function assertStakedAmount(bytes32 stakerId, uint256 amount, string memory message) private {
-        (uint256 staked, ) = nayms.getStakingAmounts(nlf.entityId, stakerId);
+        (uint256 staked, ) = nayms.getStakingAmounts(stakerId, nlf.entityId);
         assertEq(staked, amount, message);
     }
 
@@ -157,7 +157,7 @@ contract T06Staking is D03ProtocolDefaults {
 
     function printCurrentState(bytes32 entityId, bytes32 stakerId, string memory name) internal view {
         uint64 interval = currentInterval();
-        (uint256 stakedAmount_, uint256 boostedAmount_) = nayms.getStakingAmounts(entityId, stakerId);
+        (uint256 stakedAmount_, uint256 boostedAmount_) = nayms.getStakingAmounts(stakerId, entityId);
         c.log("");
         c.log("   ~~~~~~~  %s  ~~~~~~~".blue().bold(), name);
         c.log("     Balance[%s]:".green(), interval, stakedAmount_);
@@ -784,7 +784,7 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, bobStakeAmount);
 
         assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
-        (uint256 stakedAmount, uint256 boostedAmount) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        (uint256 stakedAmount, uint256 boostedAmount) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
         assertEq(stakedAmount, boostedAmount, "Bob's boost[1] should be 1");
 
         vm.warp(startStaking + 40 days);
@@ -796,7 +796,7 @@ contract T06Staking is D03ProtocolDefaults {
 
         nayms.stake(nlf.entityId, bobStakeAmount);
 
-        (uint256 stakedAmount2, uint256 boostedAmount2) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        (uint256 stakedAmount2, uint256 boostedAmount2) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
         assertEq(stakedAmount2, boostedAmount2, "Bob's boost [2] should be 1");
     }
     /*
@@ -1338,7 +1338,7 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(bob);
         nayms.stake(nlf.entityId, 1 ether);
 
-        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
         assertEq(stakedBalance, boostedBalance, "Bob should have no boost".red());
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
 
@@ -1349,13 +1349,13 @@ contract T06Staking is D03ProtocolDefaults {
         uint256 bobBoost = calculateBoost(startTime, stake2Time, R, I, SCALE_FACTOR);
         uint256 boostedBalance1 = (0.5 ether * bobBoost) / SCALE_FACTOR / SCALE_FACTOR + 0.5 ether;
 
-        (, uint256 boostedBalance2) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        (, uint256 boostedBalance2) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
         assertEq(boostedBalance2, boostedBalance1, "Bob should have boost at[1]".red());
 
         c.log("~~~ Stake 1 ETH -- ".yellow());
         nayms.stake(nlf.entityId, 1 ether);
 
-        (, uint256 boostedBalance3) = nayms.getStakingAmounts(nlf.entityId, bob.entityId);
+        (, uint256 boostedBalance3) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
         assertEq(boostedBalance3, boostedBalance1 + 1 ether, "Bob should have boost and more stake".red());
 
         printCurrentState(nlf.entityId, bob.entityId, "Bob");
