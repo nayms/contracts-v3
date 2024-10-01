@@ -151,8 +151,8 @@ contract AdminFacet is Modifiers {
      * @notice Approve a user address for self-onboarding
      * @param _userAddress user account address
      */
-    function approveSelfOnboarding(address _userAddress, bytes32 _entityId, bytes32 _role) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
-        LibAdmin._approveSelfOnboarding(_userAddress, _entityId, _role);
+    function approveSelfOnboarding(address _userAddress, bytes32 _entityId, bytes32 _roleId) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
+        LibAdmin._approveSelfOnboarding(_userAddress, _entityId, _roleId);
     }
 
     /**
@@ -162,8 +162,8 @@ contract AdminFacet is Modifiers {
         LibAdmin._onboardUser(msg.sender);
     }
 
-    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _role) external view returns (bool) {
-        return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _role);
+    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bool) {
+        return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _roleId);
     }
 
     function cancelSelfOnboarding(address _user) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
