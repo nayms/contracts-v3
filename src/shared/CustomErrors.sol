@@ -27,7 +27,7 @@ error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInC
 
 /// @notice only Token Holder or Capital Provider should be approved for self-onboarding
 /// @param role The name of the rle which should not be approaved for self-onboarding
-error InvalidSelfOnboardRoleApproval(string role);
+error InvalidSelfOnboardRoleApproval(bytes32 role);
 
 /// @dev Passing in a missing address when trying to add a token address to the supported external token list.
 error CannotAddNullSupportedExternalToken();

@@ -1173,11 +1173,12 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testSelfOnboardingInvalidGroup() public {
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_SYSTEM_MANAGER);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         vm.startPrank(em.addr);
-        vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, LC.ROLE_SYSTEM_MANAGER));
-        nayms.approveSelfOnboarding(address(111), randomEntityId(1), LC.ROLE_SYSTEM_MANAGER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, roleId));
+        nayms.approveSelfOnboarding(address(111), randomEntityId(1), roleId);
         vm.stopPrank();
     }
 
@@ -1185,41 +1186,45 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         bytes32 entityId = randomEntityId(2);
-
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(address(111), entityId, roleId);
 
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, address(111)));
-        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(address(111), entityId, roleId);
         vm.stopPrank();
     }
 
     function testSelfOnboardingSuccess() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
         bytes32 e1 = randomEntityId(1);
-        _approveSelfOnboarding(address(111), e1, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        _approveSelfOnboarding(address(111), e1, roleId);
         _selfOnboard(address(111), e1, LC.GROUP_TOKEN_HOLDERS);
 
+        bytes32 roleId2 = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         bytes32 e2 = randomEntityId(2);
-        _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_CP);
+        _approveSelfOnboarding(address(222), e2, roleId2);
         _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
     }
 
     function testSelfOnboardingUpgradeToCapitalProvider() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
-
+        bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bytes32 roleIdCP = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         // test upgrade before onboarding
         bytes32 e1 = randomEntityId(1);
-        _approveSelfOnboarding(address(111), e1, LC.ROLE_ENTITY_TOKEN_HOLDER);
-        _approveSelfOnboarding(address(111), e1, LC.ROLE_ENTITY_CP);
+
+        _approveSelfOnboarding(address(111), e1, roleIdTokenHolder);
+        _approveSelfOnboarding(address(111), e1, roleIdCP);
         _selfOnboard(address(111), e1, LC.GROUP_CAPITAL_PROVIDERS);
 
         // test upgrade after onboarding
         bytes32 e2 = randomEntityId(2);
-        _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        _approveSelfOnboarding(address(222), e2, roleIdTokenHolder);
         _selfOnboard(address(222), e2, LC.GROUP_TOKEN_HOLDERS);
-        _approveSelfOnboarding(address(222), e2, LC.ROLE_ENTITY_CP);
+        _approveSelfOnboarding(address(222), e2, roleIdCP);
 
         vm.recordLogs();
 
@@ -1231,7 +1236,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(entries[0].topics[1], e2);
         (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
         assertEq(contextId, e2);
-        assertEq(roleId, LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER));
+        assertEq(roleId, roleIdTokenHolder);
         assertEq(action, "_unassignRole");
 
         assertEq(entries[1].topics.length, 2);
@@ -1239,7 +1244,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(entries[1].topics[1], e2, "object ID doesn't match");
         (bytes32 contextId2, bytes32 roleId2, string memory action2) = abi.decode(entries[1].data, (bytes32, bytes32, string));
         assertEq(contextId2, systemContext, "incorrect context");
-        assertEq(roleId2, LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER), "wrong role");
+        assertEq(roleId2, roleIdTokenHolder, "wrong role");
         assertEq(action2, "_unassignRole", "wrong operation");
     }
 
@@ -1247,11 +1252,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         bytes32 entityId = randomEntityId(2);
-        bytes32 roleTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
 
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
-        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, roleTokenHolder), "Onboarding should be approved");
+        nayms.approveSelfOnboarding(address(111), entityId, roleIdTokenHolder);
+        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should be approved");
 
         vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
         nayms.cancelSelfOnboarding(address(111));
@@ -1259,14 +1264,14 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.startPrank(sm.addr);
         nayms.cancelSelfOnboarding(address(111));
 
-        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, roleTokenHolder), "Onboarding should have been cancelled");
+        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should have been cancelled");
     }
 
-    function _approveSelfOnboarding(address _userAddress, bytes32 entityId, string memory roleName) private {
+    function _approveSelfOnboarding(address _userAddress, bytes32 entityId, bytes32 roleId) private {
         vm.recordLogs();
 
         vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(_userAddress, entityId, roleName);
+        nayms.approveSelfOnboarding(_userAddress, entityId, roleId);
         vm.stopPrank();
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -1288,10 +1293,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         bytes32 entityId = keccak256("invalid entity id");
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
 
         vm.startPrank(em.addr);
         vm.expectRevert(abi.encodeWithSelector(InvalidEntityId.selector, entityId));
-        nayms.approveSelfOnboarding(address(111), entityId, LC.ROLE_ENTITY_TOKEN_HOLDER);
+        nayms.approveSelfOnboarding(address(111), entityId, roleId);
     }
 
     function randomEntityId(uint256 salt) public view returns (bytes32) {
