@@ -10,13 +10,7 @@ import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStru
 
 import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
 
-// solhint-disable no-console
-import { console2 as c } from "forge-std/console2.sol";
-import { StdStyle } from "forge-std/Test.sol";
-
 library LibTokenizedVaultStaking {
-    using StdStyle for *;
-
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
     event TokenStaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
     event TokenUnstaked(bytes32 indexed stakerId, bytes32 entityId, bytes32 tokenId, uint256 amount);
