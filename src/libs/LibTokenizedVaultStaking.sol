@@ -243,24 +243,26 @@ library LibTokenizedVaultStaking {
         state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
 
         for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
+            bytes32 vTokenId_i = _vTokenId(_entityId, tokenId, i);
+
             if (i == lastSynced) {
-                state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId];
-                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId];
+                state.balance = s.stakeBalance[vTokenId_i][_stakerId];
+                state.boost = s.stakeBoost[vTokenId_i][_stakerId];
             } else {
-                state.balance += s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId] + state.boost;
-                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
+                state.balance += s.stakeBalance[vTokenId_i][_stakerId] + state.boost;
+                state.boost = s.stakeBoost[vTokenId_i][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
 
             // check to see if there are rewards for this interval, and update arrays
-            uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
+            uint256 totalDistributionAmount = s.stakingDistributionAmount[vTokenId_i];
             if (totalDistributionAmount > 0) {
                 uint256 currencyIndex;
-                (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
+                (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[vTokenId_i]);
 
                 // Use the same math as dividend distributions, assuming zero has already been collected
                 uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
                     state.balance,
-                    s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_entityId],
+                    s.stakeBalance[vTokenId_i][_entityId],
                     totalDistributionAmount,
                     0
                 );
