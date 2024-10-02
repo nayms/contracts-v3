@@ -8,7 +8,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostDividerNotEqualError, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -323,8 +323,7 @@ library LibTokenizedVaultStaking {
         if (_config.a == 0) revert InvalidAValue();
         if (_config.r == 0) revert InvalidRValue();
         if (_config.divider == 0) revert InvalidDividerValue();
-        if (_config.a + _config.r > _config.divider) revert APlusRCannotBeGreaterThanDivider();
-        if (_config.a + _config.r != _config.divider) revert BoostMultiplierConvergenceFailure(_config.a, _config.r, _config.divider);
+        if (_config.a + _config.r != _config.divider) revert BoostDividerNotEqualError(_config.a, _config.r, _config.divider);
         if (_config.interval == 0) revert InvalidIntervalSecondsValue();
         if (_config.interval < LC.MIN_STAKING_INTERVAL || _config.interval > LC.MAX_STAKING_INTERVAL) revert IntervalOutOfRange(_config.interval);
         if (_config.initDate <= block.timestamp) revert InvalidStakingInitDate();
