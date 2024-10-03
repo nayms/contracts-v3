@@ -1332,6 +1332,42 @@ contract T06Staking is D03ProtocolDefaults {
         // printAppstorage();
     }
 
+    function test_stake_QS_4_4() public {
+        uint256 startTime = block.timestamp + 1;
+        uint256 stake1Time = startTime + 15 days;
+        uint256 stake2Time = startTime + 31 days;
+
+        initStaking(startTime);
+
+        vm.warp(stake1Time);
+
+        c.log("-- Stake 1 ETH -- ".yellow());
+        startPrank(bob);
+        nayms.stake(nlf.entityId, 1 ether);
+
+        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedBalance, boostedBalance, "Bob should have no boost".red());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        vm.warp(stake2Time);
+        c.log("-- WARP 31 DAYS -- ".yellow());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        uint256 bobBoost = calculateBoost(startTime, stake2Time, R, I, SCALE_FACTOR);
+        uint256 boostedBalance1 = (0.5 ether * bobBoost) / SCALE_FACTOR / SCALE_FACTOR + 0.5 ether;
+
+        (, uint256 boostedBalance2) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(boostedBalance2, boostedBalance1, "Bob should have boost at[1]".red());
+
+        c.log("~~~ Stake 1 ETH -- ".yellow());
+        nayms.stake(nlf.entityId, 1 ether);
+
+        (, uint256 boostedBalance3) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(boostedBalance3, boostedBalance1 + 1 ether, "Bob should have boost and more stake".red());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+    }
+
     function printAppstorage() public {
         uint64 interval = currentInterval() + 2;
 

@@ -16,8 +16,7 @@ import {
     EntityDoesNotExist, 
     ObjectCannotBeTokenized, 
     EntityExistsAlready, 
-    UtilizedCapacityGreaterThanMaxCapacity, 
-    EntityOnboardingNotApproved
+    UtilizedCapacityGreaterThanMaxCapacity 
 } from "../shared/CustomErrors.sol";
 
 library LibEntity {

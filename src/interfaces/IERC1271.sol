@@ -6,6 +6,7 @@ pragma solidity ^0.8.20;
 /**
  * @dev Interface of the ERC1271 standard signature validation method for
  * contracts as defined in https://eips.ethereum.org/EIPS/eip-1271[ERC-1271].
+ * @dev We use this interface to generate java bindings for solidity contracts.
  */
 interface IERC1271 {
     /**
