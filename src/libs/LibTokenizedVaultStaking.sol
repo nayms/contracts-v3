@@ -361,7 +361,7 @@ library LibTokenizedVaultStaking {
         // prettier-ignore
         RewardsBalances memory rewards_ = RewardsBalances({
             currencies: new bytes32[](length + 1),
-            amounts: new uint256[](rewards.amounts.length + 1),
+            amounts: new uint256[](length + 1),
             lastPaidInterval: 0
         });
 
