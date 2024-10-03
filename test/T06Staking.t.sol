@@ -11,7 +11,7 @@ import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "src/interfaces/IERC20.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted, StakingNotStarted } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted, StakingNotStarted, StakingConfigDoesNotExist } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -330,6 +330,15 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(nlf);
 
         vm.expectRevert(abi.encodeWithSelector(StakingNotStarted.selector, nlf.entityId, config.tokenId));
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 100 ether);
+    }
+
+    function test_payRewardWithoutEnablingStaking() public {
+        StakingConfig memory config = nayms.getStakingConfig(nlf.entityId);
+
+        startPrank(nlf);
+
+        vm.expectRevert(abi.encodeWithSelector(StakingConfigDoesNotExist.selector, nlf.entityId));
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 100 ether);
     }
 
