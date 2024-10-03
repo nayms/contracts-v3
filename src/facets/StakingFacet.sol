@@ -70,6 +70,17 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }
 
+    /**
+     * @notice Collect rewards for a staker
+     * @param _entityId staking entity ID
+     * @param _interval interval to collect rewards up to
+     */
+    function collectRewardsToInterval(bytes32 _entityId, uint64 _interval) external notLocked {
+        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+
+        LibTokenizedVaultStaking._collectRewards(parentId, _entityId, _interval);
+    }
+
     function payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _amount) external notLocked assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
         LibTokenizedVaultStaking._payReward(_stakingRewardId, _entityId, _rewardTokenId, _amount);
     }
