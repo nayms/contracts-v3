@@ -13,16 +13,8 @@ library LibHelpers {
         return _getIdForAddress(msg.sender);
     }
 
-    function _checkBottom12BytesAreEmpty(bytes32 value) internal pure returns (bool) {
-        bytes32 mask = 0x0000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF;
-        bytes32 bottom12Bytes = value & mask;
-
-        // returns true if bottom 12 bytes are empty
-        return bottom12Bytes == 0;
-    }
-
     function _getAddressFromId(bytes32 _id) internal pure returns (address) {
-        if (!_checkBottom12BytesAreEmpty(_id)) {
+        if (!_isAddress(_id)) {
             revert("Invalid address based ID");
         }
         // returns the bottom 20 bytes of the id

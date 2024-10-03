@@ -64,7 +64,6 @@ library LibTokenizedVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.tokenBalances[_tokenId][_from] < _amount) revert InsufficientBalance(_tokenId, _from, s.tokenBalances[_tokenId][_from], _amount);
-        require(s.tokenBalances[_tokenId][_from] >= _amount, "_internalTransfer: insufficient balance");
         require(s.tokenBalances[_tokenId][_from] - s.lockedBalances[_from][_tokenId] >= _amount, "_internalTransfer: insufficient balance available, funds locked");
 
         _withdrawAllDividends(_from, _tokenId);
