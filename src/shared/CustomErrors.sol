@@ -138,6 +138,9 @@ error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
 /// @dev Staking must be started
 error StakingNotStarted(bytes32 entityId, bytes32 tokenId);
 
+/// @dev Staking must be enabled
+error StakingConfigDoesNotExist(bytes32 entityId, bytes32 tokenId);
+
 /// @dev Invalid A parameter value provided
 error InvalidAValue();
 
