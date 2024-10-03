@@ -334,8 +334,6 @@ contract T06Staking is D03ProtocolDefaults {
     }
 
     function test_payRewardWithoutEnablingStaking() public {
-        StakingConfig memory config = nayms.getStakingConfig(nlf.entityId);
-
         startPrank(nlf);
 
         vm.expectRevert(abi.encodeWithSelector(StakingConfigDoesNotExist.selector, nlf.entityId));
