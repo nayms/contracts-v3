@@ -378,7 +378,7 @@ library LibTokenizedVaultStaking {
 
     /**
      * @dev Get the starting time of a given interval
-     * @param _entityId The internal ID of the token
+     * @param _entityId The internal ID of the entity
      * @param _interval The interval to get the time for
      */
     function _calculateStartTimeOfInterval(bytes32 _entityId, uint64 _interval) internal view returns (uint64 intervalTime_) {
