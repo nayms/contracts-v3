@@ -151,7 +151,7 @@ contract StakingFacet is Modifiers {
      * @param _entityId entity ID
      * @param _rewardTokenId currency ID of the reward
      * @param _amount reward amount
-     */    
+     */
     function payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _amount) external notLocked assertPrivilege(_entityId, LC.GROUP_ENTITY_ADMINS) {
         LibTokenizedVaultStaking._payReward(_stakingRewardId, _entityId, _rewardTokenId, _amount);
     }
