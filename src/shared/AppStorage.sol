@@ -91,6 +91,16 @@ struct AppStorage {
     mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakingSynced; // last interval when data was synced into storage for staker
 }
 
+/// Staking-Related Mappings
+
+///  | Mapping Name                | Key Structure                  | Value Type       | Description                                                           |
+///  |-----------------------------|--------------------------------|------------------|-----------------------------------------------------------------------|
+///  | `stakeCollected`            | `[Entity ID][Staker ID]`       | `uint64`         | Records the last timestamp a staker collected their stake.            |
+///  | `stakeCollectedEntity`      | `[Entity ID][Entity ID]`       | `uint64`         | Records the last timestamp an entity paid out rewards.                |
+///  | `stakeBalance`              | `[vTokenId][Account ID]`       | `uint256`        | Tracks staked balances for accounts across different intervals.       |
+///  | `stakeBoost`                | `[vTokenId][Account ID]`       | `uint256`        | Tracks boosted staked balances for accounts.                          |
+///  | `objectMinimumSell`         | `[Token ID][Entity ID]`        | `uint256`        | Sets minimum staking and reward amounts for tokens per entity.        |
+
 struct FunctionLockedStorage {
     mapping(bytes4 => bool) locked; // function selector => is locked?
 }
