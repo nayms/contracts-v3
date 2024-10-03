@@ -8,7 +8,7 @@ import { LibObject } from "./LibObject.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { StakingConfig, StakingState, RewardsBalances } from "../shared/FreeStructs.sol";
 
-import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, APlusRCannotBeGreaterThanDivider, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostMultiplierConvergenceFailure, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
+import { StakingNotStarted, StakingAlreadyStarted, IntervalRewardPayedOutAlready, InvalidAValue, InvalidRValue, InvalidDividerValue, InvalidStakingInitDate, InvalidIntervalSecondsValue, InvalidTokenRewardAmount, EntityDoesNotExist, InitDateTooFar, IntervalOutOfRange, BoostDividerNotEqualError, InvalidTokenId, InvalidStakingAmount, InvalidStaker } from "../shared/CustomErrors.sol";
 
 library LibTokenizedVaultStaking {
     event TokenStakingStarted(bytes32 indexed entityId, bytes32 tokenId, uint256 initDate, uint64 a, uint64 r, uint64 divider, uint64 interval);
@@ -266,24 +266,26 @@ library LibTokenizedVaultStaking {
         state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, state.lastCollectedInterval)][_stakerId];
 
         for (uint64 i = state.lastCollectedInterval + 1; i <= _interval; ++i) {
+            bytes32 vTokenId_i = _vTokenId(_entityId, tokenId, i);
+
             if (i == lastSynced) {
-                state.balance = s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId];
-                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId];
+                state.balance = s.stakeBalance[vTokenId_i][_stakerId];
+                state.boost = s.stakeBoost[vTokenId_i][_stakerId];
             } else {
-                state.balance += s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_stakerId] + state.boost;
-                state.boost = s.stakeBoost[_vTokenId(_entityId, tokenId, i)][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
+                state.balance += s.stakeBalance[vTokenId_i][_stakerId] + state.boost;
+                state.boost = s.stakeBoost[vTokenId_i][_stakerId] + (state.boost * _getR(_entityId)) / _getD(_entityId);
             }
 
             // check to see if there are rewards for this interval, and update arrays
-            uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
+            uint256 totalDistributionAmount = s.stakingDistributionAmount[vTokenId_i];
             if (totalDistributionAmount > 0) {
                 uint256 currencyIndex;
-                (rewards, currencyIndex) = _addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
+                (rewards, currencyIndex) = _addUniqueValue(rewards, s.stakingDistributionDenomination[vTokenId_i]);
 
                 // Use the same math as dividend distributions, assuming zero has already been collected
                 uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
                     state.balance,
-                    s.stakeBalance[_vTokenId(_entityId, tokenId, i)][_entityId],
+                    s.stakeBalance[vTokenId_i][_entityId],
                     totalDistributionAmount,
                     0
                 );
@@ -346,8 +348,7 @@ library LibTokenizedVaultStaking {
         if (_config.a == 0) revert InvalidAValue();
         if (_config.r == 0) revert InvalidRValue();
         if (_config.divider == 0) revert InvalidDividerValue();
-        if (_config.a + _config.r > _config.divider) revert APlusRCannotBeGreaterThanDivider();
-        if (_config.a + _config.r != _config.divider) revert BoostMultiplierConvergenceFailure(_config.a, _config.r, _config.divider);
+        if (_config.a + _config.r != _config.divider) revert BoostDividerNotEqualError(_config.a, _config.r, _config.divider);
         if (_config.interval == 0) revert InvalidIntervalSecondsValue();
         if (_config.interval < LC.MIN_STAKING_INTERVAL || _config.interval > LC.MAX_STAKING_INTERVAL) revert IntervalOutOfRange(_config.interval);
         if (_config.initDate <= block.timestamp) revert InvalidStakingInitDate();
