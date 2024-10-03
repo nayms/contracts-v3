@@ -93,13 +93,17 @@ struct AppStorage {
 
 /// Staking-Related Mappings
 
-///  | Mapping Name                | Key Structure                  | Value Type       | Description                                                           |
-///  |-----------------------------|--------------------------------|------------------|-----------------------------------------------------------------------|
-///  | `stakeCollected`            | `[Entity ID][Staker ID]`       | `uint64`         | Records the last timestamp a staker collected their stake.            |
-///  | `stakeCollectedEntity`      | `[Entity ID][Entity ID]`       | `uint64`         | Records the last timestamp an entity paid out rewards.                |
-///  | `stakeBalance`              | `[vTokenId][Account ID]`       | `uint256`        | Tracks staked balances for accounts across different intervals.       |
-///  | `stakeBoost`                | `[vTokenId][Account ID]`       | `uint256`        | Tracks boosted staked balances for accounts.                          |
-///  | `objectMinimumSell`         | `[Token ID][Entity ID]`        | `uint256`        | Sets minimum staking and reward amounts for tokens per entity.        |
+/// | Mapping Name                      | Key Structure                          | Value Type | Description                                                                                                 |
+/// |-----------------------------------|----------------------------------------|------------|-------------------------------------------------------------------------------------------------------------|
+/// | `stakeCollected`                  | `[Entity ID][Staker ID]`               | `uint64`   | Records the last timestamp a staker collected their stake.                                                  |
+/// | `stakeCollected`                  | `[Entity ID][Entity ID]`               | `uint64`   | Records the last timestamp an entity paid out rewards.                                                      |
+/// | `stakeBalance`                    | `[vTokenId][Account ID]`               | `uint256`  | Tracks staked balances for accounts across different intervals.                                             |
+/// | `stakeBoost`                      | `[vTokenId][Account ID]`               | `uint256`  | Tracks boosted staked balances for accounts.                                                                |
+/// | `stakeBalanceAdded`               | `[vTokenId][Staker ID]`                | `uint256`  | Raw balance staked at an interval without any boost, used for future interval calculations.                 |
+/// | `stakingDistributionAmount`       | `[vTokenId]`                           | `uint256`  | Stores the reward amount for each `vTokenId` at each interval.                                              |
+/// | `stakingDistributionDenomination` | `[vTokenId]`                           | `bytes32`  | Stores the reward currency (`denomination`) for each `vTokenId` at each interval.                           |
+/// | `stakingSynced`                   | `[Entity ID][Staker ID]`               | `uint64`   | Records the last interval when data was synced into storage for a staker.                                   |
+/// | `objectMinimumSell`               | `[Token ID][Entity ID]`                | `uint256`  | Sets minimum staking and reward amounts for tokens per entity.                                              |
 
 struct FunctionLockedStorage {
     mapping(bytes4 => bool) locked; // function selector => is locked?
