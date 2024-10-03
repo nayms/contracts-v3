@@ -5,13 +5,6 @@ Pure functions
 
 
 ## Functions
-### _getIdForObjectAtIndex
-
-
-```solidity
-function _getIdForObjectAtIndex(uint256 _index) internal pure returns (bytes32);
-```
-
 ### _getIdForAddress
 
 
@@ -31,13 +24,6 @@ function _getSenderId() internal view returns (bytes32);
 
 ```solidity
 function _checkBottom12BytesAreEmpty(bytes32 value) internal pure returns (bool);
-```
-
-### _checkUpper12BytesAreEmpty
-
-
-```solidity
-function _checkUpper12BytesAreEmpty(bytes32 value) internal pure returns (bool);
 ```
 
 ### _getAddressFromId
