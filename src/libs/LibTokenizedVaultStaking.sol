@@ -124,7 +124,7 @@ library LibTokenizedVaultStaking {
         s.stakeBalance[vTokenId][_entityId] = stakingState.balance;
         s.stakeBoost[vTokenId][_entityId] = stakingState.boost;
 
-        // Update last colleted interval for the token itself
+        // Update last collected interval for the token itself
         s.stakeCollected[_entityId][_entityId] = interval;
 
         // Transfer the funds
@@ -142,7 +142,8 @@ library LibTokenizedVaultStaking {
 
         bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
 
-        if (_amount < s.objectMinimumSell[tokenId]) revert InvalidStakingAmount();
+        // Prevent staking below or equal to the minimum required
+        if (_amount <= s.objectMinimumSell[tokenId]) revert InvalidStakingAmount();
 
         uint64 currentInterval = _currentInterval(_entityId);
         bytes32 vTokenIdMax = _vTokenIdBucket(_entityId, tokenId);
