@@ -19,6 +19,7 @@ library LibTokenizedVaultStaking {
 
     /**
      * @dev First 4 bytes: "VTOK", next 8 bytes: interval, next 20 bytes: right 20 bytes of tokenId
+     * @param _entityId The ID of the entity.
      * @param _tokenId The internal ID of the token.
      * @param _interval The interval of staking.
      */
