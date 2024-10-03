@@ -255,7 +255,7 @@ library LibTokenizedVaultStaking {
             uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
             if (totalDistributionAmount > 0) {
                 uint256 currencyIndex;
-                (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
+                (rewards, currencyIndex) = _addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
 
                 // Use the same math as dividend distributions, assuming zero has already been collected
                 uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
@@ -347,7 +347,7 @@ library LibTokenizedVaultStaking {
         return s.stakingConfigs[_entityId].divider;
     }
 
-    function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) internal pure returns (RewardsBalances memory, uint256) {
+    function _addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) internal pure returns (RewardsBalances memory, uint256) {
         require(rewards.currencies.length == rewards.amounts.length, "Different array lengths!");
 
         uint256 length = rewards.currencies.length;
