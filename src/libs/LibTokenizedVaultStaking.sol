@@ -19,6 +19,7 @@ library LibTokenizedVaultStaking {
 
     /**
      * @dev First 4 bytes: "VTOK", next 8 bytes: interval, next 20 bytes: right 20 bytes of tokenId
+     * @param _entityId The ID of the entity.
      * @param _tokenId The internal ID of the token.
      * @param _interval The interval of staking.
      */
@@ -270,7 +271,7 @@ library LibTokenizedVaultStaking {
             uint256 totalDistributionAmount = s.stakingDistributionAmount[_vTokenId(_entityId, tokenId, i)];
             if (totalDistributionAmount > 0) {
                 uint256 currencyIndex;
-                (rewards, currencyIndex) = addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
+                (rewards, currencyIndex) = _addUniqueValue(rewards, s.stakingDistributionDenomination[_vTokenId(_entityId, tokenId, i)]);
 
                 // Use the same math as dividend distributions, assuming zero has already been collected
                 uint256 userDistributionAmount = LibTokenizedVault._getWithdrawableDividendAndDeductionMath(
@@ -362,7 +363,7 @@ library LibTokenizedVaultStaking {
         return s.stakingConfigs[_entityId].divider;
     }
 
-    function addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) internal pure returns (RewardsBalances memory, uint256) {
+    function _addUniqueValue(RewardsBalances memory rewards, bytes32 newValue) internal pure returns (RewardsBalances memory, uint256) {
         require(rewards.currencies.length == rewards.amounts.length, "Different array lengths!");
 
         uint256 length = rewards.currencies.length;
@@ -375,7 +376,7 @@ library LibTokenizedVaultStaking {
         // prettier-ignore
         RewardsBalances memory rewards_ = RewardsBalances({
             currencies: new bytes32[](length + 1),
-            amounts: new uint256[](rewards.amounts.length + 1),
+            amounts: new uint256[](length + 1),
             lastPaidInterval: 0
         });
 
@@ -392,7 +393,7 @@ library LibTokenizedVaultStaking {
 
     /**
      * @dev Get the starting time of a given interval
-     * @param _entityId The internal ID of the token
+     * @param _entityId The internal ID of the entity
      * @param _interval The interval to get the time for
      */
     function _calculateStartTimeOfInterval(bytes32 _entityId, uint64 _interval) internal view returns (uint64 intervalTime_) {
