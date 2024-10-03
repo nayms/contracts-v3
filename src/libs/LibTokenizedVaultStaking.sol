@@ -49,9 +49,16 @@ library LibTokenizedVaultStaking {
         emit TokenStakingStarted(_entityId, _config.tokenId, _config.initDate, _config.a, _config.r, _config.divider, _config.interval);
     }
 
+    /**
+     * @notice Checks if staking has been initialized for the given entity.
+     * @dev Staking is considered initialized if the initDate is set and the current timestamp is
+     *      equal to or after the initDate.
+     * @param _entityId The ID of the entity to check staking initialization.
+     * @return bool indicating whether staking is initialized.
+     */
     function _isStakingInitialized(bytes32 _entityId) internal view returns (bool) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return (s.stakingConfigs[_entityId].initDate > 0 && s.stakingConfigs[_entityId].initDate < block.timestamp);
+        return (s.stakingConfigs[_entityId].initDate > 0 && s.stakingConfigs[_entityId].initDate <= block.timestamp);
     }
 
     function _stakingConfig(bytes32 _entityId) internal view returns (StakingConfig memory) {
@@ -78,7 +85,14 @@ library LibTokenizedVaultStaking {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.stakeCollected[_entityId][_entityId];
     }
-
+    /**
+     * @notice Pays rewards to a staker.
+     * @dev Rewards can be paid if the current timestamp is equal to or after the staking initDate.
+     * @param _stakingRewardId The ID for the staking reward.
+     * @param _entityId The ID of the entity whose rewards are being paid.
+     * @param _rewardTokenId The ID of the reward token.
+     * @param _rewardAmount The amount of reward to be paid.
+     */
     function _payReward(bytes32 _stakingRewardId, bytes32 _entityId, bytes32 _rewardTokenId, uint256 _rewardAmount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
