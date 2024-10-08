@@ -9,9 +9,7 @@
         "txHash": "0x6d1ea0b274d7af0ca022b64f517f4f3be762995d87552d77a6f4ee2ff6978cbe",
         "onChain": {
           "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -451,9 +449,7 @@
         "txHash": "0x802c7bc5661076f4059dab9792c010e0495941ffc0f782bed6a4b2c3ab7d677e",
         "onChain": {
           "address": "0xc9FBBCA30856A960f48667834C129011EFD5612a",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -508,9 +504,7 @@
         "txHash": "0x98873f00e84337dde1885cc509a9ead082008f9b5ef7aec6fff03499cce35915",
         "onChain": {
           "address": "0x99AEa617F26CF33d9e077D09776dFed6CAf8D3CC",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -784,16 +778,6 @@
         }
       },
       {
-        "name": "NaymsTokenFacet",
-        "fullyQualifiedName": "NaymsTokenFacet.sol:NaymsTokenFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x083f494d2935983e43a02a8aea65df9d729246e2a5cdab3143f4b3668ec0eec4",
-        "onChain": {
-          "address": "0x4B26066875Fbf34084562B80bbfd03f3a8F18D1C",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
         "sender": "0x0000000000000000000000000000000000000000",
@@ -960,19 +944,7 @@
         "txHash": "0x977e0b4ba49eab5c9411da8d643c5747f1bbc02b72f0b5bfd783b7789b8b6645",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": [
-            "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"
-          ]
-        }
-      },
-      {
-        "name": "NaymsTokenFacet",
-        "fullyQualifiedName": "NaymsTokenFacet.sol:NaymsTokenFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xd04e39026100a00d64ef15688f84e822c1d9e02e831d215d13021c53ca1c9e8b",
-        "onChain": {
-          "address": "0x24c698F0F4553C05cB92f96643D1A98ad88847e2",
-          "constructorArgs": []
+          "constructorArgs": ["0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"]
         }
       },
       {
@@ -997,9 +969,7 @@
         "txHash": "0x23a3b79f63ae77f4220f2fa218b085bf769716a1212d3296b8bb064883638ef7",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       }
     ]
@@ -1014,9 +984,7 @@
         "txHash": "0xc39d80473198c0e543bc4fa29f232d8b2fb6e7ae98cadc89598d6d64a7322851",
         "onChain": {
           "address": "0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       }
     ]
@@ -1161,9 +1129,7 @@
         "txHash": "0x7ef2622cd1551630ac571773e10ae27a8f19cb7577ce807f0ae2fe8313c91d2b",
         "onChain": {
           "address": "0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
@@ -1188,9 +1154,7 @@
         "txHash": "0x094735b16130b5e29d9f454e65edf86c6970930b18610a90de1c3c2990ffd5ee",
         "onChain": {
           "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       }
     ]
@@ -1285,9 +1249,7 @@
         "txHash": "0x094735b16130b5e29d9f454e65edf86c6970930b18610a90de1c3c2990ffd5ee",
         "onChain": {
           "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
-          "constructorArgs": [
-            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
-          ]
+          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
         }
       },
       {
