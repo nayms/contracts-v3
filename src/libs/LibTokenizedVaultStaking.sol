@@ -428,6 +428,7 @@ library LibTokenizedVaultStaking {
 
         if (!_isStakingInitialized(_entityId)) {
             // boost is always 1 before init
+            boostedBalance_ = stakedBalance_;
             return (stakedBalance_, boostedBalance_);
         }
 

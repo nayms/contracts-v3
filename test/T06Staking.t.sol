@@ -305,6 +305,20 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, 0);
     }
 
+    function test_Stake_BeforeStakingStarted() public {
+        uint256 start = block.timestamp + 1;
+
+        initStaking(start + 7 days);
+
+        startPrank(bob);
+        // vm.expectRevert(abi.encodeWithSelector(InvalidStakingAmount.selector));
+        nayms.stake(nlf.entityId, 10 ether);
+
+        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedBalance, boostedBalance, "Bob should have no boost".red());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+    }
+
     function test_stake() public {
         uint256 start = block.timestamp + 1;
 
