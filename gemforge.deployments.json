@@ -9,7 +9,9 @@
         "txHash": "0x6d1ea0b274d7af0ca022b64f517f4f3be762995d87552d77a6f4ee2ff6978cbe",
         "onChain": {
           "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -449,7 +451,9 @@
         "txHash": "0x802c7bc5661076f4059dab9792c010e0495941ffc0f782bed6a4b2c3ab7d677e",
         "onChain": {
           "address": "0xc9FBBCA30856A960f48667834C129011EFD5612a",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -504,7 +508,9 @@
         "txHash": "0x98873f00e84337dde1885cc509a9ead082008f9b5ef7aec6fff03499cce35915",
         "onChain": {
           "address": "0x99AEa617F26CF33d9e077D09776dFed6CAf8D3CC",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -638,6 +644,16 @@
     "chainId": 1,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xa3a2b982a827a9b5caec25a351abb4486c634c815200a9741070c24f43d6a8cd",
+        "onChain": {
+          "address": "0x65175E5ACBa632Fb0e24641eb7a25643Df3fc20E",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
@@ -714,16 +730,6 @@
         "txHash": "0x30215e33003d27b5118129e252eb03645d6d22757dc6ef560eed6be366c21268",
         "onChain": {
           "address": "0x458e9D7582F56B3E08224B66c177624EDaf3BAa6",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x802faed407690af65e8d011b36d183b856734f4243b4a3b9692f96338f52cf7e",
-        "onChain": {
-          "address": "0x7a0f9321DB17ed7b893CdfC45CaD3054C1A51434",
           "constructorArgs": []
         }
       },
@@ -808,6 +814,16 @@
     "chainId": 8453,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x77f4566d4479c786f9073fb30fbe41ea0bba58c9060f638939242e2901cadb83",
+        "onChain": {
+          "address": "0xedEEa535A6bC0b75551D7173e1642146D82C2533",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
@@ -888,16 +904,6 @@
         }
       },
       {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x216736b9b90275313d1a3b1e51782978cb0bbb39eeaf50223e39a1b0d85e253b",
-        "onChain": {
-          "address": "0x67Dd62A70a644A4f7074851d01a27F347bDD017D",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "SystemFacet",
         "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
@@ -944,7 +950,9 @@
         "txHash": "0x977e0b4ba49eab5c9411da8d643c5747f1bbc02b72f0b5bfd783b7789b8b6645",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": ["0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"]
+          "constructorArgs": [
+            "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"
+          ]
         }
       },
       {
@@ -969,7 +977,9 @@
         "txHash": "0x23a3b79f63ae77f4220f2fa218b085bf769716a1212d3296b8bb064883638ef7",
         "onChain": {
           "address": "0x546Fb1621CF8C0e8e3ED8E3508b7c5100ADdBc03",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       }
     ]
@@ -984,7 +994,9 @@
         "txHash": "0xc39d80473198c0e543bc4fa29f232d8b2fb6e7ae98cadc89598d6d64a7322851",
         "onChain": {
           "address": "0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       }
     ]
@@ -1129,7 +1141,9 @@
         "txHash": "0x7ef2622cd1551630ac571773e10ae27a8f19cb7577ce807f0ae2fe8313c91d2b",
         "onChain": {
           "address": "0x2561E3F2f79b2597CCF1752C47fb2EA54F463c95",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
@@ -1154,7 +1168,9 @@
         "txHash": "0x094735b16130b5e29d9f454e65edf86c6970930b18610a90de1c3c2990ffd5ee",
         "onChain": {
           "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       }
     ]
@@ -1249,7 +1265,9 @@
         "txHash": "0x094735b16130b5e29d9f454e65edf86c6970930b18610a90de1c3c2990ffd5ee",
         "onChain": {
           "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
-          "constructorArgs": ["0x931c3aC09202650148Edb2316e97815f904CF4fa"]
+          "constructorArgs": [
+            "0x931c3aC09202650148Edb2316e97815f904CF4fa"
+          ]
         }
       },
       {
