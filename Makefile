@@ -202,9 +202,6 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		-vv \
 		--broadcast
 
-docs: ## generate docs from natspec comments
-	yarn docgen
-
 slither:	## run slither static analysis
 	slither src/generated --config-file=slither.config.json --fail-none
 
