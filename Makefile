@@ -63,7 +63,7 @@ gasforksnap: ## gas snapshot mainnet fork
 	forge snapshot --snap .gas-snapshot \
 		-f ${ETH_MAINNET_RPC_URL} \
 		--fork-block-number 15078000
-
+		
 gasforkcheck: ## gas check mainnet fork
 	forge snapshot --check \
 		-f ${ETH_MAINNET_RPC_URL} \
@@ -81,9 +81,6 @@ cov: ## coverage report -vvv
 
 coverage: ## coverage report (lcov), filtered for CI
 	forge coverage --no-match-test testFork -vvv --report lcov --via-ir && node ./cli-tools/filter-lcov.js
-
-lcov: ## coverage report (lcov)
-	forge coverage --report lcov --via-ir
 
 gencov: ## generate html coverage report
 	forge coverage --report lcov && genhtml -o cov-html --branch-coverage lcov.info
@@ -138,9 +135,6 @@ anvil-docker:	## run anvil in a container
 		--name anvil \
 		ghcr.io/nayms/contracts-builder:latest \
 		-c "cd nayms && make anvil"
-
-anvil-dbg:	## run anvil in debug mode with shared wallet
-	RUST_LOG=backend,api,node,rpc=warn anvil --host 0.0.0.0 --chain-id 31337 -m "${shell cat ./nayms_mnemonic.txt}" --state anvil.json
 
 fork-mainnet: ## fork mainnet locally with anvil
 	anvil -f ${ETH_MAINNET_RPC_URL} --accounts 20 -m "${shell cat ./nayms_mnemonic.txt}"
@@ -208,72 +202,12 @@ create-entity: ## create an entity on the Nayms platform (using some default val
 		-vv \
 		--broadcast
 
-update-entity: ## update
-	forge script UpdateEntity \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
-		--sender ${ownerAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		-vvvv \
-		--broadcast
-
-update-commissions: ## update trading and premium commissions
-	forge script UpdateCommissions \
-		-s "tradingAndPremium(address)" ${naymsDiamondAddress} \
-		-f ${ETH_GOERLI_RPC_URL} \
-		--chain-id 5 \
-		--sender ${ownerAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		-vv \
-		--broadcast
-
 docs: ## generate docs from natspec comments
 	yarn docgen
 
 slither:	## run slither static analysis
 	slither src/generated --config-file=slither.config.json --fail-none
 
-verify-dry-run:	## dry run verify script, prints out commands to be executed
-	node cli-tools/verify.js --dry-run
-
-verify:	## verify contracts on chain (goerli)
-	node cli-tools/verify.js
-
-coderecon: ## code recon
-	@forge script CodeRecon \
-		-s "run(string[] memory)" ${contractNames} \
-		-f ${ETH_MAINNET_RPC_URL} \
-		--chain-id 1 \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		-vv \
-		; node cli-tools/parse-json.js
-
-compb: ## Compare bytecode
-	@forge script CheckBytecode \
-		-s "run(uint8)" ${checkBytecodeAction} \
-		-f ${ETH_MAINNET_RPC_URL} \
-		--chain-id 1 \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${senderAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		-v \
-		--ffi
-
-checkf: ## Check if facet exists in a diamond
-	@forge script DiamondChecker \
-		-s "run(address, bytes4)" ${chkFacetAddress} ${selectorChk} \
-		-f ${ETH_SEPOLIA_RPC_URL} \
-		--chain-id 11155111 \
-		--etherscan-api-key ${ETHERSCAN_API_KEY} \
-		--sender ${ownerAddress} \
-		--mnemonic-paths ./nayms_mnemonic.txt \
-		--mnemonic-indexes 19 \
-		-vv \
-		--ffi
-	
 bn-mainnet: ## get block number for mainnet and replace FORK_BLOCK_1 in .env
 	@result=$$(cast bn -r mainnet) && \
 	sed -i '' "s/^export FORK_BLOCK_1=.*/export FORK_BLOCK_1=$$result/" .env

@@ -35,7 +35,7 @@
     "build": "gemforge build",
     "deploy": "./script/gemforge/deploy.js",
     "query": "gemforge query",
-    "test": "forge test --no-match-test testReplaceDiamondCut"
+    "test": "forge test --no-match-test testFork"
   },
   "devDependencies": {
     "chalk": "4",
