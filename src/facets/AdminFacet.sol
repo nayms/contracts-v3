@@ -169,4 +169,8 @@ contract AdminFacet is Modifiers {
     function cancelSelfOnboarding(address _user) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         LibAdmin._cancelSelfOnboarding(_user);
     }
+
+    function getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bytes32) {
+        return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
+    }
 }
