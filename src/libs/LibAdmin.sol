@@ -9,6 +9,8 @@ import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 import { LibEntity } from "./LibEntity.sol";
 import { LibACL } from "./LibACL.sol";
+import { LibEIP712 } from "./LibEIP712.sol";
+
 // prettier-ignore
 import {
     CannotAddNullDiscountToken,
@@ -304,5 +306,12 @@ library LibAdmin {
         s.objectMinimumSell[_objectId] = _minimumSell;
 
         emit MinimumSellUpdated(_objectId, _minimumSell);
+    }
+
+    function _getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal view returns (bytes32) {
+        return
+            LibEIP712._hashTypedDataV4(
+                keccak256(abi.encode(keccak256("OnboardingApproval(address _userAddress, bytes32 _entityId, bytes32 _roleId)"), _userAddress, _entityId, _roleId))
+            );
     }
 }
