@@ -10,12 +10,10 @@ import { LibTokenizedVault } from "./LibTokenizedVault.sol";
 import { LibFeeRouter } from "./LibFeeRouter.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibEIP712 } from "./LibEIP712.sol";
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import { ExcessiveCommissionReceivers, FeeBasisPointsExceedHalfMax, EntityDoesNotExist, PolicyDoesNotExist, PolicyCannotCancelAfterMaturation, PolicyIdCannotBeZero, DuplicateSignerCreatingSimplePolicy, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, InvalidSignatureError, InvalidSignatureSError, MaturationDateTooFar } from "../shared/CustomErrors.sol";
+
+import { ExcessiveCommissionReceivers, FeeBasisPointsExceedHalfMax, EntityDoesNotExist, PolicyDoesNotExist, PolicyCannotCancelAfterMaturation, PolicyIdCannotBeZero, DuplicateSignerCreatingSimplePolicy, SimplePolicyStakeholderSignatureInvalid, SimplePolicyClaimsPaidShouldStartAtZero, SimplePolicyPremiumsPaidShouldStartAtZero, CancelCannotBeTrueWhenCreatingSimplePolicy, MaturationDateTooFar } from "../shared/CustomErrors.sol";
 
 library LibSimplePolicy {
-    using ECDSA for bytes32;
     /**
      * @notice New policy has been created
      * @dev Emitted when policy is created
@@ -68,7 +66,7 @@ library LibSimplePolicy {
         for (uint256 i = 0; i < rolesCount; i++) {
             previousSigner = signer;
 
-            signer = getSigner(signingHash, _stakeholders.signatures[i]);
+            signer = LibAdmin._getSigner(signingHash, _stakeholders.signatures[i]);
 
             if (LibObject._getParentFromAddress(signer) != _stakeholders.entityIds[i]) {
                 revert SimplePolicyStakeholderSignatureInvalid(
@@ -92,39 +90,6 @@ library LibSimplePolicy {
         emit SimplePolicyCreated(_policyId, _entityId);
     }
 
-    function getSigner(bytes32 signingHash, bytes memory signature) private pure returns (address) {
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        // ecrecover takes the signature parameters, and the only way to get them
-        if (signature.length == 65) {
-            // currently is to use assembly.
-            /// @solidity memory-safe-assembly
-            assembly {
-                r := mload(add(signature, 0x20))
-                s := mload(add(signature, 0x40))
-                v := byte(0, mload(add(signature, 0x60)))
-
-                switch v
-                // if v == 0, then v = 27
-                case 0 {
-                    v := 27
-                }
-                // if v == 1, then v = 28
-                case 1 {
-                    v := 28
-                }
-            }
-        }
-
-        (address signer, ECDSA.RecoverError err, ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
-
-        if (err == ECDSA.RecoverError.InvalidSignature) revert InvalidSignatureError(signingHash);
-        else if (err == ECDSA.RecoverError.InvalidSignatureS) revert InvalidSignatureSError(s);
-
-        return signer;
-    }
     /**
      * @dev If an entity passes their checks to create a policy, ensure that the entity's capacity is appropriately decreased by the amount of capital that will be tied to the new policy being created.
      */

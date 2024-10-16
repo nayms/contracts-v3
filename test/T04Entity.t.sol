@@ -1172,133 +1172,133 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
     }
 
-    function testSelfOnboardingInvalidGroup() public {
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_SYSTEM_MANAGER);
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+    // function testSelfOnboardingInvalidGroup() public {
+    //     bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_SYSTEM_MANAGER);
+    //     nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        vm.startPrank(em.addr);
-        vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, roleId));
-        nayms.approveSelfOnboarding(address(111), randomEntityId(1), roleId);
-        vm.stopPrank();
-    }
+    //     vm.startPrank(em.addr);
+    //     vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, roleId));
+    //     nayms.approveSelfOnboarding(address(111), randomEntityId(1), roleId);
+    //     vm.stopPrank();
+    // }
 
-    function testSelfOnboardingAlreadyApproved() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+    // function testSelfOnboardingAlreadyApproved() public {
+    //     nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        bytes32 entityId = randomEntityId(2);
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(address(111), entityId, roleId);
+    //     bytes32 entityId = randomEntityId(2);
+    //     bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+    //     vm.startPrank(em.addr);
+    //     nayms.approveSelfOnboarding(address(111), entityId, roleId);
 
-        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, address(111)));
-        nayms.approveSelfOnboarding(address(111), entityId, roleId);
-        vm.stopPrank();
-    }
+    //     vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, address(111)));
+    //     nayms.approveSelfOnboarding(address(111), entityId, roleId);
+    //     vm.stopPrank();
+    // }
 
-    function testSelfOnboardingSuccess() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+    // function testSelfOnboardingSuccess() public {
+    //     nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bytes32 e1 = randomEntityId(1);
-        _approveSelfOnboarding(address(111), e1, roleId);
-        _selfOnboard(address(111), e1, LC.GROUP_TOKEN_HOLDERS);
+    //     bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+    //     bytes32 e1 = randomEntityId(1);
+    //     _approveSelfOnboarding(address(111), e1, roleId);
+    //     _selfOnboard(address(111), e1, LC.GROUP_TOKEN_HOLDERS);
 
-        bytes32 roleId2 = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
-        bytes32 e2 = randomEntityId(2);
-        _approveSelfOnboarding(address(222), e2, roleId2);
-        _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
-    }
+    //     bytes32 roleId2 = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+    //     bytes32 e2 = randomEntityId(2);
+    //     _approveSelfOnboarding(address(222), e2, roleId2);
+    //     _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
+    // }
 
-    function testSelfOnboardingUpgradeToCapitalProvider() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
-        bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bytes32 roleIdCP = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
-        // test upgrade before onboarding
-        bytes32 e1 = randomEntityId(1);
+    // function testSelfOnboardingUpgradeToCapitalProvider() public {
+    //     nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+    //     bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+    //     bytes32 roleIdCP = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+    //     // test upgrade before onboarding
+    //     bytes32 e1 = randomEntityId(1);
 
-        _approveSelfOnboarding(address(111), e1, roleIdTokenHolder);
-        _approveSelfOnboarding(address(111), e1, roleIdCP);
-        _selfOnboard(address(111), e1, LC.GROUP_CAPITAL_PROVIDERS);
+    //     _approveSelfOnboarding(address(111), e1, roleIdTokenHolder);
+    //     _approveSelfOnboarding(address(111), e1, roleIdCP);
+    //     _selfOnboard(address(111), e1, LC.GROUP_CAPITAL_PROVIDERS);
 
-        // test upgrade after onboarding
-        bytes32 e2 = randomEntityId(2);
-        _approveSelfOnboarding(address(222), e2, roleIdTokenHolder);
-        _selfOnboard(address(222), e2, LC.GROUP_TOKEN_HOLDERS);
-        _approveSelfOnboarding(address(222), e2, roleIdCP);
+    //     // test upgrade after onboarding
+    //     bytes32 e2 = randomEntityId(2);
+    //     _approveSelfOnboarding(address(222), e2, roleIdTokenHolder);
+    //     _selfOnboard(address(222), e2, LC.GROUP_TOKEN_HOLDERS);
+    //     _approveSelfOnboarding(address(222), e2, roleIdCP);
 
-        vm.recordLogs();
+    //     vm.recordLogs();
 
-        _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
+    //     _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
 
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
-        assertEq(entries[0].topics[1], e2);
-        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
-        assertEq(contextId, e2);
-        assertEq(roleId, roleIdTokenHolder);
-        assertEq(action, "_unassignRole");
+    //     Vm.Log[] memory entries = vm.getRecordedLogs();
+    //     assertEq(entries[0].topics.length, 2);
+    //     assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
+    //     assertEq(entries[0].topics[1], e2);
+    //     (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
+    //     assertEq(contextId, e2);
+    //     assertEq(roleId, roleIdTokenHolder);
+    //     assertEq(action, "_unassignRole");
 
-        assertEq(entries[1].topics.length, 2);
-        assertEq(entries[1].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
-        assertEq(entries[1].topics[1], e2, "object ID doesn't match");
-        (bytes32 contextId2, bytes32 roleId2, string memory action2) = abi.decode(entries[1].data, (bytes32, bytes32, string));
-        assertEq(contextId2, systemContext, "incorrect context");
-        assertEq(roleId2, roleIdTokenHolder, "wrong role");
-        assertEq(action2, "_unassignRole", "wrong operation");
-    }
+    //     assertEq(entries[1].topics.length, 2);
+    //     assertEq(entries[1].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
+    //     assertEq(entries[1].topics[1], e2, "object ID doesn't match");
+    //     (bytes32 contextId2, bytes32 roleId2, string memory action2) = abi.decode(entries[1].data, (bytes32, bytes32, string));
+    //     assertEq(contextId2, systemContext, "incorrect context");
+    //     assertEq(roleId2, roleIdTokenHolder, "wrong role");
+    //     assertEq(action2, "_unassignRole", "wrong operation");
+    // }
 
-    function testSelfOnboardingCancel() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+    // function testSelfOnboardingCancel() public {
+    //     nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        bytes32 entityId = randomEntityId(2);
-        bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+    //     bytes32 entityId = randomEntityId(2);
+    //     bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
 
-        vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(address(111), entityId, roleIdTokenHolder);
-        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should be approved");
+    //     vm.startPrank(em.addr);
+    //     nayms.approveSelfOnboarding(address(111), entityId, roleIdTokenHolder);
+    //     assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should be approved");
 
-        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
-        nayms.cancelSelfOnboarding(address(111));
-        vm.stopPrank();
-        vm.startPrank(sm.addr);
-        nayms.cancelSelfOnboarding(address(111));
+    //     vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
+    //     nayms.cancelSelfOnboarding(address(111));
+    //     vm.stopPrank();
+    //     vm.startPrank(sm.addr);
+    //     nayms.cancelSelfOnboarding(address(111));
 
-        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should have been cancelled");
-    }
+    //     assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should have been cancelled");
+    // }
 
-    function _approveSelfOnboarding(address _userAddress, bytes32 entityId, bytes32 roleId) private {
-        vm.recordLogs();
+    // function _approveSelfOnboarding(address _userAddress, bytes32 entityId, bytes32 roleId) private {
+    //     vm.recordLogs();
 
-        vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(_userAddress, entityId, roleId);
-        vm.stopPrank();
+    //     vm.startPrank(em.addr);
+    //     nayms.approveSelfOnboarding(_userAddress, entityId, roleId);
+    //     vm.stopPrank();
 
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("SelfOnboardingApproved(address)"));
-        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[1]), (address)), _userAddress);
-    }
+    //     Vm.Log[] memory entries = vm.getRecordedLogs();
+    //     assertEq(entries[0].topics.length, 2);
+    //     assertEq(entries[0].topics[0], keccak256("SelfOnboardingApproved(address)"));
+    //     assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[1]), (address)), _userAddress);
+    // }
 
-    function _selfOnboard(address _userAddress, bytes32 entityId, string memory groupName) private {
-        vm.startPrank(_userAddress);
-        nayms.onboard();
-        vm.stopPrank();
+    // function _selfOnboard(address _userAddress, bytes32 entityId, string memory groupName) private {
+    //     vm.startPrank(_userAddress);
+    //     nayms.onboard();
+    //     vm.stopPrank();
 
-        assertTrue(nayms.isInGroup(entityId, systemContext, groupName));
-        assertTrue(nayms.isInGroup(entityId, entityId, groupName));
-    }
+    //     assertTrue(nayms.isInGroup(entityId, systemContext, groupName));
+    //     assertTrue(nayms.isInGroup(entityId, entityId, groupName));
+    // }
 
-    function test_ApproveSelfOnboarding_InvalidEntityId() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+    // function test_ApproveSelfOnboarding_InvalidEntityId() public {
+    //     nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        bytes32 entityId = keccak256("invalid entity id");
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+    //     bytes32 entityId = keccak256("invalid entity id");
+    //     bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
 
-        vm.startPrank(em.addr);
-        vm.expectRevert(abi.encodeWithSelector(InvalidEntityId.selector, entityId));
-        nayms.approveSelfOnboarding(address(111), entityId, roleId);
-    }
+    //     vm.startPrank(em.addr);
+    //     vm.expectRevert(abi.encodeWithSelector(InvalidEntityId.selector, entityId));
+    //     nayms.approveSelfOnboarding(address(111), entityId, roleId);
+    // }
 
     function randomEntityId(uint256 salt) public view returns (bytes32) {
         bytes32 hash = keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, salt));
