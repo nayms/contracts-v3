@@ -157,7 +157,7 @@ module.exports = {
   },
   targets: {
     // `governance` attribute is only releveant for testnets, it's a wallet to use to auto approve the upgrade ID within the script
-    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
+    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress], create3Salt: "0x73616c747933"},
     sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     mainnet: { network: "mainnet", wallet: "wallet3", initArgs: [sysAdminAddress] },
