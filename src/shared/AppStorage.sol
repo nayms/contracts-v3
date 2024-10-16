@@ -80,7 +80,7 @@ struct AppStorage {
     mapping(bytes32 entityId => mapping(uint256 feeScheduleTypeId => FeeSchedule)) feeSchedules; // map entity ID to a fee schedule type and then to array of FeeReceivers (feeScheduleType (1-premium, 2-trading, n-others))
     mapping(bytes32 objectId => uint256 minimumSell) objectMinimumSell; // map object ID to minimum sell amount
     mapping(bytes32 objectId => uint256) depositTotal; // total amount deposited into contract, for rebasing tokens support
-    mapping(address userAddress => EntityApproval) selfOnboarding; // map address => { entityId, roleId }
+    mapping(address userAddress => EntityApproval) selfOnboarding; // note: DEPRECATED
     /// Staking
     mapping(bytes32 entityId => StakingConfig) stakingConfigs; // StakingConfig for an entity
     mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalance; // [vTokenId][ownerId] balance at interval
