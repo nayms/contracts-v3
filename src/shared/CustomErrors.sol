@@ -129,9 +129,6 @@ error RebasingInterestNotInitialized(bytes32 tokenId);
 /// @dev Insufficient amount of interest acrrued so far
 error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accruedAmount);
 
-/// @dev Rebase amount cannot be greater than the actual balance
-error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);
-
 /// @dev Staking can be initialized only once
 error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
 

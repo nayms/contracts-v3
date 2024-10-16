@@ -7,7 +7,7 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
-import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
+import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
 
 import { InsufficientBalance } from "../shared/CustomErrors.sol";
 
