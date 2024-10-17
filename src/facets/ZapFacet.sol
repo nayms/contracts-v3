@@ -61,7 +61,8 @@ contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
             revert ExternalWithdrawInvalidReceiver(_receiver);
 
         // Unstake the amount
-        LibTokenizedVaultStaking._unstake(_entityId, _entityId, _amount);
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
+        LibTokenizedVaultStaking._unstake(parentId, _entityId);
 
         // Perform the withdrawal directly to the receiver
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
