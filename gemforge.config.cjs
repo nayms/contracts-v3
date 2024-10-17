@@ -1,11 +1,13 @@
 require("dotenv").config();
 
 const fs = require("fs");
-const ethers = require("ethers");
+const { ethers, utils } = require("ethers");
 
 const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt") ? fs.readFileSync("./nayms_mnemonic.txt").toString().trim() : "test test test test test test test test test test test junk";
 
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
+
+const localSalt = utils.keccak256(utils.toUtf8Bytes("salty3"))
 
 module.exports = {
   // Configuration file version
@@ -157,7 +159,7 @@ module.exports = {
   },
   targets: {
     // `governance` attribute is only releveant for testnets, it's a wallet to use to auto approve the upgrade ID within the script
-    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress], create3Salt: "0x73616c747933"},
+    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress], create3Salt: localSalt},
     sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     mainnet: { network: "mainnet", wallet: "wallet3", initArgs: [sysAdminAddress] },
