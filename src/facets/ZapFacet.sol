@@ -14,7 +14,7 @@ import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 import { LibTokenizedVaultStaking } from "../libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 
-contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
+contract ZapFacet is Modifiers, ReentrancyGuard {
     /**
      * @notice Approve, deposit, and stake funds into msg.sender's Nayms platform entity in one transaction
      * @dev Approves token transfer, deposits from msg.sender to their associated entity, and stakes the amount
