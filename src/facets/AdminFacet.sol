@@ -154,8 +154,8 @@ contract AdminFacet is Modifiers {
         LibAdmin._onboardUser(msg.sender);
     }
 
-    function onboard2(bytes32 _entityId, bytes32 _roleId, bytes calldata sig) external {
-        LibAdmin._onboardUser2(msg.sender, _entityId, _roleId, sig);
+    function onboardViaSignature(bytes32 _entityId, bytes32 _roleId, bytes calldata sig) external {
+        LibAdmin._onboardUserViaSignature(msg.sender, _entityId, _roleId, sig);
     }
 
     function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bool) {

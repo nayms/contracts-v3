@@ -233,7 +233,7 @@ library LibAdmin {
         emit FunctionsUnlocked(lockedFunctions);
     }
 
-    function _onboardUser2(address _userAddress, bytes32 _entityId, bytes32 _roleId, bytes calldata sig) internal {
+    function _onboardUserViaSignature(address _userAddress, bytes32 _entityId, bytes32 _roleId, bytes calldata sig) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (_entityId == 0 || _roleId == 0 || sig.length == 0) revert EntityOnboardingNotApproved(_userAddress);
