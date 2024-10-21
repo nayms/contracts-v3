@@ -339,9 +339,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
         bytes[] memory signatures = new bytes[](3);
-        signatures[0] = initPolicySig(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
-        signatures[1] = initPolicySig(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
-        signatures[2] = initPolicySig(0xACC3, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[0] = signWithPK(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
+        signatures[1] = signWithPK(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[2] = signWithPK(0xACC3, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
         bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
@@ -389,9 +389,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
         bytes[] memory signatures = new bytes[](3);
-        signatures[0] = initPolicySig(0xACC2, signingHash);
-        signatures[1] = initPolicySig(0xACC1, signingHash);
-        signatures[2] = initPolicySig(0xACC3, signingHash);
+        signatures[0] = signWithPK(0xACC2, signingHash);
+        signatures[1] = signWithPK(0xACC1, signingHash);
+        signatures[2] = signWithPK(0xACC3, signingHash);
 
         bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
@@ -438,10 +438,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
-        stakeholders.signatures[0] = initPolicySig(0xACC2, signingHash);
-        stakeholders.signatures[1] = initPolicySig(0xACC1, signingHash);
-        stakeholders.signatures[2] = initPolicySig(0xACC3, signingHash);
-        stakeholders.signatures[3] = initPolicySig(0xACC4, signingHash);
+        stakeholders.signatures[0] = signWithPK(0xACC2, signingHash);
+        stakeholders.signatures[1] = signWithPK(0xACC1, signingHash);
+        stakeholders.signatures[2] = signWithPK(0xACC3, signingHash);
+        stakeholders.signatures[3] = signWithPK(0xACC4, signingHash);
 
         // external token not supported
         vm.expectRevert("external token is not supported");

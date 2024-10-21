@@ -440,16 +440,16 @@ contract D03ProtocolDefaults is D02TestSetup {
             bytes[] memory signatures = new bytes[](4);
             bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, offchainDataHash);
 
-            signatures[0] = initPolicySig(0xACC2, signingHash);
-            signatures[1] = initPolicySig(0xACC1, signingHash);
-            signatures[2] = initPolicySig(0xACC3, signingHash);
-            signatures[3] = initPolicySig(0xACC4, signingHash);
+            signatures[0] = signWithPK(0xACC2, signingHash);
+            signatures[1] = signWithPK(0xACC1, signingHash);
+            signatures[2] = signWithPK(0xACC3, signingHash);
+            signatures[3] = signWithPK(0xACC4, signingHash);
 
             policyStakeholders = Stakeholders(roles, entityIds, signatures);
         }
     }
 
-    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
+    function signWithPK(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, MessageHashUtils.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
