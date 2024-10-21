@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { Vm } from "forge-std/Vm.sol";
+
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -480,5 +482,16 @@ contract D03ProtocolDefaults is D02TestSetup {
         for (uint256 i; i < cr.length; i++) {
             c.logBytes32(cr[i]);
         }
+    }
+
+    function assertRoleUpdateEvent(Vm.Log[] memory entries, uint256 _index, bytes32 _ctxId, bytes32 _entityId, bytes32 _roleId, string memory _action) internal {
+        assertEq(entries[_index].topics.length, 2);
+        assertEq(entries[_index].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
+        assertEq(entries[_index].topics[1], _entityId, "incorrect entityID".red());
+
+        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[_index].data, (bytes32, bytes32, string));
+        assertEq(contextId, _ctxId, "incorrect context".red());
+        assertEq(_roleId, roleId, "incorrect role ID".red());
+        assertEq(action, _action, "incorrect action".red());
     }
 }

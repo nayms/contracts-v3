@@ -184,9 +184,6 @@ error InvalidSignatureSError(bytes32 sValue);
 /// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
 error InvalidReceiverCount(uint256 numberOfReceivers);
 
-/// @dev The entity ID is invalid for the given context.
-error InvalidEntityId(bytes32 entityId);
-
 /// @dev Thrown when the maturation date of a policy is set beyond the allowable future date limit.
 /// This prevents setting unrealistic maturation dates that could affect the contract's operability or the enforceability of the policy.
 error MaturationDateTooFar(uint256 maturationDate);

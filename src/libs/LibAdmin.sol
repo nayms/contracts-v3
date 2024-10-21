@@ -25,7 +25,6 @@ import {
     EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
     InvalidSelfOnboardRoleApproval,
-    InvalidEntityId,
     InvalidSignatureError,
     InvalidSignatureSError
 } from "../shared/CustomErrors.sol";
@@ -237,6 +236,10 @@ library LibAdmin {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (_entityId == 0 || _roleId == 0 || sig.length == 0) revert EntityOnboardingNotApproved(_userAddress);
+
+        bool isTokenHolder = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bool isCapitalProvider = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+        if (!isTokenHolder && !isCapitalProvider) revert InvalidSelfOnboardRoleApproval(_roleId);
 
         bytes32 onboardingApproversGroupId = LibHelpers._stringToBytes32(LC.GROUP_ONBOARDING_APPROVERS);
         bytes32 signingHash = _getOnboardingHash(_userAddress, _entityId, _roleId);
