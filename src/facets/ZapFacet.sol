@@ -13,6 +13,7 @@ import { ExternalWithdrawInvalidReceiver } from "../shared/CustomErrors.sol";
 import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 import { LibTokenizedVaultStaking } from "../libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
+import { LibMarket } from "../libs/LibMarket.sol";
 
 contract ZapFacet is Modifiers, ReentrancyGuard {
     /**
@@ -41,6 +42,39 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
 
         // Stake the deposited amount
         LibTokenizedVaultStaking._stake(entityId, entityId, _amount);
+    }
+
+    function zapOrder(
+        address _externalTokenAddress,
+        uint256 _amount,
+        bytes32 _sellToken,
+        uint256 _sellAmount,
+        bytes32 _buyToken,
+        uint256 _buyAmount
+    )
+        external
+        notLocked
+        nonReentrant
+        assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXECUTE_LIMIT_OFFER)
+        returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_)
+    {
+        // Check if it's a supported ERC20 token
+        require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "zapOrder: invalid ERC20 token");
+
+        // Get the user's entity
+        bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
+        require(LibEntity._isEntity(entityId), "zapOrder: invalid entity");
+
+        // Approve the token transfer to the ZapFacet contract
+        IERC20 token = IERC20(_externalTokenAddress);
+        require(token.approve(address(this), _amount), "zapOrder: approval failed");
+
+        // Perform the external deposit
+        LibTokenizedVaultIO._externalDeposit(entityId, _externalTokenAddress, _amount);
+
+        // Execute the limit order
+        // Assumption: executeLimitOrder is a function that takes entityId, token address, amount, and order parameters
+        return LibMarket._executeLimitOffer(entityId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
     }
 
     /**
