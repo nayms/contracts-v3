@@ -29,14 +29,8 @@ error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInC
 /// @param role The name of the rle which should not be approaved for self-onboarding
 error InvalidSelfOnboardRoleApproval(bytes32 role);
 
-/// @dev Passing in a missing address when trying to add a token address to the supported external token list.
-error CannotAddNullSupportedExternalToken();
-
 /// @dev Cannot add a ERC20 token to the supported external token list that has more than 18 decimal places.
 error CannotSupportExternalTokenWithMoreThan18Decimals();
-
-/// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
-error CannotAddNullDiscountToken();
 
 /// @dev Object exsists when it should not.
 error ObjectExistsAlready(bytes32 objectId);
@@ -49,9 +43,6 @@ error EntityDoesNotExist(bytes32 objectId);
 
 /// @dev The entity self onboarding not approved
 error EntityOnboardingNotApproved(address userAddress);
-
-/// @dev The entity self onboarding already approved
-error EntityOnboardingAlreadyApproved(address userAddress);
 
 /// @dev Cannot create an entity that already exists.
 error EntityExistsAlready(bytes32 entityId);
