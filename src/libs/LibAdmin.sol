@@ -16,13 +16,9 @@ import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/Mes
 
 // prettier-ignore
 import {
-    CannotAddNullDiscountToken,
-    CannotAddNullSupportedExternalToken,
     CannotSupportExternalTokenWithMoreThan18Decimals,
     ObjectTokenSymbolAlreadyInUse,
     MinimumSellCannotBeZero,
-    EntityExistsAlready,
-    EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
     InvalidSelfOnboardRoleApproval,
     InvalidSignatureError,
@@ -239,18 +235,20 @@ library LibAdmin {
 
         bool isTokenHolder = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
         bool isCapitalProvider = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
-        if (!isTokenHolder && !isCapitalProvider) revert InvalidSelfOnboardRoleApproval(_roleId);
+        if (!isTokenHolder && !isCapitalProvider) {
+            revert InvalidSelfOnboardRoleApproval(_roleId);
+        }
 
-        bytes32 onboardingApproversGroupId = LibHelpers._stringToBytes32(LC.GROUP_ONBOARDING_APPROVERS);
         bytes32 signingHash = _getOnboardingHash(_userAddress, _entityId, _roleId);
-        address signer = _getSigner(signingHash, sig);
-        bytes32 signerId = LibHelpers._getIdForAddress(signer);
+        bytes32 signerId = LibHelpers._getIdForAddress(_getSigner(signingHash, sig));
 
-        if (!LibACL._isInGroup(signerId, LibAdmin._getSystemId(), onboardingApproversGroupId)) revert EntityOnboardingNotApproved(_userAddress);
+        if (!LibACL._isInGroup(signerId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.GROUP_ONBOARDING_APPROVERS))) {
+            revert EntityOnboardingNotApproved(_userAddress);
+        }
 
-        bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
         if (!s.existingEntities[_entityId]) {
             Entity memory entity;
+            bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
             LibEntity._createEntity(_entityId, userId, entity, 0);
         }
 
