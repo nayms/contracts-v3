@@ -9,31 +9,33 @@ import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 import { LibEntity } from "./LibEntity.sol";
 import { LibACL } from "./LibACL.sol";
+import { LibEIP712 } from "./LibEIP712.sol";
+
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+
 // prettier-ignore
 import {
-    CannotAddNullDiscountToken,
-    CannotAddNullSupportedExternalToken,
     CannotSupportExternalTokenWithMoreThan18Decimals,
     ObjectTokenSymbolAlreadyInUse,
     MinimumSellCannotBeZero,
-    EntityExistsAlready,
-    EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
     InvalidSelfOnboardRoleApproval,
-    InvalidEntityId
+    InvalidSignatureError,
+    InvalidSignatureSError
 } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 
 library LibAdmin {
+    using ECDSA for bytes32;
+
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
     event SupportedTokenAdded(address indexed tokenAddress);
     event FunctionsLocked(bytes4[] functionSelectors);
     event FunctionsUnlocked(bytes4[] functionSelectors);
     event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
-    event SelfOnboardingApproved(address indexed userAddress);
     event SelfOnboardingCompleted(address indexed userAddress);
-    event SelfOnboardingCancelled(address indexed userAddress);
 
     /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
     event MinimumSellUpdated(bytes32 objectId, uint256 minimumSell);
@@ -226,14 +228,10 @@ library LibAdmin {
         emit FunctionsUnlocked(lockedFunctions);
     }
 
-    function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal {
+    function _onboardUserViaSignature(address _userAddress, bytes32 _entityId, bytes32 _roleId, bytes calldata sig) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // The entityId must be the valid type (entity).
-        if (!LibObject._isObjectType(_entityId, LC.OBJECT_TYPE_ENTITY)) revert InvalidEntityId(_entityId);
-
-        // Require that the user is not approved for the role already
-        if (_isSelfOnboardingApproved(_userAddress, _entityId, _roleId)) revert EntityOnboardingAlreadyApproved(_userAddress);
+        if (_entityId == 0 || _roleId == 0 || sig.length == 0) revert EntityOnboardingNotApproved(_userAddress);
 
         bool isTokenHolder = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
         bool isCapitalProvider = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
@@ -241,9 +239,29 @@ library LibAdmin {
             revert InvalidSelfOnboardRoleApproval(_roleId);
         }
 
-        s.selfOnboarding[_userAddress] = EntityApproval({ entityId: _entityId, roleId: _roleId });
+        bytes32 signingHash = _getOnboardingHash(_userAddress, _entityId, _roleId);
+        bytes32 signerId = LibHelpers._getIdForAddress(_getSigner(signingHash, sig));
 
-        emit SelfOnboardingApproved(_userAddress);
+        if (!LibACL._isInGroup(signerId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.GROUP_ONBOARDING_APPROVERS))) {
+            revert EntityOnboardingNotApproved(_userAddress);
+        }
+
+        if (!s.existingEntities[_entityId]) {
+            Entity memory entity;
+            bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
+            LibEntity._createEntity(_entityId, userId, entity, 0);
+        }
+
+        if (s.roles[_entityId][_entityId] != 0) {
+            LibACL._unassignRole(_entityId, _entityId);
+        }
+
+        if (s.roles[_entityId][LibAdmin._getSystemId()] != 0) {
+            LibACL._unassignRole(_entityId, LibAdmin._getSystemId());
+        }
+
+        LibACL._assignRole(_entityId, LibAdmin._getSystemId(), _roleId);
+        LibACL._assignRole(_entityId, _entityId, _roleId);
     }
 
     function _onboardUser(address _userAddress) internal {
@@ -285,18 +303,6 @@ library LibAdmin {
         return approval.entityId == _entityId && approval.roleId == _roleId;
     }
 
-    function _cancelSelfOnboarding(address _userAddress) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        if (s.selfOnboarding[_userAddress].entityId == 0 && s.selfOnboarding[_userAddress].roleId == 0) {
-            revert EntityOnboardingNotApproved(_userAddress);
-        }
-
-        delete s.selfOnboarding[_userAddress];
-
-        emit SelfOnboardingCancelled(_userAddress);
-    }
-
     function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         if (_minimumSell == 0) revert MinimumSellCannotBeZero();
@@ -304,5 +310,46 @@ library LibAdmin {
         s.objectMinimumSell[_objectId] = _minimumSell;
 
         emit MinimumSellUpdated(_objectId, _minimumSell);
+    }
+
+    function _getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal view returns (bytes32) {
+        return
+            LibEIP712._hashTypedDataV4(
+                keccak256(abi.encode(keccak256("OnboardingApproval(address _userAddress, bytes32 _entityId, bytes32 _roleId)"), _userAddress, _entityId, _roleId))
+            );
+    }
+
+    function _getSigner(bytes32 signingHash, bytes memory signature) internal pure returns (address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        // ecrecover takes the signature parameters, and the only way to get them
+        if (signature.length == 65) {
+            // currently is to use assembly.
+            /// @solidity memory-safe-assembly
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+
+                switch v
+                // if v == 0, then v = 27
+                case 0 {
+                    v := 27
+                }
+                // if v == 1, then v = 28
+                case 1 {
+                    v := 28
+                }
+            }
+        }
+
+        (address signer, ECDSA.RecoverError err, ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+
+        if (err == ECDSA.RecoverError.InvalidSignature) revert InvalidSignatureError(signingHash);
+        else if (err == ECDSA.RecoverError.InvalidSignatureS) revert InvalidSignatureSError(s);
+
+        return signer;
     }
 }

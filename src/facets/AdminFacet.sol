@@ -148,14 +148,6 @@ contract AdminFacet is Modifiers {
     }
 
     /**
-     * @notice Approve a user address for self-onboarding
-     * @param _userAddress user account address
-     */
-    function approveSelfOnboarding(address _userAddress, bytes32 _entityId, bytes32 _roleId) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
-        LibAdmin._approveSelfOnboarding(_userAddress, _entityId, _roleId);
-    }
-
-    /**
      * @notice Create a token holder entity for a user account
      */
     function onboard() external {
@@ -166,7 +158,23 @@ contract AdminFacet is Modifiers {
         return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _roleId);
     }
 
-    function cancelSelfOnboarding(address _user) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
-        LibAdmin._cancelSelfOnboarding(_user);
+    /**
+     * @notice Create a token holder entity for a user account
+     * @param _entityId object ID for which the fee schedule is being set, use system ID for global fee schedule
+     * @param _roleId Role to assign to the entity
+     * @param _sig Signature approving the user to be onboarded to the given role
+     */
+    function onboardViaSignature(bytes32 _entityId, bytes32 _roleId, bytes calldata _sig) external {
+        LibAdmin._onboardUserViaSignature(msg.sender, _entityId, _roleId, _sig);
+    }
+
+    /**
+     * @notice Hash to be signed by the onboarding approver
+     * @param _userAddress Address being approved to onboard
+     * @param _entityId Entity ID being approved for onboarding
+     * @param _roleId Role being apprved for onboarding
+     */
+    function getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bytes32) {
+        return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
     }
 }
