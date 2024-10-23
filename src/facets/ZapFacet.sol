@@ -76,29 +76,4 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
         // Assumption: executeLimitOrder is a function that takes entityId, token address, amount, and order parameters
         return LibMarket._executeLimitOffer(entityId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
     }
-
-    /**
-     * @notice Unstake and withdraw funds out of Nayms platform
-     * @dev Unstakes, withdraws from entity to an external account
-     * @param _entityId Internal ID of the entity the user is withdrawing from
-     * @param _receiver External address receiving the funds
-     * @param _externalTokenAddress Token address
-     * @param _amount amount to unstake and withdraw
-     */
-    function zapUnstake(
-        bytes32 _entityId,
-        address _receiver,
-        address _externalTokenAddress,
-        uint256 _amount
-    ) external notLocked nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY) {
-        if (!LibACL._hasGroupPrivilege(LibHelpers._getIdForAddress(_receiver), _entityId, LibHelpers._stringToBytes32(LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY)))
-            revert ExternalWithdrawInvalidReceiver(_receiver);
-
-        // Unstake the amount
-        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-        LibTokenizedVaultStaking._unstake(parentId, _entityId);
-
-        // Perform the withdrawal directly to the receiver
-        LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
-    }
 }
