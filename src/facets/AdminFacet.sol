@@ -154,14 +154,26 @@ contract AdminFacet is Modifiers {
         LibAdmin._onboardUser(msg.sender);
     }
 
-    function onboardViaSignature(bytes32 _entityId, bytes32 _roleId, bytes calldata sig) external {
-        LibAdmin._onboardUserViaSignature(msg.sender, _entityId, _roleId, sig);
+    /**
+     * @notice Create a token holder entity for a user account
+     * @param _entityId object ID for which the fee schedule is being set, use system ID for global fee schedule
+     * @param _roleId Role to assign to the entity
+     * @param _sig Signature approving the user to be onboarded to the given role
+     */
+    function onboardViaSignature(bytes32 _entityId, bytes32 _roleId, bytes calldata _sig) external {
+        LibAdmin._onboardUserViaSignature(msg.sender, _entityId, _roleId, _sig);
     }
 
     function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bool) {
         return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _roleId);
     }
 
+    /**
+     * @notice Hash to be signed by the onboarding approver
+     * @param _userAddress Address being approved to onboard
+     * @param _entityId Entity ID being approved for onboarding
+     * @param _roleId Role being apprved for onboarding
+     */
     function getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bytes32) {
         return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
     }
