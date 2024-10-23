@@ -154,6 +154,10 @@ contract AdminFacet is Modifiers {
         LibAdmin._onboardUser(msg.sender);
     }
 
+    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bool) {
+        return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _roleId);
+    }
+
     /**
      * @notice Create a token holder entity for a user account
      * @param _entityId object ID for which the fee schedule is being set, use system ID for global fee schedule
@@ -162,10 +166,6 @@ contract AdminFacet is Modifiers {
      */
     function onboardViaSignature(bytes32 _entityId, bytes32 _roleId, bytes calldata _sig) external {
         LibAdmin._onboardUserViaSignature(msg.sender, _entityId, _roleId, _sig);
-    }
-
-    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bool) {
-        return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _roleId);
     }
 
     /**
