@@ -262,6 +262,8 @@ library LibAdmin {
 
         LibACL._assignRole(_entityId, LibAdmin._getSystemId(), _roleId);
         LibACL._assignRole(_entityId, _entityId, _roleId);
+
+        emit SelfOnboardingCompleted(_userAddress);
     }
 
     function _onboardUser(address _userAddress) internal {
