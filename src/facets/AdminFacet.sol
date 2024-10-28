@@ -178,7 +178,7 @@ contract AdminFacet is Modifiers {
         return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
     }
 
-    function _getSigner(bytes32 signingHash, bytes memory signature) internal pure returns (address) {
+    function getSigner(bytes32 signingHash, bytes memory signature) external pure returns (address) {
         return LibAdmin._getSigner(signingHash, signature);
     }
 }
