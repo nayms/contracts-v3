@@ -51,7 +51,7 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
      * @notice Deposit tokens and execute a limit order in one transaction using permit
      * @dev Uses permit to approve token transfer and performs external deposit and limit order execution
      * @param _externalTokenAddress Token address
-     * @param _amount Amount to deposit
+     * @param _depositAmount Amount to deposit
      * @param _sellToken Sell token ID
      * @param _sellAmount Sell amount
      * @param _buyToken Buy token ID
@@ -63,7 +63,7 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
      */
     function zapOrder(
         address _externalTokenAddress,
-        uint256 _amount,
+        uint256 _depositAmount,
         bytes32 _sellToken,
         uint256 _sellAmount,
         bytes32 _buyToken,
@@ -84,10 +84,10 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
         require(LibEntity._isEntity(parentId), "zapOrder: invalid entity");
 
         // Use permit to set allowance
-        IERC20(_externalTokenAddress).permit(msg.sender, address(this), _amount, _permitSignature.deadline, _permitSignature.v, _permitSignature.r, _permitSignature.s);
+        IERC20(_externalTokenAddress).permit(msg.sender, address(this), _depositAmount, _permitSignature.deadline, _permitSignature.v, _permitSignature.r, _permitSignature.s);
 
         // Perform the external deposit
-        LibTokenizedVaultIO._externalDeposit(parentId, _externalTokenAddress, _amount);
+        LibTokenizedVaultIO._externalDeposit(parentId, _externalTokenAddress, _depositAmount);
 
         // Execute the limit order
         return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
