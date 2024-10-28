@@ -86,16 +86,16 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "zapOrder: invalid ERC20 token");
 
         // Get the user's entity
-        bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
-        require(LibEntity._isEntity(entityId), "zapOrder: invalid entity");
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
+        require(LibEntity._isEntity(parentId), "zapOrder: invalid entity");
 
         // Use permit to set allowance
         IERC20(_externalTokenAddress).permit(msg.sender, address(this), _amount, _permitSignature.deadline, _permitSignature.v, _permitSignature.r, _permitSignature.s);
 
         // Perform the external deposit
-        LibTokenizedVaultIO._externalDeposit(entityId, _externalTokenAddress, _amount);
+        LibTokenizedVaultIO._externalDeposit(parentId, _externalTokenAddress, _amount);
 
         // Execute the limit order
-        return LibMarket._executeLimitOffer(entityId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
+        return LibMarket._executeLimitOffer(parentId, _sellToken, _sellAmount, _buyToken, _buyAmount, LC.FEE_TYPE_TRADING);
     }
 }
