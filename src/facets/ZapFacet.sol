@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import { PermitSignature } from "../shared/FreeStructs.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
@@ -13,13 +14,6 @@ import { IERC20 } from "../interfaces/IERC20.sol";
 import { LibMarket } from "../libs/LibMarket.sol";
 
 contract ZapFacet is Modifiers, ReentrancyGuard {
-    struct PermitSignature {
-        uint256 deadline;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-    }
-
     /**
      * @notice Deposit and stake funds into msg.sender's Nayms platform entity in one transaction using permit
      * @dev Uses permit to approve token transfer, deposits from msg.sender to their associated entity, and stakes the amount
