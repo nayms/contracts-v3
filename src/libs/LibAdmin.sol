@@ -317,7 +317,7 @@ library LibAdmin {
     function _getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal view returns (bytes32) {
         return
             LibEIP712._hashTypedDataV4(
-                keccak256(abi.encode(keccak256("OnboardingApproval(address _userAddress, bytes32 _entityId, bytes32 _roleId)"), _userAddress, _entityId, _roleId))
+                keccak256(abi.encode(keccak256("OnboardingApproval(address _userAddress,bytes32 _entityId,bytes32 _roleId)"), _userAddress, _entityId, _roleId))
             );
     }
 
