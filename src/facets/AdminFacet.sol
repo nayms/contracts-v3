@@ -8,12 +8,21 @@ import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibFeeRouter } from "../libs/LibFeeRouter.sol";
 
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import { SignatureChecker } from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+
+// solhint-disable no-console
+import { console2 as c } from "forge-std/console2.sol";
+import { StdStyle } from "forge-std/Test.sol";
+
 /**
  * @title Administration
  * @notice Exposes methods that require administrative privileges
  * @dev Use it to configure various core parameters
  */
 contract AdminFacet is Modifiers {
+    using StdStyle for *;
     /**
      * @notice Set `_newMax` as the max dividend denominations value.
      * @param _newMax new value to be used.
@@ -178,7 +187,17 @@ contract AdminFacet is Modifiers {
         return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
     }
 
-    function getSigner(bytes32 signingHash, bytes memory signature) external pure returns (address) {
-        return LibAdmin._getSigner(signingHash, signature);
+    function getSigner(bytes32 _hash, bytes memory _sig) external pure returns (address) {
+        return LibAdmin._getSigner(_hash, _sig);
+    }
+
+    function isValidSig(address signer, bytes32 _hash, bytes calldata _sig) external returns (bool) {
+        return SignatureChecker.isValidSignatureNow(signer, MessageHashUtils.toEthSignedMessageHash(_hash), _sig);
+    }
+
+    function tryRecover(bytes32 _hash, bytes calldata _sig) external returns (address) {
+        // (address acc, , ) = ECDSA.tryRecover(_hash, _sig);
+        return ECDSA.recover(MessageHashUtils.toEthSignedMessageHash(_hash), _sig);
+        // return acc;
     }
 }

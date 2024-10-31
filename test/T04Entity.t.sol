@@ -1209,6 +1209,32 @@ contract T04EntityTest is D03ProtocolDefaults {
         vm.stopPrank();
     }
 
+    function testSig() public {
+        address userAddress = 0x6E5d9220B89BB469a7A14d83Ed39616E7851814c;
+        bytes32 entityId = 0x454e544954590000000000000667636ec3a8625da6af2baa17dfb3eb166e9770;
+        // bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bytes32 roleId = 0x546f6b656e20486f6c6465720000000000000000000000000000000000000000;
+
+        c.log("  -- address:   %s".green(), userAddress);
+        c.log("  -- entityId: ".green(), entityId.greenBytes32());
+        c.log("  -- roleId:   ".green(), roleId.greenBytes32());
+
+        c.log("  -- hash:     ".cyan(), nayms.getOnboardingHash(userAddress, entityId, roleId).cyanBytes32());
+    }
+
+    function testGetSignerId() public {
+        bytes32 message = 0xaa662a8354b63d70ccfc062899b2934c96025dc2f64173be214b497b1b6076fb;
+        bytes memory sig = hex"654d5f0d16b91dca64b968006b403077f459314068019d40b16bde974d173e5e104ac4c05bab5f5c0779ece6e6fa28afdd801cc946f0495f47b40e61264343bf1c";
+
+        address acc = 0xF111FdBB6482f5146c7038b96FfeBa5dB5226e57;
+
+        // assertEq(nayms.getSigner(message, sig), acc);
+        c.log(" -- getSigner:  %s".green(), nayms.getSigner(message, sig));
+        c.log(" -- tryRecover: %s".green(), nayms.tryRecover(message, sig));
+
+        assertTrue(nayms.isValidSig(acc, message, sig));
+    }
+
     function testSelfOnboardingSuccess() public {
         bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
