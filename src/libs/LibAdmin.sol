@@ -266,45 +266,6 @@ library LibAdmin {
         emit SelfOnboardingCompleted(_userAddress);
     }
 
-    function _onboardUser(address _userAddress) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        EntityApproval memory approval = s.selfOnboarding[_userAddress];
-
-        if (approval.entityId == 0 || approval.roleId == 0) {
-            revert EntityOnboardingNotApproved(_userAddress);
-        }
-
-        bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
-
-        if (!s.existingEntities[approval.entityId]) {
-            Entity memory entity;
-            LibEntity._createEntity(approval.entityId, userId, entity, 0);
-        }
-
-        if (s.roles[approval.entityId][approval.entityId] != 0) {
-            LibACL._unassignRole(approval.entityId, approval.entityId);
-        }
-
-        if (s.roles[approval.entityId][LibAdmin._getSystemId()] != 0) {
-            LibACL._unassignRole(approval.entityId, LibAdmin._getSystemId());
-        }
-
-        LibACL._assignRole(approval.entityId, LibAdmin._getSystemId(), approval.roleId);
-        LibACL._assignRole(approval.entityId, approval.entityId, approval.roleId);
-
-        delete s.selfOnboarding[_userAddress];
-
-        emit SelfOnboardingCompleted(_userAddress);
-    }
-
-    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal view returns (bool) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        EntityApproval memory approval = s.selfOnboarding[_userAddress];
-
-        return approval.entityId == _entityId && approval.roleId == _roleId;
-    }
-
     function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         if (_minimumSell == 0) revert MinimumSellCannotBeZero();

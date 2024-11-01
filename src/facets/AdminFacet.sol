@@ -149,17 +149,6 @@ contract AdminFacet is Modifiers {
 
     /**
      * @notice Create a token holder entity for a user account
-     */
-    function onboard() external {
-        LibAdmin._onboardUser(msg.sender);
-    }
-
-    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bool) {
-        return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _roleId);
-    }
-
-    /**
-     * @notice Create a token holder entity for a user account
      * @param _entityId object ID for which the fee schedule is being set, use system ID for global fee schedule
      * @param _roleId Role to assign to the entity
      * @param _sig Signature approving the user to be onboarded to the given role
