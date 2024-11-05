@@ -72,6 +72,9 @@ contract ZapFacetTest is D03ProtocolDefaults {
 
         PermitSignature memory permitSignature = PermitSignature({ deadline: deadline, v: v, r: r, s: s });
 
+        vm.expectRevert("zapStake: invalid ERC20 token");
+        nayms.zapStake(address(111), nlf.entityId, stakeAmount, stakeAmount, permitSignature);
+
         nayms.zapStake(address(naymToken), nlf.entityId, stakeAmount, stakeAmount, permitSignature);
 
         (uint256 staked, ) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
@@ -99,6 +102,10 @@ contract ZapFacetTest is D03ProtocolDefaults {
         PermitSignature memory permitSignature = PermitSignature({ deadline: deadline, v: v, r: r, s: s });
 
         startPrank(bob);
+
+        vm.expectRevert("zapOrder: invalid ERC20 token");
+        nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature);
+
         // Call zapOrder
         // Caller should ensure they deposit enough to cover order fees.
         nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature);
