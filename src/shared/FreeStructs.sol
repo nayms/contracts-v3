@@ -40,6 +40,7 @@ struct Entity {
     bool simplePolicyEnabled;
 }
 
+// DEPRECATED, but don't remove, referenced in appstorage
 struct EntityApproval {
     bytes32 entityId;
     bytes32 roleId;
@@ -132,4 +133,10 @@ struct PermitSignature {
     uint8 v;
     bytes32 r;
     bytes32 s;
+}
+
+struct OnboardingApproval {
+    bytes32 entityId;
+    bytes32 roleId;
+    bytes signature;
 }

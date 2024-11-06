@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { Vm } from "forge-std/Vm.sol";
 
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/shared/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, OnboardingApproval } from "src/shared/FreeStructs.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { StdStyle } from "forge-std/StdStyle.sol";
 
@@ -1174,15 +1174,15 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(userAddress);
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
-        nayms.onboardViaSignature(entityId, roleId, noSig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: noSig }));
 
         bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, entityId, roleId));
 
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
-        nayms.onboardViaSignature(0x0, roleId, sig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: 0x0, roleId: roleId, signature: sig }));
 
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
-        nayms.onboardViaSignature(entityId, 0x0, sig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: 0x0, signature: sig }));
         vm.stopPrank();
 
         vm.startPrank(sm.addr);
@@ -1191,7 +1191,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(userAddress);
         vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
-        nayms.onboardViaSignature(entityId, roleId, sig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: sig }));
     }
 
     function testSelfOnboardingInvalidGroup() public {
@@ -1205,7 +1205,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(userAddress);
         vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, sysMgrRoleId));
-        nayms.onboardViaSignature(entityId, sysMgrRoleId, sig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: sysMgrRoleId, signature: sig }));
         vm.stopPrank();
     }
 
@@ -1219,7 +1219,7 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, entityId, roleId));
 
         vm.startPrank(userAddress);
-        nayms.onboardViaSignature(entityId, roleId, sig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: sig }));
         vm.stopPrank();
 
         assertEq(nayms.getEntity(LibHelpers._getIdForAddress(userAddress)), entityId, "parent should be set");
@@ -1240,11 +1240,11 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes memory sigCapitalProvider = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, e1, roleIdCapitalProvider));
 
         vm.startPrank(userAddress);
-        nayms.onboardViaSignature(e1, roleIdTokenHolder, sigTokenHolder);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: e1, roleId: roleIdTokenHolder, signature: sigTokenHolder }));
 
         vm.recordLogs();
 
-        nayms.onboardViaSignature(e1, roleIdCapitalProvider, sigCapitalProvider);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: e1, roleId: roleIdCapitalProvider, signature: sigCapitalProvider }));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
@@ -1263,7 +1263,7 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         vm.startPrank(userAddress);
         vm.expectRevert(abi.encodeWithSelector(InvalidObjectType.selector, entityId, LC.OBJECT_TYPE_ENTITY));
-        nayms.onboardViaSignature(entityId, roleId, sig);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: sig }));
         vm.stopPrank();
     }
 

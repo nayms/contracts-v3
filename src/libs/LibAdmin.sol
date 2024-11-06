@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../shared/AppStorage.sol";
-import { Entity, EntityApproval } from "../shared/FreeStructs.sol";
+import { Entity, OnboardingApproval } from "../shared/FreeStructs.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
@@ -228,28 +228,34 @@ library LibAdmin {
         emit FunctionsUnlocked(lockedFunctions);
     }
 
-    function _onboardUserViaSignature(address _userAddress, bytes32 _entityId, bytes32 _roleId, bytes calldata sig) internal {
+    function _onboardUserViaSignature(OnboardingApproval memory _approval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (_entityId == 0 || _roleId == 0 || sig.length == 0) revert EntityOnboardingNotApproved(_userAddress);
+        address userAddress = msg.sender;
 
-        bool isTokenHolder = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bool isCapitalProvider = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+        bytes32 entityId = _approval.entityId;
+        bytes32 roleId = _approval.roleId;
+        bytes memory sig = _approval.signature;
+
+        if (entityId == 0 || roleId == 0 || sig.length == 0) revert EntityOnboardingNotApproved(userAddress);
+
+        bool isTokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bool isCapitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         if (!isTokenHolder && !isCapitalProvider) {
-            revert InvalidSelfOnboardRoleApproval(_roleId);
+            revert InvalidSelfOnboardRoleApproval(roleId);
         }
 
-        bytes32 signingHash = _getOnboardingHash(_userAddress, _entityId, _roleId);
+        bytes32 signingHash = _getOnboardingHash(userAddress, entityId, roleId);
         bytes32 signerId = LibHelpers._getIdForAddress(_getSigner(signingHash, sig));
 
         if (!LibACL._isInGroup(signerId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.GROUP_ONBOARDING_APPROVERS))) {
-            revert EntityOnboardingNotApproved(_userAddress);
+            revert EntityOnboardingNotApproved(userAddress);
         }
 
-        if (!s.existingEntities[_entityId]) {
+        if (!s.existingEntities[entityId]) {
             Entity memory entity;
-            bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
-            LibEntity._createEntity(_entityId, userId, entity, 0);
+            bytes32 userId = LibHelpers._getIdForAddress(userAddress);
+            LibEntity._createEntity(entityId, userId, entity, 0);
         }
 
         if (s.roles[_entityId][LibAdmin._getSystemId()] != 0) {
@@ -257,7 +263,7 @@ library LibAdmin {
         }
         LibACL._assignRole(_entityId, LibAdmin._getSystemId(), _roleId);
 
-        emit SelfOnboardingCompleted(_userAddress);
+        emit SelfOnboardingCompleted(userAddress);
     }
 
     function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
