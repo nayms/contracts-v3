@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { D03ProtocolDefaults, c, LC, LibHelpers, StdStyle } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "test/utils/DummyToken.sol";
-import { StakingConfig, PermitSignature } from "src/shared/FreeStructs.sol";
+import { StakingConfig, PermitSignature, OnboardingApproval } from "src/shared/FreeStructs.sol";
 
 contract ZapFacetTest is D03ProtocolDefaults {
     using LibHelpers for address;
@@ -71,11 +71,12 @@ contract ZapFacetTest is D03ProtocolDefaults {
         startPrank(bob);
 
         PermitSignature memory permitSignature = PermitSignature({ deadline: deadline, v: v, r: r, s: s });
+        OnboardingApproval memory approval;
 
         vm.expectRevert("zapStake: invalid ERC20 token");
-        nayms.zapStake(address(111), nlf.entityId, stakeAmount, stakeAmount, permitSignature);
+        nayms.zapStake(address(111), nlf.entityId, stakeAmount, stakeAmount, permitSignature, approval);
 
-        nayms.zapStake(address(naymToken), nlf.entityId, stakeAmount, stakeAmount, permitSignature);
+        nayms.zapStake(address(naymToken), nlf.entityId, stakeAmount, stakeAmount, permitSignature, approval);
 
         (uint256 staked, ) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
 
@@ -99,16 +100,18 @@ contract ZapFacetTest is D03ProtocolDefaults {
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", weth.DOMAIN_SEPARATOR(), structHash));
         // Sign the digest
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(bob.pk, digest);
+
         PermitSignature memory permitSignature = PermitSignature({ deadline: deadline, v: v, r: r, s: s });
+        OnboardingApproval memory approval;
 
         startPrank(bob);
 
         vm.expectRevert("zapOrder: invalid ERC20 token");
-        nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature);
+        nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, approval);
 
         // Call zapOrder
         // Caller should ensure they deposit enough to cover order fees.
-        nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature);
+        nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, approval);
 
         assertEq(nayms.internalBalanceOf(bob.entityId, bob.entityId), 1 ether, "bob should've purchased 1e18 bob p tokens");
     }

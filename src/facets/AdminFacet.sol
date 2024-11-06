@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { OnboardingApproval } from "../shared/FreeStructs.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -149,12 +150,10 @@ contract AdminFacet is Modifiers {
 
     /**
      * @notice Create a token holder entity for a user account
-     * @param _entityId object ID for which the fee schedule is being set, use system ID for global fee schedule
-     * @param _roleId Role to assign to the entity
-     * @param _sig Signature approving the user to be onboarded to the given role
+     * @param _onboardingApproval onboarding approval parameters, includes user address, entity ID and role ID
      */
-    function onboardViaSignature(bytes32 _entityId, bytes32 _roleId, bytes calldata _sig) external {
-        LibAdmin._onboardUserViaSignature(msg.sender, _entityId, _roleId, _sig);
+    function onboardViaSignature(OnboardingApproval calldata _onboardingApproval) external {
+        LibAdmin._onboardUserViaSignature(_onboardingApproval);
     }
 
     /**
