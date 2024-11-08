@@ -252,16 +252,10 @@ library LibAdmin {
             LibEntity._createEntity(_entityId, userId, entity, 0);
         }
 
-        if (s.roles[_entityId][_entityId] != 0) {
-            LibACL._unassignRole(_entityId, _entityId);
-        }
-
         if (s.roles[_entityId][LibAdmin._getSystemId()] != 0) {
             LibACL._unassignRole(_entityId, LibAdmin._getSystemId());
         }
-
         LibACL._assignRole(_entityId, LibAdmin._getSystemId(), _roleId);
-        LibACL._assignRole(_entityId, _entityId, _roleId);
 
         emit SelfOnboardingCompleted(_userAddress);
     }
