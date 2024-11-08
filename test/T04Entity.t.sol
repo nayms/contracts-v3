@@ -1225,7 +1225,6 @@ contract T04EntityTest is D03ProtocolDefaults {
         assertEq(nayms.getEntity(LibHelpers._getIdForAddress(userAddress)), entityId, "parent should be set");
 
         assertTrue(nayms.isInGroup(entityId, systemContext, LC.GROUP_CAPITAL_PROVIDERS), "should belong capital providers group");
-        assertTrue(nayms.isInGroup(entityId, entityId, LC.GROUP_CAPITAL_PROVIDERS), "should belong capital providers group");
     }
 
     function testSelfOnboardingUpgradeToCapitalProvider() public {
@@ -1249,10 +1248,8 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
-        assertRoleUpdateEvent(entries, 0, e1, e1, roleIdTokenHolder, "_unassignRole");
-        assertRoleUpdateEvent(entries, 1, systemContext, e1, roleIdTokenHolder, "_unassignRole");
-        assertRoleUpdateEvent(entries, 2, systemContext, e1, roleIdCapitalProvider, "_assignRole");
-        assertRoleUpdateEvent(entries, 3, e1, e1, roleIdCapitalProvider, "_assignRole");
+        assertRoleUpdateEvent(entries, 0, systemContext, e1, roleIdTokenHolder, "_unassignRole");
+        assertRoleUpdateEvent(entries, 1, systemContext, e1, roleIdCapitalProvider, "_assignRole");
     }
 
     function test_selfOnboarding_InvalidEntityId() public {
