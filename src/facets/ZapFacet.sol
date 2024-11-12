@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import { PermitSignature, OnboardingApproval } from "../shared/FreeStructs.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
+import { LibACL } from "../libs/LibACL.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
@@ -74,19 +75,15 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
         uint256 _buyAmount,
         PermitSignature calldata _permitSignature,
         OnboardingApproval calldata _onboardingApproval
-    )
-        external
-        notLocked
-        nonReentrant
-        assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXECUTE_LIMIT_OFFER)
-        returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_)
-    {
+    ) external notLocked nonReentrant returns (uint256 offerId_, uint256 buyTokenCommissionsPaid_, uint256 sellTokenCommissionsPaid_) {
         // Check if it's a supported ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "zapOrder: invalid ERC20 token");
 
         if (_onboardingApproval.entityId != 0 && LibObject._getParentFromAddress(msg.sender) != _onboardingApproval.entityId) {
             LibAdmin._onboardUserViaSignature(_onboardingApproval);
         }
+
+        LibACL._assertPriviledge(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXECUTE_LIMIT_OFFER);
 
         // Use permit to set allowance
         IERC20(_externalTokenAddress).permit(msg.sender, address(this), _depositAmount, _permitSignature.deadline, _permitSignature.v, _permitSignature.r, _permitSignature.s);
