@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import { PermitSignature, OnboardingApproval } from "../shared/FreeStructs.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibTokenizedVaultIO } from "../libs/LibTokenizedVaultIO.sol";
-import { LibEntity } from "../libs/LibEntity.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
@@ -35,11 +34,11 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
         // Check if it's a supported ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "zapStake: invalid ERC20 token");
 
-        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
-
-        if (!LibEntity._isEntity(parentId)) {
+        if (_onboardingApproval.entityId != 0 && LibObject._getParentFromAddress(msg.sender) != _onboardingApproval.entityId) {
             LibAdmin._onboardUserViaSignature(_onboardingApproval);
         }
+
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
 
         // Use permit to set allowance
         IERC20(_externalTokenAddress).permit(msg.sender, address(this), _amountToDeposit, _permitSignature.deadline, _permitSignature.v, _permitSignature.r, _permitSignature.s);
@@ -85,7 +84,7 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
         // Check if it's a supported ERC20 token
         require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "zapOrder: invalid ERC20 token");
 
-        if (!LibEntity._isEntity(LibObject._getParentFromAddress(msg.sender))) {
+        if (_onboardingApproval.entityId != 0 && LibObject._getParentFromAddress(msg.sender) != _onboardingApproval.entityId) {
             LibAdmin._onboardUserViaSignature(_onboardingApproval);
         }
 
