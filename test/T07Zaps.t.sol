@@ -12,7 +12,8 @@ contract ZapFacetTest is D03ProtocolDefaults {
     DummyToken internal naymToken = new DummyToken();
     DummyToken internal rewardToken;
 
-    NaymsAccount bob = makeNaymsAcc("Bob");
+    NaymsAccount internal bob = makeNaymsAcc("Bob");
+    NaymsAccount internal sue = makeNaymsAcc("Sue");
 
     NaymsAccount nlf = makeNaymsAcc(LC.NLF_IDENTIFIER);
 
@@ -85,34 +86,41 @@ contract ZapFacetTest is D03ProtocolDefaults {
 
     function test_zapOrder_Success() public {
         changePrank(sm.addr);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
         nayms.enableEntityTokenization(bob.entityId, "e1token", "e1token", 1e6);
 
         // Selling bob p tokens for weth
         nayms.startTokenSale(bob.entityId, 1 ether, 1 ether);
 
-        deal(address(weth), bob.addr, 10 ether);
+        deal(address(weth), sue.addr, 10 ether);
 
         // Prepare permit data
         uint256 deadline = block.timestamp;
         bytes32 PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-        uint256 nonce = weth.nonces(bob.addr);
-        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, bob.addr, address(nayms), 10 ether, nonce, deadline));
+        uint256 nonce = weth.nonces(sue.addr);
+        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, sue.addr, address(nayms), 10 ether, nonce, deadline));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", weth.DOMAIN_SEPARATOR(), structHash));
+
+        bytes32 cpRoleId = LibHelpers._stringToBytes32(LC.ROLE_CAPITAL_PROVIDER);
+        bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(sue.addr, sue.entityId, cpRoleId));
+
+        startPrank(sue);
+
         // Sign the digest
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(bob.pk, digest);
-
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(sue.pk, digest);
         PermitSignature memory permitSignature = PermitSignature({ deadline: deadline, v: v, r: r, s: s });
-        OnboardingApproval memory approval;
 
-        startPrank(bob);
+        // Sign onboarding approval
+        OnboardingApproval memory onboardingApproval = OnboardingApproval({ entityId: sue.entityId, roleId: cpRoleId, signature: sig });
 
+        // verify token address
         vm.expectRevert("zapOrder: invalid ERC20 token");
-        nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, approval);
+        nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, onboardingApproval);
 
-        // Call zapOrder
         // Caller should ensure they deposit enough to cover order fees.
-        nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, approval);
+        nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, onboardingApproval);
 
-        assertEq(nayms.internalBalanceOf(bob.entityId, bob.entityId), 1 ether, "bob should've purchased 1e18 bob p tokens");
+        assertEq(nayms.internalBalanceOf(sue.entityId, bob.entityId), 1 ether, "sue should've purchased 1e18 bob p tokens");
     }
 }
