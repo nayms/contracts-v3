@@ -650,6 +650,48 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // logOfferDetails(4); // should be filled 50%
     }
 
+    function testSecondaryTradeWithBetterThanAskPrice2() public {
+        uint256 tokenAmount = 1000 ether;
+
+        writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
+
+        changePrank(sm.addr);
+        nayms.assignRole(signer2Id, systemContext, LC.ROLE_ENTITY_CP);
+
+        // 1. Start token sale
+        nayms.createEntity(entity1, signer1Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        nayms.enableEntityTokenization(entity1, "E1PT", "E1-P-Token", 1e13);
+        nayms.startTokenSale(entity1, tokenAmount, tokenAmount); // SELL: PT 1000 / ETH 1000  (price = 1)
+
+        // 2. Purchase P-Tokens
+        nayms.createEntity(entity2, signer2Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+        changePrank(signer2);
+        writeTokenBalance(signer2, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt * 6);
+        nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 6);
+
+        // BUY: P 500 / E 500  (price = 1)
+        nayms.executeLimitOffer(wethId, tokenAmount / 2, entity1, tokenAmount / 2);
+        // assertOfferFilled(1, entity1, entity1, tokenAmount / 2, wethId, tokenAmount / 2);
+        // assertOfferFilled(2, entity2, wethId, tokenAmount / 2, entity1, tokenAmount / 2);
+
+        // SELL: P 500 / E 2000 (price = 4)
+        nayms.executeLimitOffer(entity1, tokenAmount / 2, wethId, tokenAmount * 2);
+
+        // 3. BUY P 1000
+        changePrank(sm.addr);
+        nayms.createEntity(entity3, signer3Id, initEntity(wethId, collateralRatio_500, maxCapital_2000eth, true), "test");
+
+        changePrank(signer3);
+        writeTokenBalance(signer3, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt * 6);
+        nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 6);
+        nayms.executeLimitOffer(wethId, tokenAmount * 4, entity1, tokenAmount);
+
+        logOfferDetails(1); // should be filled 100%
+        logOfferDetails(2); // should be filled 100%
+        logOfferDetails(3); // should be filled 100%
+        logOfferDetails(4); // should be filled 100%
+    }
+
     function testBestOffersWithCancel() public {
         testStartTokenSale();
 
@@ -932,7 +974,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         uint256 prev1 = nayms.getOffer(bestId).rankPrev;
         uint256 prev2 = nayms.getOffer(prev1).rankPrev;
 
-        // c.log(" --------- ".red());
         logOfferDetails(bestId);
         logOfferDetails(prev1);
         logOfferDetails(prev2);
@@ -986,7 +1027,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         nayms.enableEntityTokenization(userA.entityId, "E1", "Entity 1 Token", 1e6);
         nayms.startTokenSale(userA.entityId, pToken100, usdc1000 * 2);
 
-        /// Attack script
+        /// Attack script:
         /// place order and lock funds
         vm.startPrank(attacker.addr);
         nayms.executeLimitOffer(usdcId, usdc1000, userA.entityId, pToken100);
@@ -1008,29 +1049,33 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         vm.startPrank(sm.addr);
         nayms.setMinimumSell(usdcId, 1e6);
         assertEq(nayms.objectMinimumSell(usdcId), 1e6, "unexpected minimum sell amount");
+
         bytes32 e1Id = createTestEntity(ea.id);
         ea.entityId = e1Id;
         nayms.enableEntityTokenization(e1Id, "E1", "Entity 1", 1e12);
 
         hSetEntity(tcp, e1Id);
+
         // Selling 10 pTokens for 1_000_000 USDC
         nayms.startTokenSale(e1Id, 10e18, 1_000_000e6);
-
         hAssignRole(tcp.id, e1Id, LC.ROLE_ENTITY_CP);
-
         fundEntityUsdc(ea, 1_000_000e6);
-        // If the amount being sold is less than the minimum sell amount, the offer is expected to go into the
-        // "fulfilled" state
+
+        // If the amount being sold is less than the minimum sell amount, the offer is expected to go into the "fulfilled" state
         vm.startPrank(tcp.addr);
+
         (uint256 lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6 - 1, e1Id, 10e18);
         MarketInfo memory m = logOfferDetails(lastOfferId);
         assertEq(m.state, LC.OFFER_STATE_FULFILLED, "unexpected offer state");
+
         (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6, e1Id, 1e12 + 1);
         m = logOfferDetails(lastOfferId);
         assertEq(m.state, LC.OFFER_STATE_ACTIVE, "unexpected offer state");
+
         (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6 + 1, e1Id, 1e12);
         m = logOfferDetails(lastOfferId);
         assertEq(m.state, LC.OFFER_STATE_ACTIVE, "unexpected offer state");
+
         (lastOfferId, , ) = nayms.executeLimitOffer(usdcId, 1e6, e1Id, 1e12 - 1);
         m = logOfferDetails(lastOfferId);
         assertEq(m.state, LC.OFFER_STATE_FULFILLED, "unexpected offer state");
