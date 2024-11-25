@@ -650,7 +650,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // logOfferDetails(4); // should be filled 50%
     }
 
-    function testEventsForSecondaryTradeWithBetterThanAskPrice() public {
+    function testOrderMatchedEventsForSecondaryTradeWithBetterThanAskPrice() public {
         uint256 tokenAmount = 1000 ether;
 
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
