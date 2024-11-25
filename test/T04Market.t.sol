@@ -650,7 +650,7 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         // logOfferDetails(4); // should be filled 50%
     }
 
-    function testSecondaryTradeWithBetterThanAskPrice2() public {
+    function testEventsForSecondaryTradeWithBetterThanAskPrice() public {
         uint256 tokenAmount = 1000 ether;
 
         writeTokenBalance(account0, naymsAddress, wethAddress, dt.entity1StartingBal);
@@ -671,8 +671,6 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
 
         // BUY: P 500 / E 500  (price = 1)
         nayms.executeLimitOffer(wethId, tokenAmount / 2, entity1, tokenAmount / 2);
-        // assertOfferFilled(1, entity1, entity1, tokenAmount / 2, wethId, tokenAmount / 2);
-        // assertOfferFilled(2, entity2, wethId, tokenAmount / 2, entity1, tokenAmount / 2);
 
         // SELL: P 500 / E 2000 (price = 4)
         nayms.executeLimitOffer(entity1, tokenAmount / 2, wethId, tokenAmount * 2);
@@ -684,12 +682,52 @@ contract T04MarketTest is D03ProtocolDefaults, MockAccounts {
         changePrank(signer3);
         writeTokenBalance(signer3, naymsAddress, wethAddress, dt.entity2ExternalDepositAmt * 6);
         nayms.externalDeposit(wethAddress, dt.entity2ExternalDepositAmt * 6);
+
+        vm.recordLogs();
         nayms.executeLimitOffer(wethId, tokenAmount * 4, entity1, tokenAmount);
 
-        logOfferDetails(1); // should be filled 100%
-        logOfferDetails(2); // should be filled 100%
-        logOfferDetails(3); // should be filled 100%
-        logOfferDetails(4); // should be filled 100%
+        assertOfferFilled(1, entity1, entity1, tokenAmount, wethId, tokenAmount);
+        assertOfferFilled(2, entity2, wethId, tokenAmount / 2, entity1, tokenAmount / 2);
+        assertOfferFilled(3, entity2, entity1, tokenAmount / 2, wethId, tokenAmount * 2);
+        assertOfferFilled(4, entity3, wethId, tokenAmount * 4, entity1, tokenAmount);
+
+        // assert OrderMatched events ONLY for the last trade to verify match at a better-than-asked-for price
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        assertOrderMatchedEvent(entries, 11, 4, 1, tokenAmount / 2, tokenAmount / 2);
+        assertOrderMatchedEvent(entries, 12, 1, 4, tokenAmount / 2, tokenAmount / 2);
+        assertOrderMatchedEvent(entries, 21, 4, 3, tokenAmount * 2, tokenAmount / 2);
+        assertOrderMatchedEvent(entries, 22, 3, 4, tokenAmount / 2, tokenAmount * 2);
+
+        // logOfferDetails(1); // should be filled 100%
+        // logOfferDetails(2); // should be filled 100%
+        // logOfferDetails(3); // should be filled 100%
+        // logOfferDetails(4); // should be filled 100%
+    }
+
+    function assertOrderMatchedEvent(
+        Vm.Log[] memory _entries,
+        uint256 _entryIndex,
+        uint256 _orderId,
+        uint256 _matchedWithId,
+        uint256 _sellAmountMatched,
+        uint256 _buyAmountMatched
+    ) private {
+        assertEq(_entries[_entryIndex].topics.length, 2, string.concat("OrderMatched[", vm.toString(_orderId), "]: topics length incorrect"));
+        assertEq(
+            _entries[_entryIndex].topics[0],
+            keccak256("OrderMatched(uint256,uint256,uint256,uint256)"),
+            string.concat("OrderMatched[", vm.toString(_orderId), "]: Invalid event signature")
+        );
+        assertEq(
+            abi.decode(LibHelpers._bytes32ToBytes(_entries[_entryIndex].topics[1]), (uint256)),
+            _orderId,
+            string.concat("OrderMatched[", vm.toString(_orderId), "]: incorrect orderID")
+        ); // assert order ID
+        (uint256 matchedWithId, uint256 sellAmountMatched, uint256 buyAmountMatched) = abi.decode(_entries[_entryIndex].data, (uint256, uint256, uint256));
+        assertEq(matchedWithId, _matchedWithId, string.concat("OrderMatched[", vm.toString(_orderId), "]: invalid matchedWithID"));
+        assertEq(sellAmountMatched, _sellAmountMatched, string.concat("OrderMatched[", vm.toString(_orderId), "]: invalid sell amount"));
+        assertEq(buyAmountMatched, _buyAmountMatched, string.concat("OrderMatched[", vm.toString(_orderId), "]: invalid buy amount"));
     }
 
     function testBestOffersWithCancel() public {
