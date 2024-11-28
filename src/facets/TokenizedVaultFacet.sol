@@ -141,6 +141,16 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     }
 
     /**
+     * @notice Get the amount of tokens that an entity has available (deposited, but not locked)
+     * @param _entityId  Unique platform ID of the entity.
+     * @param _tokenId The ID assigned to an external token.
+     * @return amount of tokens that the entity has available
+     */
+    function getAvailableBalance(bytes32 _entityId, bytes32 _tokenId) external view returns (uint256) {
+        return LibTokenizedVault._getAvailableBalance(_entityId, _tokenId);
+    }
+
+    /**
      * @notice A system admin can transfer funds from an ID to another one.
      *
      * @param _fromId Unique platform ID to send the funds from.
