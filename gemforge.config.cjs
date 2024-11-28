@@ -7,7 +7,7 @@ const MNEMONIC = fs.existsSync("./nayms_mnemonic.txt") ? fs.readFileSync("./naym
 
 const sysAdminAddress = ethers.Wallet.fromMnemonic(MNEMONIC)?.address;
 
-const localSalt = utils.keccak256(utils.toUtf8Bytes("salty3"))
+const localSalt = utils.keccak256(utils.toUtf8Bytes("salty3"));
 
 module.exports = {
   // Configuration file version
@@ -81,7 +81,7 @@ module.exports = {
     preBuild: "",
     postBuild: "",
     preDeploy: "",
-    postDeploy: "./script/gemforge/verify.js",
+    postDeploy: "",
   },
   // Wallets to use for deployment
   wallets: {
@@ -110,25 +110,53 @@ module.exports = {
   },
   networks: {
     local: { rpcUrl: "http://localhost:8545" },
-    sepolia: { rpcUrl: process.env.ETH_SEPOLIA_RPC_URL },
-    mainnet: { rpcUrl: process.env.ETH_MAINNET_RPC_URL },
+    sepolia: {
+      rpcUrl: process.env.ETH_SEPOLIA_RPC_URL,
+      contractVerification: {
+        foundry: {
+          apiUrl: "https://api-sepolia.etherscan.io/api",
+          apiKey: () => process.env.ETHERSCAN_API_KEY,
+        },
+      },
+    },
+    mainnet: {
+      rpcUrl: process.env.ETH_MAINNET_RPC_URL,
+      contractVerification: {
+        foundry: {
+          apiUrl: "https://api.etherscan.io/api",
+          apiKey: () => process.env.ETHERSCAN_API_KEY,
+        },
+      },
+    },
     baseSepolia: {
       rpcUrl: process.env.BASE_SEPOLIA_RPC_URL,
-      verifiers: [
-        {
-          verifierName: "etherscan",
-          verifierUrl: "https://api-sepolia.basescan.org/api",
-          verifierApiKey: process.env.BASESCAN_API_KEY,
+      contractVerification: {
+        foundry: {
+          apiUrl: "https://api-sepolia.basescan.org/api",
+          apiKey: () => process.env.BASESCAN_API_KEY,
         },
-        {
-          verifierName: "blockscout", // needed for louper
-          verifierUrl: "https://base-sepolia.blockscout.com/api",
-          verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
-        },
-      ],
+        verifiers: [
+          {
+            verifierName: "etherscan",
+            verifierUrl: "https://api-sepolia.basescan.org/api",
+            verifierApiKey: process.env.BASESCAN_API_KEY,
+          },
+          {
+            verifierName: "blockscout", // needed for louper
+            verifierUrl: "https://base-sepolia.blockscout.com/api",
+            verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
+          },
+        ],
+      },
     },
     base: {
       rpcUrl: process.env.BASE_MAINNET_RPC_URL,
+      contractVerification: {
+        foundry: {
+          apiUrl: "https://api.basescan.org/api",
+          apiKey: () => process.env.BASESCAN_API_KEY,
+        },
+      },
       verifiers: [
         {
           verifierName: "etherscan",
@@ -139,6 +167,12 @@ module.exports = {
     },
     aurora: {
       rpcUrl: process.env.AURORA_MAINNET_RPC_URL,
+      contractVerification: {
+        foundry: {
+          apiUrl: "https://explorer.mainnet.aurora.dev/api",
+          apiKey: () => process.env.BLOCKSCOUT_API_KEY,
+        },
+      },
       verifiers: [
         {
           verifierName: "aurora",
@@ -149,6 +183,12 @@ module.exports = {
     },
     auroraTestnet: {
       rpcUrl: process.env.AURORA_TESTNET_RPC_URL,
+      contractVerification: {
+        foundry: {
+          apiUrl: "https://explorer.testnet.aurora.dev/api",
+          apiKey: () => process.env.BLOCKSCOUT_API_KEY,
+        },
+      },
       verifiers: [
         {
           verifierName: "aurora",
@@ -159,7 +199,7 @@ module.exports = {
   },
   targets: {
     // `governance` attribute is only releveant for testnets, it's a wallet to use to auto approve the upgrade ID within the script
-    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress], create3Salt: localSalt},
+    local: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress], create3Salt: localSalt },
     sepolia: { network: "sepolia", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     sepoliaFork: { network: "local", wallet: "devOwnerWallet", governance: "devSysAdminWallet", initArgs: [sysAdminAddress] },
     mainnet: { network: "mainnet", wallet: "wallet3", initArgs: [sysAdminAddress] },

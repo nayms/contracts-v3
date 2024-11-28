@@ -305,6 +305,16 @@
     "chainId": 11155111,
     "contracts": [
       {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xd08283849d4f9c6a14cdfc047e2c7f590035d52beed286157946b042380ef973",
+        "onChain": {
+          "address": "0xF3fF0876A4f4BD7f854085AF5638A66282a059B9",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -401,16 +411,6 @@
         "txHash": "0x35683bd1496eb9de25c562773af70678e4769c619fc72f21b09e02cbc87a745a",
         "onChain": {
           "address": "0xa19BA1aEF33c5c13b6DF3793393784AA79C9A216",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x3f35640b78f1587fc45f5c77deb497f4f550fa5ca5fd8eda306a83524de10ae5",
-        "onChain": {
-          "address": "0x46f02a7AA9aA0a52C65f107ed5d920f30D7F5E69",
           "constructorArgs": []
         }
       },
@@ -1015,6 +1015,16 @@
     "chainId": 84532,
     "contracts": [
       {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x96e19e3578f39fd6ee33da76138bd8833429268a798030ecdc4f7292dd0bdfe7",
+        "onChain": {
+          "address": "0x88a46FD0c79B62aC708667Bc588403b70Ab685d5",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -1105,16 +1115,6 @@
         }
       },
       {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x37574c3299af82d6ba63af5e171da172d105c175a27d206b3dc6600cd98450aa",
-        "onChain": {
-          "address": "0x27d213BC96E89cc8FA46D931E46Aa4933c505A2c",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "TokenizedVaultIOFacet",
         "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
@@ -1198,6 +1198,16 @@
   "auroraTestnet": {
     "chainId": 1313161555,
     "contracts": [
+      {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xa8f3c326f453eb941477a827d22c87e9cb0ada4a35dcfd65253b6e3f3d0bd1ec",
+        "onChain": {
+          "address": "0x21702829450ffb9bdBC839063252DEbb87a832d9",
+          "constructorArgs": []
+        }
+      },
       {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
@@ -1295,16 +1305,6 @@
         "txHash": "0xd55aee4737b019e21838d8883f14401456f495f7efae818bc0c3f51b250c5e49",
         "onChain": {
           "address": "0x6CeAa2E66E4b068f75D955bA18f9A0f72e5d532C",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xb5031a7a1b7074396ffa870ee68dca2e243d33a97105c723c380c3b6d4f1f4da",
-        "onChain": {
-          "address": "0x8F41B260dBD765d9D6A54a34F43D8e9F6455E5F8",
           "constructorArgs": []
         }
       },

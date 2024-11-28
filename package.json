@@ -1,6 +1,6 @@
 {
   "name": "@nayms/contracts",
-  "version": "3.9.5",
+  "version": "3.9.6",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts-v3.git",
   "author": "Kevin Park <kevin@fruitful.gg>",
@@ -34,6 +34,7 @@
     "build": "gemforge build",
     "deploy": "./script/gemforge/deploy.js",
     "query": "gemforge query",
+    "verify": "gemforge verify",
     "test": "forge test --no-match-test testFork"
   },
   "devDependencies": {
@@ -47,7 +48,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.0.0",
     "ethers": "^5.6.9",
-    "gemforge": "^2.13.1",
+    "gemforge": "^2.14.0",
     "glob": "^8.0.3",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
