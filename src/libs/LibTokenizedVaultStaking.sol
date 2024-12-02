@@ -317,6 +317,27 @@ library LibTokenizedVaultStaking {
         s.stakeBalance[vTokenId][_stakerId] = state.balance;
     }
 
+    function _compoundRewards(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bytes32 tokenId = s.stakingConfigs[_entityId].tokenId;
+
+        (, RewardsBalances memory rewards) = _getStakingStateWithRewardsBalances(_stakerId, _entityId, _interval);
+
+        uint256 rewardAmount;
+        uint256 rewardCount = rewards.currencies.length;
+        for (uint64 i = 0; i <= rewardCount; i++) {
+            if (rewards.currencies[i] == tokenId) {
+                rewardAmount = rewards.amounts[i];
+                break;
+            }
+        }
+
+        require(rewardAmount > 0, "No reward to compound");
+
+        _collectRewards(_stakerId, _entityId, _interval);
+        _stake(_stakerId, _entityId, rewardAmount);
+    }
+
     function _collectRewards(bytes32 _stakerId, bytes32 _entityId, uint64 _interval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 

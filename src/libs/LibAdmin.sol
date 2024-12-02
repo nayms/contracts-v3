@@ -147,8 +147,9 @@ library LibAdmin {
         s.locked[IDiamondProxy.cancelSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createEntity.selector] = true;
+        s.locked[IDiamondProxy.compoundRewards.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](22);
+        bytes4[] memory lockedFunctions = new bytes4[](23);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -171,6 +172,7 @@ library LibAdmin {
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
+        lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -199,8 +201,9 @@ library LibAdmin {
         s.locked[IDiamondProxy.createSimplePolicy.selector] = false;
         s.locked[IDiamondProxy.createEntity.selector] = false;
         s.locked[IDiamondProxy.collectRewardsToInterval.selector] = false;
+        s.locked[IDiamondProxy.compoundRewards.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](22);
+        bytes4[] memory lockedFunctions = new bytes4[](23);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -223,6 +226,7 @@ library LibAdmin {
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
+        lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
     }

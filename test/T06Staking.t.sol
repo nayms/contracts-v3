@@ -759,6 +759,43 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount * 2);
     }
 
+    function test_compoundReward() public {
+        naymToken.mint(nlf.addr, 10_000_000e18);
+        vm.startPrank(nlf.addr);
+        naymToken.approve(address(nayms), 10_000_000e18);
+        nayms.externalDeposit(address(naymToken), 10_000_000e18);
+
+        uint256 startStaking = block.timestamp + 1;
+        initStaking(startStaking);
+        c.log(" ~ [%s] Staking start".blue(), currentInterval());
+
+        vm.warp(startStaking + 31 days);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
+        c.log(" ~ [%s] Bob staked".blue(), currentInterval());
+
+        vm.warp(startStaking + 61 days);
+
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, NAYM_ID, 10_000);
+        c.log(" ~ [%s] Reward1 paid out".blue(), currentInterval());
+
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should be 2");
+
+        vm.warp(startStaking + 181 days);
+
+        uint256 balanceBeforeClaim = nayms.internalBalanceOf(bob.entityId, NAYM_ID);
+
+        startPrank(bob);
+        // (bytes32[] memory currencies, uint256[] memory amounts) = nayms.getRewardsBalance(bob.entityId, nlf.entityId);
+        nayms.collectRewards(nlf.entityId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, NAYM_ID), balanceBeforeClaim + 10_000, "Bob should have NAYM in his balance");
+    }
+
     function test_twoStakingRewardCurrencies() public {
         uint256 startStaking = block.timestamp + 100 days;
         initStaking(startStaking);
