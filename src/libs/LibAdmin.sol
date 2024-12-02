@@ -34,7 +34,6 @@ library LibAdmin {
     event SupportedTokenAdded(address indexed tokenAddress);
     event FunctionsLocked(bytes4[] functionSelectors);
     event FunctionsUnlocked(bytes4[] functionSelectors);
-    event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
     event SelfOnboardingCompleted(address indexed userAddress);
 
     /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
