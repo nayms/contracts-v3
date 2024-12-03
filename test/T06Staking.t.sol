@@ -759,25 +759,22 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount * 2);
     }
 
-    function test_compoundReward() public {
-        naymToken.mint(nlf.addr, 10_000_000e18);
+    function test_fuzzCompoundReward(uint256 testReward) public {
+        vm.assume(100 < testReward && testReward < type(uint128).max);
+
+        naymToken.mint(nlf.addr, testReward);
         vm.startPrank(nlf.addr);
-        naymToken.approve(address(nayms), 10_000_000e18);
-        nayms.externalDeposit(address(naymToken), 10_000_000e18);
+        naymToken.approve(address(nayms), testReward);
+        nayms.externalDeposit(address(naymToken), testReward);
 
         uint256 startStaking = block.timestamp + 1;
         initStaking(startStaking);
-        c.log(" ~ [%s] Staking start".blue(), currentInterval());
 
         vm.warp(startStaking + 31 days);
 
         startPrank(bob);
         nayms.stake(nlf.entityId, bobStakeAmount);
         assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
-        c.log(" ~ [%s] Bob staked".blue(), currentInterval());
-
-        vm.expectRevert("No reward to compound");
-        nayms.compoundRewards(nlf.entityId);
 
         vm.warp(startStaking + 61 days);
 
@@ -786,20 +783,22 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(nlf);
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 10_000);
         assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should be 0");
-        c.log(" ~ [%s] Reward1 paid out".blue(), currentInterval());
 
         vm.warp(startStaking + 91 days);
 
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, NAYM_ID, 10_000);
+        startPrank(bob);
+        vm.expectRevert("No reward to compound");
+        nayms.compoundRewards(nlf.entityId);
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, NAYM_ID, testReward);
         assertEq(nayms.lastPaidInterval(nlf.entityId), 3, "Last interval paid should be 0");
-        c.log(" ~ [%s] Reward2 paid out".blue(), currentInterval());
 
         vm.warp(startStaking + 181 days);
 
         startPrank(bob);
         nayms.compoundRewards(nlf.entityId);
-        assertStakedAmount(bob.entityId, bobStakeAmount + 10_000, "Bob's stake should increase");
-        c.log(" ~ [%s] Reward1 compound".blue(), currentInterval());
+        assertStakedAmount(bob.entityId, bobStakeAmount + testReward, "Bob's stake should increase");
     }
 
     function test_twoStakingRewardCurrencies() public {
