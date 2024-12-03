@@ -325,7 +325,8 @@ library LibTokenizedVaultStaking {
 
         uint256 rewardAmount;
         uint256 rewardCount = rewards.currencies.length;
-        for (uint64 i = 0; i <= rewardCount; i++) {
+
+        for (uint64 i = 0; i < rewardCount; i++) {
             if (rewards.currencies[i] == tokenId) {
                 rewardAmount = rewards.amounts[i];
                 break;

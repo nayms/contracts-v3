@@ -776,6 +776,9 @@ contract T06Staking is D03ProtocolDefaults {
         assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
         c.log(" ~ [%s] Bob staked".blue(), currentInterval());
 
+        vm.expectRevert("No reward to compound");
+        nayms.compoundRewards(nlf.entityId);
+
         vm.warp(startStaking + 61 days);
 
         assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
@@ -788,12 +791,10 @@ contract T06Staking is D03ProtocolDefaults {
 
         vm.warp(startStaking + 181 days);
 
-        uint256 balanceBeforeClaim = nayms.internalBalanceOf(bob.entityId, NAYM_ID);
-
         startPrank(bob);
-        // (bytes32[] memory currencies, uint256[] memory amounts) = nayms.getRewardsBalance(bob.entityId, nlf.entityId);
-        nayms.collectRewards(nlf.entityId);
-        assertEq(nayms.internalBalanceOf(bob.entityId, NAYM_ID), balanceBeforeClaim + 10_000, "Bob should have NAYM in his balance");
+        nayms.compoundRewards(nlf.entityId);
+        assertStakedAmount(bob.entityId, bobStakeAmount + 10_000, "Bob's stake should increase");
+        c.log(" ~ [%s] Reward1 compound".blue(), currentInterval());
     }
 
     function test_twoStakingRewardCurrencies() public {
