@@ -784,10 +784,15 @@ contract T06Staking is D03ProtocolDefaults {
         assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
 
         startPrank(nlf);
-        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, NAYM_ID, 10_000);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 10_000);
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should be 0");
         c.log(" ~ [%s] Reward1 paid out".blue(), currentInterval());
 
-        assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should be 2");
+        vm.warp(startStaking + 91 days);
+
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, NAYM_ID, 10_000);
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 3, "Last interval paid should be 0");
+        c.log(" ~ [%s] Reward2 paid out".blue(), currentInterval());
 
         vm.warp(startStaking + 181 days);
 
