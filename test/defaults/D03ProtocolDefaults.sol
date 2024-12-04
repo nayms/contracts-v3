@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import { Vm } from "forge-std/Vm.sol";
+
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -440,16 +442,16 @@ contract D03ProtocolDefaults is D02TestSetup {
             bytes[] memory signatures = new bytes[](4);
             bytes32 signingHash = nayms.getSigningHash(policy.startDate, policy.maturationDate, policy.asset, policy.limit, offchainDataHash);
 
-            signatures[0] = initPolicySig(0xACC2, signingHash);
-            signatures[1] = initPolicySig(0xACC1, signingHash);
-            signatures[2] = initPolicySig(0xACC3, signingHash);
-            signatures[3] = initPolicySig(0xACC4, signingHash);
+            signatures[0] = signWithPK(0xACC2, signingHash);
+            signatures[1] = signWithPK(0xACC1, signingHash);
+            signatures[2] = signWithPK(0xACC3, signingHash);
+            signatures[3] = signWithPK(0xACC4, signingHash);
 
             policyStakeholders = Stakeholders(roles, entityIds, signatures);
         }
     }
 
-    function initPolicySig(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
+    function signWithPK(uint256 privateKey, bytes32 signingHash) internal pure returns (bytes memory sig_) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, MessageHashUtils.toEthSignedMessageHash(signingHash));
         sig_ = abi.encodePacked(r, s, v);
     }
@@ -480,5 +482,16 @@ contract D03ProtocolDefaults is D02TestSetup {
         for (uint256 i; i < cr.length; i++) {
             c.logBytes32(cr[i]);
         }
+    }
+
+    function assertRoleUpdateEvent(Vm.Log[] memory entries, uint256 _index, bytes32 _ctxId, bytes32 _entityId, bytes32 _roleId, string memory _action) internal {
+        assertEq(entries[_index].topics.length, 2);
+        assertEq(entries[_index].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
+        assertEq(entries[_index].topics[1], _entityId, "incorrect entityID".red());
+
+        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[_index].data, (bytes32, bytes32, string));
+        assertEq(contextId, _ctxId, "incorrect context".red());
+        assertEq(_roleId, roleId, "incorrect role ID".red());
+        assertEq(action, _action, "incorrect action".red());
     }
 }

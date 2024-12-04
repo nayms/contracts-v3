@@ -1,6 +1,6 @@
 {
   "name": "@nayms/contracts",
-  "version": "3.9.0",
+  "version": "3.9.7",
   "main": "index.js",
   "repository": "https://github.com/nayms/contracts-v3.git",
   "author": "Kevin Park <kevin@fruitful.gg>",
@@ -30,12 +30,12 @@
     "solhint:check": "solhint --config ./.solhint.json 'src/**/*.sol'",
     "lint": "yarn prettier && yarn run solhint",
     "lint:check": "yarn prettier:check && yarn run solhint:check",
-    "docgen": "rm -rf docs/facets/*Facet.md && node cli-tools/docgen.js",
     "anvil": "anvil --host 0.0.0.0 --chain-id 31337 --accounts 30 -m ./nayms_mnemonic.txt",
     "build": "gemforge build",
     "deploy": "./script/gemforge/deploy.js",
     "query": "gemforge query",
-    "test": "forge test --no-match-test testReplaceDiamondCut"
+    "verify": "gemforge verify",
+    "test": "forge test --no-match-test testFork"
   },
   "devDependencies": {
     "chalk": "4",
@@ -48,7 +48,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.0.0",
     "ethers": "^5.6.9",
-    "gemforge": "^2.9.1",
+    "gemforge": "^2.14.0",
     "glob": "^8.0.3",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",

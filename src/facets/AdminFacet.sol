@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { OnboardingApproval } from "../shared/FreeStructs.sol";
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibAdmin } from "../libs/LibAdmin.sol";
 import { LibObject } from "../libs/LibObject.sol";
@@ -148,29 +149,20 @@ contract AdminFacet is Modifiers {
     }
 
     /**
-     * @notice Approve a user address for self-onboarding
-     * @param _userAddress user account address
+     * @notice Create a token holder entity for a user account
+     * @param _onboardingApproval onboarding approval parameters, includes user address, entity ID and role ID
      */
-    function approveSelfOnboarding(
-        address _userAddress,
-        bytes32 _entityId,
-        string calldata _role
-    ) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_ONBOARDING_APPROVERS) {
-        LibAdmin._approveSelfOnboarding(_userAddress, _entityId, _role);
+    function onboardViaSignature(OnboardingApproval calldata _onboardingApproval) external {
+        LibAdmin._onboardUserViaSignature(_onboardingApproval);
     }
 
     /**
-     * @notice Create a token holder entity for a user account
+     * @notice Hash to be signed by the onboarding approver
+     * @param _userAddress Address being approved to onboard
+     * @param _entityId Entity ID being approved for onboarding
+     * @param _roleId Role being apprved for onboarding
      */
-    function onboard() external {
-        LibAdmin._onboardUser(msg.sender);
-    }
-
-    function isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, string calldata _role) external view returns (bool) {
-        return LibAdmin._isSelfOnboardingApproved(_userAddress, _entityId, _role);
-    }
-
-    function cancelSelfOnboarding(address _user) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
-        LibAdmin._cancelSelfOnboarding(_user);
+    function getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bytes32) {
+        return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
     }
 }

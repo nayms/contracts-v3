@@ -6,9 +6,9 @@
         "name": "DiamondProxy",
         "fullyQualifiedName": "DiamondProxy.sol:DiamondProxy",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x6d1ea0b274d7af0ca022b64f517f4f3be762995d87552d77a6f4ee2ff6978cbe",
+        "txHash": "0x1a2fa746d593988476cf71e5124a537683cbfc3bd171b5eaaf64c51e2c0cefec",
         "onChain": {
-          "address": "0x1e560E6adDF76b9335540565a96F4a93f371a56c",
+          "address": "0xE9A592C9d6f20eBe2eB302FAC5cd31EAF984Bb48",
           "constructorArgs": [
             "0x931c3aC09202650148Edb2316e97815f904CF4fa"
           ]
@@ -18,9 +18,9 @@
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xa46590e8de7d4ec32c712272b25feab6c651d8d01b10054d7c0f30c0e365adb5",
+        "txHash": "0x33f4ba195159855ccf9d35ed8ccd6c353e224a2716ce3da719e6abca9207427d",
         "onChain": {
-          "address": "0xeb91C729D4bD06F41C7624E6ef0a40a828479af2",
+          "address": "0xd6c79E894570d90739c44c2923F84C276567ABf8",
           "constructorArgs": []
         }
       },
@@ -28,9 +28,9 @@
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x40f1d62e861f6017761819b20d72e3dd703001bcc9a77c526da50ed81417bd06",
+        "txHash": "0xb6534dbc917142f577e48909174708bf6c9cd65d70d721fc27318e689ead5c7a",
         "onChain": {
-          "address": "0xd6c79E894570d90739c44c2923F84C276567ABf8",
+          "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
           "constructorArgs": []
         }
       },
@@ -38,9 +38,9 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xb61c01169c230a60c43b87024d125b5112646728ff4777cf35f0b60a72d9fba7",
+        "txHash": "0xca3cae17c63189d49484cac876b94aa253e6635e31155fd5e881ac47d8df277c",
         "onChain": {
-          "address": "0x4F10acBA59A206a66713380De02F9c09880A822F",
+          "address": "0x175a1077Ccdb3bF380db95889610BF6877Fb104C",
           "constructorArgs": []
         }
       },
@@ -48,9 +48,9 @@
         "name": "GovernanceFacet",
         "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xff78b3f790000769bf5348c3c8566076c5721ee3e71a0ddb3d1290acab08d4f1",
+        "txHash": "0xf8fb9c2a40b7f6fa48100c29f423e056b5ca8bf80f8002529a222a58c20d1882",
         "onChain": {
-          "address": "0x175a1077Ccdb3bF380db95889610BF6877Fb104C",
+          "address": "0x76Ab1953794E1a7F522ADaf20112501dFc671b9f",
           "constructorArgs": []
         }
       },
@@ -58,9 +58,9 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xa987f01c5a7126ab2fcd8711ace03a4ef07f2e6c329849f8988d74a9ca1ca7bd",
+        "txHash": "0x195abb03cd273c35f5d337ad311c16d6cbd9b244cb9d4f39222d339cc78ecf4e",
         "onChain": {
-          "address": "0x76Ab1953794E1a7F522ADaf20112501dFc671b9f",
+          "address": "0xC0009342F733B8338C933505B3CE3F30285bb439",
           "constructorArgs": []
         }
       },
@@ -68,9 +68,9 @@
         "name": "NaymsOwnershipFacet",
         "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x497ced92dcf3a87bb44cca951f81c5d2cb8ba41d536697e20c72f2fdb1390db7",
+        "txHash": "0xff19b91167d3f5dc2a661fef32ef97ac71033a4f8737fd1e58ba4ee55ab63782",
         "onChain": {
-          "address": "0xC0009342F733B8338C933505B3CE3F30285bb439",
+          "address": "0xfADB5dB5d08BBf950256f79C3665CE8d71d8710f",
           "constructorArgs": []
         }
       },
@@ -78,9 +78,9 @@
         "name": "PhasedDiamondCutFacet",
         "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xb6f4c23ee3e42886b9332cc043d8e070983b8da0bfe8b06785b338189d6114b6",
+        "txHash": "0x9b71dc92a492001c31a41b861696b1bb26a60cd6e17b1dd1001309827d722b3c",
         "onChain": {
-          "address": "0xfADB5dB5d08BBf950256f79C3665CE8d71d8710f",
+          "address": "0x60EA14Bad701260fAE76F97639BC568F4e750b29",
           "constructorArgs": []
         }
       },
@@ -88,9 +88,9 @@
         "name": "SimplePolicyFacet",
         "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x4fe595cf6ad17e30da36fd71f51bb3767cf03e36f6b73e9eefffd65c161b6c02",
+        "txHash": "0x47c857cdeb477a4594d3e4b8a64cd21233dd4ba87a80dbcc393e45fb4cf5ac49",
         "onChain": {
-          "address": "0x60EA14Bad701260fAE76F97639BC568F4e750b29",
+          "address": "0x2F64b09a41b400a58D4485f08f6BCF14D944Ad6f",
           "constructorArgs": []
         }
       },
@@ -98,9 +98,9 @@
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xf9e659777e5f136ada71305f75d4c746bcb33878d7d9d35e908ac039b171edff",
+        "txHash": "0xa077a8182a8c815af612621376515f8c496acaef01724aca1276d6bea8d57c05",
         "onChain": {
-          "address": "0x2F64b09a41b400a58D4485f08f6BCF14D944Ad6f",
+          "address": "0xE8737e94DcaA61B3354644D3a7177d91Abb7fBC0",
           "constructorArgs": []
         }
       },
@@ -108,9 +108,9 @@
         "name": "SystemFacet",
         "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x212d2448f9ef55c8163d46f678f2f83601c3be8b8bfe01d55285b74cbfdd11b4",
+        "txHash": "0xca22c45514b99d29222da5d2132cdc3028a1acd2e416acb1c3e50bca6d6326cb",
         "onChain": {
-          "address": "0xE8737e94DcaA61B3354644D3a7177d91Abb7fBC0",
+          "address": "0xC09f543dD405347105146BfD5b799233c69A7C70",
           "constructorArgs": []
         }
       },
@@ -118,9 +118,9 @@
         "name": "TokenizedVaultFacet",
         "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xd645b5b1325b244e2b07f287e422bd1d0b544b16ac93d2a0b50bd1b1bca2e8fb",
+        "txHash": "0xbfec3170742a3ea986cab5506bf9d7432fbbcc9b0784b9d23a727539164f6ee6",
         "onChain": {
-          "address": "0xC09f543dD405347105146BfD5b799233c69A7C70",
+          "address": "0x0c6815cEB188B0d877B08CF4B1F850Ed0F0929F0",
           "constructorArgs": []
         }
       },
@@ -128,9 +128,9 @@
         "name": "TokenizedVaultIOFacet",
         "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x93bdf006a5cd2300826c18e284de1e8d4122740abb8b9b93bb42a8c9bff09f6a",
+        "txHash": "0x0dc76eccacd37100e0b6e9a25239e96821158ff3871bbeb3af36ea8db169034d",
         "onChain": {
-          "address": "0x0c6815cEB188B0d877B08CF4B1F850Ed0F0929F0",
+          "address": "0xfc12A71BF96d541F439C79E3F16654e1c9B97935",
           "constructorArgs": []
         }
       },
@@ -138,9 +138,9 @@
         "name": "UserFacet",
         "fullyQualifiedName": "UserFacet.sol:UserFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x61b62d4a18d8cfb5b6c1bf1d2dffaac85ce721305d984e01539b0dc3fde3c6b5",
+        "txHash": "0x9102d52e3272b61d0e75ab75dfd753ec1819191bd9a5779da711b43dfe2c73c7",
         "onChain": {
-          "address": "0xfc12A71BF96d541F439C79E3F16654e1c9B97935",
+          "address": "0x002d2970F2AacFD2344d2C1cc35b3985A374A73C",
           "constructorArgs": []
         }
       },
@@ -148,9 +148,9 @@
         "name": "InitDiamond",
         "fullyQualifiedName": "InitDiamond.sol:InitDiamond",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xdcc6187f91f35071ba0252722041c056cec6b565221e4176692c9d60f1848d4d",
+        "txHash": "0xa2647f54fe69e069fcda71cdf4b9b10cb1c9deebb91de7bee1a2a9e0d9b97c93",
         "onChain": {
-          "address": "0x002d2970F2AacFD2344d2C1cc35b3985A374A73C",
+          "address": "0x23c9080C0A5236C6E6297fB1f4184C9f200a1A80",
           "constructorArgs": []
         }
       }
@@ -305,12 +305,12 @@
     "chainId": 11155111,
     "contracts": [
       {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xc48d3887b66dea8c4da120e22eb8c84f66ce73ae6558984d0a57eab1bfdbf66f",
+        "txHash": "0xd08283849d4f9c6a14cdfc047e2c7f590035d52beed286157946b042380ef973",
         "onChain": {
-          "address": "0x601211989B6B9EF4e792cb8c6e9a246703f5fc5B",
+          "address": "0xF3fF0876A4f4BD7f854085AF5638A66282a059B9",
           "constructorArgs": []
         }
       },
@@ -318,9 +318,9 @@
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x8da2331eca87bc64bdfe512fec2269135a10f40769d6aee61564708953c0654b",
+        "txHash": "0x1c1db055eb1e6277dc155c3f336f87220b881404fd40cbd0a3b3ec903d4fb184",
         "onChain": {
-          "address": "0x3C1D30e508b0d919B1Af5bBb3c3813C4B261C2f3",
+          "address": "0x2B1973557a7b4409B2668d0F2157496aB3c0Af1C",
           "constructorArgs": []
         }
       },
@@ -328,9 +328,9 @@
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x2336b4b0272ba66187daa614ce8e0f9a44db10e9f42ebd86ea7f399db963db1d",
+        "txHash": "0xb1d040b4fda20b36b1ec7497566e89c8eb30e4d1fc1797ca17dbae8a72e23c93",
         "onChain": {
-          "address": "0x33D269f18C833947FE498B68dB97bc8990feaaF7",
+          "address": "0x3eBF592D1c101D100383c41BC1174c7A6B328b5f",
           "constructorArgs": []
         }
       },
@@ -338,9 +338,9 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x6606d49f94a7a41937f199eff00c308d36dadeb7db85f72ca40fde520d647d39",
+        "txHash": "0x8f6ce633c11d231d71ac57e10038b0d019a36b0d3fffd91384708c02f57eb3ff",
         "onChain": {
-          "address": "0x48dF0CfAeF96B6B95B87A94b30536a099a44a1E4",
+          "address": "0xC5642620830C29dCC8ec7D5c922291D93643a08E",
           "constructorArgs": []
         }
       },
@@ -348,9 +348,9 @@
         "name": "GovernanceFacet",
         "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x53598cf0c82937e5fa35db4ad62dce9f261324dc00d428d0fae826a8fd0132d3",
+        "txHash": "0xfa63aa7472dfe142c10534624171669a3633b01d69c33562fd152af1a4f9102b",
         "onChain": {
-          "address": "0x19D0616218fA67f37E111f5deE950C67261565e7",
+          "address": "0x995929e8dc707F79a89D475740c3c185c187d081",
           "constructorArgs": []
         }
       },
@@ -358,9 +358,9 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x36acdc603d548b9273904920cab6708e7f7ccb349cfa7954246175faa453d0c3",
+        "txHash": "0xf5c9d3fbb66f2ab8fafbd6cb7054651dd29aebae2010b824cbf2184fa04296d4",
         "onChain": {
-          "address": "0x476e8E2491c717cd17f17c06329C481627Cf872A",
+          "address": "0x57987A12d0B69833b2a639603AE1B0B384fd5ebb",
           "constructorArgs": []
         }
       },
@@ -368,9 +368,19 @@
         "name": "NaymsOwnershipFacet",
         "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x974369ffe04773472ce0f3ad44656d0abf144574f5db27ae0a2375c3a630522d",
+        "txHash": "0xdc43a5d7a3bfcf38b4064e0b5a257f04d6603861b3e3481228b3a95d52fb58db",
         "onChain": {
-          "address": "0x814307E594990b0baFa158c198172FDabebC25C8",
+          "address": "0x985816cD9fEf0A7134DA3B58D449a383d488dB52",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xfaff9fba8c897d6aa812e98370d6ba41b8b5084a3f05c128fa7f00f46d877d78",
+        "onChain": {
+          "address": "0x06347Be0f259c5CDe48d9EE1Fd4A30EE7CD6cABF",
           "constructorArgs": []
         }
       },
@@ -378,9 +388,9 @@
         "name": "SimplePolicyFacet",
         "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x81cf52aba3e7c36501f55bb7324139b973bb05953942c43551692f3faf96beb7",
+        "txHash": "0xb7293ed86b413d98ae5a75ddc46ca43a99503febf8d1117079141af6d3b329b3",
         "onChain": {
-          "address": "0xd86c71e468Bc79f4070F47ee48BF93068e074C5d",
+          "address": "0x4d1cE83531B0d284D5d74095597E9FC2ab86609a",
           "constructorArgs": []
         }
       },
@@ -388,9 +398,9 @@
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x4baf8c94c6f87405d43c8dd785d6b538e4bb83449d1f32c5ad69bcc437cc277e",
+        "txHash": "0x05f11bc3b013401aa817791482dc64980b719aa11fa92244173b3b74c2c7697c",
         "onChain": {
-          "address": "0xDdA3d3383171eb89b621F5a3679AabE9af6Ce410",
+          "address": "0xe1429C8fdBc8e684CFC6e239DA1bD93778D0C341",
           "constructorArgs": []
         }
       },
@@ -398,19 +408,9 @@
         "name": "SystemFacet",
         "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x271223ac639abf078d9efb73ade47ad29695c7533ce258f15b9cd6209f66e2f9",
+        "txHash": "0x35683bd1496eb9de25c562773af70678e4769c619fc72f21b09e02cbc87a745a",
         "onChain": {
-          "address": "0x8B84541a63bEf23AB3d2C5D99442DC898679cbf4",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x93cbec5279378fd0380605b4e25ab165c772dba0265507215176712be8486702",
-        "onChain": {
-          "address": "0xf42E7193560134984B9678cCc9774EBCb0310e84",
+          "address": "0xa19BA1aEF33c5c13b6DF3793393784AA79C9A216",
           "constructorArgs": []
         }
       },
@@ -418,9 +418,9 @@
         "name": "TokenizedVaultIOFacet",
         "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x4beaf986786a0b607251f1449da89ea13f130e1356e60b7ec028a833c2b38f9e",
+        "txHash": "0x0466e57a04d11617405ff411db604acd6145811f3f925b1dd0071da602fe3829",
         "onChain": {
-          "address": "0x1f2323EccC25d4F7654C6bE579284D03AF6d9f34",
+          "address": "0x08833B26056232899B8572038B126C5B1e38B39f",
           "constructorArgs": []
         }
       },
@@ -428,9 +428,19 @@
         "name": "UserFacet",
         "fullyQualifiedName": "UserFacet.sol:UserFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xc23442d7cc74cad4dae5145de08c567876d6b9008ca89e15a2b7b5f8529c6568",
+        "txHash": "0x9749bac346509e35cab31014643a77d5bd9ef30c7a8832f706eaec97e8b1619d",
         "onChain": {
-          "address": "0x1d82F910c67f8C0b330D36Df14BE9086aAAB849E",
+          "address": "0x0B246415B03cA0A84Ae847A6395e3bd579aCA70d",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "ZapFacet",
+        "fullyQualifiedName": "ZapFacet.sol:ZapFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x7dd40daf251907dda7a5cd0eb5ca9a05a3da1746776ea2a81e78a3795882b235",
+        "onChain": {
+          "address": "0xb2928DA4C1F25EEa87ab1d1E288f774CBC193797",
           "constructorArgs": []
         }
       },
@@ -644,52 +654,12 @@
     "chainId": 1,
     "contracts": [
       {
-        "name": "AdminFacet",
-        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xcdba7a07eee1e8fa3174f96c1324cb5d1471f4885ed76b305a6d40194ad172d4",
+        "txHash": "0xa3a2b982a827a9b5caec25a351abb4486c634c815200a9741070c24f43d6a8cd",
         "onChain": {
-          "address": "0x84684659910385544784A787c90e566626f471aE",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x93c61a05029e10369b3e55289335f054ce5eddb8155a1960f699c860961191c6",
-        "onChain": {
-          "address": "0x392414a8D6D0356f96dc98F0E993BCA3eaD1672f",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x62de0763993492b038a453fc19ea70d60129cb4df9e529f46ff9206f6a349e3d",
-        "onChain": {
-          "address": "0x9B330C6C444c8fB5B142e05b78aaf8347a381411",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "EntityFacet",
-        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x8cbe40985f7ab841cda4b3f9e6b5743487660a01abf9e3dd189689e56aaa02bd",
-        "onChain": {
-          "address": "0x563b00D641a27AD8a159796d8A5282A4eb1DC40D",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "MarketFacet",
-        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x6317e3f8e97ac541203dbab1abfee50d16f7beb5776296b49efd62a3e9813de4",
-        "onChain": {
-          "address": "0x1595a9948EDcdd7DF90022dEf8D60b2a0115C76C",
+          "address": "0x65175E5ACBa632Fb0e24641eb7a25643Df3fc20E",
           "constructorArgs": []
         }
       },
@@ -697,9 +667,119 @@
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xe5f428ed08aa317530533e13f420617ef9116a853c053388b28eccf893136bff",
+        "txHash": "0xd877fc074fe5c52976ffe0a71dffed61528efe1e0f0260105fa79d2e1480df4f",
         "onChain": {
-          "address": "0xcA43F2DbcA054C77e3B679Bf63902Cb5F0E1659b",
+          "address": "0x6BfCEa4A5B0c6A649B41b6Caf79a269219F96Dd0",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "AdminFacet",
+        "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x4d9dd5af6785e1003350d697d444564b32713be5cf6a86e686cf7ab9e9c6e950",
+        "onChain": {
+          "address": "0x4152322499f94956a3C3320B7555F861116E6Cb0",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "EntityFacet",
+        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x2952957f60ba1e9f1f626ab19462c2d998cca425edee9589b8b709cf24fce9e8",
+        "onChain": {
+          "address": "0x42bb8BdfF7F865E1809018e6d650ce1C187e043C",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "GovernanceFacet",
+        "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x3e01133eb35357d86678f061b9bdc6cac498558c6e85fa9537f40bf18b9ae42b",
+        "onChain": {
+          "address": "0x83a0ca48a897693e38b8ab06f9C93B1723B84E0A",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "MarketFacet",
+        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x420588c7d62ab4894f5da7badc8b17b33688829811bbab5d3641f2a985ad8912",
+        "onChain": {
+          "address": "0x1b70509Fa2AB88E38f8A36BbB2c5BF89EC6ad1Ee",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "NaymsOwnershipFacet",
+        "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xa459a15b3edbbf1afa1e35d4a1176d7332bbb878472ea6c55d9644d1c620e55e",
+        "onChain": {
+          "address": "0x77fFDA521B9099492e2BA323aE702F2a28dcb129",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x926acf289035109d61721fbafd4c304f9de5bc95a7d2c711dfd49b0a9ea0dcdc",
+        "onChain": {
+          "address": "0x4726277f61C488E25B51255A56dd323C83483cdb",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "SimplePolicyFacet",
+        "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x30215e33003d27b5118129e252eb03645d6d22757dc6ef560eed6be366c21268",
+        "onChain": {
+          "address": "0x458e9D7582F56B3E08224B66c177624EDaf3BAa6",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "SystemFacet",
+        "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x621d4df98b0a31f03ab028e07ee26b315ed842f46c041dca0fab2d1600db7d09",
+        "onChain": {
+          "address": "0xd20BBeBA57804c348D025E3097a713faFf360842",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x68df9fdf3a8e0d59f6ef8bb512bf22debe45bf59eb0da86203b789493c459f3f",
+        "onChain": {
+          "address": "0x7C72BD75Bd0F2Bb3e253d0eA72ADb18B9A2937ca",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x334408b63cb6d824e513465563150a850e7e68e6daa96625b85e2aa437b68eb8",
+        "onChain": {
+          "address": "0x07A15C1fF58A4ea5764aA3F8d538f6b67551f244",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "UserFacet",
+        "fullyQualifiedName": "UserFacet.sol:UserFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x59f0831b1d2ed65ad3d686c58a70663845e5a74e73f9a9d2ca11880b4b7e2812",
+        "onChain": {
+          "address": "0xEc7776518781CB6b1fBA07924827D5Ed91797ba8",
           "constructorArgs": []
         }
       },
@@ -710,96 +790,6 @@
         "txHash": "0x269c361b259fcefabf6c7424b32af023476b7f097b38066492a215f7ef8992fd",
         "onChain": {
           "address": "0xe8bc322665d85d82cBFf2298274f617f5b73995b",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "EntityFacet",
-        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x8a40a36b8ff53a0c62d7edd592a9dbc07a9e3ead4e94f37df40d1914edc027a5",
-        "onChain": {
-          "address": "0xc9367cBE587464021991B48c2778Efb2ec4968aA",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "GovernanceFacet",
-        "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xcb12b41a33f83de2900487110037e023af46ea2034f77e1b3e486cc830128ea8",
-        "onChain": {
-          "address": "0x16072cB7E7C3297BBf79ac1E6298F6A2BC73e950",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "MarketFacet",
-        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x80989da2b9703ac1613e03d7f01cead5c01cb35452a66f8dffa6d63681c845f4",
-        "onChain": {
-          "address": "0x2123657b34129CA44862b3E572082274F65f2A1A",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "NaymsOwnershipFacet",
-        "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xb66e60aa9567dcdffe55f44dc7f2187ee2145b467b17df5ffbfdb28439fd7a69",
-        "onChain": {
-          "address": "0x5D9F83608B0AAD841508FB438e65cb5799ed198e",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "NaymsTokenFacet",
-        "fullyQualifiedName": "NaymsTokenFacet.sol:NaymsTokenFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x083f494d2935983e43a02a8aea65df9d729246e2a5cdab3143f4b3668ec0eec4",
-        "onChain": {
-          "address": "0x4B26066875Fbf34084562B80bbfd03f3a8F18D1C",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xf51d7eac443332bb13671f4a8fc5a3427ba9e0da2ecf8bdb60af6a6194303295",
-        "onChain": {
-          "address": "0x4133b6241EC720C63EcC9d37531D6AC3F3A8Ee88",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "SimplePolicyFacet",
-        "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x7617c0265bd3e4ca6d9a925630c7690426c54dead16baee7ff97655cde485a57",
-        "onChain": {
-          "address": "0xa04b3AAe6e6E8c43b3AEeE950C21bC7Cd9e777e7",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "SystemFacet",
-        "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x28a1c486b84999218b2c11e3e2b08695eac5f8ac9766762f4fd25a1873bc8a64",
-        "onChain": {
-          "address": "0x0885B22Fa2Ea851f5E1F7d9617D36Bd753A8af07",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "UserFacet",
-        "fullyQualifiedName": "UserFacet.sol:UserFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x9760d4c1668835c89d7db4ee72596624fa25bc08c7ac1c813184651b594dedab",
-        "onChain": {
-          "address": "0x4c596AE4391bd8e9aFAdcf9650400eF1d0848360",
           "constructorArgs": []
         }
       },
@@ -834,32 +824,32 @@
     "chainId": 8453,
     "contracts": [
       {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x77f4566d4479c786f9073fb30fbe41ea0bba58c9060f638939242e2901cadb83",
+        "onChain": {
+          "address": "0xedEEa535A6bC0b75551D7173e1642146D82C2533",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "ACLFacet",
+        "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xaa9e2a29bee6426452881b51c153b6e1ff1ed0e8ee9e4b33a1be47e013f020a3",
+        "onChain": {
+          "address": "0x93913522C9E2e1e78c6D419F199BAC603046e0A1",
+          "constructorArgs": []
+        }
+      },
+      {
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xc65737ba10656332235640017df43a3d4d529885d8f00d46d5490aeb888ed0a7",
+        "txHash": "0x2030f81fb29142058029231f78f7bcef5dd91903c2ef59d663d39f9ea1e6dcf9",
         "onChain": {
-          "address": "0xFB41a2ee330BEc708e8A64CB9317acA394e3239b",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x20362e3633889697f6f236c51235661f886a8890a2778b8fa62514d6ed756a7d",
-        "onChain": {
-          "address": "0xf9719C2E7727eA8A3C6ECd5535E58bb1eD0A404A",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x11e9b431bb1a9bfc9e7bab3e83c42ecd85a328fe96c0f3523b7082cd6d4f7139",
-        "onChain": {
-          "address": "0xf991a7BfA81FC8ab3aE922412Ad379602EB6c199",
+          "address": "0x91329d3A9D0B2C102766Ab9eAb9E8B4C97E7e757",
           "constructorArgs": []
         }
       },
@@ -867,9 +857,19 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xe378bdc6c65df2d6e0854540498f9cce2de936ddb69789daf2f47be28c034ee4",
+        "txHash": "0x40beb6f81180b3ad50ed6f2e4ae5490f546fc0444874a1d679776b9649fc8be6",
         "onChain": {
-          "address": "0xa7874c752D9Ffd140be8D78ca6b1FfaE95650bF9",
+          "address": "0x51D825fC6fBB78Da117b27d0fbE97f6f6c1C6427",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "GovernanceFacet",
+        "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x75d5675778249fc2e2f1caea1dae93efe0070f0bfd15ab58be3efe1ba4835e15",
+        "onChain": {
+          "address": "0xe353f6547B9FFcF9D8926B555823ab4FDf36b2e7",
           "constructorArgs": []
         }
       },
@@ -877,9 +877,79 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x6fe7118c5b965ed10be91d87f0452ff8c45aa51dd86b07eefbb01729af12e246",
+        "txHash": "0xc6cf07e0d8a333e0e4d77723a6e179a7591336d7e9f48b0365756fdd0eafb5a4",
         "onChain": {
-          "address": "0x73BFa1F46452B0938B96DB902419dc08eEe68C56",
+          "address": "0x9692914153222B1374551614227e1B977b2D5862",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "NaymsOwnershipFacet",
+        "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x19a4e81f9d58e654601a2b1420f04769a6d707bd79e9327df2215c1ab9c47e49",
+        "onChain": {
+          "address": "0x320d5f8e4d1630D6915C2b676dE6aEC28A342af8",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x1d64de88d663610fe97768bf2d43fd1490be66611ae4c4b82618c4302714b577",
+        "onChain": {
+          "address": "0x320031935b9A9CBE004F7490f0cDe7455944A140",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "SimplePolicyFacet",
+        "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xff5e9a78ba50f920152890e66d50b2f0cab781f2f60e231819f19b102daba658",
+        "onChain": {
+          "address": "0xC09e653d4a9044641700b46C1d33Bc4F43EcC8C7",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "SystemFacet",
+        "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xb10b4aaa7ac26f5f3254dc1017b238612dfaa9a1e6bbe594ad17c277baa5b958",
+        "onChain": {
+          "address": "0x135F0aC40F1F3cE73E9093C36E22460130734DC0",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xdf83da8f37c3438e732c72681f48f1a26dc35984293cfc8ebae2a9f549025424",
+        "onChain": {
+          "address": "0xB829db99dDFcCbC5F17A7b9268c3A073c28233E6",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xd1dd5c65093220c8ea265e159556b60e742c18d600da0e6cedf5d84de93ca018",
+        "onChain": {
+          "address": "0x07ae1D54F5519b8a09c8262FE7bf34ab1B5566ef",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "UserFacet",
+        "fullyQualifiedName": "UserFacet.sol:UserFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x62d9a9560ad247b50140057d6cdf8b35d2f5b79b799c2d6065f225b376993b18",
+        "onChain": {
+          "address": "0x7bB8325b26d576c05061C1eEb6d565160139Af32",
           "constructorArgs": []
         }
       },
@@ -893,96 +963,6 @@
           "constructorArgs": [
             "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904"
           ]
-        }
-      },
-      {
-        "name": "ACLFacet",
-        "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x7740ad4891ae740ff098eb79663760e628fc43bd17d44e159230282a72df1d62",
-        "onChain": {
-          "address": "0x6192713f5adcD264C85550133720aD397723C0E5",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "GovernanceFacet",
-        "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x3c92e8f12f729028d2d0a7f6f85a241250376d2e481812a6f0cfb1e53df0187a",
-        "onChain": {
-          "address": "0xa4dc26D3d585c5aD5bcF1056d98FC62d291e2022",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "MarketFacet",
-        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xab989bf3dd299376d3c8fc374fa0a8c0d3924e5e3434c7d55e75d1d0a6bf9cba",
-        "onChain": {
-          "address": "0x2870F5551B5811bB52Bab8e9AA21A407125f303F",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "NaymsOwnershipFacet",
-        "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x69c17aa9709d7dd5d79dca2707956334c8739d69af2f2b86f87d6f88a6ff797b",
-        "onChain": {
-          "address": "0xb467d583c697B3a041E32F96C71841d35014cE00",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "NaymsTokenFacet",
-        "fullyQualifiedName": "NaymsTokenFacet.sol:NaymsTokenFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xd04e39026100a00d64ef15688f84e822c1d9e02e831d215d13021c53ca1c9e8b",
-        "onChain": {
-          "address": "0x24c698F0F4553C05cB92f96643D1A98ad88847e2",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xe09263b3adf185c4b61155d97116542a59e509be1d63f6a559652351dd4840b0",
-        "onChain": {
-          "address": "0x5FD0F6a6903504Aa701115592C99607Ce739361E",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "SimplePolicyFacet",
-        "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x49cf01cba04b687fab4ab1c4d0f81d2e09c81b231df013857ab892cc090ce415",
-        "onChain": {
-          "address": "0x26e85fAB5958072617B7b70a9ABA99Ada886d84B",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "SystemFacet",
-        "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xf7251815b4f80723f8d846df7a03e86a948809ae82f5f9be86a2f4763b987608",
-        "onChain": {
-          "address": "0xA148fC2a65459BA96B7b9CEa9101c1756E364F01",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "UserFacet",
-        "fullyQualifiedName": "UserFacet.sol:UserFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x33dc8e6793667ada25293cecf9d1ae4f95ae63f9d9dc68803dbab09246056674",
-        "onChain": {
-          "address": "0x38D9BA8B43Bb9a79dc944c21D4c2Ac81095186b5",
-          "constructorArgs": []
         }
       },
       {
@@ -1035,12 +1015,12 @@
     "chainId": 84532,
     "contracts": [
       {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xdc47258156c984d45e397cea008c5f80a5f554a4743dde3ae84ecf0726fd7d4c",
+        "txHash": "0x96e19e3578f39fd6ee33da76138bd8833429268a798030ecdc4f7292dd0bdfe7",
         "onChain": {
-          "address": "0x2fb733FfAbb775F857716A734D4B7f306C1638Ac",
+          "address": "0x88a46FD0c79B62aC708667Bc588403b70Ab685d5",
           "constructorArgs": []
         }
       },
@@ -1048,9 +1028,9 @@
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x046a509d90cfbdcd4ebc3ecf603c2e0ebb83c09457f17c9e81c9fecc92ef4639",
+        "txHash": "0xaea385cf7df8d7b5797a4eb0f0515024ba8c1f48bd2138bca8bed4b5ceca0649",
         "onChain": {
-          "address": "0x634095e86FE2E9Ad506D5daebE0b1E22E71252d4",
+          "address": "0xb9B266E32971b1fa28CAe98C4CE032ddc9b91860",
           "constructorArgs": []
         }
       },
@@ -1058,9 +1038,9 @@
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x3cff95510c33f2b3c1af8cc53e7ae7a2f1f7a266db50b5a23ce620abde035f18",
+        "txHash": "0x11305277c71d310270f42cbfefa6b00adeefdb29064b0a60157aca4da085a11b",
         "onChain": {
-          "address": "0x9AeFe0271a4FF3c2842AF15Fed601713c643BBD6",
+          "address": "0xF42d09Eb8ce90134290487ad6501237d51996a9D",
           "constructorArgs": []
         }
       },
@@ -1068,9 +1048,9 @@
         "name": "EntityFacet",
         "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x522e01a844c79ec68911d20c3ce86105d2086e5dfcb82760177c8b98f40da441",
+        "txHash": "0x87a3f586b0e7230f92a10e878b025189b09826782064ef3dfb4b490627187a56",
         "onChain": {
-          "address": "0x0719BD709d80fB4432861b39a9352AE64c40B7BA",
+          "address": "0xddD63991dfB9D6Fe48229495e338Bdef75cbcd93",
           "constructorArgs": []
         }
       },
@@ -1078,9 +1058,9 @@
         "name": "GovernanceFacet",
         "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x802d89ff3c619bb6d5d1b1f3afadb723e28adfcbbe61ad6401303938feabddd5",
+        "txHash": "0x7a3443e6fe25a6ff23b9cca0fa0f69f38845a784fd7fa1a4e64b1c3ca1b894cb",
         "onChain": {
-          "address": "0x3286dA55EaeB7Fe68bCDF901fA9685a4CaE264dF",
+          "address": "0xc17a2295Ffe12C55A49b247cA4a065187D0e7947",
           "constructorArgs": []
         }
       },
@@ -1088,9 +1068,9 @@
         "name": "MarketFacet",
         "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xf787d9abcdb475dcb88301f223932f97898e0c419e8799295ffafbb89debce8e",
+        "txHash": "0x54230ce83328f621e4650b55097e05d4045168984c5d68e1453da0494d84f83a",
         "onChain": {
-          "address": "0xAB4747ed349Dd5EE1a2ADDFa3366db4Aa19E3ea7",
+          "address": "0xFdFeF31eEeB751E23430e668dc32eE76797A0633",
           "constructorArgs": []
         }
       },
@@ -1098,9 +1078,9 @@
         "name": "NaymsOwnershipFacet",
         "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xd06d7131c3897714df6bd45b7dd57618f268b86eb9c2259f8532f45cd9626c36",
+        "txHash": "0xdd55e10c600fd3034ec79b11b69b7ff48996f9969769fecc84cdf3fc60af2b53",
         "onChain": {
-          "address": "0xebeF106aBf7f32fa64Aa9d6C96766A6534CB83d3",
+          "address": "0xf547FE61ae0F09991B0cdc67045aA3af8C416dD3",
           "constructorArgs": []
         }
       },
@@ -1108,9 +1088,9 @@
         "name": "SimplePolicyFacet",
         "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x5ca768a0e2fa5a8887ffac56dda8e96b0639c8cf2203efd110e5015f7cac50ea",
+        "txHash": "0x2156d75ffdaf67cde1887b7d37245372d007d8700d2058bfe28896782b9020ce",
         "onChain": {
-          "address": "0x1839848F782C3F0FC98D256105611c468BD83F66",
+          "address": "0xB6ddECA657aD25D9739CE61F95BB69FD132a2fa6",
           "constructorArgs": []
         }
       },
@@ -1118,9 +1098,9 @@
         "name": "StakingFacet",
         "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xc002c19f78caf3b7c460c1c97fc071870c95bb6815924e4ffd57d21bbefaba5b",
+        "txHash": "0x36360314067dea521d635b4a3c021057f5d659c2b3efe3fba33535a627c9b964",
         "onChain": {
-          "address": "0xbD07F649a7817F1a5d03e8B184903886B1229b2F",
+          "address": "0xA8E58224a3f440555c9338893dAeA9186F58db5a",
           "constructorArgs": []
         }
       },
@@ -1128,19 +1108,9 @@
         "name": "SystemFacet",
         "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xa785ed981b5b405a43c0a742cbb0e39f5d8021ddf4e1a41693b3bdfb7bdca97d",
+        "txHash": "0x231a4784a5711337e3e82713f819b3e52573d5983fe5cf388d9ccc8d205a01d0",
         "onChain": {
-          "address": "0x4Bfcc32D781C2A37f2727F08238a5AF689eaA782",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x459a32ebb3f43e817f523ebb5978409783a09c14d93a6076282bc7138040f7c6",
-        "onChain": {
-          "address": "0xa6Ea1b53710dE1973D43cC8DA9d95899b542A82C",
+          "address": "0x1d51A0b14729B188E818eD5A435BEeDe7bA71ACe",
           "constructorArgs": []
         }
       },
@@ -1148,9 +1118,9 @@
         "name": "TokenizedVaultIOFacet",
         "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x8800fc085eff3a0d3fa8bb0650225f5aa2a51ba9c61be43e43bf39acd6c0bf6c",
+        "txHash": "0xadb9ed81fa5ed8293ff6f97f66d2a3a15fb20c73cf864bfc04140db7a7ddb4ce",
         "onChain": {
-          "address": "0xb7Dd51445beD09cC315EF7E7CD8308d48D6Bc602",
+          "address": "0xd869BE8195D193101d9bd4711049C1047F03a8c8",
           "constructorArgs": []
         }
       },
@@ -1158,9 +1128,29 @@
         "name": "UserFacet",
         "fullyQualifiedName": "UserFacet.sol:UserFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x42215092959b93afbbb476f79aab950389b01b2c926f2d62c0b98daf5f490744",
+        "txHash": "0x668ced3d0c12c15a40363d0fff119c9c1ac2dddf00ca5982f30ae492035bff19",
         "onChain": {
-          "address": "0x860C9188bcc6b794BA7EDD06aA5159c6b74bAFeB",
+          "address": "0x31907a5D8a8BB90ef8203884E9d76774Fa5ad3a8",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "ZapFacet",
+        "fullyQualifiedName": "ZapFacet.sol:ZapFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x32d70cd5723cf1fe4141cb3e0cd7f23d702e19016684eb3bf7195796a666af03",
+        "onChain": {
+          "address": "0xCb7d275474B2336Ac9DBDE0a0669a7dfCf299D3e",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x741acd8976eb2f23fbc46f17d9425da7f0a2bc6992dbfd2ebb63939257f56bfe",
+        "onChain": {
+          "address": "0xB5d8896CEda82FA3523b00cF37e91D1F26e80E0E",
           "constructorArgs": []
         }
       },
@@ -1209,32 +1199,12 @@
     "chainId": 1313161555,
     "contracts": [
       {
-        "name": "PhasedDiamondCutFacet",
-        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x543a981cd09664ce2430f080f393d7f84f972fba1d828f980a2ec40942bc4096",
+        "txHash": "0xa8f3c326f453eb941477a827d22c87e9cb0ada4a35dcfd65253b6e3f3d0bd1ec",
         "onChain": {
-          "address": "0x86952dC734702030Eaaede33E070159F7A8B07dc",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "StakingFacet",
-        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x61dbca53748b3a729b67160690edec962cbaaeada9795574e4115e103e695b69",
-        "onChain": {
-          "address": "0x894e7a37f08992C457E522a5610eFc1714935E26",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "EntityFacet",
-        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x8fb4777c91342976ecc41ef431e4add163dfb1bc01526e67e6f6b9d250fc0759",
-        "onChain": {
-          "address": "0x62AE01F93C7280271616E9Dd3A3789Fc734F8192",
+          "address": "0x21702829450ffb9bdBC839063252DEbb87a832d9",
           "constructorArgs": []
         }
       },
@@ -1242,39 +1212,9 @@
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x10d09e97903a93fe989014b3751b78e3ee00c456827365d71957bdd729183e63",
+        "txHash": "0xa425708122492fd66c40f161e6e4dee09187edf733d614fa23ad1545072da4ff",
         "onChain": {
-          "address": "0x24da9216FD050b124Ab77FC5072E9377566Dc598",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "MarketFacet",
-        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x6cd6f28aa13c1038113ecebf064536db3cfd2ee000a8ead09b307c2dc70f3525",
-        "onChain": {
-          "address": "0x1c0e6919d498F3f49f8b7Efdda23C5F7AA56416E",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "SimplePolicyFacet",
-        "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xea5ae74755072167258c1ecd1ce079c31292ffb1b47e01a1886146f778d12096",
-        "onChain": {
-          "address": "0xc92124E373b331AA22f8f277651b903aA8e96583",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "SystemFacet",
-        "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x762d341ab93a7cff5e28d8ec0f0c59b0ac2262bba5c39659ec7e2ff20e391c57",
-        "onChain": {
-          "address": "0xfcA80872073Db2dE6726b087537D7005C235fCeE",
+          "address": "0x8A38B14aE079581eBaCfC391bBb3D49057953BF4",
           "constructorArgs": []
         }
       },
@@ -1282,9 +1222,119 @@
         "name": "AdminFacet",
         "fullyQualifiedName": "AdminFacet.sol:AdminFacet",
         "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x37ca6c1919aab114c3ecc1f328f061eb9241725ee9354dceaf7cc84418c4edeb",
+        "txHash": "0xbbeb4a99f2b5bcb57ab341d6cd8f47fdffeeb879e496b038b05acf4db665cba5",
         "onChain": {
-          "address": "0x06bEc7aAC7cC3Dd6b1B8a3A01856d31127487861",
+          "address": "0x268593c8f62F0D77E86D19697Ee9c9A2063B15A5",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "EntityFacet",
+        "fullyQualifiedName": "EntityFacet.sol:EntityFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x4645a4096e998eb1f91c279701efdba871635538deb7eb73c071ebeeec298073",
+        "onChain": {
+          "address": "0x1AE9B5974fD8649AE58Fc1FF509fa96892FCb5E8",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "GovernanceFacet",
+        "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x0537a33a6703375672d01e1429a15b66bd296835cf74ef23a9745becb4c1ff91",
+        "onChain": {
+          "address": "0xB71f83ECC8dDf00101626d3FF95f6ee0Df65eaDc",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "MarketFacet",
+        "fullyQualifiedName": "MarketFacet.sol:MarketFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x297722357cbb3a819dad9168ae246a7a98c4208ba6eeec180554c25ed7fd65d6",
+        "onChain": {
+          "address": "0x8637F569f6Aeac33EdDBB8DBA97407Ef619AeC37",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "NaymsOwnershipFacet",
+        "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x8f0be8bd64149baa4d9e5ab740f9239d15bc81c8cd805eb08d18bb840afa7925",
+        "onChain": {
+          "address": "0x783BAA0E392F9161B47cb8Edd7Ed5C6351D1A39c",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "PhasedDiamondCutFacet",
+        "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xacbc058fb062f6b138d414d5cc2ee3c3904ceaf50509b32fd4dce3a07fc8255f",
+        "onChain": {
+          "address": "0x5BaE89a53F7d81476c3A472bb9FD97701de118C4",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "SimplePolicyFacet",
+        "fullyQualifiedName": "SimplePolicyFacet.sol:SimplePolicyFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x71d53672b4b0e3706dc926c08cf31c2dfe2040bfc7d79471e4822dd3d4beea98",
+        "onChain": {
+          "address": "0xa35cC6271D970f52F80e9325aB74b19C0b823F66",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "StakingFacet",
+        "fullyQualifiedName": "StakingFacet.sol:StakingFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xc0ee96a7c496d6ef067bcc8f5d0811272a7b62a85575429fc178651093c7bd04",
+        "onChain": {
+          "address": "0x8F149BF305bb363e7Bd1f46116360c37821dd903",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "SystemFacet",
+        "fullyQualifiedName": "SystemFacet.sol:SystemFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0xd55aee4737b019e21838d8883f14401456f495f7efae818bc0c3f51b250c5e49",
+        "onChain": {
+          "address": "0x6CeAa2E66E4b068f75D955bA18f9A0f72e5d532C",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x1d23d86e9eaef991952bdad3cfaefe9e68610419e084658163b67bf382aedcc8",
+        "onChain": {
+          "address": "0xc8c80Db133edD26554F73648a04af70F5241dBf4",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "UserFacet",
+        "fullyQualifiedName": "UserFacet.sol:UserFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x14e0733e38ec3f72d338a179f6d202585f324fa875547b0a2ee659de894d9d6d",
+        "onChain": {
+          "address": "0x7FeF514DE762015229B51080c75d1C65016f38b4",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "ZapFacet",
+        "fullyQualifiedName": "ZapFacet.sol:ZapFacet",
+        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
+        "txHash": "0x9c838a364cc350f1af090822fd79d0948499a6724ef525a3b71e6df334589de0",
+        "onChain": {
+          "address": "0x3d28d86602469CA216d05937D098C610e37EE25b",
           "constructorArgs": []
         }
       },
@@ -1298,56 +1348,6 @@
           "constructorArgs": [
             "0x931c3aC09202650148Edb2316e97815f904CF4fa"
           ]
-        }
-      },
-      {
-        "name": "GovernanceFacet",
-        "fullyQualifiedName": "GovernanceFacet.sol:GovernanceFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xb7dde44e8270ee979433ef029a3d3251b9ec45e98db76179cd0978daa27ae6ea",
-        "onChain": {
-          "address": "0xfADB5dB5d08BBf950256f79C3665CE8d71d8710f",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "NaymsOwnershipFacet",
-        "fullyQualifiedName": "NaymsOwnershipFacet.sol:NaymsOwnershipFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x850219af7cb60b2f1d6a004909c74ed0e08e6e287cde81f3c288aeb54b189020",
-        "onChain": {
-          "address": "0x2F64b09a41b400a58D4485f08f6BCF14D944Ad6f",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xa63377a28b7a6d0e20d089bbbbfc8b860df9e4781e490ad72e94517a08f52772",
-        "onChain": {
-          "address": "0x002d2970F2AacFD2344d2C1cc35b3985A374A73C",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0xb7d4d93ef9274cf2584c048a971ba00a2bf6286fc6ade61b33187b090ce23051",
-        "onChain": {
-          "address": "0x23c9080C0A5236C6E6297fB1f4184C9f200a1A80",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "UserFacet",
-        "fullyQualifiedName": "UserFacet.sol:UserFacet",
-        "sender": "0x931c3aC09202650148Edb2316e97815f904CF4fa",
-        "txHash": "0x6160fb1fb7657cde4d9c42e6b4853bc7f4b9eee248c0aa2df1e926079b8cc194",
-        "onChain": {
-          "address": "0x909677eBF6e09B669dBe01950E9F3FfCe7602097",
-          "constructorArgs": []
         }
       },
       {

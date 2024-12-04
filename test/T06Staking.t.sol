@@ -11,7 +11,7 @@ import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
 import { IERC20 } from "src/interfaces/IERC20.sol";
 
-import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted, StakingNotStarted } from "src/shared/CustomErrors.sol";
+import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted, StakingNotStarted, StakingConfigDoesNotExist } from "src/shared/CustomErrors.sol";
 
 function makeId2(bytes12 _objecType, bytes20 randomBytes) pure returns (bytes32) {
     return bytes32((_objecType)) | (bytes32(randomBytes));
@@ -305,6 +305,20 @@ contract T06Staking is D03ProtocolDefaults {
         nayms.stake(nlf.entityId, 0);
     }
 
+    function test_Stake_BeforeStakingStarted() public {
+        uint256 start = block.timestamp + 1;
+
+        initStaking(start + 7 days);
+
+        startPrank(bob);
+        // vm.expectRevert(abi.encodeWithSelector(InvalidStakingAmount.selector));
+        nayms.stake(nlf.entityId, 10 ether);
+
+        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedBalance, boostedBalance, "Bob should have no boost".red());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+    }
+
     function test_stake() public {
         uint256 start = block.timestamp + 1;
 
@@ -330,6 +344,13 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(nlf);
 
         vm.expectRevert(abi.encodeWithSelector(StakingNotStarted.selector, nlf.entityId, config.tokenId));
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 100 ether);
+    }
+
+    function test_payRewardWithoutEnablingStaking() public {
+        startPrank(nlf);
+
+        vm.expectRevert(abi.encodeWithSelector(StakingConfigDoesNotExist.selector, nlf.entityId));
         nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 100 ether);
     }
 
@@ -736,6 +757,48 @@ contract T06Staking is D03ProtocolDefaults {
         startPrank(bob);
         nayms.collectRewards(nlf.entityId);
         assertEq(nayms.internalBalanceOf(bob.entityId, usdcId), rewardAmount * 2);
+    }
+
+    function test_fuzzCompoundReward(uint256 testReward) public {
+        vm.assume(100 < testReward && testReward < type(uint128).max);
+
+        naymToken.mint(nlf.addr, testReward);
+        vm.startPrank(nlf.addr);
+        naymToken.approve(address(nayms), testReward);
+        nayms.externalDeposit(address(naymToken), testReward);
+
+        uint256 startStaking = block.timestamp + 1;
+        initStaking(startStaking);
+
+        vm.warp(startStaking + 31 days);
+
+        startPrank(bob);
+        nayms.stake(nlf.entityId, bobStakeAmount);
+        assertStakedAmount(bob.entityId, bobStakeAmount, "Bob's stake should increase");
+
+        vm.warp(startStaking + 61 days);
+
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 0, "Last interval paid should be 0");
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward1")), nlf.entityId, usdcId, 10_000);
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 2, "Last interval paid should be 0");
+
+        vm.warp(startStaking + 91 days);
+
+        startPrank(bob);
+        vm.expectRevert("No reward to compound");
+        nayms.compoundRewards(nlf.entityId);
+
+        startPrank(nlf);
+        nayms.payReward(makeId(LC.OBJECT_TYPE_STAKING_REWARD, bytes20("reward2")), nlf.entityId, NAYM_ID, testReward);
+        assertEq(nayms.lastPaidInterval(nlf.entityId), 3, "Last interval paid should be 0");
+
+        vm.warp(startStaking + 181 days);
+
+        startPrank(bob);
+        nayms.compoundRewards(nlf.entityId);
+        assertStakedAmount(bob.entityId, bobStakeAmount + testReward, "Bob's stake should increase");
     }
 
     function test_twoStakingRewardCurrencies() public {
@@ -1323,6 +1386,51 @@ contract T06Staking is D03ProtocolDefaults {
         c.log(" Sue's rewards: %s".green(), getRewards(sue.entityId, nlf.entityId) / 1e6);
 
         // printAppstorage();
+    }
+
+    function test_stake_QS_4_4() public {
+        uint256 startTime = block.timestamp + 1;
+        uint256 stake1Time = startTime + 15 days;
+        uint256 stake2Time = startTime + 31 days;
+
+        initStaking(startTime);
+
+        vm.warp(stake1Time);
+
+        c.log("-- Stake 1 ETH -- ".yellow());
+        startPrank(bob);
+        nayms.stake(nlf.entityId, 1 ether);
+
+        (uint256 stakedBalance, uint256 boostedBalance) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedBalance, boostedBalance, "Bob should have no boost".red());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        vm.warp(stake2Time);
+        c.log("-- WARP 31 DAYS -- ".yellow());
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        uint256 bobBoost = calculateBoost(startTime, stake2Time, R, I, SCALE_FACTOR);
+        uint256 boostedBalance1 = (0.5 ether * bobBoost) / SCALE_FACTOR / SCALE_FACTOR + 0.5 ether;
+
+        (, uint256 boostedBalance2) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(boostedBalance2, boostedBalance1, "Bob should have boost at[1]".red());
+
+        c.log("~~~ Stake 1 ETH -- ".yellow());
+        nayms.stake(nlf.entityId, 1 ether);
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
+
+        (, uint256 boostedBalance3) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(boostedBalance3, boostedBalance1 + 1 ether, "Bob should have boost and more stake".red());
+
+        nayms.stake(nlf.entityId, 1 ether);
+        nayms.unstake(nlf.entityId);
+        nayms.stake(nlf.entityId, 1 ether);
+
+        (uint256 stakedBalance4, uint256 boostedBalance4) = nayms.getStakingAmounts(bob.entityId, nlf.entityId);
+        assertEq(stakedBalance4, boostedBalance4, "Bob should have boost at[1]".red());
+
+        printCurrentState(nlf.entityId, bob.entityId, "Bob");
     }
 
     function printAppstorage() public {

@@ -74,7 +74,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         require(success, "Should get commissions from app storage");
     }
 
-    function testGetLockedBalance() public {
+    function testGetLockedAndAvailableBalance() public {
         changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);
 
@@ -85,7 +85,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token", 1);
         nayms.startTokenSale(entityId, 100, 100);
 
-        assertEq(nayms.getLockedBalance(entityId, entityId), 100);
+        uint256 internalBalance = nayms.internalBalanceOf(entityId, entityId);
+        uint256 lockedBalance = nayms.getLockedBalance(entityId, entityId);
+        assertEq(lockedBalance, 100, "invalid locked balance");
+        assertEq(nayms.getAvailableBalance(entityId, entityId), internalBalance - lockedBalance, "invalid avaiable balance");
     }
 
     function testSingleExternalDeposit() public {

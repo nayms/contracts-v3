@@ -50,19 +50,18 @@ library LibConstants {
     string internal constant ROLE_ENTITY_COMPTROLLER_CLAIM = "Comptroller Claim";
     string internal constant ROLE_ENTITY_COMPTROLLER_DIVIDEND = "Comptroller Dividend";
 
-    /// old roles
+    string internal constant ROLE_ONBOARDING_APPROVER = "Onboarding Approver";
 
+    /// old roles
     string internal constant ROLE_SPONSOR = "Sponsor";
     string internal constant ROLE_CAPITAL_PROVIDER = "Capital Provider";
     string internal constant ROLE_INSURED_PARTY = "Insured";
     string internal constant ROLE_BROKER = "Broker";
     string internal constant ROLE_SERVICE_PROVIDER = "Service Provider";
-
     string internal constant ROLE_UNDERWRITER = "Underwriter";
     string internal constant ROLE_CLAIMS_ADMIN = "Claims Admin";
     string internal constant ROLE_TRADER = "Trader";
     string internal constant ROLE_SEGREGATED_ACCOUNT = "Segregated Account";
-    string internal constant ROLE_ONBOARDING_APPROVER = "Onboarding Approver";
 
     /// Groups
 

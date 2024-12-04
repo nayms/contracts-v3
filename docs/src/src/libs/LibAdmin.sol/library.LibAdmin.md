@@ -10,13 +10,6 @@
 function _getSystemId() internal pure returns (bytes32);
 ```
 
-### _getEmptyId
-
-
-```solidity
-function _getEmptyId() internal pure returns (bytes32);
-```
-
 ### _updateMaxDividendDenominations
 
 

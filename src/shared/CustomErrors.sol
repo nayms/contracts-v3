@@ -27,16 +27,10 @@ error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInC
 
 /// @notice only Token Holder or Capital Provider should be approved for self-onboarding
 /// @param role The name of the rle which should not be approaved for self-onboarding
-error InvalidSelfOnboardRoleApproval(string role);
-
-/// @dev Passing in a missing address when trying to add a token address to the supported external token list.
-error CannotAddNullSupportedExternalToken();
+error InvalidSelfOnboardRoleApproval(bytes32 role);
 
 /// @dev Cannot add a ERC20 token to the supported external token list that has more than 18 decimal places.
 error CannotSupportExternalTokenWithMoreThan18Decimals();
-
-/// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
-error CannotAddNullDiscountToken();
 
 /// @dev Object exsists when it should not.
 error ObjectExistsAlready(bytes32 objectId);
@@ -49,9 +43,6 @@ error EntityDoesNotExist(bytes32 objectId);
 
 /// @dev The entity self onboarding not approved
 error EntityOnboardingNotApproved(address userAddress);
-
-/// @dev The entity self onboarding already approved
-error EntityOnboardingAlreadyApproved(address userAddress);
 
 /// @dev Cannot create an entity that already exists.
 error EntityExistsAlready(bytes32 entityId);
@@ -129,14 +120,14 @@ error RebasingInterestNotInitialized(bytes32 tokenId);
 /// @dev Insufficient amount of interest acrrued so far
 error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accruedAmount);
 
-/// @dev Rebase amount cannot be greater than the actual balance
-error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);
-
 /// @dev Staking can be initialized only once
 error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
 
 /// @dev Staking must be started
 error StakingNotStarted(bytes32 entityId, bytes32 tokenId);
+
+/// @dev Staking must be enabled
+error StakingConfigDoesNotExist(bytes32 entityId);
 
 /// @dev Invalid A parameter value provided
 error InvalidAValue();
@@ -146,9 +137,6 @@ error InvalidRValue();
 
 /// @dev Invalid divider parameter value provided
 error InvalidDividerValue();
-
-/// @dev Invalid parameter values provided
-error APlusRCannotBeGreaterThanDivider();
 
 /// @dev Invalid interval value provided
 error InvalidIntervalSecondsValue();
@@ -187,9 +175,6 @@ error InvalidSignatureSError(bytes32 sValue);
 /// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
 error InvalidReceiverCount(uint256 numberOfReceivers);
 
-/// @dev The entity ID is invalid for the given context.
-error InvalidEntityId(bytes32 entityId);
-
 /// @dev Thrown when the maturation date of a policy is set beyond the allowable future date limit.
 /// This prevents setting unrealistic maturation dates that could affect the contract's operability or the enforceability of the policy.
 error MaturationDateTooFar(uint256 maturationDate);
@@ -205,7 +190,7 @@ error InitDateTooFar(uint256 initDate);
 error IntervalOutOfRange(uint256 interval);
 
 /// @dev Thrown when the sum of parameters 'a' and 'r' does not equal the 'divider', which is necessary for the boost multiplier to asymptotically converge to 2.
-error BoostMultiplierConvergenceFailure(uint256 a, uint256 r, uint256 divider);
+error BoostDividerNotEqualError(uint256 a, uint256 r, uint256 divider);
 
 /// @dev This internal token ID is invalid for the given context.
 error InvalidTokenId();

@@ -1,12 +1,9 @@
 forge-std/=lib/forge-std/src/
+ds-test/=lib/ds-test/src/
 @openzeppelin/contracts/=lib/oz/contracts/
 diamond-2-hardhat/=lib/diamond-2-hardhat/contracts/
-ds-test/=lib/ds-test/src/
 erc4626-tests/=lib/oz/lib/erc4626-tests/
-oz/=lib/oz/
 solady/=lib/solady/src/
-solidity-lib/=lib/solidity-lib/contracts/
-solidity-stringutils/=lib/solidity-stringutils/
 solmate/=lib/solmate/src/
 @v4-core/=lib/v4-core
 @v4-periphery/=lib/v4-periphery
