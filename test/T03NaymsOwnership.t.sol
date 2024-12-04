@@ -45,40 +45,40 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isInGroup(signer2Id, systemContext, LC.GROUP_SYSTEM_ADMINS));
     }
 
-    // function testFuzz_TransferOwnership(address newOwner, address notSysAdmin, address anotherSysAdmin) public {
-    //     vm.assume(newOwner != anotherSysAdmin && newOwner != account0 && newOwner != address(0) && anotherSysAdmin != address(0));
-    //     vm.assume(anotherSysAdmin != address(0));
+    function testFuzz_TransferOwnership(address newOwner, address notSysAdmin, address anotherSysAdmin) public {
+        vm.assume(newOwner != anotherSysAdmin && newOwner != account0 && newOwner != address(0) && anotherSysAdmin != address(0));
+        vm.assume(anotherSysAdmin != address(0));
 
-    //     bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
-    //     // note: for this test, assume that the notSysAdmin address is not a system admin
-    //     vm.assume(!nayms.isInGroup(notSysAdminId, systemContext, LC.GROUP_SYSTEM_ADMINS));
+        bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
+        // note: for this test, assume that the notSysAdmin address is not a system admin
+        vm.assume(!nayms.isInGroup(notSysAdminId, systemContext, LC.GROUP_SYSTEM_ADMINS));
 
-    //     vm.label(newOwner, "newOwner");
-    //     vm.label(notSysAdmin, "notSysAdmin");
-    //     vm.label(anotherSysAdmin, "anotherSysAdmin");
+        vm.label(newOwner, "newOwner");
+        vm.label(notSysAdmin, "notSysAdmin");
+        vm.label(anotherSysAdmin, "anotherSysAdmin");
 
-    //     // 1. Diamond is deployed, owner is set to msg.sender
-    //     // 2. Diamond cuts in facets and initializes state, a sys admin is set to msg.sender who must be the owner since diamondCut() can only be called by the owner
+        // 1. Diamond is deployed, owner is set to msg.sender
+        // 2. Diamond cuts in facets and initializes state, a sys admin is set to msg.sender who must be the owner since diamondCut() can only be called by the owner
 
-    //     // Only a system admin can transfer diamond ownership
-    //     changePrank(notSysAdmin);
-    //     vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, notSysAdmin._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
-    //     nayms.transferOwnership(newOwner);
+        // Only a system admin can transfer diamond ownership
+        changePrank(notSysAdmin);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, notSysAdmin._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+        nayms.transferOwnership(newOwner);
 
-    //     // Only a system admin can transfer diamond ownership, the new owner isn't a system admin
-    //     changePrank(newOwner);
-    //     vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, newOwner._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
-    //     nayms.transferOwnership(newOwner);
+        // Only a system admin can transfer diamond ownership, the new owner isn't a system admin
+        changePrank(newOwner);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, newOwner._getIdForAddress(), systemContext, "", LC.GROUP_SYSTEM_ADMINS));
+        nayms.transferOwnership(newOwner);
 
-    //     // System admin can transfer diamond ownership
-    //     changePrank(systemAdmin);
-    //     nayms.transferOwnership(newOwner);
-    //     assertTrue(nayms.owner() == newOwner);
+        // System admin can transfer diamond ownership
+        changePrank(systemAdmin);
+        nayms.transferOwnership(newOwner);
+        assertTrue(nayms.owner() == newOwner);
 
-    //     bytes32 anotherSysAdminId = LibHelpers._getIdForAddress(address(anotherSysAdmin));
-    //     nayms.assignRole(anotherSysAdminId, systemContext, LC.ROLE_SYSTEM_ADMIN);
+        bytes32 anotherSysAdminId = LibHelpers._getIdForAddress(address(anotherSysAdmin));
+        nayms.assignRole(anotherSysAdminId, systemContext, LC.ROLE_SYSTEM_ADMIN);
 
-    //     changePrank(anotherSysAdmin);
-    //     nayms.transferOwnership(nayms.owner());
-    // }
+        changePrank(anotherSysAdmin);
+        nayms.transferOwnership(nayms.owner());
+    }
 }
