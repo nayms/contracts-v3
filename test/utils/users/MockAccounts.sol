@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 abstract contract MockAccounts {
     // address internal constant account0 = address(0xACC0);

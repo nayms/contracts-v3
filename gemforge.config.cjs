@@ -17,7 +17,7 @@ module.exports = {
     // SPDX License - to be inserted in all generated .sol files
     license: "MIT",
     // Solidity compiler version - to be inserted in all generated .sol files
-    version: "0.8.20",
+    version: "0.8.24",
   },
   // commands to execute
   commands: {
@@ -60,7 +60,7 @@ module.exports = {
     // proxy interface options
     proxyInterface: {
       // imports to include in the generated IDiamondProxy interface
-      imports: ["src/shared/FreeStructs.sol"],
+      imports: ["src/shared/FreeStructs.sol", "lib/v4-core/src/types/BalanceDelta.sol"],
     },
   },
   // diamond configuration

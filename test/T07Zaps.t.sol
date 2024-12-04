@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import { D03ProtocolDefaults, c, LC, LibHelpers, StdStyle } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "test/utils/DummyToken.sol";

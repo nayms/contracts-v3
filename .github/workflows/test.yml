@@ -19,7 +19,7 @@ jobs:
       contents: read
       security-events: write
     env:
-      SOLC_VERSION: 0.8.20
+      SOLC_VERSION: 0.8.24
       ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
       ETH_SEPOLIA_RPC_URL: ${{ secrets.ETH_SEPOLIA_RPC_URL }}
       BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}

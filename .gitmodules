@@ -14,6 +14,12 @@
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/Vectorized/solady
+[submodule "lib/v4-periphery"]
+	path = lib/v4-periphery
+	url = https://github.com/Uniswap/v4-periphery
+[submodule "lib/v4-core"]
+	path = lib/v4-core
+	url = https://github.com/Uniswap/v4-core
 [submodule "lib/diamond-2-hardhat"]
 	path = lib/diamond-2-hardhat
 	url = https://github.com/nayms/diamond-2-hardhat

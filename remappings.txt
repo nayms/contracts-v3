@@ -5,3 +5,5 @@ diamond-2-hardhat/=lib/diamond-2-hardhat/contracts/
 erc4626-tests/=lib/oz/lib/erc4626-tests/
 solady/=lib/solady/src/
 solmate/=lib/solmate/src/
+@v4-core/=lib/v4-core
+@v4-periphery/=lib/v4-periphery

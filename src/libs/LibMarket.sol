@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import { AppStorage, LibAppStorage, MarketInfo, TokenAmount, OrderMatchingCalcs } from "../shared/AppStorage.sol";
 import { LibTokenizedVault } from "./LibTokenizedVault.sol";
