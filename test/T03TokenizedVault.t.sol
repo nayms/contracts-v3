@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
+import { Entity } from "../src/shared/AppStorage.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import "src/shared/CustomErrors.sol";

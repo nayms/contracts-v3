@@ -8,7 +8,6 @@ import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { InitDiamondFixture } from "./fixtures/InitDiamondFixture.sol";
 import { IDiamondLoupe } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondLoupe.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
-import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 import { DiamondAlreadyInitialized } from "src/init/InitDiamond.sol";
 import { LibGovernance } from "src/libs/LibGovernance.sol";
 

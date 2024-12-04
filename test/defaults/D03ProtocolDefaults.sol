@@ -5,11 +5,9 @@ import { Vm } from "forge-std/Vm.sol";
 
 import { D02TestSetup, LibHelpers, c } from "./D02TestSetup.sol";
 import { Entity, SimplePolicy, MarketInfo, Stakeholders, FeeSchedule } from "src/shared/FreeStructs.sol";
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import { LibAdmin } from "src/libs/LibAdmin.sol";
-import { LibObject } from "src/libs/LibObject.sol";
 import { LibConstants as LC } from "src/libs/LibConstants.sol";
 import { StdStyle } from "forge-std/StdStyle.sol";
 
@@ -17,6 +15,7 @@ import { IERC20 } from "src/interfaces/IERC20.sol";
 
 // solhint-disable no-console
 // solhint-disable state-visibility
+// solhint-disable max-states-count
 
 /// @notice Default test setup part 03
 ///         Protocol / project level defaults

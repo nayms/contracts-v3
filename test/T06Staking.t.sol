@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { StdStorage, stdStorage, StdStyle, StdAssertions } from "forge-std/Test.sol";
-import { Vm } from "forge-std/Vm.sol";
+import { StdStorage, stdStorage, StdStyle } from "forge-std/Test.sol";
 import { D03ProtocolDefaults, c, LC, LibHelpers } from "./defaults/D03ProtocolDefaults.sol";
-import { StakingConfig, StakingState } from "src/shared/FreeStructs.sol";
+import { StakingConfig } from "src/shared/FreeStructs.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { StakingFixture } from "test/fixtures/StakingFixture.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { LibTokenizedVaultStaking } from "src/libs/LibTokenizedVaultStaking.sol";
-import { IERC20 } from "src/interfaces/IERC20.sol";
 
 import { IntervalRewardPayedOutAlready, InvalidTokenRewardAmount, InvalidStakingAmount, InvalidStaker, EntityDoesNotExist, StakingAlreadyStarted, StakingNotStarted, StakingConfigDoesNotExist } from "src/shared/CustomErrors.sol";
 
@@ -27,17 +25,18 @@ contract T06Staking is D03ProtocolDefaults {
     uint64 private constant R = (85 * SCALE_FACTOR) / 100;
     uint64 private constant I = 30 days;
 
-    bytes32 immutable VTOKENID = makeId2(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes("test"))));
+    bytes32 internal immutable VTOKENID = makeId2(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes("test"))));
 
-    bytes32 VTOKENID1;
-    bytes32 NAYM_ID;
+    bytes32 internal VTOKENID1;
+    bytes32 internal NAYM_ID;
 
-    NaymsAccount bob;
-    NaymsAccount sue;
-    NaymsAccount lou;
 
-    NaymsAccount nlf;
-    DummyToken naymToken;
+    NaymsAccount internal bob;
+    NaymsAccount internal sue;
+    NaymsAccount internal lou;
+
+    NaymsAccount internal nlf;
+    DummyToken internal naymToken;
 
     uint256 private constant usdcTotal = 1_000_000e6;
     uint256 private constant wethTotal = 1_000_000e18;
@@ -48,18 +47,18 @@ contract T06Staking is D03ProtocolDefaults {
 
     uint256 private constant totalStakeAmount = bobStakeAmount + sueStakeAmount + louStakeAmount;
 
-    uint256 immutable rewardAmount = 100e6;
+    uint256 internal immutable rewardAmount = 100e6;
 
-    uint256 constant stakingStart = 100 days;
+    uint256 internal constant stakingStart = 100 days;
 
     StakingFixture internal stakingFixture;
 
-    mapping(bytes32 entityId => uint256) usdcBalance;
-    mapping(bytes32 entityId => mapping(uint64 index => uint256)) unclaimedReward;
+    mapping(bytes32 entityId => uint256) internal usdcBalance;
+    mapping(bytes32 entityId => mapping(uint64 index => uint256)) internal unclaimedReward;
 
-    uint256 bobCurrentReward;
-    uint256 sueCurrentReward;
-    uint256 louCurrentReward;
+    uint256 internal bobCurrentReward;
+    uint256 internal sueCurrentReward;
+    uint256 internal louCurrentReward;
 
     function setUp() public {
         stakingFixture = new StakingFixture();

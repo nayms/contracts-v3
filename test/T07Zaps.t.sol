@@ -15,13 +15,13 @@ contract ZapFacetTest is D03ProtocolDefaults {
     NaymsAccount internal bob = makeNaymsAcc("Bob");
     NaymsAccount internal sue = makeNaymsAcc("Sue");
 
-    NaymsAccount nlf = makeNaymsAcc(LC.NLF_IDENTIFIER);
+    NaymsAccount internal nlf = makeNaymsAcc(LC.NLF_IDENTIFIER);
 
     uint64 private constant SCALE_FACTOR = 1_000_000; // 6 digits because USDC
     uint64 private constant A = (15 * SCALE_FACTOR) / 100;
     uint64 private constant R = (85 * SCALE_FACTOR) / 100;
     uint64 private constant I = 30 days;
-    bytes32 NAYM_ID = address(naymToken)._getIdForAddress();
+    bytes32 internal NAYM_ID = address(naymToken)._getIdForAddress();
     function initStaking(uint256 initDate) internal {
         StakingConfig memory config = StakingConfig({
             tokenId: NAYM_ID,

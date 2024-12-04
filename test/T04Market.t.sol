@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { D03ProtocolDefaults, LibHelpers, LibObject, LC, c } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { StdStyle } from "forge-std/Test.sol";
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 
-import { Entity, MarketInfo, FeeSchedule, SimplePolicy, Stakeholders, CalculatedFees } from "src/shared/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, Stakeholders } from "src/shared/FreeStructs.sol";
 
 import { StdStyle } from "forge-std/StdStyle.sol";
 

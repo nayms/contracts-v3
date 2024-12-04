@@ -14,9 +14,9 @@ import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 // solhint-disable no-global-import
 import "../src/shared/CustomErrors.sol";
 
+// solhint-disable no-console
 import { StdStyle } from "forge-std/StdStyle.sol";
 
-// solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
     using StdStyle for *;
