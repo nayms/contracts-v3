@@ -246,7 +246,15 @@ library LibTokenizedVault {
             // issue dividend. if you are owed dividends on the _dividendTokenId, they will be collected
             // Check for possible infinite loop, but probably not
             _internalTransfer(_from, dividendBankId, _dividendTokenId, _amount);
-            s.totalDividends[_to][_dividendTokenId] += _amount;
+            uint256 tokenSupply = LibTokenizedVault._internalTokenSupply(_dividendTokenId);
+            uint256 adjustedDividendAmount = _amount;
+            if (_to == _dividendTokenId) {
+                // withdrawn dividend was adjusted for the previous holder in this case,
+                // therfore dividend amount should be increased in order to give existing token holders the correct amount
+                adjustedDividendAmount = (_amount * (tokenSupply)) / (tokenSupply - _amount);
+            }
+
+            s.totalDividends[_to][_dividendTokenId] += adjustedDividendAmount;
 
             // keep track of the dividend denominations
             // if dividend has not yet been issued in this token, add it to the list and update mappings
@@ -298,7 +306,8 @@ library LibTokenizedVault {
 
         address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
 
-        uint256 depositTotal = s.depositTotal[_tokenId];
+        // uint256 depositTotal = s.depositTotal[_tokenId];
+        uint256 depositTotal = s.tokenSupply[_tokenId];
         uint256 total = LibERC20.balanceOf(tokenAddress, address(this));
 
         // If the Nayms balance of the rebasing token has decreased and is lower than the deposit total, revert
@@ -311,7 +320,7 @@ library LibTokenizedVault {
     function _claimRebasingInterest(bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        if (s.depositTotal[_tokenId] == 0) {
+        if (s.tokenSupply[_tokenId] == 0) {
             revert RebasingInterestNotInitialized(_tokenId);
         }
 
@@ -320,7 +329,8 @@ library LibTokenizedVault {
             revert RebasingInterestInsufficient(_tokenId, _amount, accruedAmount);
         }
 
-        s.tokenBalances[_tokenId][_tokenId] += _amount;
-        s.depositTotal[_tokenId] += _amount;
+        // s.tokenBalances[_tokenId][_tokenId] += _amount;
+        // s.depositTotal[_tokenId] += _amount;
+        _internalMint(LibAdmin._getSystemId(), _tokenId, _amount);
     }
 }

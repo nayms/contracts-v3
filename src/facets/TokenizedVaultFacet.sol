@@ -174,6 +174,6 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         // The _claimRebasingInterest method verifies the token is valid, and that there is available interest.
         // No need to do it again.
         LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
-        LibTokenizedVault._payDividend(_guid, _tokenId, _tokenId, _tokenId, _amount);
+        LibTokenizedVault._payDividend(_guid, LibAdmin._getSystemId(), _tokenId, _tokenId, _amount);
     }
 }

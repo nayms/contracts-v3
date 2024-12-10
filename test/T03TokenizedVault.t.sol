@@ -1183,20 +1183,24 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         changePrank(sm);
         nayms.distributeAccruedInterest(wethId, 1 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x1")));
 
+        changePrank(david);
+        writeTokenBalance(david.addr, naymsAddress, wethAddress, 4 ether);
+
         changePrank(alice.addr);
-        writeTokenBalance(alice.addr, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(alice.addr, naymsAddress, wethAddress, 2 ether);
         nayms.externalDeposit(wethAddress, 1 ether);
         assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 1 ether, "acc0EntityId wethId balance should INCREASE (mint)");
 
         changePrank(bob.addr);
-        writeTokenBalance(bob.addr, naymsAddress, wethAddress, depositAmount);
+        writeTokenBalance(bob.addr, naymsAddress, wethAddress, 2 ether);
         nayms.externalDeposit(wethAddress, 1 ether);
         assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 1 ether, "bobEntityId wethId balance should INCREASE (mint)");
 
         vm.warp(2 weeks);
 
         assertEq(nayms.accruedInterest(wethId), 0, "Accrued interest should be zero");
-        vm.mockCall(wethAddress, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(4 ether));
+        changePrank(david);
+        IERC20(wethAddress).transfer(naymsAddress, 2 ether);
         assertEq(nayms.accruedInterest(wethId), 2 ether, "Accrued interest should increase");
 
         changePrank(sm);
@@ -1214,6 +1218,31 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.withdrawDividend(bob.entityId, wethId, wethId);
         assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 2 ether, "Bob's wethId balance should INCREASE (mint)".red());
         assertEq(nayms.getWithdrawableDividend(bob.entityId, wethId, wethId), 0, "bob's withdrawable divident should be zero".red());
+
+        vm.warp(4 weeks);
+
+        changePrank(david);
+        IERC20(wethAddress).transfer(naymsAddress, 2 ether);
+        assertEq(nayms.accruedInterest(wethId), 2 ether, "Accrued interest should increase");
+
+        changePrank(sm);
+        nayms.distributeAccruedInterest(wethId, 2 ether, makeId(LC.OBJECT_TYPE_DIVIDEND, bytes20("0x2")));
+
+        changePrank(alice.addr);
+        nayms.withdrawDividend(alice.entityId, wethId, wethId);
+        assertEq(nayms.internalBalanceOf(alice.entityId, wethId), 3 ether, "Alice's wethId balance should INCREASE (mint)".red());
+        assertEq(nayms.getWithdrawableDividend(alice.entityId, wethId, wethId), 0, "alice's withdrawable divident should be zero".red());
+
+        nayms.externalWithdrawFromEntity(alice.entityId, alice.addr, wethAddress, 3 ether);
+        assertEq(IERC20(wethAddress).balanceOf(alice.addr), 4 ether, "Alice's private balance should be increased".red());
+
+        changePrank(bob.addr);
+        nayms.withdrawDividend(bob.entityId, wethId, wethId);
+        assertEq(nayms.internalBalanceOf(bob.entityId, wethId), 3 ether, "Bob's wethId balance should INCREASE (mint)".red());
+        assertEq(nayms.getWithdrawableDividend(bob.entityId, wethId, wethId), 0, "Bob's withdrawable divident should be zero".red());
+
+        nayms.externalWithdrawFromEntity(bob.entityId, bob.addr, wethAddress, 3 ether);
+        assertEq(IERC20(wethAddress).balanceOf(bob.addr), 4 ether, "Bob's private balance should be increased".red());
     }
 
     // note withdrawAllDividends() will still succeed even if there are 0 dividends to be paid out,
