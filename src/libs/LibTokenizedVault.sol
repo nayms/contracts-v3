@@ -147,6 +147,7 @@ library LibTokenizedVault {
 
         _withdrawAllDividends(_from, _tokenId);
         _normalizeDividendsBurn(_tokenId, _amount);
+
         s.tokenSupply[_tokenId] -= _amount;
         s.tokenBalances[_tokenId][_from] -= _amount;
 
@@ -184,6 +185,7 @@ library LibTokenizedVault {
         uint256 withdrawnSoFar = s.withdrawnDividendPerOwner[_tokenId][_dividendTokenId][_ownerId];
 
         uint256 withdrawableDividend = _getWithdrawableDividendAndDeductionMath(amountOwned, supply, totalDividend, withdrawnSoFar);
+
         if (withdrawableDividend > 0) {
             // Bump the withdrawn dividends for the owner
             /// Special Case: (_tokenId == _dividendTokenId), i.e distributing accrued interest for rebasing coins like USDM
@@ -246,11 +248,11 @@ library LibTokenizedVault {
             // issue dividend. if you are owed dividends on the _dividendTokenId, they will be collected
             // Check for possible infinite loop, but probably not
             _internalTransfer(_from, dividendBankId, _dividendTokenId, _amount);
-            uint256 tokenSupply = LibTokenizedVault._internalTokenSupply(_dividendTokenId);
+            uint256 tokenSupply = _internalTokenSupply(_dividendTokenId);
             uint256 adjustedDividendAmount = _amount;
             if (_to == _dividendTokenId) {
                 // withdrawn dividend was adjusted for the previous holder in this case,
-                // therfore dividend amount should be increased in order to give existing token holders the correct amount
+                // therefore dividend amount should be increased in order to give existing token holders the correct amount
                 adjustedDividendAmount = (_amount * (tokenSupply)) / (tokenSupply - _amount);
             }
 
@@ -306,7 +308,6 @@ library LibTokenizedVault {
 
         address tokenAddress = LibHelpers._getAddressFromId(_tokenId);
 
-        // uint256 depositTotal = s.depositTotal[_tokenId];
         uint256 depositTotal = s.tokenSupply[_tokenId];
         uint256 total = LibERC20.balanceOf(tokenAddress, address(this));
 
@@ -329,8 +330,6 @@ library LibTokenizedVault {
             revert RebasingInterestInsufficient(_tokenId, _amount, accruedAmount);
         }
 
-        // s.tokenBalances[_tokenId][_tokenId] += _amount;
-        // s.depositTotal[_tokenId] += _amount;
         _internalMint(LibAdmin._getSystemId(), _tokenId, _amount);
     }
 }
