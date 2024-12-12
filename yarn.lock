@@ -2678,10 +2678,10 @@ functions-have-names@^1.2.3:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
-gemforge@^2.9.1:
-  version "2.9.1"
-  resolved "https://registry.yarnpkg.com/gemforge/-/gemforge-2.9.1.tgz#a4c73378764db4c6ad3ba09e566755137c6604cb"
-  integrity sha512-F6GcJm660xaDmRlYKI7yfI6AOwAfpXqvJrzI44fOF89rbQYv5YAOVHe+CslQZiM6aGdQ4KWf7aqbdxkmoUwjOg==
+gemforge@^2.14.0:
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/gemforge/-/gemforge-2.14.0.tgz#36127a21e1a95523001def1da7427ef66188f16b"
+  integrity sha512-b9Ji69WJXXLaCvcGSsTaT+1T1eby4luZT8yS/HOaRRhtJrq8nFUbA2ZN2RqTOOo9eke+7LjWQlDlPeQLY4ANiQ==
   dependencies:
     "@solidity-parser/parser" "^0.16.1"
     bigval "^1.7.0"
