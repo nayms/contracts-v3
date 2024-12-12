@@ -90,6 +90,7 @@ struct AppStorage {
     mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId] Reward currency
     mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakingSynced; // last interval when data was synced into storage for staker
     mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalanceAdded; // raw balance staked at an interval, withouth any boost included, only for reading future intervals (to calculate the total boosted balance)
+    // mapping(uint256 => bool) initComplete; // think about adding this in the future
 }
 
 /// Staking-Related Mappings
