@@ -41,20 +41,8 @@ facetsdeployed.txt
 .DS_Store
 
 bin/
-.idea/.gitignore
-.idea/contracts-next.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/runConfigurations.xml
-.idea/vcs.xml
-.metals
-.supermaven
 
 broadcast/**/31337/*
-
-# subgraph artifact
-NaymsDiamond.json
-
 broadcast/**/dry-run
 
 # coverage report
@@ -64,5 +52,3 @@ cov-html
 # gemforge.deployments.json
 .gemforge/*.json
 
-# Generated files
-script/deployment/S03UpgradeDiamond.s.sol

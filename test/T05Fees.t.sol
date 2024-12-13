@@ -7,7 +7,7 @@ import { StdStyle } from "forge-std/Test.sol";
 
 import { D03ProtocolDefaults, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { Entity, FeeSchedule, CalculatedFees } from "../src/shared/AppStorage.sol";
-import { SimplePolicy, SimplePolicyInfo, Stakeholders } from "../src/shared/FreeStructs.sol";
+import { SimplePolicy, Stakeholders } from "../src/shared/FreeStructs.sol";
 import "src/shared/CustomErrors.sol";
 import { LibHelpers } from "src/libs/LibHelpers.sol";
 

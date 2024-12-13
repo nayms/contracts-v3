@@ -7,7 +7,7 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
-import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
+import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
 
 import { InsufficientBalance } from "../shared/CustomErrors.sol";
 
@@ -295,6 +295,13 @@ library LibTokenizedVault {
     function _getLockedBalance(bytes32 _accountId, bytes32 _tokenId) internal view returns (uint256 amount) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.lockedBalances[_accountId][_tokenId];
+    }
+
+    function _getAvailableBalance(bytes32 _accountId, bytes32 _tokenId) internal view returns (uint256 amount) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 lockedBalance = s.lockedBalances[_accountId][_tokenId];
+        uint256 internalBalance = s.tokenBalances[_tokenId][_accountId];
+        return internalBalance - lockedBalance;
     }
 
     function _totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) internal view returns (uint256) {

@@ -108,10 +108,7 @@ Following commands are provided for working with `anvil`, to make it more conven
 | Command | Description |
 | ----------- | ----------- |
 | `make anvil` | Run the local node seeding it with Nayms' shared wallet |
-| `make anvil-debug` | Run Anvil in debug mode to get verbose log output |
-| `make anvil-deploy` | Do a full deployment of Nayms' contracts to local node |
-| `make anvil-upgrade` | Upgrade deployment of Nayms' contracts on local node |
-| `make anvil-gtoken` | Deploy `GToken` to local node |
+| `make anvil-docker` | Rund the local node inside a container, also seeding it with Nayms' shared wallet |
 | `make anvil-add-supported-external-token` | Add `GToken` as supported external token |
 | `make fork-sepolia`| Fork `Sepolia` test net locally |
 | `make fork-base-sepolia`| Fork `Base Sepolia` test net locally |

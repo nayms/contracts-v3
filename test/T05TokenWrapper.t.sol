@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import { Vm } from "forge-std/Vm.sol";
 
 import { D03ProtocolDefaults, c, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity } from "src/shared/FreeStructs.sol";
 import { ERC20Wrapper } from "../src/utils/ERC20Wrapper.sol";
 
 contract T05TokenWrapper is D03ProtocolDefaults {

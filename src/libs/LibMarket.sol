@@ -230,10 +230,8 @@ library LibMarket {
             if (_buyAmount * calcs.currentSellAmount < calcs.currentBuyAmount * _sellAmount) {
                 if (buyExternalToken) {
                     // Normalize the sell amount when taker is buying external tokens
-                    calcs.normalizedBuyAmount = (_buyAmount * calcs.currentSellAmount) / _sellAmount;
-                    calcs.normalizedSellAmount = calcs.currentSellAmount;
-                    // if the taker is buying an external token, we need to normalize current buy amount value
 
+                    // if the taker is buying an external token, we need to normalize current buy amount value
                     // normalization factor = taker price / maker price:
                     //   = (initial buy amount/initial sell amount) / (current buy amount / current sell amount)
                     //   = initial buy amount * current sell amount / initial sell amount / current buy amount
@@ -241,30 +239,26 @@ library LibMarket {
                     //   = current buy amount * normalization factor
                     // normalized buy amount = current buy amount * (initial buy amount * current sell amount / initial sell amount / current buy amount)
                     // which equals to below:
-                    result.remainingBuyAmount -= (_buyAmount * calcs.currentSellAmount) / _sellAmount;
-                    result.remainingSellAmount -= calcs.currentSellAmount;
+                    calcs.normalizedBuyAmount = (_buyAmount * calcs.currentSellAmount) / _sellAmount;
+                    calcs.normalizedSellAmount = calcs.currentSellAmount;
                 } else {
                     // Normalize the sell amount when taker is buying participation tokens
-                    calcs.normalizedSellAmount = (_sellAmount * calcs.currentBuyAmount) / _buyAmount;
-                    calcs.normalizedBuyAmount = calcs.currentBuyAmount;
 
                     // if the taker is buying participation tokens we need to normalize current sell amount value
-                    result.remainingBuyAmount -= calcs.currentBuyAmount;
-                    result.remainingSellAmount -= (_sellAmount * calcs.currentBuyAmount) / _buyAmount;
+                    calcs.normalizedBuyAmount = calcs.currentBuyAmount;
+                    calcs.normalizedSellAmount = (_sellAmount * calcs.currentBuyAmount) / _buyAmount;
                 }
-
-                emit OrderMatched(_offerId, bestOfferId, calcs.normalizedSellAmount, calcs.normalizedBuyAmount); // taker offer
-                emit OrderMatched(bestOfferId, _offerId, calcs.normalizedBuyAmount, calcs.normalizedSellAmount); // maker offer
+                result.remainingBuyAmount -= calcs.normalizedBuyAmount;
+                result.remainingSellAmount -= calcs.normalizedSellAmount;
             } else {
                 result.remainingBuyAmount -= calcs.currentBuyAmount;
                 result.remainingSellAmount -= calcs.currentSellAmount;
-
-                emit OrderMatched(_offerId, bestOfferId, calcs.currentSellAmount, calcs.currentBuyAmount); // taker offer
-                emit OrderMatched(bestOfferId, _offerId, calcs.currentBuyAmount, calcs.currentSellAmount); // maker offer
             }
 
             // note: events are emmited to keep track of average price actually paid,
             // in case matched is done with more preferable offers, otherwise this information is be lost
+            emit OrderMatched(_offerId, bestOfferId, calcs.currentSellAmount, calcs.currentBuyAmount); // taker offer
+            emit OrderMatched(bestOfferId, _offerId, calcs.currentBuyAmount, calcs.currentSellAmount); // maker offer
         }
     }
 
