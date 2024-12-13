@@ -135,18 +135,6 @@ module.exports = {
           apiUrl: "https://api-sepolia.basescan.org/api",
           apiKey: () => process.env.BASESCAN_API_KEY,
         },
-        verifiers: [
-          {
-            verifierName: "etherscan",
-            verifierUrl: "https://api-sepolia.basescan.org/api",
-            verifierApiKey: process.env.BASESCAN_API_KEY,
-          },
-          {
-            verifierName: "blockscout", // needed for louper
-            verifierUrl: "https://base-sepolia.blockscout.com/api",
-            verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
-          },
-        ],
       },
     },
     base: {
@@ -157,13 +145,6 @@ module.exports = {
           apiKey: () => process.env.BASESCAN_API_KEY,
         },
       },
-      verifiers: [
-        {
-          verifierName: "etherscan",
-          verifierUrl: "https://api.basescan.org/api",
-          verifierApiKey: process.env.BASESCAN_API_KEY,
-        },
-      ],
     },
     aurora: {
       rpcUrl: process.env.AURORA_MAINNET_RPC_URL,
@@ -173,13 +154,6 @@ module.exports = {
           apiKey: () => process.env.BLOCKSCOUT_API_KEY,
         },
       },
-      verifiers: [
-        {
-          verifierName: "aurora",
-          verifierUrl: "https://explorer.mainnet.aurora.dev/api",
-          verifierApiKey: process.env.BLOCKSCOUT_API_KEY,
-        },
-      ],
     },
     auroraTestnet: {
       rpcUrl: process.env.AURORA_TESTNET_RPC_URL,
@@ -189,12 +163,6 @@ module.exports = {
           apiKey: () => process.env.BLOCKSCOUT_API_KEY,
         },
       },
-      verifiers: [
-        {
-          verifierName: "aurora",
-          verifierUrl: "https://explorer.testnet.aurora.dev/api",
-        },
-      ],
     },
   },
   targets: {
