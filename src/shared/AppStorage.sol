@@ -79,7 +79,7 @@ struct AppStorage {
     mapping(string tokenSymbol => bytes32 objectId) tokenSymbolObjectId; // reverse mapping token symbol => object ID, to ensure symbol uniqueness
     mapping(bytes32 entityId => mapping(uint256 feeScheduleTypeId => FeeSchedule)) feeSchedules; // map entity ID to a fee schedule type and then to array of FeeReceivers (feeScheduleType (1-premium, 2-trading, n-others))
     mapping(bytes32 objectId => uint256 minimumSell) objectMinimumSell; // map object ID to minimum sell amount
-    mapping(bytes32 objectId => uint256) depositTotal; // total amount deposited into contract, for rebasing tokens support
+    mapping(bytes32 objectId => uint256) depositTotal; // note: DEPRECATED: total amount deposited into contract, for rebasing tokens support
     mapping(address userAddress => EntityApproval) selfOnboarding; // note: DEPRECATED
     /// Staking
     mapping(bytes32 entityId => StakingConfig) stakingConfigs; // StakingConfig for an entity
@@ -90,6 +90,7 @@ struct AppStorage {
     mapping(bytes32 vTokenId => bytes32 denomination) stakingDistributionDenomination; // [vTokenId] Reward currency
     mapping(bytes32 entityId => mapping(bytes32 stakerId => uint64 interval)) stakingSynced; // last interval when data was synced into storage for staker
     mapping(bytes32 vTokenId => mapping(bytes32 stakerId => uint256 balance)) stakeBalanceAdded; // raw balance staked at an interval, withouth any boost included, only for reading future intervals (to calculate the total boosted balance)
+    // mapping(uint256 => bool) initComplete; // think about adding this in the future
 }
 
 /// Staking-Related Mappings

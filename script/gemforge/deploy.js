@@ -70,7 +70,7 @@ const assertThatUpgradeIsEnabled = async (targetId, cutFile) => {
             if (fs.existsSync(cutFile)) {
                 fs.unlinkSync(cutFile);
             }
-            await $`yarn gemforge deploy ${targetArg} --pause-cut-to-file ${cutFile}`;
+            await $`yarn gemforge deploy ${targetArg} --verbose --pause-cut-to-file ${cutFile}`;
             if (!fs.existsSync(cutFile)) {
                 console.log(`No upgrade necesary!`);
             } else {
