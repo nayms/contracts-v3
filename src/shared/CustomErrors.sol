@@ -167,6 +167,10 @@ error RebasingSupplyDecreased(bytes32 tokenId, uint256 accountInNayms, uint256 a
 /// @notice This error suggests that the signature itself is malformed or does not correspond to the hash provided.
 error InvalidSignatureError(bytes32 hash);
 
+/// @dev This error indicates that the signatures is not 65 bytes.
+/// @notice This error indicates invalid signature length.
+error InvalidSignatureLength();
+
 /// @dev This error is used to indicate that the signature has an invalid 's' value.
 /// @param sValue The 's' value of the ECDSA signature that was deemed invalid.
 /// @notice This error is triggered when the 's' value of the signature is not within the lower half of the secp256k1 curve's order, which can lead to malleability issues.

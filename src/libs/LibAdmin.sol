@@ -22,7 +22,8 @@ import {
     EntityOnboardingNotApproved,
     InvalidSelfOnboardRoleApproval,
     InvalidSignatureError,
-    InvalidSignatureSError
+    InvalidSignatureSError,
+    InvalidSignatureLength
 } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
@@ -291,23 +292,25 @@ library LibAdmin {
         uint8 v;
 
         // ecrecover takes the signature parameters, and the only way to get them
-        if (signature.length == 65) {
-            // currently is to use assembly.
-            /// @solidity memory-safe-assembly
-            assembly {
-                r := mload(add(signature, 0x20))
-                s := mload(add(signature, 0x40))
-                v := byte(0, mload(add(signature, 0x60)))
+        if (signature.length != 65) {
+            revert InvalidSignatureLength();
+        }
 
-                switch v
-                // if v == 0, then v = 27
-                case 0 {
-                    v := 27
-                }
-                // if v == 1, then v = 28
-                case 1 {
-                    v := 28
-                }
+        // currently is to use assembly.
+        /// @solidity memory-safe-assembly
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+
+            switch v
+            // if v == 0, then v = 27
+            case 0 {
+                v := 27
+            }
+            // if v == 1, then v = 28
+            case 1 {
+                v := 28
             }
         }
 
