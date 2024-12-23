@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { D03ProtocolDefaults, c, LC, LibHelpers, StdStyle } from "./defaults/D03ProtocolDefaults.sol";
+import { D03ProtocolDefaults, LC, LibHelpers, StdStyle } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "test/utils/DummyToken.sol";
 import { StakingConfig, PermitSignature, OnboardingApproval } from "src/shared/FreeStructs.sol";
+
+import { InvalidSignatureLength } from "src/shared/CustomErrors.sol";
 
 contract ZapFacetTest is D03ProtocolDefaults {
     using LibHelpers for address;
@@ -117,6 +119,15 @@ contract ZapFacetTest is D03ProtocolDefaults {
         // verify token address
         vm.expectRevert("zapOrder: invalid ERC20 token");
         nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, onboardingApproval);
+
+        OnboardingApproval memory oa = OnboardingApproval ({
+           entityId: onboardingApproval.entityId,
+           roleId: onboardingApproval.roleId,
+           signature: abi.encode(uint16(10000), onboardingApproval.entityId, onboardingApproval.roleId)
+        });
+
+        vm.expectRevert(abi.encodePacked(InvalidSignatureLength.selector));
+        nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, oa);
 
         // Caller should ensure they deposit enough to cover order fees.
         nayms.zapOrder(address(weth), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, onboardingApproval);
