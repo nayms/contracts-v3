@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 
-import { Entity, Stakeholders, SimplePolicy } from "../src/shared/FreeStructs.sol";
+import { Entity, Stakeholders, SimplePolicy, PermitSignature, OnboardingApproval } from "../src/shared/FreeStructs.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { IDiamondProxy } from "../src/generated/IDiamondProxy.sol";
@@ -241,7 +241,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertEq(entries[0].topics[0], keccak256("FunctionsLocked(bytes4[])"));
         (s_functionSelectors) = abi.decode(entries[0].data, (bytes4[]));
 
-        bytes4[] memory lockedFunctions = new bytes4[](23);
+        bytes4[] memory lockedFunctions = new bytes4[](25);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -265,6 +265,8 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
         lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
+        lockedFunctions[23] = IDiamondProxy.zapStake.selector;
+        lockedFunctions[24] = IDiamondProxy.zapOrder.selector;
 
         for (uint256 i = 0; i < lockedFunctions.length; i++) {
             assertTrue(nayms.isFunctionLocked(lockedFunctions[i]));
@@ -327,6 +329,15 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("function is locked");
         nayms.compoundRewards(bytes32(0));
 
+        PermitSignature memory permSig;
+        OnboardingApproval memory onboardingApproval;
+
+        vm.expectRevert("function is locked");
+        nayms.zapStake(address(0), bytes32(0), 0, 0, permSig, onboardingApproval);
+
+        vm.expectRevert("function is locked");
+        nayms.zapOrder(address(0), 0, bytes32(0), 0, bytes32(0), 0, permSig, onboardingApproval);
+
         vm.expectRevert("function is locked");
         nayms.collectRewardsToInterval(bytes32(0), 5);
 
@@ -367,5 +378,7 @@ contract T02AdminTest is D03ProtocolDefaults, MockAccounts {
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.cancelSimplePolicy.selector), "function cancelSimplePolicy locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.createSimplePolicy.selector), "function createSimplePolicy locked");
         assertFalse(nayms.isFunctionLocked(IDiamondProxy.createEntity.selector), "function createEntity locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.zapStake.selector), "function zapStake locked");
+        assertFalse(nayms.isFunctionLocked(IDiamondProxy.zapOrder.selector), "function zapOrder locked");
     }
 }
