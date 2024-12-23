@@ -148,8 +148,10 @@ library LibAdmin {
         s.locked[IDiamondProxy.createSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createEntity.selector] = true;
         s.locked[IDiamondProxy.compoundRewards.selector] = true;
+        s.locked[IDiamondProxy.zapStake.selector] = true;
+        s.locked[IDiamondProxy.zapOrder.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](23);
+        bytes4[] memory lockedFunctions = new bytes4[](25);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -173,6 +175,8 @@ library LibAdmin {
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
         lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
+        lockedFunctions[23] = IDiamondProxy.zapStake.selector;
+        lockedFunctions[24] = IDiamondProxy.zapOrder.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -202,8 +206,10 @@ library LibAdmin {
         s.locked[IDiamondProxy.createEntity.selector] = false;
         s.locked[IDiamondProxy.collectRewardsToInterval.selector] = false;
         s.locked[IDiamondProxy.compoundRewards.selector] = false;
+        s.locked[IDiamondProxy.zapStake.selector] = false;
+        s.locked[IDiamondProxy.zapOrder.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](23);
+        bytes4[] memory lockedFunctions = new bytes4[](25);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -227,6 +233,8 @@ library LibAdmin {
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
         lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
+        lockedFunctions[23] = IDiamondProxy.zapStake.selector;
+        lockedFunctions[24] = IDiamondProxy.zapOrder.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
     }
