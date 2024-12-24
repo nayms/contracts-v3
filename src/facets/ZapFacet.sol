@@ -79,7 +79,7 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
 
         bytes32 parentId = _onboardingApproval.entityId;
 
-        bool isOnboardingCP = _onboardingApproval.roleId == LibHelpers._stringToBytes32(LC.ROLE_CAPITAL_PROVIDER);
+        bool isOnboardingCP = _onboardingApproval.roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         bool isCurrentlyCP = LibACL._isInGroup(parentId, LibHelpers._stringToBytes32(LC.SYSTEM_IDENTIFIER), LibHelpers._stringToBytes32(LC.GROUP_CAPITAL_PROVIDERS));
 
         if (!isCurrentlyCP && isOnboardingCP) {
