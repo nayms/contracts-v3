@@ -48,10 +48,10 @@ contract T03NaymsOwnershipTest is D03ProtocolDefaults, MockAccounts {
     function testFuzz_TransferOwnership(address newOwner, address notSysAdmin, address anotherSysAdmin) public {
         vm.assume(newOwner != anotherSysAdmin && newOwner != account0 && newOwner != address(0) && anotherSysAdmin != address(0));
         vm.assume(anotherSysAdmin != address(0));
+        vm.assume(!nayms.isInGroup(newOwner._getIdForAddress(), systemContext, LC.GROUP_SYSTEM_MANAGERS));
 
-        bytes32 notSysAdminId = LibHelpers._getIdForAddress(address(notSysAdmin));
         // note: for this test, assume that the notSysAdmin address is not a system admin
-        vm.assume(!nayms.isInGroup(notSysAdminId, systemContext, LC.GROUP_SYSTEM_ADMINS));
+        vm.assume(!nayms.isInGroup(notSysAdmin._getIdForAddress(), systemContext, LC.GROUP_SYSTEM_ADMINS));
 
         vm.label(newOwner, "newOwner");
         vm.label(notSysAdmin, "notSysAdmin");

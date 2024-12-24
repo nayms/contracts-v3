@@ -134,6 +134,13 @@ contract StakingFacet is Modifiers {
         LibTokenizedVaultStaking._collectRewards(parentId, _entityId, lastPaid);
     }
 
+    function compoundRewards(bytes32 _entityId) external notLocked {
+        bytes32 parentId = LibObject._getParent(msg.sender._getIdForAddress());
+        uint64 lastPaid = LibTokenizedVaultStaking._lastPaidInterval(_entityId);
+
+        LibTokenizedVaultStaking._compoundRewards(parentId, _entityId, lastPaid);
+    }
+
     /**
      * @notice Collect rewards for a staker
      * @param _entityId staking entity ID

@@ -2,10 +2,7 @@
 pragma solidity 0.8.20;
 
 import { D03ProtocolDefaults, LibHelpers, LibAdmin, LC, c } from "./defaults/D03ProtocolDefaults.sol";
-
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
-
-import { Entity } from "../src/shared/AppStorage.sol";
 import "../src/shared/CustomErrors.sol";
 
 contract T03SystemFacetTest is D03ProtocolDefaults, MockAccounts {

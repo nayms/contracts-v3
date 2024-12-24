@@ -7,10 +7,14 @@ import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibConstants } from "./LibConstants.sol";
-import { CannotUnassignRoleFromSelf, OwnerCannotBeSystemAdmin, RoleIsMissing, AssignerGroupIsMissing } from "../shared/CustomErrors.sol";
+
+import { CannotUnassignRoleFromSelf, OwnerCannotBeSystemAdmin, RoleIsMissing, AssignerGroupIsMissing, InvalidGroupPrivilege } from "../shared/CustomErrors.sol";
+
+import { LibString } from "solady/utils/LibString.sol";
 
 library LibACL {
-    using LibHelpers for bytes32;
+    using LibString for *;
+    using LibHelpers for *;
 
     /**
      * @dev Emitted when a role gets updated. Empty roleId is assigned upon role removal
@@ -127,6 +131,18 @@ library LibACL {
         if (_isInGroup(_userId, _contextId, _groupId)) return true;
         if (_isInGroup(_userId, LibAdmin._getSystemId(), _groupId)) return true;
         return false;
+    }
+
+    function _assertPriviledge(bytes32 _context, string memory _group) internal view {
+        if (!_hasGroupPrivilege(LibHelpers._getIdForAddress(msg.sender), _context, LibHelpers._stringToBytes32(_group)))
+            /// Note: If the role returned by `_getRoleInContext` is empty (represented by bytes32(0)), we explicitly return an empty string.
+            /// This ensures the user doesn't receive a string that could potentially include unwanted data (like pointer and length) without any meaningful content.
+            revert InvalidGroupPrivilege(
+                msg.sender._getIdForAddress(),
+                _context,
+                (_getRoleInContext(msg.sender._getIdForAddress(), _context) == bytes32(0)) ? "" : _getRoleInContext(msg.sender._getIdForAddress(), _context).fromSmallString(),
+                _group
+            );
     }
 
     function _getRoleInContext(bytes32 _objectId, bytes32 _contextId) internal view returns (bytes32) {

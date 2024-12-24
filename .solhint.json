@@ -9,6 +9,7 @@
     "const-name-snakecase": "off",
     "reason-string": "off",
     "var-name-mixedcase": "off",
-    "func-name-mixedcase": "off"
+    "func-name-mixedcase": "off",
+    "immutable-vars-naming": "off"
   }
 }

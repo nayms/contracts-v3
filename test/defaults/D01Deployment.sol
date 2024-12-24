@@ -53,6 +53,7 @@ abstract contract D01Deployment is D00GlobalDefaults, Test {
 
     function makeNaymsAcc(string memory name) public returns (NaymsAccount memory) {
         (address addr, uint256 privateKey) = makeAddrAndKey(name);
+        vm.label(addr, name);
         return NaymsAccount({ id: LibHelpers._getIdForAddress(addr), entityId: makeId(LC.OBJECT_TYPE_ENTITY, bytes20(keccak256(bytes(name)))), pk: privateKey, addr: addr });
     }
 
