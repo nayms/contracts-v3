@@ -197,3 +197,8 @@ error InvalidTokenId();
 
 /// @dev Cannot stake an amount lower than objectMinimumSell[tokenId].
 error InvalidStakingAmount();
+
+/// @dev Not a supported external ERC 20 token
+/// @param tokenAddress Address of the ERC20 token
+/// @param method Name of the method that threw the error
+error InvalidERC20Token(address tokenAddress, string method);

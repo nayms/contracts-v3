@@ -9,7 +9,7 @@ import { LibObject } from "../libs/LibObject.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
 import { LibACL } from "../libs/LibACL.sol";
 import { LibHelpers } from "../libs/LibHelpers.sol";
-import { ExternalWithdrawInvalidReceiver } from "../shared/CustomErrors.sol";
+import { ExternalWithdrawInvalidReceiver, InvalidERC20Token } from "../shared/CustomErrors.sol";
 import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
 
 /**
@@ -29,8 +29,10 @@ contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
         address _externalTokenAddress,
         uint256 _amount
     ) external notLocked nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_DEPOSIT) {
-        // a user can only deposit an approved external ERC20 token
-        require(LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress), "extDeposit: invalid ERC20 token");
+        if (!LibAdmin._isSupportedExternalTokenAddress(_externalTokenAddress)) {
+            revert InvalidERC20Token(_externalTokenAddress, "extDeposit");
+        }
+
         // a user can only deposit to their valid entity
         bytes32 entityId = LibObject._getParentFromAddress(msg.sender);
         require(LibEntity._isEntity(entityId), "extDeposit: invalid receiver");

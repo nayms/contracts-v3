@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import { D03ProtocolDefaults, c, LC, LibHelpers, StdStyle } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "test/utils/DummyToken.sol";
 import { StakingConfig, PermitSignature, OnboardingApproval } from "src/shared/FreeStructs.sol";
+import { InvalidERC20Token } from "src/shared/CustomErrors.sol";
 
 contract ZapFacetTest is D03ProtocolDefaults {
     using LibHelpers for address;
@@ -74,7 +75,7 @@ contract ZapFacetTest is D03ProtocolDefaults {
         PermitSignature memory permitSignature = PermitSignature({ deadline: deadline, v: v, r: r, s: s });
         OnboardingApproval memory approval;
 
-        vm.expectRevert("zapStake: invalid ERC20 token");
+        vm.expectRevert(abi.encodeWithSelector(InvalidERC20Token.selector, address(111), "zapStake"));
         nayms.zapStake(address(111), nlf.entityId, stakeAmount, stakeAmount, permitSignature, approval);
 
         nayms.zapStake(address(naymToken), nlf.entityId, stakeAmount, stakeAmount, permitSignature, approval);
@@ -115,7 +116,7 @@ contract ZapFacetTest is D03ProtocolDefaults {
         OnboardingApproval memory onboardingApproval = OnboardingApproval({ entityId: sue.entityId, roleId: cpRoleId, signature: sig });
 
         // verify token address
-        vm.expectRevert("zapOrder: invalid ERC20 token");
+        vm.expectRevert(abi.encodeWithSelector(InvalidERC20Token.selector, address(111), "zapOrder"));
         nayms.zapOrder(address(111), 10 ether, wethId, 1 ether, bob.entityId, 1 ether, permitSignature, onboardingApproval);
 
         // Caller should ensure they deposit enough to cover order fees.
