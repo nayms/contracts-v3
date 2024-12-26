@@ -38,11 +38,11 @@ contract ZapFacet is Modifiers, ReentrancyGuard {
             revert InvalidERC20Token(_externalTokenAddress, "zapStake");
         }
 
-        if (_onboardingApproval.entityId != 0 && LibObject._getParentFromAddress(msg.sender) != _onboardingApproval.entityId) {
+        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
+
+        if (_onboardingApproval.entityId != 0 && parentId != _onboardingApproval.entityId) {
             LibAdmin._onboardUserViaSignature(_onboardingApproval);
         }
-
-        bytes32 parentId = LibObject._getParentFromAddress(msg.sender);
 
         // Use permit to set allowance
         IERC20(_externalTokenAddress).permit(msg.sender, address(this), _amountToDeposit, _permitSignature.deadline, _permitSignature.v, _permitSignature.r, _permitSignature.s);
