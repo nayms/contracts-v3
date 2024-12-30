@@ -109,7 +109,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("extDeposit: invalid receiver");
         nayms.externalDeposit(wethAddress, 1);
 
-        vm.expectRevert("extDeposit: invalid ERC20 token");
+        vm.expectRevert(abi.encodeWithSelector(InvalidERC20Token.selector, address(0xBADAAAAAAAAA), "extDeposit"));
         nayms.externalDeposit(address(0xBADAAAAAAAAA), 1);
 
         // deposit to entity1
