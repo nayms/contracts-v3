@@ -38,6 +38,7 @@ library LibInitDiamond {
         LibACL._updateRoleGroup(LC.ROLE_SYSTEM_ADMIN, LC.GROUP_SYSTEM_ADMINS, true);
         LibACL._updateRoleGroup(LC.ROLE_SYSTEM_MANAGER, LC.GROUP_START_TOKEN_SALE, true);
         LibACL._updateRoleGroup(LC.ROLE_ENTITY_MANAGER, LC.GROUP_START_TOKEN_SALE, true);
+        LibACL._updateRoleGroup(LC.ROLE_ENTITY_ADMIN, LC.GROUP_CANCEL_OFFER, true);
         LibACL._updateRoleGroup(LC.ROLE_ENTITY_MANAGER, LC.GROUP_CANCEL_OFFER, true);
         LibACL._updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_CANCEL_OFFER, true);
         LibACL._updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_EXECUTE_LIMIT_OFFER, true);
@@ -62,7 +63,7 @@ library LibInitDiamond {
         // setup stakeholder groups
         LibACL._updateRoleGroup(LC.ROLE_UNDERWRITER, LC.GROUP_UNDERWRITERS, true);
         LibACL._updateRoleGroup(LC.ROLE_BROKER, LC.GROUP_BROKERS, true);
-        LibACL._updateRoleGroup(LC.ROLE_CAPITAL_PROVIDER, LC.GROUP_CAPITAL_PROVIDERS, true);
+        LibACL._updateRoleGroup(LC.ROLE_ENTITY_CP, LC.GROUP_CAPITAL_PROVIDERS, true);
         LibACL._updateRoleGroup(LC.ROLE_INSURED_PARTY, LC.GROUP_INSURED_PARTIES, true);
 
         // setup assigners

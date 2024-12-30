@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { Vm } from "forge-std/Vm.sol";
 
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders } from "src/shared/FreeStructs.sol";
+import { Entity, MarketInfo, SimplePolicy, SimplePolicyInfo, Stakeholders, OnboardingApproval } from "src/shared/FreeStructs.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { StdStyle } from "forge-std/StdStyle.sol";
 
@@ -14,9 +14,9 @@ import { SimplePolicyFixture } from "test/fixtures/SimplePolicyFixture.sol";
 // solhint-disable no-global-import
 import "../src/shared/CustomErrors.sol";
 
+// solhint-disable no-console
 import { StdStyle } from "forge-std/StdStyle.sol";
 
-// solhint-disable no-console
 contract T04EntityTest is D03ProtocolDefaults {
     using LibHelpers for *;
     using StdStyle for *;
@@ -339,9 +339,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
         bytes[] memory signatures = new bytes[](3);
-        signatures[0] = initPolicySig(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
-        signatures[1] = initPolicySig(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
-        signatures[2] = initPolicySig(0xACC3, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[0] = signWithPK(0xACC1, signingHash); // 0x2337f702bc9A7D1f415050365634FEbEdf4054Be
+        signatures[1] = signWithPK(0xACC2, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
+        signatures[2] = signWithPK(0xACC3, signingHash); // 0x167D6b35e51df22f42c4F42f26d365756D244fDE
 
         bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
@@ -389,9 +389,9 @@ contract T04EntityTest is D03ProtocolDefaults {
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
         bytes[] memory signatures = new bytes[](3);
-        signatures[0] = initPolicySig(0xACC2, signingHash);
-        signatures[1] = initPolicySig(0xACC1, signingHash);
-        signatures[2] = initPolicySig(0xACC3, signingHash);
+        signatures[0] = signWithPK(0xACC2, signingHash);
+        signatures[1] = signWithPK(0xACC1, signingHash);
+        signatures[2] = signWithPK(0xACC3, signingHash);
 
         bytes32[] memory roles = new bytes32[](3);
         roles[0] = LibHelpers._stringToBytes32(LC.ROLE_UNDERWRITER);
@@ -438,10 +438,10 @@ contract T04EntityTest is D03ProtocolDefaults {
 
         bytes32 signingHash = nayms.getSigningHash(simplePolicy.startDate, simplePolicy.maturationDate, simplePolicy.asset, simplePolicy.limit, testPolicyDataHash);
 
-        stakeholders.signatures[0] = initPolicySig(0xACC2, signingHash);
-        stakeholders.signatures[1] = initPolicySig(0xACC1, signingHash);
-        stakeholders.signatures[2] = initPolicySig(0xACC3, signingHash);
-        stakeholders.signatures[3] = initPolicySig(0xACC4, signingHash);
+        stakeholders.signatures[0] = signWithPK(0xACC2, signingHash);
+        stakeholders.signatures[1] = signWithPK(0xACC1, signingHash);
+        stakeholders.signatures[2] = signWithPK(0xACC3, signingHash);
+        stakeholders.signatures[3] = signWithPK(0xACC4, signingHash);
 
         // external token not supported
         vm.expectRevert("external token is not supported");
@@ -1165,139 +1165,106 @@ contract T04EntityTest is D03ProtocolDefaults {
     }
 
     function testSelfOnboardingNotApproved() public {
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        bytes32 entityId = randomEntityId(1);
+        address userAddress = address(111);
+        bytes memory noSig;
+
+        vm.startPrank(userAddress);
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: noSig }));
+
+        bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, entityId, roleId));
+
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: 0x0, roleId: roleId, signature: sig }));
+
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: 0x0, signature: sig }));
         vm.stopPrank();
-        vm.startPrank(signer1);
-        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, signer1));
-        nayms.onboard();
+
+        vm.startPrank(sm.addr);
+        nayms.assignRole(em.id, systemContext, LC.ROLE_ENTITY_CP); // remove onboarding approver role
         vm.stopPrank();
+
+        vm.startPrank(userAddress);
+        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingNotApproved.selector, userAddress));
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: sig }));
     }
 
     function testSelfOnboardingInvalidGroup() public {
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_SYSTEM_MANAGER);
+        bytes32 sysMgrRoleId = LibHelpers._stringToBytes32(LC.ROLE_SYSTEM_MANAGER);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        vm.startPrank(em.addr);
-        vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, roleId));
-        nayms.approveSelfOnboarding(address(111), randomEntityId(1), roleId);
-        vm.stopPrank();
-    }
+        bytes32 entityId = randomEntityId(1);
+        address userAddress = address(111);
 
-    function testSelfOnboardingAlreadyApproved() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+        bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, entityId, sysMgrRoleId));
 
-        bytes32 entityId = randomEntityId(2);
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(address(111), entityId, roleId);
-
-        vm.expectRevert(abi.encodeWithSelector(EntityOnboardingAlreadyApproved.selector, address(111)));
-        nayms.approveSelfOnboarding(address(111), entityId, roleId);
+        vm.startPrank(userAddress);
+        vm.expectRevert(abi.encodeWithSelector(InvalidSelfOnboardRoleApproval.selector, sysMgrRoleId));
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: sysMgrRoleId, signature: sig }));
         vm.stopPrank();
     }
 
     function testSelfOnboardingSuccess() public {
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bytes32 e1 = randomEntityId(1);
-        _approveSelfOnboarding(address(111), e1, roleId);
-        _selfOnboard(address(111), e1, LC.GROUP_TOKEN_HOLDERS);
+        bytes32 entityId = randomEntityId(1);
+        address userAddress = address(111);
 
-        bytes32 roleId2 = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
-        bytes32 e2 = randomEntityId(2);
-        _approveSelfOnboarding(address(222), e2, roleId2);
-        _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
+        bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, entityId, roleId));
+
+        vm.startPrank(userAddress);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: sig }));
+        vm.stopPrank();
+
+        assertEq(nayms.getEntity(LibHelpers._getIdForAddress(userAddress)), entityId, "parent should be set");
+
+        assertTrue(nayms.isInGroup(entityId, systemContext, LC.GROUP_CAPITAL_PROVIDERS), "should belong capital providers group");
     }
 
     function testSelfOnboardingUpgradeToCapitalProvider() public {
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
+
+        address userAddress = address(111);
         bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bytes32 roleIdCP = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
-        // test upgrade before onboarding
+        bytes32 roleIdCapitalProvider = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+
         bytes32 e1 = randomEntityId(1);
 
-        _approveSelfOnboarding(address(111), e1, roleIdTokenHolder);
-        _approveSelfOnboarding(address(111), e1, roleIdCP);
-        _selfOnboard(address(111), e1, LC.GROUP_CAPITAL_PROVIDERS);
+        bytes memory sigTokenHolder = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, e1, roleIdTokenHolder));
+        bytes memory sigCapitalProvider = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, e1, roleIdCapitalProvider));
 
-        // test upgrade after onboarding
-        bytes32 e2 = randomEntityId(2);
-        _approveSelfOnboarding(address(222), e2, roleIdTokenHolder);
-        _selfOnboard(address(222), e2, LC.GROUP_TOKEN_HOLDERS);
-        _approveSelfOnboarding(address(222), e2, roleIdCP);
+        vm.startPrank(userAddress);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: e1, roleId: roleIdTokenHolder, signature: sigTokenHolder }));
 
         vm.recordLogs();
 
-        _selfOnboard(address(222), e2, LC.GROUP_CAPITAL_PROVIDERS);
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: e1, roleId: roleIdCapitalProvider, signature: sigCapitalProvider }));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
-        assertEq(entries[0].topics[1], e2);
-        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
-        assertEq(contextId, e2);
-        assertEq(roleId, roleIdTokenHolder);
-        assertEq(action, "_unassignRole");
 
-        assertEq(entries[1].topics.length, 2);
-        assertEq(entries[1].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
-        assertEq(entries[1].topics[1], e2, "object ID doesn't match");
-        (bytes32 contextId2, bytes32 roleId2, string memory action2) = abi.decode(entries[1].data, (bytes32, bytes32, string));
-        assertEq(contextId2, systemContext, "incorrect context");
-        assertEq(roleId2, roleIdTokenHolder, "wrong role");
-        assertEq(action2, "_unassignRole", "wrong operation");
+        assertRoleUpdateEvent(entries, 0, systemContext, e1, roleIdTokenHolder, "_unassignRole");
+        assertRoleUpdateEvent(entries, 1, systemContext, e1, roleIdCapitalProvider, "_assignRole");
     }
 
-    function testSelfOnboardingCancel() public {
-        nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
-
-        bytes32 entityId = randomEntityId(2);
-        bytes32 roleIdTokenHolder = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-
-        vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(address(111), entityId, roleIdTokenHolder);
-        assertTrue(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should be approved");
-
-        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, em.addr._getIdForAddress(), systemContext, LC.ROLE_ONBOARDING_APPROVER, LC.GROUP_SYSTEM_MANAGERS));
-        nayms.cancelSelfOnboarding(address(111));
-        vm.stopPrank();
-        vm.startPrank(sm.addr);
-        nayms.cancelSelfOnboarding(address(111));
-
-        assertFalse(nayms.isSelfOnboardingApproved(address(111), entityId, roleIdTokenHolder), "Onboarding should have been cancelled");
-    }
-
-    function _approveSelfOnboarding(address _userAddress, bytes32 entityId, bytes32 roleId) private {
-        vm.recordLogs();
-
-        vm.startPrank(em.addr);
-        nayms.approveSelfOnboarding(_userAddress, entityId, roleId);
-        vm.stopPrank();
-
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("SelfOnboardingApproved(address)"));
-        assertEq(abi.decode(LibHelpers._bytes32ToBytes(entries[0].topics[1]), (address)), _userAddress);
-    }
-
-    function _selfOnboard(address _userAddress, bytes32 entityId, string memory groupName) private {
-        vm.startPrank(_userAddress);
-        nayms.onboard();
-        vm.stopPrank();
-
-        assertTrue(nayms.isInGroup(entityId, systemContext, groupName));
-        assertTrue(nayms.isInGroup(entityId, entityId, groupName));
-    }
-
-    function test_ApproveSelfOnboarding_InvalidEntityId() public {
+    function test_selfOnboarding_InvalidEntityId() public {
+        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         nayms.assignRole(em.id, systemContext, LC.ROLE_ONBOARDING_APPROVER);
 
         bytes32 entityId = keccak256("invalid entity id");
-        bytes32 roleId = LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        address userAddress = address(111);
 
-        vm.startPrank(em.addr);
-        vm.expectRevert(abi.encodeWithSelector(InvalidEntityId.selector, entityId));
-        nayms.approveSelfOnboarding(address(111), entityId, roleId);
+        bytes memory sig = signWithPK(em.pk, nayms.getOnboardingHash(userAddress, entityId, roleId));
+
+        vm.startPrank(userAddress);
+        vm.expectRevert(abi.encodeWithSelector(InvalidObjectType.selector, entityId, LC.OBJECT_TYPE_ENTITY));
+        nayms.onboardViaSignature(OnboardingApproval({ entityId: entityId, roleId: roleId, signature: sig }));
+        vm.stopPrank();
     }
 
     function randomEntityId(uint256 salt) public view returns (bytes32) {

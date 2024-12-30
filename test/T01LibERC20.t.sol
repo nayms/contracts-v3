@@ -2,7 +2,6 @@
 pragma solidity 0.8.20;
 
 // solhint-disable no-global-import
-import { Vm } from "forge-std/Vm.sol";
 import { D03ProtocolDefaults } from "./defaults/D03ProtocolDefaults.sol";
 import { DummyToken } from "./utils/DummyToken.sol";
 import { BadToken } from "./utils/BadToken.sol";
@@ -81,10 +80,6 @@ contract T01LibERC20 is D03ProtocolDefaults {
         vm.expectRevert("not enough balance");
         fixture.transfer(tokenAddress, account0, 101);
 
-        // failed transfer of 0
-        vm.expectRevert("LibERC20: transfer or transferFrom returned false");
-        fixture.transfer(tokenAddress, account0, 0);
-
         // successful transfer
         fixture.transfer(tokenAddress, account0, 100);
 
@@ -112,10 +107,6 @@ contract T01LibERC20 is D03ProtocolDefaults {
         // not enough balance
         vm.expectRevert("not enough balance");
         fixture.transferFrom(tokenAddress, signer1, account0, 101);
-
-        // failed transfer of 0 reverts with empty string
-        vm.expectRevert("LibERC20: transfer or transferFrom reverted");
-        fixture.transferFrom(tokenAddress, signer1, account0, 0);
 
         // successful transfer
         fixture.transferFrom(tokenAddress, signer1, account0, 100);

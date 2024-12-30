@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import { MockAccounts } from "./utils/users/MockAccounts.sol";
 import { c, D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
-import { Entity, CalculatedFees } from "../src/shared/AppStorage.sol";
+import { Entity } from "../src/shared/AppStorage.sol";
 import { IDiamondCut } from "lib/diamond-2-hardhat/contracts/interfaces/IDiamondCut.sol";
 import { TokenizedVaultFixture } from "test/fixtures/TokenizedVaultFixture.sol";
 import "src/shared/CustomErrors.sol";
@@ -74,7 +74,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         require(success, "Should get commissions from app storage");
     }
 
-    function testGetLockedBalance() public {
+    function testGetLockedAndAvailableBalance() public {
         changePrank(sm.addr);
         bytes32 entityId = createTestEntity(account0Id);
 
@@ -85,7 +85,10 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         nayms.enableEntityTokenization(entityId, "Entity1", "Entity1 Token", 1);
         nayms.startTokenSale(entityId, 100, 100);
 
-        assertEq(nayms.getLockedBalance(entityId, entityId), 100);
+        uint256 internalBalance = nayms.internalBalanceOf(entityId, entityId);
+        uint256 lockedBalance = nayms.getLockedBalance(entityId, entityId);
+        assertEq(lockedBalance, 100, "invalid locked balance");
+        assertEq(nayms.getAvailableBalance(entityId, entityId), internalBalance - lockedBalance, "invalid avaiable balance");
     }
 
     function testSingleExternalDeposit() public {
@@ -106,7 +109,7 @@ contract T03TokenizedVaultTest is D03ProtocolDefaults, MockAccounts {
         vm.expectRevert("extDeposit: invalid receiver");
         nayms.externalDeposit(wethAddress, 1);
 
-        vm.expectRevert("extDeposit: invalid ERC20 token");
+        vm.expectRevert(abi.encodeWithSelector(InvalidERC20Token.selector, address(0xBADAAAAAAAAA), "extDeposit"));
         nayms.externalDeposit(address(0xBADAAAAAAAAA), 1);
 
         // deposit to entity1

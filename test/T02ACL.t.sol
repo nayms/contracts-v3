@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
-import { console2 } from "forge-std/console2.sol";
 import { D03ProtocolDefaults, LibHelpers, LC } from "./defaults/D03ProtocolDefaults.sol";
 import { MockAccounts } from "test/utils/users/MockAccounts.sol";
 import { Vm } from "forge-std/Vm.sol";
@@ -92,26 +91,11 @@ contract T02ACLTest is D03ProtocolDefaults, MockAccounts {
         string memory role = LC.ROLE_ENTITY_ADMIN;
 
         vm.recordLogs();
-
         nayms.assignRole(signer1Id, context, role);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-
-        assertEq(entries[0].topics.length, 2);
-        assertEq(entries[0].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
-        assertEq(entries[0].topics[1], signer1Id);
-        (bytes32 contextId, bytes32 roleId, string memory action) = abi.decode(entries[0].data, (bytes32, bytes32, string));
-        assertEq(contextId, context);
-        assertEq(roleId, bytes32(0));
-        assertEq(action, "_unassignRole");
-
-        assertEq(entries[1].topics.length, 2);
-        assertEq(entries[1].topics[0], keccak256("RoleUpdated(bytes32,bytes32,bytes32,string)"));
-        assertEq(entries[1].topics[1], signer1Id);
-        (contextId, roleId, action) = abi.decode(entries[1].data, (bytes32, bytes32, string));
-        assertEq(contextId, context);
-        assertEq(roleId, LibHelpers._stringToBytes32(role));
-        assertEq(action, "_assignRole");
+        assertRoleUpdateEvent(entries, 0, context, signer1Id, bytes32(0), "_unassignRole");
+        assertRoleUpdateEvent(entries, 1, context, signer1Id, LibHelpers._stringToBytes32(role), "_assignRole");
     }
 
     function testInvalidObjectIdWhenAssignRole() public {

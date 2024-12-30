@@ -29,14 +29,8 @@ error InvalidGroupPrivilege(bytes32 msgSenderId, bytes32 context, string roleInC
 /// @param role The name of the rle which should not be approaved for self-onboarding
 error InvalidSelfOnboardRoleApproval(bytes32 role);
 
-/// @dev Passing in a missing address when trying to add a token address to the supported external token list.
-error CannotAddNullSupportedExternalToken();
-
 /// @dev Cannot add a ERC20 token to the supported external token list that has more than 18 decimal places.
 error CannotSupportExternalTokenWithMoreThan18Decimals();
-
-/// @dev Passing in a missing address when trying to assign a new token address as the new discount token.
-error CannotAddNullDiscountToken();
 
 /// @dev Object exsists when it should not.
 error ObjectExistsAlready(bytes32 objectId);
@@ -49,9 +43,6 @@ error EntityDoesNotExist(bytes32 objectId);
 
 /// @dev The entity self onboarding not approved
 error EntityOnboardingNotApproved(address userAddress);
-
-/// @dev The entity self onboarding already approved
-error EntityOnboardingAlreadyApproved(address userAddress);
 
 /// @dev Cannot create an entity that already exists.
 error EntityExistsAlready(bytes32 entityId);
@@ -129,9 +120,6 @@ error RebasingInterestNotInitialized(bytes32 tokenId);
 /// @dev Insufficient amount of interest acrrued so far
 error RebasingInterestInsufficient(bytes32 tokenId, uint256 amount, uint256 accruedAmount);
 
-/// @dev Rebase amount cannot be greater than the actual balance
-error RebasingAmountInvalid(bytes32 tokenId, uint256 amount, uint256 currentBalance);
-
 /// @dev Staking can be initialized only once
 error StakingAlreadyStarted(bytes32 entityId, bytes32 tokenId);
 
@@ -179,6 +167,10 @@ error RebasingSupplyDecreased(bytes32 tokenId, uint256 accountInNayms, uint256 a
 /// @notice This error suggests that the signature itself is malformed or does not correspond to the hash provided.
 error InvalidSignatureError(bytes32 hash);
 
+/// @dev This error indicates that the signatures is not 65 bytes.
+/// @notice This error indicates invalid signature length.
+error InvalidSignatureLength();
+
 /// @dev This error is used to indicate that the signature has an invalid 's' value.
 /// @param sValue The 's' value of the ECDSA signature that was deemed invalid.
 /// @notice This error is triggered when the 's' value of the signature is not within the lower half of the secp256k1 curve's order, which can lead to malleability issues.
@@ -186,9 +178,6 @@ error InvalidSignatureSError(bytes32 sValue);
 
 /// @dev Thrown when the number of receivers specified in a transaction is not within the acceptable range.
 error InvalidReceiverCount(uint256 numberOfReceivers);
-
-/// @dev The entity ID is invalid for the given context.
-error InvalidEntityId(bytes32 entityId);
 
 /// @dev Thrown when the maturation date of a policy is set beyond the allowable future date limit.
 /// This prevents setting unrealistic maturation dates that could affect the contract's operability or the enforceability of the policy.
@@ -212,3 +201,8 @@ error InvalidTokenId();
 
 /// @dev Cannot stake an amount lower than objectMinimumSell[tokenId].
 error InvalidStakingAmount();
+
+/// @dev Not a supported external ERC 20 token
+/// @param tokenAddress Address of the ERC20 token
+/// @param method Name of the method that threw the error
+error InvalidERC20Token(address tokenAddress, string method);

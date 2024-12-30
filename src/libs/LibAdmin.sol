@@ -2,38 +2,40 @@
 pragma solidity 0.8.20;
 
 import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../shared/AppStorage.sol";
-import { Entity, EntityApproval } from "../shared/FreeStructs.sol";
+import { Entity, OnboardingApproval } from "../shared/FreeStructs.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
 import { LibEntity } from "./LibEntity.sol";
 import { LibACL } from "./LibACL.sol";
+import { LibEIP712 } from "./LibEIP712.sol";
+
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+
 // prettier-ignore
 import {
-    CannotAddNullDiscountToken,
-    CannotAddNullSupportedExternalToken,
     CannotSupportExternalTokenWithMoreThan18Decimals,
     ObjectTokenSymbolAlreadyInUse,
     MinimumSellCannotBeZero,
-    EntityExistsAlready,
-    EntityOnboardingAlreadyApproved,
     EntityOnboardingNotApproved,
     InvalidSelfOnboardRoleApproval,
-    InvalidEntityId
+    InvalidSignatureError,
+    InvalidSignatureSError,
+    InvalidSignatureLength
 } from "../shared/CustomErrors.sol";
 
 import { IDiamondProxy } from "src/generated/IDiamondProxy.sol";
 
 library LibAdmin {
+    using ECDSA for bytes32;
+
     event MaxDividendDenominationsUpdated(uint8 oldMax, uint8 newMax);
     event SupportedTokenAdded(address indexed tokenAddress);
     event FunctionsLocked(bytes4[] functionSelectors);
     event FunctionsUnlocked(bytes4[] functionSelectors);
-    event ObjectMinimumSellUpdated(bytes32 objectId, uint256 newMinimumSell);
-    event SelfOnboardingApproved(address indexed userAddress);
     event SelfOnboardingCompleted(address indexed userAddress);
-    event SelfOnboardingCancelled(address indexed userAddress);
 
     /// @notice The minimum amount of an object (par token, external token) that can be sold on the market
     event MinimumSellUpdated(bytes32 objectId, uint256 minimumSell);
@@ -146,8 +148,11 @@ library LibAdmin {
         s.locked[IDiamondProxy.cancelSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createSimplePolicy.selector] = true;
         s.locked[IDiamondProxy.createEntity.selector] = true;
+        s.locked[IDiamondProxy.compoundRewards.selector] = true;
+        s.locked[IDiamondProxy.zapStake.selector] = true;
+        s.locked[IDiamondProxy.zapOrder.selector] = true;
 
-        bytes4[] memory lockedFunctions = new bytes4[](22);
+        bytes4[] memory lockedFunctions = new bytes4[](25);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -170,6 +175,9 @@ library LibAdmin {
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
+        lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
+        lockedFunctions[23] = IDiamondProxy.zapStake.selector;
+        lockedFunctions[24] = IDiamondProxy.zapOrder.selector;
 
         emit FunctionsLocked(lockedFunctions);
     }
@@ -198,8 +206,11 @@ library LibAdmin {
         s.locked[IDiamondProxy.createSimplePolicy.selector] = false;
         s.locked[IDiamondProxy.createEntity.selector] = false;
         s.locked[IDiamondProxy.collectRewardsToInterval.selector] = false;
+        s.locked[IDiamondProxy.compoundRewards.selector] = false;
+        s.locked[IDiamondProxy.zapStake.selector] = false;
+        s.locked[IDiamondProxy.zapOrder.selector] = false;
 
-        bytes4[] memory lockedFunctions = new bytes4[](22);
+        bytes4[] memory lockedFunctions = new bytes4[](25);
         lockedFunctions[0] = IDiamondProxy.startTokenSale.selector;
         lockedFunctions[1] = IDiamondProxy.paySimpleClaim.selector;
         lockedFunctions[2] = IDiamondProxy.paySimplePremium.selector;
@@ -222,79 +233,49 @@ library LibAdmin {
         lockedFunctions[19] = IDiamondProxy.createSimplePolicy.selector;
         lockedFunctions[20] = IDiamondProxy.createEntity.selector;
         lockedFunctions[21] = IDiamondProxy.collectRewardsToInterval.selector;
+        lockedFunctions[22] = IDiamondProxy.compoundRewards.selector;
+        lockedFunctions[23] = IDiamondProxy.zapStake.selector;
+        lockedFunctions[24] = IDiamondProxy.zapOrder.selector;
 
         emit FunctionsUnlocked(lockedFunctions);
     }
 
-    function _approveSelfOnboarding(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal {
+    function _onboardUserViaSignature(OnboardingApproval memory _approval) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
-        // The entityId must be the valid type (entity).
-        if (!LibObject._isObjectType(_entityId, LC.OBJECT_TYPE_ENTITY)) revert InvalidEntityId(_entityId);
+        address userAddress = msg.sender;
 
-        // Require that the user is not approved for the role already
-        if (_isSelfOnboardingApproved(_userAddress, _entityId, _roleId)) revert EntityOnboardingAlreadyApproved(_userAddress);
+        bytes32 entityId = _approval.entityId;
+        bytes32 roleId = _approval.roleId;
+        bytes memory sig = _approval.signature;
 
-        bool isTokenHolder = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
-        bool isCapitalProvider = _roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
+        if (entityId == 0 || roleId == 0 || sig.length == 0) revert EntityOnboardingNotApproved(userAddress);
+
+        bool isTokenHolder = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_TOKEN_HOLDER);
+        bool isCapitalProvider = roleId == LibHelpers._stringToBytes32(LC.ROLE_ENTITY_CP);
         if (!isTokenHolder && !isCapitalProvider) {
-            revert InvalidSelfOnboardRoleApproval(_roleId);
+            revert InvalidSelfOnboardRoleApproval(roleId);
         }
 
-        s.selfOnboarding[_userAddress] = EntityApproval({ entityId: _entityId, roleId: _roleId });
+        bytes32 signingHash = _getOnboardingHash(userAddress, entityId, roleId);
+        bytes32 signerId = LibHelpers._getIdForAddress(_getSigner(signingHash, sig));
 
-        emit SelfOnboardingApproved(_userAddress);
-    }
-
-    function _onboardUser(address _userAddress) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        EntityApproval memory approval = s.selfOnboarding[_userAddress];
-
-        if (approval.entityId == 0 || approval.roleId == 0) {
-            revert EntityOnboardingNotApproved(_userAddress);
+        if (!LibACL._isInGroup(signerId, LibAdmin._getSystemId(), LibHelpers._stringToBytes32(LC.GROUP_ONBOARDING_APPROVERS))) {
+            revert EntityOnboardingNotApproved(userAddress);
         }
 
-        bytes32 userId = LibHelpers._getIdForAddress(_userAddress);
-
-        if (!s.existingEntities[approval.entityId]) {
+        if (!s.existingEntities[entityId]) {
             Entity memory entity;
-            LibEntity._createEntity(approval.entityId, userId, entity, 0);
+            bytes32 userId = LibHelpers._getIdForAddress(userAddress);
+            LibEntity._createEntity(entityId, userId, entity, 0);
         }
 
-        if (s.roles[approval.entityId][approval.entityId] != 0) {
-            LibACL._unassignRole(approval.entityId, approval.entityId);
+        if (s.roles[entityId][LibAdmin._getSystemId()] != 0) {
+            LibACL._unassignRole(entityId, LibAdmin._getSystemId());
         }
+        LibACL._assignRole(entityId, LibAdmin._getSystemId(), roleId);
 
-        if (s.roles[approval.entityId][LibAdmin._getSystemId()] != 0) {
-            LibACL._unassignRole(approval.entityId, LibAdmin._getSystemId());
-        }
-
-        LibACL._assignRole(approval.entityId, LibAdmin._getSystemId(), approval.roleId);
-        LibACL._assignRole(approval.entityId, approval.entityId, approval.roleId);
-
-        delete s.selfOnboarding[_userAddress];
-
-        emit SelfOnboardingCompleted(_userAddress);
-    }
-
-    function _isSelfOnboardingApproved(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal view returns (bool) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        EntityApproval memory approval = s.selfOnboarding[_userAddress];
-
-        return approval.entityId == _entityId && approval.roleId == _roleId;
-    }
-
-    function _cancelSelfOnboarding(address _userAddress) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-
-        if (s.selfOnboarding[_userAddress].entityId == 0 && s.selfOnboarding[_userAddress].roleId == 0) {
-            revert EntityOnboardingNotApproved(_userAddress);
-        }
-
-        delete s.selfOnboarding[_userAddress];
-
-        emit SelfOnboardingCancelled(_userAddress);
+        emit SelfOnboardingCompleted(userAddress);
     }
 
     function _setMinimumSell(bytes32 _objectId, uint256 _minimumSell) internal {
@@ -304,5 +285,48 @@ library LibAdmin {
         s.objectMinimumSell[_objectId] = _minimumSell;
 
         emit MinimumSellUpdated(_objectId, _minimumSell);
+    }
+
+    function _getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) internal view returns (bytes32) {
+        return
+            LibEIP712._hashTypedDataV4(
+                keccak256(abi.encode(keccak256("OnboardingApproval(address _userAddress,bytes32 _entityId,bytes32 _roleId)"), _userAddress, _entityId, _roleId))
+            );
+    }
+
+    function _getSigner(bytes32 signingHash, bytes memory signature) internal pure returns (address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        // ecrecover takes the signature parameters, and the only way to get them
+        if (signature.length != 65) {
+            revert InvalidSignatureLength();
+        }
+
+        // currently is to use assembly.
+        /// @solidity memory-safe-assembly
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+
+            switch v
+            // if v == 0, then v = 27
+            case 0 {
+                v := 27
+            }
+            // if v == 1, then v = 28
+            case 1 {
+                v := 28
+            }
+        }
+
+        (address signer, ECDSA.RecoverError err, ) = ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(signingHash), v, r, s);
+
+        if (err == ECDSA.RecoverError.InvalidSignature) revert InvalidSignatureError(signingHash);
+        else if (err == ECDSA.RecoverError.InvalidSignatureS) revert InvalidSignatureSError(s);
+
+        return signer;
     }
 }

@@ -7,7 +7,7 @@ import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibObject } from "./LibObject.sol";
 import { LibERC20 } from "./LibERC20.sol";
-import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingAmountInvalid, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
+import { RebasingInterestNotInitialized, RebasingInterestInsufficient, RebasingSupplyDecreased } from "../shared/CustomErrors.sol";
 
 import { InsufficientBalance } from "../shared/CustomErrors.sol";
 
@@ -189,7 +189,7 @@ library LibTokenizedVault {
         if (withdrawableDividend > 0) {
             // Bump the withdrawn dividends for the owner
             /// Special Case: (_tokenId == _dividendTokenId), i.e distributing accrued interest for rebasing coins like USDM
-            /// withdrawnDividendPerOwner should be adjusted before tha update, so that the user cannot claim additional dividend based on the amount he just received as dividend
+            /// withdrawnDividendPerOwner should be adjusted before the update, so that the user cannot claim additional dividend based on the amount he just received as dividend
             /// dividend is calculated based on a ratio between users balance and the total, but in this case claiming the dividend his balance increases and
             /// thus his share of the total increases as well, which entitles him to claim more of the dividend, potentially draining out the entirety of it if repeated infinitely
             if (_tokenId == _dividendTokenId) {
@@ -295,6 +295,13 @@ library LibTokenizedVault {
     function _getLockedBalance(bytes32 _accountId, bytes32 _tokenId) internal view returns (uint256 amount) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.lockedBalances[_accountId][_tokenId];
+    }
+
+    function _getAvailableBalance(bytes32 _accountId, bytes32 _tokenId) internal view returns (uint256 amount) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        uint256 lockedBalance = s.lockedBalances[_accountId][_tokenId];
+        uint256 internalBalance = s.tokenBalances[_tokenId][_accountId];
+        return internalBalance - lockedBalance;
     }
 
     function _totalDividends(bytes32 _tokenId, bytes32 _dividendDenominationId) internal view returns (uint256) {
