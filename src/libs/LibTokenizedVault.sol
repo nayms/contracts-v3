@@ -189,7 +189,7 @@ library LibTokenizedVault {
         if (withdrawableDividend > 0) {
             // Bump the withdrawn dividends for the owner
             /// Special Case: (_tokenId == _dividendTokenId), i.e distributing accrued interest for rebasing coins like USDM
-            /// withdrawnDividendPerOwner should be adjusted before tha update, so that the user cannot claim additional dividend based on the amount he just received as dividend
+            /// withdrawnDividendPerOwner should be adjusted before the update, so that the user cannot claim additional dividend based on the amount he just received as dividend
             /// dividend is calculated based on a ratio between users balance and the total, but in this case claiming the dividend his balance increases and
             /// thus his share of the total increases as well, which entitles him to claim more of the dividend, potentially draining out the entirety of it if repeated infinitely
             if (_tokenId == _dividendTokenId) {

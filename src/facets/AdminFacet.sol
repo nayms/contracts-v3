@@ -161,6 +161,7 @@ contract AdminFacet is Modifiers {
      * @param _userAddress Address being approved to onboard
      * @param _entityId Entity ID being approved for onboarding
      * @param _roleId Role being apprved for onboarding
+     * @return Onboarding approval digest
      */
     function getOnboardingHash(address _userAddress, bytes32 _entityId, bytes32 _roleId) external view returns (bytes32) {
         return LibAdmin._getOnboardingHash(_userAddress, _entityId, _roleId);
