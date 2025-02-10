@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import { AppStorage, FunctionLockedStorage, LibAppStorage } from "../shared/AppStorage.sol";
+import { AppStorage, LibAppStorage } from "../shared/AppStorage.sol";
 import { LibConstants as LC } from "./LibConstants.sol";
 import { LibHelpers } from "./LibHelpers.sol";
 import { LibAdmin } from "./LibAdmin.sol";
