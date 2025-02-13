@@ -3,7 +3,6 @@ pragma solidity 0.8.20;
 
 import { Modifiers } from "../shared/Modifiers.sol";
 import { LibConstants as LC } from "../libs/LibConstants.sol";
-import { LibHelpers } from "../libs/LibHelpers.sol";
 import { LibTokenizedVault } from "../libs/LibTokenizedVault.sol";
 import { LibObject } from "../libs/LibObject.sol";
 import { LibEntity } from "../libs/LibEntity.sol";
@@ -176,10 +175,20 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         return LibTokenizedVault._totalDividends(_tokenId, _dividendDenominationId);
     }
 
+    /**
+     * @notice Get the unclaimed accrued rebasing interest
+     * @param _tokenId Rebasing token ID
+     */
     function accruedInterest(bytes32 _tokenId) external view returns (uint256) {
         return LibTokenizedVault._accruedInterest(_tokenId);
     }
 
+    /**
+     * @notice Distribute the accrued interest as dividends
+     * @param _tokenId Rebasing token ID
+     * @param _amount Amount to distribute
+     * @param _guid The ID of the dividend token that the dividends were paid in.
+     */
     function distributeAccruedInterest(bytes32 _tokenId, uint256 _amount, bytes32 _guid) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         // The _claimRebasingInterest method verifies the token is valid, and that there is available interest.
         // No need to do it again.
