@@ -784,16 +784,6 @@
         }
       },
       {
-        "name": "DividendPatchInitDiamond",
-        "fullyQualifiedName": "DividendPatchInitDiamond.sol:DividendPatchInitDiamond",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x17a152291b7374301cc5e0426c36599e6b2eb23e3cc6e8345aa16cb3d660c826",
-        "onChain": {
-          "address": "0x3A72600F8e18AC7aa8c721108421a0Be7B810de6",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "PhasedDiamondCutFacet",
         "fullyQualifiedName": "PhasedDiamondCutFacet.sol:PhasedDiamondCutFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
