@@ -196,6 +196,11 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
         LibTokenizedVault._payDividend(_guid, LibAdmin._getSystemId(), _tokenId, _tokenId, _amount);
     }
 
+    /**
+     * @notice Claim the rebased interest to the system ID
+     * @param _tokenId Rebasing token ID
+     * @param _amount Amount to distribute
+     */
     function claimRebasingInterest(bytes32 _tokenId, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
         LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
     }
