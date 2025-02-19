@@ -657,9 +657,9 @@
         "name": "TokenizedVaultFacet",
         "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x30faef9d22c5d4d5d863e2b661c3c74203d0b55b57a4d570c42578f87f9629e0",
+        "txHash": "0x98ffedf86dc468c6c8a5e3566555943cb7871ef22903091989357d4b842a019f",
         "onChain": {
-          "address": "0x483B1f0ae57DF80604C8b025B34c610dC5820ca8",
+          "address": "0x42f5E416E03c956D48BFc2baE4AC1AED13BD2e8B",
           "constructorArgs": []
         }
       },
