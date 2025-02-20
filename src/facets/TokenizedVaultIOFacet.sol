@@ -53,7 +53,7 @@ contract TokenizedVaultIOFacet is Modifiers, ReentrancyGuard {
         address _receiver,
         address _externalTokenAddress,
         uint256 _amount
-    ) external notLocked nonReentrant assertPrivilege(LibObject._getParentFromAddress(msg.sender), LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY) {
+    ) external notLocked nonReentrant assertPrivilege(_entityId, LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY) {
         if (!LibACL._hasGroupPrivilege(LibHelpers._getIdForAddress(_receiver), _entityId, LibHelpers._stringToBytes32(LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY)))
             revert ExternalWithdrawInvalidReceiver(_receiver);
         LibTokenizedVaultIO._externalWithdraw(_entityId, _receiver, _externalTokenAddress, _amount);
