@@ -657,9 +657,19 @@
         "name": "TokenizedVaultFacet",
         "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x98ffedf86dc468c6c8a5e3566555943cb7871ef22903091989357d4b842a019f",
+        "txHash": "0x74601c9f62e0aae5d35b20f0d43e65d3fce8bd53c643e56be253205abc5f49f9",
         "onChain": {
-          "address": "0x42f5E416E03c956D48BFc2baE4AC1AED13BD2e8B",
+          "address": "0xF2a003c4e86d00C90f58150993c92Cf3Cb48684E",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x30fbfe00293ba0cb84221ab9621e26f876aac76fe637dd824e27d04ec0632c95",
+        "onChain": {
+          "address": "0xE62d440d48Cf455BF90e16876604b7Ba46dd934a",
           "constructorArgs": []
         }
       },
@@ -754,16 +764,6 @@
         }
       },
       {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x20dd07932efd05730da9a352d494360178c1c0df1433d6319c0d2c1c981127a3",
-        "onChain": {
-          "address": "0xdACa799709dA021134c7143C75FC7e3Fa9627427",
-          "constructorArgs": []
-        }
-      },
-      {
         "name": "UserFacet",
         "fullyQualifiedName": "UserFacet.sol:UserFacet",
         "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
@@ -833,6 +833,26 @@
   "base": {
     "chainId": 8453,
     "contracts": [
+      {
+        "name": "TokenizedVaultFacet",
+        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0x194f1bfe4d9c1b84b75a9aa0a7be47a2f66d6b6abee2b9d52f7e6406967eeafc",
+        "onChain": {
+          "address": "0xEB0E8aCCe947A7688782305543d15f8Cb42c1041",
+          "constructorArgs": []
+        }
+      },
+      {
+        "name": "TokenizedVaultIOFacet",
+        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
+        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
+        "txHash": "0xfebc34d78559828797ed47aeb99bce9a40712b0abb598b8bca9186fa906e6f2b",
+        "onChain": {
+          "address": "0xf680AB32DF25618361A7423E59f2B7e6f200d2Fe",
+          "constructorArgs": []
+        }
+      },
       {
         "name": "ACLFacet",
         "fullyQualifiedName": "ACLFacet.sol:ACLFacet",
@@ -920,26 +940,6 @@
         "txHash": "0x53f8155dc67dd5dc51ed58cff9dccc2f520a3a1f16cd4a780bb1953e5a42f3cd",
         "onChain": {
           "address": "0xc250018c6E9162241333d5e2853eEc1a964AB2B0",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultFacet",
-        "fullyQualifiedName": "TokenizedVaultFacet.sol:TokenizedVaultFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0xb8c9ca43dae92b5d36a0b46781b896d7418b9faf73f4c55f8bc421fec1048779",
-        "onChain": {
-          "address": "0x0B7ee1A088638DF9bC200d5eE1156ef14bc5aA82",
-          "constructorArgs": []
-        }
-      },
-      {
-        "name": "TokenizedVaultIOFacet",
-        "fullyQualifiedName": "TokenizedVaultIOFacet.sol:TokenizedVaultIOFacet",
-        "sender": "0xd5c10a9a09B072506C7f062E4f313Af29AdD9904",
-        "txHash": "0x6967b45c89eab660dea22e961de1b898186de35f8ffc7a58ace6ac6115352653",
-        "onChain": {
-          "address": "0x8A07328C06f0cC0eC2A6717bAcE51dABE27567c2",
           "constructorArgs": []
         }
       },
