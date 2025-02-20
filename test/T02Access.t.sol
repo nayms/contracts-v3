@@ -149,20 +149,19 @@ contract T02Access is D03ProtocolDefaults {
         changePrank(ea);
         writeTokenBalance(ea.addr, naymsAddress, wethAddress, 1 ether);
         nayms.externalDeposit(wethAddress, 1 ether); // deposit 100 weth into ea's parent (sm.entityId)
-        // Withdrawing from the entity sm.entityId
         nayms.externalWithdrawFromEntity(sm.entityId, ea.addr, wethAddress, 100);
 
         changePrank(cc);
         writeTokenBalance(cc.addr, naymsAddress, wethAddress, 1 ether);
-        vm.expectRevert(); // Invalid group privilege
         nayms.externalWithdrawFromEntity(sm.entityId, cc.addr, wethAddress, 100);
 
         changePrank(sm);
-        nayms.setEntity(cc.id, sm.entityId); // User's parent must be set to the entity to deposit and withdraw from it
-        changePrank(cc);
-        nayms.externalWithdrawFromEntity(sm.entityId, cc.addr, wethAddress, 100);
+        hCreateEntity(ts.entityId, ts.id, entity, "entity test hash");
+        changePrank(sa);
+        hAssignRole(ts.id, ts.entityId, LC.ROLE_ENTITY_ADMIN);
 
-        vm.expectRevert(abi.encodeWithSelector(ExternalWithdrawInvalidReceiver.selector, sm.addr));
+        changePrank(ts);
+        vm.expectRevert(abi.encodeWithSelector(InvalidGroupPrivilege.selector, ts.id, sm.entityId, "", LC.GROUP_EXTERNAL_WITHDRAW_FROM_ENTITY));
         nayms.externalWithdrawFromEntity(sm.entityId, sm.addr, wethAddress, 100); // Invalid receiver sm.addr
     }
 
