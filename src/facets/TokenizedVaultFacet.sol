@@ -192,16 +192,16 @@ contract TokenizedVaultFacet is Modifiers, ReentrancyGuard {
     function distributeAccruedInterest(bytes32 _tokenId, uint256 _amount, bytes32 _guid) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_MANAGERS) {
         // The _claimRebasingInterest method verifies the token is valid, and that there is available interest.
         // No need to do it again.
-        LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
+        LibTokenizedVault._claimRebasedInterest(_tokenId, _amount);
         LibTokenizedVault._payDividend(_guid, LibAdmin._getSystemId(), _tokenId, _tokenId, _amount);
     }
 
     /**
-     * @notice Claim the rebased interest to the system ID
+     * @notice Claim the rebasing interest to the system ID
      * @param _tokenId Rebasing token ID
      * @param _amount Amount to distribute
      */
-    function claimRebasingInterest(bytes32 _tokenId, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
-        LibTokenizedVault._claimRebasingInterest(_tokenId, _amount);
+    function claimRebasedInterest(bytes32 _tokenId, uint256 _amount) external assertPrivilege(LibAdmin._getSystemId(), LC.GROUP_SYSTEM_ADMINS) {
+        LibTokenizedVault._claimRebasedInterest(_tokenId, _amount);
     }
 }
