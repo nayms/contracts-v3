@@ -325,7 +325,7 @@ library LibTokenizedVault {
         return total - depositTotal;
     }
 
-    function _claimRebasingInterest(bytes32 _tokenId, uint256 _amount) internal {
+    function _claimRebasedInterest(bytes32 _tokenId, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
 
         if (s.tokenSupply[_tokenId] == 0) {
